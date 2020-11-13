@@ -112,6 +112,8 @@
 <span id="111">111</span>
 <span id="112">112</span>
 <span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">child_to_reader</span>,
@@ -136,6 +138,8 @@
 };
 
 <span class="doccomment">/// Creates a streamed audio source with `youtube-dl` and `ffmpeg`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Uses `youtube-dlc` if the `youtube-dlc` feature is enabled.</span>
 <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">ytdl</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
     <span class="ident">_ytdl</span>(<span class="ident">uri</span>, <span class="kw-2">&amp;</span>[]).<span class="ident">await</span>
 }
@@ -221,7 +225,7 @@
     ))
 }
 
-<span class="doccomment">/// Creates a streamed audio source from YouTube search results with `youtube-dl`,`ffmpeg`, and `ytsearch`.</span>
+<span class="doccomment">/// Creates a streamed audio source from YouTube search results with `youtube-dl(c)`,`ffmpeg`, and `ytsearch`.</span>
 <span class="doccomment">/// Takes the first video listed from the YouTube search.</span>
 <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
     <span class="ident">ytdl</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>)).<span class="ident">await</span>
