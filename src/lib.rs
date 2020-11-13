@@ -1,6 +1,6 @@
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/FelixMcFelix/serenity/voice-rework/songbird/songbird.png",
-    html_favicon_url = "https://raw.githubusercontent.com/FelixMcFelix/serenity/voice-rework/songbird/songbird-ico.png"
+    html_logo_url = "https://raw.githubusercontent.com/serenity-rs/songbird/master/songbird.png",
+    html_favicon_url = "https://raw.githubusercontent.com/serenity-rs/songbird/master/songbird-ico.png"
 )]
 #![deny(missing_docs)]
 //! ![project logo][logo]
@@ -21,18 +21,17 @@
 //! Songbird's gateway functionality requires you to specify the `GUILD_VOICE_STATES` intent.
 //!
 //! ## Examples
-//! Full examples showing various types of functionality and integrations can be found as part of [serenity's examples],
-//! and in [this crate's examples directory].
+//! Full examples showing various types of functionality and integrations can be found
+//! in [this crate's examples directory].
 //!
 //! ## Attribution
 //!
 //! Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"] by George Gorgas White.
 //!
-//! [logo]: https://raw.githubusercontent.com/FelixMcFelix/serenity/voice-rework/songbird/songbird.png
+//! [logo]: https://github.com/serenity-rs/songbird/raw/master/songbird.png
 //! [serenity]: https://github.com/serenity-rs/serenity
 //! [twilight]: https://github.com/twilight-rs/twilight
-//! [serenity's examples]: https://github.com/serenity-rs/serenity/tree/current/examples
-//! [this crate's examples directory]: https://github.com/serenity-rs/serenity/tree/current/songbird/examples
+//! [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
 //! ["Black-Capped Chickadee"]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
 //! [`ConnectionInfo`]: struct.ConnectionInfo.html
 //! [lavalink]: https://github.com/Frederikam/Lavalink
