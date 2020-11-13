@@ -1,5 +1,5 @@
 [package]
-name = "basic-twilight-bot"
+name = "twilight"
 version = "0.1.0"
 authors = ["Twilight and Serenity Contributors"]
 edition = "2018"

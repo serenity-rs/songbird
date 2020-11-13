@@ -1,0 +1,181 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v2
+    - name: Install toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        components: rustfmt clippy
+        override: true
+    - name: Rustfmt
+      run: cargo +nightly fmt --all -- --check
+    - name: Clippy
+      uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --all-features
+
+  test:
+    name: Test
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - stable
+          - beta
+          - nightly
+          - macOS
+          - Windows
+          - driver only
+          - gateway only
+
+        include:
+          - name: beta
+            toolchain: beta
+          - name: nightly
+            toolchain: nightly
+          - name: macOS
+            os: macOS-latest
+          - name: Windows
+            os: windows-latest
+          - name: driver only
+            features: driver
+          - name: gateway only
+            features: serenity-rustls
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        id: tc
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain || 'stable' }}
+          profile: minimal
+          override: true
+
+      - name: Install dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopus-dev
+
+      - name: Setup cache
+        if: runner.os != 'macOS'
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-test-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Build all features
+        if: matrix.features == ''
+        run: cargo build --all-features
+
+      - name: Test all features
+        if: matrix.features == ''
+        run: cargo test --all-features
+
+      - name: Build some features
+        if: matrix.features
+        run: cargo build --no-default-features --features "${{ matrix.features }}"
+
+      - name: Test some features
+        if: matrix.features
+        run: cargo test --no-default-features --features "${{ matrix.features }}"
+
+  doc:
+    name: Build docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        id: tc
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          override: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopus-dev
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-docs-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Build docs
+        env:
+          RUSTDOCFLAGS: -D broken_intra_doc_links
+        run: |
+          cargo doc --no-deps --features collector,voice
+          cargo doc --no-deps -p command_attr
+
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        id: tc
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopus-dev
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            examples/target
+          key: ${{ runner.os }}-examples-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: 'Build serenity/voice'
+        working-directory: examples
+        run: cargo build -p voice
+      - name: 'Build serenity/voice_events_queue'
+        working-directory: examples
+        run: cargo build -p voice_events_queue
+      - name: 'Build serenity/voice_receive'
+        working-directory: examples
+        run: cargo build -p voice_receive
+      - name: 'Build serenity/voice_storage'
+        working-directory: examples
+        run: cargo build -p voice_storage
+      - name: 'Build twilight'
+        working-directory: examples
+        run: cargo build -p twilight

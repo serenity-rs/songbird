@@ -1,3 +1,5 @@
+[![docs-badge][]][docs] [![build badge]][build]
+
 # Songbird
 
 ![](songbird.png)
@@ -29,3 +31,9 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 ["Black-Capped Chickadee"]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
 [lavalink]: https://github.com/Frederikam/Lavalink
 [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
+
+[build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/Build%20and%20Test%20(Stable)?style=flat-square
+[build]: https://github.com/serenity-rs/songbird/actions
+
+[docs-badge]: https://img.shields.io/badge/docs-online-4d76ae.svg?style=flat-square
+[docs]: https://serenity-rs.github.io/songbird/current
