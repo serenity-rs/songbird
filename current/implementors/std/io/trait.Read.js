@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["songbird"] = [{"text":"impl Read for ChildContainer","synthetic":false,"types":[]},{"text":"impl Read for Reader","synthetic":false,"types":[]},{"text":"impl Read for dyn ReadSeek","synthetic":false,"types":[]},{"text":"impl Read for Restartable","synthetic":false,"types":[]},{"text":"impl Read for Input","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

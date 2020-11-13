@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["songbird"] = [{"text":"impl Hash for CoreEvent","synthetic":false,"types":[]},{"text":"impl Hash for TrackEvent","synthetic":false,"types":[]},{"text":"impl Hash for UntimedEvent","synthetic":false,"types":[]},{"text":"impl Hash for Event","synthetic":false,"types":[]},{"text":"impl Hash for ChannelId","synthetic":false,"types":[]},{"text":"impl Hash for GuildId","synthetic":false,"types":[]},{"text":"impl Hash for UserId","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

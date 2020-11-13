@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Codec","State used to decode input bytes of an `Input`."],["CodecType","Type of data being passed into an `Input`."]],"struct":[["OpusDecoderState","Inner state"]]});
