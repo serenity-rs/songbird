@@ -137,6 +137,7 @@ driver = [
     "url",
     "xsalsa20poly1305",
 ]
+youtube-dlc = []
 rustls = ["async-tungstenite/tokio-rustls"]
 native = ["async-tungstenite/tokio-native-tls"]
 serenity-rustls = ["serenity/rustls_backend", "rustls", "gateway", "serenity-deps"]

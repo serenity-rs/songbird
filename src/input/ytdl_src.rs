@@ -14,6 +14,12 @@ use std::{
 use tokio::task;
 use tracing::trace;
 
+const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
+    "youtube-dlc"
+} else {
+    "youtube-dl"
+};
+
 /// Creates a streamed audio source with `youtube-dl` and `ffmpeg`.
 pub async fn ytdl(uri: &str) -> Result<Input> {
     _ytdl(uri, &[]).await
@@ -45,7 +51,7 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
         "-",
     ];
 
-    let mut youtube_dl = Command::new("youtube-dl")
+    let mut youtube_dl = Command::new(YOUTUBE_DL_COMMAND)
         .args(&ytdl_args)
         .stdin(Stdio::null())
         .stderr(Stdio::piped())
