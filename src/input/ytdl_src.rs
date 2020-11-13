@@ -21,6 +21,8 @@ const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
 };
 
 /// Creates a streamed audio source with `youtube-dl` and `ffmpeg`.
+///
+/// Uses `youtube-dlc` if the `youtube-dlc` feature is enabled.
 pub async fn ytdl(uri: &str) -> Result<Input> {
     _ytdl(uri, &[]).await
 }
@@ -106,7 +108,7 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
     ))
 }
 
-/// Creates a streamed audio source from YouTube search results with `youtube-dl`,`ffmpeg`, and `ytsearch`.
+/// Creates a streamed audio source from YouTube search results with `youtube-dl(c)`,`ffmpeg`, and `ytsearch`.
 /// Takes the first video listed from the YouTube search.
 pub async fn ytdl_search(name: &str) -> Result<Input> {
     ytdl(&format!("ytsearch1:{}", name)).await
