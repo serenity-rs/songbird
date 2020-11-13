@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Reader","Usable data/byte sources for an audio stream."]],"trait":[["ReadSeek","Fusion trait for custom input sources which allow seeking."]]});
