@@ -1,10 +1,7 @@
 use super::{
     child_to_reader,
     error::{Error, Result},
-    Codec,
-    Container,
-    Input,
-    Metadata,
+    Codec, Container, Input, Metadata,
 };
 use serde_json::Value;
 use std::{
@@ -14,13 +11,13 @@ use std::{
 use tokio::task;
 use tracing::trace;
 
-#[cfg(feature = "youtube-dl")]
-const YOUTUBE_DL_COMMAND: &str = "youtube-dl";
-#[cfg(feature = "youtube-dlc")]
-const YOUTUBE_DL_COMMAND: &str = "youtube-dlc";
+const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
+    "youtube-dlc"
+} else {
+    "youtube-dl"
+};
 
 /// Creates a streamed audio source with `youtube-dl` and `ffmpeg`.
-#[cfg(any(feature = "youtube-dl", feature = "youtube-dlc"))]
 pub async fn ytdl(uri: &str) -> Result<Input> {
     _ytdl(uri, &[]).await
 }
@@ -108,7 +105,6 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
 
 /// Creates a streamed audio source from YouTube search results with `youtube-dl`,`ffmpeg`, and `ytsearch`.
 /// Takes the first video listed from the YouTube search.
-#[cfg(any(feature = "youtube-dl", feature = "youtube-dlc"))]
 pub async fn ytdl_search(name: &str) -> Result<Input> {
     ytdl(&format!("ytsearch1:{}", name)).await
 }
