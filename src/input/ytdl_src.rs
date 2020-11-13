@@ -1,7 +1,10 @@
 use super::{
     child_to_reader,
     error::{Error, Result},
-    Codec, Container, Input, Metadata,
+    Codec,
+    Container,
+    Input,
+    Metadata,
 };
 use serde_json::Value;
 use std::{
