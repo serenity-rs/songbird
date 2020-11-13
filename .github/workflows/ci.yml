@@ -14,7 +14,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
-        components: rustfmt clippy
+        components: rustfmt, clippy
         override: true
     - name: Rustfmt
       run: cargo +nightly fmt --all -- --check
@@ -50,7 +50,7 @@ jobs:
           - name: Windows
             os: windows-latest
           - name: driver only
-            features: driver
+            features: driver rustls
           - name: gateway only
             features: serenity-rustls
 
@@ -131,8 +131,7 @@ jobs:
         env:
           RUSTDOCFLAGS: -D broken_intra_doc_links
         run: |
-          cargo doc --no-deps --features collector,voice
-          cargo doc --no-deps -p command_attr
+          cargo doc --no-deps --all-features
 
   examples:
     name: Examples

@@ -49,7 +49,7 @@ jobs:
           DIR=${GITHUB_REF/refs\/+(heads|tags)\//}
           mkdir -p ./docs/$DIR
           touch ./docs/.nojekyll
-          echo '<meta http-equiv="refresh" content="0;url=serenity/index.html">' > ./docs/$DIR/index.html
+          echo '<meta http-equiv="refresh" content="0;url=songbird/index.html">' > ./docs/$DIR/index.html
           mv ./target/doc/* ./docs/$DIR/
 
       - name: Deploy docs

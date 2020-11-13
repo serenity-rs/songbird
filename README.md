@@ -32,7 +32,9 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [lavalink]: https://github.com/Frederikam/Lavalink
 [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
 
-[build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/Build%20and%20Test%20(Stable)?style=flat-square
+https://github.com/serenity-rs/songbird/actions/runs/362160207
+
+[build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/CI?style=flat-square
 [build]: https://github.com/serenity-rs/songbird/actions
 
 [docs-badge]: https://img.shields.io/badge/docs-online-4d76ae.svg?style=flat-square

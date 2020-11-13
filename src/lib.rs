@@ -1,6 +1,6 @@
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/serenity-rs/songbird/master/songbird.png",
-    html_favicon_url = "https://raw.githubusercontent.com/serenity-rs/songbird/master/songbird-ico.png"
+    html_logo_url = "https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png",
+    html_favicon_url = "https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"
 )]
 #![deny(missing_docs)]
 //! ![project logo][logo]
@@ -28,7 +28,7 @@
 //!
 //! Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"] by George Gorgas White.
 //!
-//! [logo]: https://github.com/serenity-rs/songbird/raw/master/songbird.png
+//! [logo]: https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png
 //! [serenity]: https://github.com/serenity-rs/serenity
 //! [twilight]: https://github.com/twilight-rs/twilight
 //! [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
