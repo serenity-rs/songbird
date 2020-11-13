@@ -18,7 +18,7 @@ The library offers:
 Songbird's gateway functionality requires you to specify the `GUILD_VOICE_STATES` intent.
 
 ## Examples
-Full examples showing various types of functionality and integrations can be found as part of [serenity's examples], and in [this crate's examples directory].
+Full examples showing various types of functionality and integrations can be found in [this crate's examples directory].
 
 ## Attribution
 
@@ -28,5 +28,4 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [twilight]: https://github.com/twilight-rs/twilight
 ["Black-Capped Chickadee"]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
 [lavalink]: https://github.com/Frederikam/Lavalink
-[serenity's examples]: https://github.com/serenity-rs/serenity/tree/current/examples
-[this crate's examples directory]: https://github.com/serenity-rs/serenity/tree/current/songbird/examples
+[this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/master/examples
