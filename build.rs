@@ -20,4 +20,13 @@ compile_error!(
     If you are unsure, go with `stock-zlib`."
 );
 
+#[cfg(all(feature = "youtube-dl", feature = "youtube-dlc"))]
+compile_error!(
+    "Only youtube-dl or youtube-dlc can be selected \
+    - `youtube-dl` is the standard downloading tool of youtube videos \
+    - `youtube-dlc` is a fork of youtube-dl that aims to solve bugs with youtube-dl \
+    If you are unsure, go with `youtube-dl`, however, if you encounter any errors with `youtube-dl`,
+    such as tracks ending immedietly when they are queued/played, try 'youtube-dlc'."
+);
+
 fn main() {}
