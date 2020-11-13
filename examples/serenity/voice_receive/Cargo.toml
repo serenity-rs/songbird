@@ -1,0 +1,21 @@
+[package]
+name = "voice_receive"
+version = "0.1.0"
+authors = ["my name <my@email.address>"]
+edition = "2018"
+
+[dependencies]
+env_logger = "~0.6"
+log = "~0.4"
+
+[dependencies.songbird]
+path = "../../../"
+
+[dependencies.serenity]
+features = ["client", "standard_framework", "voice", "rustls_backend"]
+git = "https://github.com/serenity-rs/serenity"
+branch = "current"
+
+[dependencies.tokio]
+version = "0.2"
+features = ["macros"]
