@@ -24,9 +24,10 @@ Songbird's gateway functionality requires you to specify the `GUILD_VOICE_STATES
 Songbird needs a few system dependencies before you can use it.
 
 - Opus - Audio codec that Discord uses.
-You can install the library with `apt install libopus-dev` on Ubuntu or `pacman -S opus` on Arch Linux.
-If you do not have it installed it will be built for you. However, you will need a C compiler and the GNU autotools installed.
-Again, these can be installed with `apt insall build-essential autoconf automake libtool m4` on Ubuntu or `pacman -S base-devel` on Arch Linux.
+If you are on Windows, a prebuilt DLL is provided for you, you do not have to do anything. On other platforms, you will have to install it.
+You can install the library with `apt install libopus-dev` on Ubuntu or `pacman -S opus` on Arch Linux. If you do not have it installed it will be built for you.
+However, you will need a C compiler and the GNU autotools installed. Again, these can be installed with `apt install build-essential autoconf automake libtool m4` on Ubuntu
+or `pacman -S base-devel` on Arch Linux.
 
 This is a required dependency. Songbird cannot work without it.
 
