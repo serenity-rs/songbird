@@ -94,6 +94,11 @@ default-features = false
 optional = true
 version = "2"
 
+[dependencies.uuid]
+optional = true
+version = "0.8"
+features = ["v4"]
+
 [dependencies.xsalsa20poly1305]
 optional = true
 version = "0.6"
@@ -135,9 +140,9 @@ driver = [
     "tokio/sync",
     "tokio/time",
     "url",
+    "uuid",
     "xsalsa20poly1305",
 ]
-youtube-dlc = []
 rustls = ["async-tungstenite/tokio-rustls"]
 native = ["async-tungstenite/tokio-native-tls"]
 serenity-rustls = ["serenity/rustls_backend", "rustls", "gateway", "serenity-deps"]
@@ -148,6 +153,9 @@ twilight = ["twilight-model"]
 simd-zlib = ["twilight-gateway/simd-zlib"]
 stock-zlib = ["twilight-gateway/stock-zlib"]
 serenity-deps = ["async-trait"]
+
+youtube-dlc = []
+builtin-queue = []
 
 [[bench]]
 name = "mixing"
