@@ -14,7 +14,7 @@ path = "../../../"
 [dependencies.serenity]
 features = ["client", "standard_framework", "voice", "rustls_backend"]
 git = "https://github.com/serenity-rs/serenity"
-branch = "current"
+branch = "next"
 
 [dependencies.tokio]
 version = "0.2"
