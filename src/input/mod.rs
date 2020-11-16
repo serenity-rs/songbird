@@ -151,7 +151,8 @@ impl Input {
     /// Mixes the output of this stream into a 20ms stereo audio buffer.
     #[inline]
     pub fn mix(&mut self, float_buffer: &mut [f32; STEREO_FRAME_SIZE], volume: f32) -> usize {
-        self.add_float_pcm_frame(float_buffer, self.stereo, volume).unwrap_or(0)
+        self.add_float_pcm_frame(float_buffer, self.stereo, volume)
+            .unwrap_or(0)
     }
 
     /// Seeks the stream to the given time, if possible.
