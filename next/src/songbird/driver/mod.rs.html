@@ -241,6 +241,51 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Runner for a voice connection.</span>
 <span class="doccomment">//!</span>
@@ -263,10 +308,12 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crypto</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">decode_mode</span>::<span class="ident">DecodeMode</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">tracks</span>::<span class="ident">TrackQueue</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events</span>::<span class="ident">EventData</span>,
     <span class="ident">input</span>::<span class="ident">Input</span>,
-    <span class="ident">tracks</span>::{<span class="ident">Track</span>, <span class="ident">TrackHandle</span>},
+    <span class="ident">tracks</span>::{<span class="self">self</span>, <span class="ident">Track</span>, <span class="ident">TrackHandle</span>},
     <span class="ident">ConnectionInfo</span>,
     <span class="ident">Event</span>,
     <span class="ident">EventHandler</span>,
@@ -278,11 +325,16 @@
 
 <span class="doccomment">/// The control object for a Discord voice connection, handling connection,</span>
 <span class="doccomment">/// mixing, encoding, en/decryption, and event generation.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// When compiled with the `&quot;builtin-queue&quot;` feature, each driver includes a track queue</span>
+<span class="doccomment">/// as a convenience to prevent the additional overhead of per-guild state management.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Driver</span> {
     <span class="ident">config</span>: <span class="ident">Config</span>,
     <span class="ident">self_mute</span>: <span class="ident">bool</span>,
     <span class="ident">sender</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+    <span class="ident">queue</span>: <span class="ident">TrackQueue</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Driver</span> {
@@ -297,6 +349,8 @@
             <span class="ident">config</span>,
             <span class="ident">self_mute</span>: <span class="bool-val">false</span>,
             <span class="ident">sender</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+            <span class="ident">queue</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
         }
     }
 
@@ -467,6 +521,42 @@
 
             <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">status</span>).<span class="ident">unwrap</span>();
         }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">Driver</span> {
+    <span class="doccomment">/// Returns a reference to this driver&#39;s built-in queue.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires the `&quot;builtin-queue&quot;` feature.</span>
+    <span class="doccomment">/// Queue additions should be made via [`enqueue`] and</span>
+    <span class="doccomment">/// [`enqueue_source`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`enqueue`]: #method.enqueue</span>
+    <span class="doccomment">/// [`enqueue_source`]: #method.enqueue_source</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">queue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">TrackQueue</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">queue</span>
+    }
+
+    <span class="doccomment">/// Adds an audio [`Input`] to this driver&#39;s built-in queue.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires the `&quot;builtin-queue&quot;` feature.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Input`]: ../input/struct.input.html</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enqueue_source</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>) {
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">track</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tracks</span>::<span class="ident">create_player</span>(<span class="ident">source</span>);
+        <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">add_raw</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">track</span>);
+        <span class="self">self</span>.<span class="ident">play</span>(<span class="ident">track</span>);
+    }
+
+    <span class="doccomment">/// Adds an existing [`Track`] to this driver&#39;s built-in queue.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires the `&quot;builtin-queue&quot;` feature.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Track`]: ../tracks/struct.track.html</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enqueue</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">track</span>: <span class="ident">Track</span>) {
+        <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">add_raw</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">track</span>);
+        <span class="self">self</span>.<span class="ident">play</span>(<span class="ident">track</span>);
     }
 }
 
