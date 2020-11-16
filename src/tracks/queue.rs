@@ -6,15 +6,17 @@ use crate::{
 };
 use async_trait::async_trait;
 use parking_lot::Mutex;
-use std::{collections::VecDeque, sync::Arc};
+use std::{collections::VecDeque, ops::Deref, sync::Arc};
 use tracing::{info, warn};
 
-#[derive(Default)]
 /// A simple queue for several audio sources, designed to
 /// play in sequence.
 ///
 /// This makes use of [`TrackEvent`]s to determine when the current
 /// song or audio file has finished before playing the next entry.
+///
+/// One of these is automatically included via [`Driver::queue`] when
+/// the `"builtin-queue"` feature is enabled.
 ///
 /// `examples/serenity/voice_events_queue` demonstrates how a user might manage,
 /// track and use this to run a song queue in many guilds in parallel.
@@ -50,15 +52,37 @@ use tracing::{info, warn};
 /// queue.add_source(source, &mut driver);
 /// # };
 /// ```
-
 ///
 /// [`TrackEvent`]: ../events/enum.TrackEvent.html
+/// [`Driver::queue`]: ../driver/struct.Driver.html#method.queue
+#[derive(Clone, Debug, Default)]
 pub struct TrackQueue {
     // NOTE: the choice of a parking lot mutex is quite deliberate
     inner: Arc<Mutex<TrackQueueCore>>,
 }
 
-#[derive(Default)]
+/// Reference to a track which is known to be part of a queue.
+///
+/// Instances *should not* be moved from one queue to another.
+#[derive(Debug)]
+pub struct Queued(TrackHandle);
+
+impl Deref for Queued {
+    type Target = TrackHandle;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Queued {
+    /// Clones the inner handle
+    pub fn handle(&self) -> TrackHandle {
+        self.0.clone()
+    }
+}
+
+#[derive(Debug, Default)]
 /// Inner portion of a [`TrackQueue`].
 ///
 /// This abstracts away thread-safety from the user,
@@ -66,7 +90,7 @@ pub struct TrackQueue {
 ///
 /// [`TrackQueue`]: struct.TrackQueue.html
 struct TrackQueueCore {
-    tracks: VecDeque<TrackHandle>,
+    tracks: VecDeque<Queued>,
 }
 
 struct QueueHandler {
@@ -77,13 +101,33 @@ struct QueueHandler {
 impl EventHandler for QueueHandler {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
         let mut inner = self.remote_lock.lock();
+
+        // Due to possibility that users might remove, reorder,
+        // or dequeue+stop tracks, we need to verify that the FIRST
+        // track is the one who has ended.
+        let front_ended = match ctx {
+            EventContext::Track(ts) => {
+                // This slice should have exactly one entry.
+                // If the ended track has same id as the queue head, then
+                // we can progress the queue.
+                let queue_uuid = inner.tracks.front().map(|handle| handle.uuid());
+                let ended_uuid = ts.first().map(|handle| handle.1.uuid());
+
+                queue_uuid.is_some() && queue_uuid == ended_uuid
+            },
+            _ => false,
+        };
+
+        if !front_ended {
+            return None;
+        }
+
         let _old = inner.tracks.pop_front();
 
         info!("Queued track ended: {:?}.", ctx);
         info!("{} tracks remain.", inner.tracks.len());
 
-        // If any audio files die unexpectedly, then keep going until we
-        // find one which works, or we run out.
+        // Keep going until we find one track which works, or we run out.
         let mut keep_looking = true;
         while keep_looking && !inner.tracks.is_empty() {
             if let Some(new) = inner.tracks.front() {
@@ -113,8 +157,8 @@ impl TrackQueue {
 
     /// Adds an audio source to the queue, to be played in the channel managed by `handler`.
     pub fn add_source(&self, source: Input, handler: &mut Driver) {
-        let (audio, audio_handle) = tracks::create_player(source);
-        self.add(audio, audio_handle, handler);
+        let (audio, _) = tracks::create_player(source);
+        self.add(audio, handler);
     }
 
     /// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.
@@ -124,10 +168,18 @@ impl TrackQueue {
     ///
     /// [`Track`]: struct.Track.html
     /// [`voice::create_player`]: fn.create_player.html
-    pub fn add(&self, mut track: Track, track_handle: TrackHandle, handler: &mut Driver) {
+    pub fn add(&self, mut track: Track, handler: &mut Driver) {
+        self.add_raw(&mut track);
+        handler.play(track);
+    }
+
+    #[inline]
+    pub(crate) fn add_raw(&self, track: &mut Track) {
         info!("Track added to queue.");
         let remote_lock = self.inner.clone();
         let mut inner = self.inner.lock();
+
+        let track_handle = track.handle.clone();
 
         if !inner.tracks.is_empty() {
             track.pause();
@@ -142,8 +194,23 @@ impl TrackQueue {
                 track.position,
             );
 
-        handler.play(track);
-        inner.tracks.push_back(track_handle);
+        inner.tracks.push_back(Queued(track_handle));
+    }
+
+    /// Returns a handle to the currently playing track.
+    pub fn current(&self) -> Option<TrackHandle> {
+        let inner = self.inner.lock();
+
+        inner.tracks.front().map(|h| h.handle())
+    }
+
+    /// Attempts to remove a track from the specified index.
+    ///
+    /// The returned entry can be readded to *this* queue via [`modify_queue`].
+    ///
+    /// [`modify_queue`]: #method.modify_queue
+    pub fn dequeue(&self, index: usize) -> Option<Queued> {
+        self.modify_queue(|vq| vq.remove(index))
     }
 
     /// Returns the number of tracks currently in the queue.
@@ -158,6 +225,18 @@ impl TrackQueue {
         let inner = self.inner.lock();
 
         inner.tracks.is_empty()
+    }
+
+    /// Allows modification of the inner queue (i.e., deletion, reordering).
+    ///
+    /// Users must be careful to `stop` removed tracks, so as to prevent
+    /// resource leaks.
+    pub fn modify_queue<F, O>(&self, func: F) -> O
+    where
+        F: FnOnce(&mut VecDeque<Queued>) -> O,
+    {
+        let mut inner = self.inner.lock();
+        func(&mut inner.tracks)
     }
 
     /// Pause the track at the head of the queue.
@@ -183,14 +262,14 @@ impl TrackQueue {
     }
 
     /// Stop the currently playing track, and clears the queue.
-    pub fn stop(&self) -> TrackResult {
+    pub fn stop(&self) {
         let mut inner = self.inner.lock();
 
-        let out = inner.stop_current();
-
-        inner.tracks.clear();
-
-        out
+        for track in inner.tracks.drain(..) {
+            // Errors when removing tracks don't really make
+            // a difference: an error just implies it's already gone.
+            let _ = track.stop();
+        }
     }
 
     /// Skip to the next track in the queue, if it exists.

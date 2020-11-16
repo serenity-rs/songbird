@@ -5,6 +5,7 @@ use tokio::sync::{
     mpsc::{error::SendError, UnboundedSender},
     oneshot,
 };
+use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 /// Handle for safe control of a [`Track`] track from other threads, outside
@@ -18,6 +19,7 @@ use tokio::sync::{
 pub struct TrackHandle {
     command_channel: UnboundedSender<TrackCommand>,
     seekable: bool,
+    uuid: Uuid,
 }
 
 impl TrackHandle {
@@ -25,10 +27,11 @@ impl TrackHandle {
     /// the underlying [`Input`] supports seek operations.
     ///
     /// [`Input`]: ../input/struct.Input.html
-    pub fn new(command_channel: UnboundedSender<TrackCommand>, seekable: bool) -> Self {
+    pub fn new(command_channel: UnboundedSender<TrackCommand>, seekable: bool, uuid: Uuid) -> Self {
         Self {
             command_channel,
             seekable,
+            uuid,
         }
     }
 
@@ -147,6 +150,11 @@ impl TrackHandle {
         } else {
             Err(SendError(TrackCommand::Loop(LoopState::Finite(count))))
         }
+    }
+
+    /// Returns this handle's (and track's) unique identifier.
+    pub fn uuid(&self) -> Uuid {
+        self.uuid
     }
 
     #[inline]

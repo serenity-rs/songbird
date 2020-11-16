@@ -19,10 +19,12 @@ use connection::error::Result;
 pub use crypto::*;
 pub use decode_mode::DecodeMode;
 
+#[cfg(feature = "builtin-queue")]
+use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,
     input::Input,
-    tracks::{Track, TrackHandle},
+    tracks::{self, Track, TrackHandle},
     ConnectionInfo,
     Event,
     EventHandler,
@@ -34,11 +36,16 @@ use tracing::instrument;
 
 /// The control object for a Discord voice connection, handling connection,
 /// mixing, encoding, en/decryption, and event generation.
+///
+/// When compiled with the `"builtin-queue"` feature, each driver includes a track queue
+/// as a convenience to prevent the additional overhead of per-guild state management.
 #[derive(Clone, Debug)]
 pub struct Driver {
     config: Config,
     self_mute: bool,
     sender: Sender<CoreMessage>,
+    #[cfg(feature = "builtin-queue")]
+    queue: TrackQueue,
 }
 
 impl Driver {
@@ -53,6 +60,8 @@ impl Driver {
             config,
             self_mute: false,
             sender,
+            #[cfg(feature = "builtin-queue")]
+            queue: Default::default(),
         }
     }
 
@@ -223,6 +232,42 @@ impl Driver {
 
             self.sender.send(status).unwrap();
         }
+    }
+}
+
+#[cfg(feature = "builtin-queue")]
+impl Driver {
+    /// Returns a reference to this driver's built-in queue.
+    ///
+    /// Requires the `"builtin-queue"` feature.
+    /// Queue additions should be made via [`enqueue`] and
+    /// [`enqueue_source`].
+    ///
+    /// [`enqueue`]: #method.enqueue
+    /// [`enqueue_source`]: #method.enqueue_source
+    pub fn queue(&self) -> &TrackQueue {
+        &self.queue
+    }
+
+    /// Adds an audio [`Input`] to this driver's built-in queue.
+    ///
+    /// Requires the `"builtin-queue"` feature.
+    ///
+    /// [`Input`]: ../input/struct.input.html
+    pub fn enqueue_source(&mut self, source: Input) {
+        let (mut track, _) = tracks::create_player(source);
+        self.queue.add_raw(&mut track);
+        self.play(track);
+    }
+
+    /// Adds an existing [`Track`] to this driver's built-in queue.
+    ///
+    /// Requires the `"builtin-queue"` feature.
+    ///
+    /// [`Track`]: ../tracks/struct.track.html
+    pub fn enqueue(&mut self, mut track: Track) {
+        self.queue.add_raw(&mut track);
+        self.play(track);
     }
 }
 

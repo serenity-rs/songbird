@@ -33,6 +33,7 @@ use tokio::sync::{
     },
     oneshot::Receiver as OneshotReceiver,
 };
+use uuid::Uuid;
 
 /// Control object for audio playback.
 ///
@@ -117,6 +118,9 @@ pub struct Track {
 
     /// Count of remaining loops.
     pub loops: LoopState,
+
+    /// Unique identifier for this track.
+    pub(crate) uuid: Uuid,
 }
 
 impl Track {
@@ -131,6 +135,8 @@ impl Track {
         commands: UnboundedReceiver<TrackCommand>,
         handle: TrackHandle,
     ) -> Self {
+        let uuid = handle.uuid();
+
         Self {
             playing: Default::default(),
             volume: 1.0,
@@ -141,6 +147,7 @@ impl Track {
             commands,
             handle,
             loops: LoopState::Finite(0),
+            uuid,
         }
     }
 
@@ -341,6 +348,11 @@ impl Track {
 
         out
     }
+
+    /// Returns this track's unique identifier.
+    pub fn uuid(&self) -> Uuid {
+        self.uuid
+    }
 }
 
 /// Creates a [`Track`] object to pass into the audio context, and a [`TrackHandle`]
@@ -354,9 +366,11 @@ impl Track {
 pub fn create_player(source: Input) -> (Track, TrackHandle) {
     let (tx, rx) = mpsc::unbounded_channel();
     let can_seek = source.is_seekable();
-    let player = Track::new_raw(source, rx, TrackHandle::new(tx.clone(), can_seek));
+    let handle = TrackHandle::new(tx, can_seek, Uuid::new_v4());
 
-    (player, TrackHandle::new(tx, can_seek))
+    let player = Track::new_raw(source, rx, handle.clone());
+
+    (player, handle)
 }
 
 /// Alias for most result-free calls to a [`TrackHandle`].
