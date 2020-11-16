@@ -593,8 +593,6 @@
 <span id="592">592</span>
 <span id="593">593</span>
 <span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Raw audio input data streams and sources.</span>
 <span class="doccomment">//!</span>
@@ -749,10 +747,8 @@
     <span class="doccomment">/// Mixes the output of this stream into a 20ms stereo audio buffer.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mix</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">float_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>], <span class="ident">volume</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">add_float_pcm_frame</span>(<span class="ident">float_buffer</span>, <span class="self">self</span>.<span class="ident">stereo</span>, <span class="ident">volume</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-        }
+        <span class="self">self</span>.<span class="ident">add_float_pcm_frame</span>(<span class="ident">float_buffer</span>, <span class="self">self</span>.<span class="ident">stereo</span>, <span class="ident">volume</span>)
+            .<span class="ident">unwrap_or</span>(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Seeks the stream to the given time, if possible.</span>
