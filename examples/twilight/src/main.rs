@@ -184,7 +184,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 
     let guild_id = msg.guild_id.unwrap();
 
-    if let Ok(song) = Restartable::ytdl(msg.content.clone()) {
+    if let Ok(song) = Restartable::ytdl(msg.content.clone()).await {
         let input = Input::from(song);
 
         let content = format!(
