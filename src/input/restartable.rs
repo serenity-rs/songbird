@@ -10,8 +10,8 @@
 //! success/failure is confirmed, the track produces silence.
 
 use super::*;
+use async_trait::async_trait;
 use flume::{Receiver, TryRecvError};
-use futures::executor;
 use std::{
     ffi::OsStr,
     fmt::{Debug, Error as FormatError, Formatter},
@@ -50,8 +50,8 @@ pub struct Restartable {
 
 impl Restartable {
     /// Create a new source, which can be restarted using a `recreator` function.
-    pub fn new(mut recreator: impl Restart + Send + 'static) -> Result<Self> {
-        recreator.call_restart(None).map(move |source| Self {
+    pub async fn new(mut recreator: impl Restart + Send + 'static) -> Result<Self> {
+        recreator.call_restart(None).await.map(move |source| Self {
             async_handle: None,
             awaiting_source: None,
             position: 0,
@@ -61,32 +61,24 @@ impl Restartable {
     }
 
     /// Create a new restartable ffmpeg source for a local file.
-    pub fn ffmpeg<P: AsRef<OsStr> + Send + Clone + 'static>(path: P) -> Result<Self> {
-        Self::new(FfmpegRestarter { path })
+    pub async fn ffmpeg<P: AsRef<OsStr> + Send + Clone + Sync + 'static>(path: P) -> Result<Self> {
+        Self::new(FfmpegRestarter { path }).await
     }
 
     /// Create a new restartable ytdl source.
     ///
     /// The cost of restarting and seeking will probably be *very* high:
     /// expect a pause if you seek backwards.
-    pub fn ytdl<P: AsRef<str> + Send + Clone + 'static>(uri: P) -> Result<Self> {
-        Self::new(move |time: Option<Duration>| {
-            if let Some(time) = time {
-                let ts = format!("{}.{}", time.as_secs(), time.subsec_millis());
-
-                executor::block_on(_ytdl(uri.as_ref(), &["-ss", &ts]))
-            } else {
-                executor::block_on(ytdl(uri.as_ref()))
-            }
-        })
+    pub async fn ytdl<P: AsRef<str> + Send + Clone + Sync + 'static>(uri: P) -> Result<Self> {
+        Self::new(YtdlRestarter { uri }).await
     }
 
     /// Create a new restartable ytdl source, using the first result of a youtube search.
     ///
     /// The cost of restarting and seeking will probably be *very* high:
     /// expect a pause if you seek backwards.
-    pub fn ytdl_search(name: &str) -> Result<Self> {
-        Self::ytdl(format!("ytsearch1:{}", name))
+    pub async fn ytdl_search(name: &str) -> Result<Self> {
+        Self::ytdl(format!("ytsearch1:{}", name)).await
     }
 
     pub(crate) fn prep_with_handle(&mut self, handle: Handle) {
@@ -97,64 +89,76 @@ impl Restartable {
 /// Trait used to create an instance of a [`Reader`] at instantiation and when
 /// a backwards seek is needed.
 ///
-/// Many closures derive this automatically.
-///
 /// [`Reader`]: ../reader/enum.Reader.html
+#[async_trait]
 pub trait Restart {
     /// Tries to create a replacement source.
-    fn call_restart(&mut self, time: Option<Duration>) -> Result<Input>;
+    async fn call_restart(&mut self, time: Option<Duration>) -> Result<Input>;
 }
 
 struct FfmpegRestarter<P>
 where
-    P: AsRef<OsStr> + Send,
+    P: AsRef<OsStr> + Send + Sync,
 {
     path: P,
 }
 
+#[async_trait]
 impl<P> Restart for FfmpegRestarter<P>
 where
-    P: AsRef<OsStr> + Send,
+    P: AsRef<OsStr> + Send + Sync,
 {
-    fn call_restart(&mut self, time: Option<Duration>) -> Result<Input> {
-        executor::block_on(async {
-            if let Some(time) = time {
-                let is_stereo = is_stereo(self.path.as_ref())
-                    .await
-                    .unwrap_or_else(|_e| (false, Default::default()));
-                let stereo_val = if is_stereo.0 { "2" } else { "1" };
-
-                let ts = format!("{}.{}", time.as_secs(), time.subsec_millis());
-                _ffmpeg_optioned(
-                    self.path.as_ref(),
-                    &["-ss", &ts],
-                    &[
-                        "-f",
-                        "s16le",
-                        "-ac",
-                        stereo_val,
-                        "-ar",
-                        "48000",
-                        "-acodec",
-                        "pcm_f32le",
-                        "-",
-                    ],
-                    Some(is_stereo),
-                )
+    async fn call_restart(&mut self, time: Option<Duration>) -> Result<Input> {
+        if let Some(time) = time {
+            let is_stereo = is_stereo(self.path.as_ref())
                 .await
-            } else {
-                ffmpeg(self.path.as_ref()).await
-            }
-        })
+                .unwrap_or_else(|_e| (false, Default::default()));
+            let stereo_val = if is_stereo.0 { "2" } else { "1" };
+
+            let ts = format!("{}.{}", time.as_secs(), time.subsec_millis());
+            _ffmpeg_optioned(
+                self.path.as_ref(),
+                &["-ss", &ts],
+                &[
+                    "-f",
+                    "s16le",
+                    "-ac",
+                    stereo_val,
+                    "-ar",
+                    "48000",
+                    "-acodec",
+                    "pcm_f32le",
+                    "-",
+                ],
+                Some(is_stereo),
+            )
+            .await
+        } else {
+            ffmpeg(self.path.as_ref()).await
+        }
     }
 }
 
-impl<P> Restart for P
+struct YtdlRestarter<P>
 where
-    P: FnMut(Option<Duration>) -> Result<Input> + Send + 'static,
+    P: AsRef<str> + Send + Sync,
 {
-    fn call_restart(&mut self, time: Option<Duration>) -> Result<Input> {
-        (self)(time)
+    uri: P,
+}
+
+#[async_trait]
+impl<P> Restart for YtdlRestarter<P>
+where
+    P: AsRef<str> + Send + Sync,
+{
+    async fn call_restart(&mut self, time: Option<Duration>) -> Result<Input> {
+        if let Some(time) = time {
+            let ts = format!("{}.{}", time.as_secs(), time.subsec_millis());
+
+            _ytdl(self.uri.as_ref(), &["-ss", &ts]).await
+        } else {
+            ytdl(self.uri.as_ref()).await
+        }
     }
 }
 
@@ -258,9 +262,11 @@ impl Seek for Restartable {
 
                         if let Some(mut rec) = recreator {
                             handle.spawn(async move {
-                                let ret_val = rec.call_restart(Some(
-                                    utils::byte_count_to_timestamp(offset, stereo),
-                                ));
+                                let ret_val = rec
+                                    .call_restart(Some(utils::byte_count_to_timestamp(
+                                        offset, stereo,
+                                    )))
+                                    .await;
 
                                 let _ = tx.send(ret_val.map(Box::new).map(|v| (v, rec)));
                             });
