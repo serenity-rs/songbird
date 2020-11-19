@@ -114,7 +114,7 @@ impl EventHandler for QueueHandler {
                 let ended_uuid = ts.first().map(|handle| handle.1.uuid());
 
                 queue_uuid.is_some() && queue_uuid == ended_uuid
-            }
+            },
             _ => false,
         };
 
