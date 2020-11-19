@@ -279,8 +279,12 @@ impl TrackQueue {
         inner.stop_current()
     }
 
-    /// Returns Vec of all handles in queue
-    pub fn to_vec(&self) -> Vec<TrackHandle> {
+    /// Returns a list of currently queued tracks.
+    ///
+    /// Does not allow for modification of the queue, instead returns a snapshot of the queue at the time of calling.
+    ///
+    /// Use [`modify_queue`] for direct modification of the queue.
+    pub fn current_queue(&self) -> Vec<TrackHandle> {
         let inner = self.inner.lock();
 
         inner.tracks.iter().map(|q| q.handle()).collect()
