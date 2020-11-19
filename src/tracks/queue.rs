@@ -284,6 +284,8 @@ impl TrackQueue {
     /// Does not allow for modification of the queue, instead returns a snapshot of the queue at the time of calling.
     ///
     /// Use [`modify_queue`] for direct modification of the queue.
+    ///
+    /// [`modify_queue`]: #method.modify_queue
     pub fn current_queue(&self) -> Vec<TrackHandle> {
         let inner = self.inner.lock();
 
