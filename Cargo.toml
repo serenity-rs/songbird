@@ -58,6 +58,7 @@ version = "0.7"
 
 [dependencies.serenity]
 optional = true
+default-features = false
 features = ["voice", "gateway"]
 git = "https://github.com/serenity-rs/serenity"
 branch = "current"
