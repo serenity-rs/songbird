@@ -12,7 +12,7 @@ pub enum DecodeMode {
     /// are not present, as they are encrypted.
     /// This event requires such functionality.*
     ///
-    /// [user speaking events]: ../events/enum.CoreEvent.html#variant.SpeakingUpdate
+    /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
     Pass,
     /// Decrypts the body of each received packet.
     ///

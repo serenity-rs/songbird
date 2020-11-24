@@ -20,13 +20,13 @@
 //!  * its [`Input`] [meets the promises described herein](codec/struct.OpusDecoderState.html#structfield.allow_passthrough),
 //!  * and that track's volume is set to `1.0`.
 //!
-//! [`Input`]: struct.Input.html
-//! [`Reader`]: reader/enum.Reader.html
-//! [`Container`]: enum.Container.html
-//! [`Codec`]: codec/enum.Codec.html
+//! [`Input`]: Input
+//! [`Reader`]: reader::Reader
+//! [`Container`]: Container
+//! [`Codec`]: Codec
 //! [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
-//! [`Compressed`]: cached/struct.Compressed.html
-//! [`dca`]: fn.dca.html
+//! [`Compressed`]: cached::Compressed
+//! [`dca`]: dca()
 
 pub mod cached;
 mod child;
@@ -80,8 +80,8 @@ use tracing::{debug, error};
 ///
 /// See the [module root] for more information.
 ///
-/// [`Reader`]: enum.Reader.html
-/// [module root]: index.html
+/// [`Reader`]: Reader
+/// [module root]: super
 #[derive(Debug)]
 pub struct Input {
     /// Information about the played source.
@@ -130,7 +130,7 @@ impl Input {
 
     /// Returns whether the inner [`Reader`] implements [`Seek`].
     ///
-    /// [`Reader`]: reader/enum.Reader.html
+    /// [`Reader`]: reader::Reader
     /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
     pub fn is_seekable(&self) -> bool {
         self.reader.is_seekable()
@@ -143,7 +143,7 @@ impl Input {
 
     /// Returns the type of the inner [`Codec`].
     ///
-    /// [`Codec`]: codec/enum.Codec.html
+    /// [`Codec`]: Codec
     pub fn get_type(&self) -> CodecType {
         (&self.kind).into()
     }

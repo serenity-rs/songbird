@@ -23,14 +23,14 @@ use streamcatcher::{Catcher, TxCatcher};
 /// Users may define their own data sources using [`Extension`]
 /// and [`ExtensionSeek`].
 ///
-/// [`Extension`]: #variant.Extension
-/// [`ExtensionSeek`]: #variant.ExtensionSeek
+/// [`Extension`]: Reader::Extension
+/// [`ExtensionSeek`]: Reader::ExtensionSeek
 pub enum Reader {
     /// Piped output of another program (i.e., [`ffmpeg`]).
     ///
     /// Does not support seeking.
     ///
-    /// [`ffmpeg`]: ../fn.ffmpeg.html
+    /// [`ffmpeg`]: super::ffmpeg
     Pipe(BufReader<ChildContainer>),
     /// A cached, raw in-memory store, provided by Songbird.
     ///

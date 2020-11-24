@@ -6,8 +6,9 @@ use tokio::sync::oneshot::Sender as OneshotSender;
 /// A request from external code using a [`TrackHandle`] to modify
 /// or act upon an [`Track`] object.
 ///
-/// [`Track`]: struct.Track.html
-/// [`TrackHandle`]: struct.TrackHandle.html
+/// [`Track`]: Track
+/// [`TrackHandle`]: TrackHandle
+#[non_exhaustive]
 pub enum TrackCommand {
     /// Set the track's play_mode to play/resume.
     Play,

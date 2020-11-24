@@ -43,9 +43,9 @@ use tracing::{debug, trace};
 /// retrieved as **compressed Opus audio**. There is an associated memory cost,
 /// but this is far smaller than using a [`Memory`].
 ///
-/// [`Input`]: ../struct.Input.html
-/// [`Memory`]: struct.Memory.html
-/// [`Restartable`]: ../struct.Restartable.html
+/// [`Input`]: Input
+/// [`Memory`]: super::Memory
+/// [`Restartable`]: crate::input::restartable::Restartable
 #[derive(Clone, Debug)]
 pub struct Compressed {
     /// Inner shared bytestore.
@@ -59,7 +59,7 @@ pub struct Compressed {
 impl Compressed {
     /// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.
     ///
-    /// [`Input`]: ../struct.Input.html
+    /// [`Input`]: Input
     /// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration
     pub fn new(source: Input, bitrate: Bitrate) -> Result<Self> {
         Self::with_config(source, bitrate, None)
@@ -69,10 +69,10 @@ impl Compressed {
     ///
     /// `config.length_hint` may be used to control the size of the initial chunk, preventing
     /// needless allocations and copies. If this is not present, the value specified in
-    /// `source`'s [`Metadata.duration`] will be used.
+    /// `source`'s [`Metadata::duration`] will be used.
     ///
-    /// [`Input`]: ../struct.Input.html
-    /// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration
+    /// [`Input`]: Input
+    /// [`Metadata::duration`]: crate::input::Metadata::duration
     pub fn with_config(source: Input, bitrate: Bitrate, config: Option<Config>) -> Result<Self> {
         let channels = if source.stereo {
             Channels::Stereo
@@ -92,8 +92,8 @@ impl Compressed {
     /// `length_hint` functions as in [`new`]. This function's behaviour is undefined if your encoder
     /// has a different sample rate than 48kHz, and if the decoder has a different channel count from the source.
     ///
-    /// [`Input`]: ../struct.Input.html
-    /// [`new`]: #method.new
+    /// [`Input`]: Input
+    /// [`new`]: Compressed::new
     pub fn with_encoder(
         mut source: Input,
         encoder: OpusEncoder,
@@ -154,7 +154,7 @@ impl From<Compressed> for Input {
 ///
 /// Created and managed by [`Compressed`].
 ///
-/// [`Compressed`]: struct.Compressed.html
+/// [`Compressed`]: Compressed
 #[derive(Debug)]
 pub struct OpusCompressor {
     encoder: OpusEncoder,

@@ -3,6 +3,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"
 )]
 #![deny(missing_docs)]
+#![deny(broken_intra_doc_links)]
 //! ![project logo][logo]
 //!
 //! Songbird is an async, cross-library compatible voice system for Discord, written in Rust.
@@ -33,7 +34,7 @@
 //! [twilight]: https://github.com/twilight-rs/twilight
 //! [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
 //! ["Black-Capped Chickadee"]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
-//! [`ConnectionInfo`]: struct.ConnectionInfo.html
+//! [`ConnectionInfo`]: struct@ConnectionInfo
 //! [lavalink]: https://github.com/Frederikam/Lavalink
 
 pub mod constants;

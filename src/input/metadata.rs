@@ -4,7 +4,7 @@ use std::time::Duration;
 
 /// Information about an [`Input`] source.
 ///
-/// [`Input`]: struct.Input.html
+/// [`Input`]: crate::input::Input
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Metadata {
     /// The title of this stream.
@@ -95,7 +95,7 @@ impl Metadata {
         }
     }
 
-    /// Use `youtube-dl` to extract metadata for an online resource.
+    /// Use `youtube-dl`'s JSON output for metadata for an online resource.
     pub fn from_ytdl_output(value: Value) -> Self {
         let obj = value.as_object();
 

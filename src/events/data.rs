@@ -17,10 +17,10 @@ impl EventData {
     /// Event handlers will be re-added with their new trigger condition,
     /// or removed if [`Cancel`]led
     ///
-    /// [`EventContext`]: enum.EventContext.html
-    /// [`Event`]: enum.Event.html
-    /// [`Delayed`]: enum.Event.html#variant.Delayed
-    /// [`Cancel`]: enum.Event.html#variant.Cancel
+    /// [`EventContext`]: EventContext
+    /// [`Event`]: Event
+    /// [`Delayed`]: Event::Delayed
+    /// [`Cancel`]: Event::Cancel
     pub fn new<F: EventHandler + 'static>(event: Event, action: F) -> Self {
         Self {
             event,

@@ -37,9 +37,9 @@ type RecreateChannel = Receiver<Result<(Box<Input>, Recreator)>>;
 /// cannot be spared. Forward seeks will drain the track until reaching
 /// the desired timestamp.
 ///
-/// [`Input`]: struct.Input.html
-/// [`Memory`]: cached/struct.Memory.html
-/// [`Compressed`]: cached/struct.Compressed.html
+/// [`Input`]: Input
+/// [`Memory`]: cached::Memory
+/// [`Compressed`]: cached::Compressed
 pub struct Restartable {
     async_handle: Option<Handle>,
     awaiting_source: Option<RecreateChannel>,
@@ -89,7 +89,7 @@ impl Restartable {
 /// Trait used to create an instance of a [`Reader`] at instantiation and when
 /// a backwards seek is needed.
 ///
-/// [`Reader`]: ../reader/enum.Reader.html
+/// [`Reader`]: reader::Reader
 #[async_trait]
 pub trait Restart {
     /// Tries to create a replacement source.

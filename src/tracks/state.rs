@@ -1,12 +1,10 @@
 use super::*;
 
 /// State of an [`Track`] object, designed to be passed to event handlers
-/// and retrieved remotely via [`TrackHandle::get_info`] or
-/// [`TrackHandle::get_info_blocking`].
+/// and retrieved remotely via [`TrackHandle::get_info`].
 ///
-/// [`Track`]: struct.Track.html
-/// [`TrackHandle::get_info`]: struct.TrackHandle.html#method.get_info
-/// [`TrackHandle::get_info_blocking`]: struct.TrackHandle.html#method.get_info_blocking
+/// [`Track`]: Track
+/// [`TrackHandle::get_info`]: TrackHandle::get_info
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct TrackState {
     /// Play status (e.g., active, paused, stopped) of this track.
@@ -15,7 +13,8 @@ pub struct TrackState {
     pub volume: f32,
     /// Current playback position in the source.
     ///
-    /// This is altered by loops and seeks
+    /// This is altered by loops and seeks, and represents this track's
+    /// position in its underlying input stream.
     pub position: Duration,
     /// Total playback time, increasing monotonically.
     pub play_time: Duration,

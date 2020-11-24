@@ -1,11 +1,12 @@
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 /// Voice core events occur on receipt of
 /// voice packets and telemetry.
 ///
 /// Core events persist while the `action` in [`EventData`]
 /// returns `None`.
 ///
-/// [`EventData`]: struct.EventData.html
+/// [`EventData`]: super::EventData
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum CoreEvent {
     /// Fired on receipt of a speaking state update from another host.
     ///

@@ -361,8 +361,8 @@ impl Track {
 /// Typically, this would be used if you wished to directly work on or configure
 /// the [`Track`] object before it is passed over to the driver.
 ///
-/// [`Track`]: struct.Track.html
-/// [`TrackHandle`]: struct.TrackHandle.html
+/// [`Track`]: Track
+/// [`TrackHandle`]: TrackHandle
 pub fn create_player(source: Input) -> (Track, TrackHandle) {
     let (tx, rx) = mpsc::unbounded_channel();
     let can_seek = source.is_seekable();
@@ -378,7 +378,7 @@ pub fn create_player(source: Input) -> (Track, TrackHandle) {
 /// Failure indicates that the accessed audio object has been
 /// removed or deleted by the audio context.
 ///
-/// [`TrackHandle`]: struct.TrackHandle.html
+/// [`TrackHandle`]: TrackHandle
 pub type TrackResult = Result<(), SendError<TrackCommand>>;
 
 /// Alias for return value from calls to [`TrackHandle::get_info`].
@@ -389,5 +389,5 @@ pub type TrackResult = Result<(), SendError<TrackCommand>>;
 /// Failure indicates that the accessed audio object has been
 /// removed or deleted by the audio context.
 ///
-/// [`TrackHandle::get_info`]: struct.TrackHandle.html#method.get_info
+/// [`TrackHandle::get_info`]: TrackHandle::get_info
 pub type TrackQueryResult = Result<OneshotReceiver<Box<TrackState>>, SendError<TrackCommand>>;
