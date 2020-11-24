@@ -7,7 +7,7 @@ use streamcatcher::CatcherError;
 
 /// An error returned when creating a new [`Input`].
 ///
-/// [`Input`]: ../struct.Input.html
+/// [`Input`]: crate::input::Input
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum Error {
@@ -71,7 +71,7 @@ impl From<OpusError> for Error {
 
 /// An error returned from the [`dca`] method.
 ///
-/// [`dca`]: ../fn.dca.html
+/// [`dca`]: crate::input::dca
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum DcaError {
@@ -89,5 +89,5 @@ pub enum DcaError {
 
 /// Convenience type for fallible return of [`Input`]s.
 ///
-/// [`Input`]: ../struct.Input.html
+/// [`Input`]: crate::input::Input
 pub type Result<T> = std::result::Result<T, Error>;

@@ -15,7 +15,7 @@ use tracing::info;
 /// Timed events are stored in a binary heap for fast selection, and have custom `Eq`,
 /// `Ord`, etc. implementations to support (only) this.
 ///
-/// [`EventData`]: struct.EventData.html
+/// [`EventData`]: EventData
 pub struct EventStore {
     timed: BinaryHeap<EventData>,
     untimed: HashMap<UntimedEvent, Vec<EventData>>,
@@ -33,7 +33,7 @@ impl EventStore {
     /// This is usually automatically installed by the driver once
     /// a track has been registered.
     ///
-    /// [`Track`]: ../tracks/struct.Track.html
+    /// [`Track`]: crate::tracks::Track
     pub fn new_local() -> Self {
         EventStore {
             local_only: true,
@@ -45,7 +45,7 @@ impl EventStore {
     ///
     /// Updates `evt` according to [`EventData::compute_activation`].
     ///
-    /// [`EventData::compute_activation`]: struct.EventData.html#method.compute_activation
+    /// [`EventData::compute_activation`]: EventData::compute_activation
     pub fn add_event(&mut self, mut evt: EventData, now: Duration) {
         evt.compute_activation(now);
 

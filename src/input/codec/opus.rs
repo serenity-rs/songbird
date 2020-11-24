@@ -4,7 +4,7 @@ use parking_lot::Mutex;
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]
-/// Inner state
+/// Inner state used to decode Opus input sources.
 pub struct OpusDecoderState {
     /// Inner decoder used to convert opus frames into a stream of samples.
     pub decoder: Arc<Mutex<OpusDecoder>>,

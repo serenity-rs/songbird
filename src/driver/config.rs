@@ -12,7 +12,7 @@ pub struct Config {
     /// driver is actively connected, but will apply to subsequent
     /// sessions.
     ///
-    /// [`CryptoMode::Normal`]: enum.CryptoMode.html#variant.Normal
+    /// [`CryptoMode::Normal`]: CryptoMode::Normal
     pub crypto_mode: CryptoMode,
     /// Configures whether decoding and decryption occur for all received packets.
     ///
@@ -24,10 +24,10 @@ pub struct Config {
     /// Defaults to [`DecodeMode::Decrypt`]. This is due to per-packet decoding costs,
     /// which most users will not want to pay, but allowing speaking events which are commonly used.
     ///
-    /// [`DecodeMode::Decode`]: enum.DecodeMode.html#variant.Decode
-    /// [`DecodeMode::Decrypt`]: enum.DecodeMode.html#variant.Decrypt
-    /// [`DecodeMode::Pass`]: enum.DecodeMode.html#variant.Pass
-    /// [user speaking events]: ../events/enum.CoreEvent.html#variant.SpeakingUpdate
+    /// [`DecodeMode::Decode`]: DecodeMode::Decode
+    /// [`DecodeMode::Decrypt`]: DecodeMode::Decrypt
+    /// [`DecodeMode::Pass`]: DecodeMode::Pass
+    /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
     pub decode_mode: DecodeMode,
     /// Number of concurrently active tracks to allocate memory for.
     ///

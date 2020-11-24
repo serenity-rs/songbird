@@ -8,17 +8,18 @@ use discortp::{rtcp::Rtcp, rtp::Rtp};
 /// Information about which tracks or data fired an event.
 ///
 /// [`Track`] events may be local or global, and have no tracks
-/// if fired on the global context via [`Handler::add_global_event`].
+/// if fired on the global context via [`Driver::add_global_event`].
 ///
-/// [`Track`]: ../tracks/struct.Track.html
-/// [`Handler::add_global_event`]: ../struct.Handler.html#method.add_global_event
+/// [`Track`]: crate::tracks::Track
+/// [`Driver::add_global_event`]: crate::driver::Driver::add_global_event
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum EventContext<'a> {
     /// Track event context, passed to events created via [`TrackHandle::add_event`],
     /// [`EventStore::add_event`], or relevant global events.
     ///
-    /// [`EventStore::add_event`]: struct.EventStore.html#method.add_event
-    /// [`TrackHandle::add_event`]: ../tracks/struct.TrackHandle.html#method.add_event
+    /// [`EventStore::add_event`]: EventStore::add_event
+    /// [`TrackHandle::add_event`]: TrackHandle::add_event
     Track(&'a [(&'a TrackState, &'a TrackHandle)]),
     /// Speaking state update, typically describing how another voice
     /// user is transmitting audio data. Clients must send at least one such

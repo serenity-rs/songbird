@@ -19,7 +19,7 @@ pub enum JoinError {
     NoSender,
     /// Tried to leave a [`Call`] which was not found.
     ///
-    /// [`Call`]: ../struct.Call.html
+    /// [`Call`]: crate::Call
     NoCall,
     #[cfg(feature = "serenity")]
     /// Serenity-specific WebSocket send error.

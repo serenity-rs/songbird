@@ -1,5 +1,6 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 /// Playback status of a track.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub enum PlayMode {
     /// The track is currently playing.
     Play,

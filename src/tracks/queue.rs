@@ -53,8 +53,8 @@ use tracing::{info, warn};
 /// # };
 /// ```
 ///
-/// [`TrackEvent`]: ../events/enum.TrackEvent.html
-/// [`Driver::queue`]: ../driver/struct.Driver.html#method.queue
+/// [`TrackEvent`]: crate::events::TrackEvent
+/// [`Driver::queue`]: crate::driver::Driver::queue
 #[derive(Clone, Debug, Default)]
 pub struct TrackQueue {
     // NOTE: the choice of a parking lot mutex is quite deliberate
@@ -88,7 +88,7 @@ impl Queued {
 /// This abstracts away thread-safety from the user,
 /// and offers a convenient location to store further state if required.
 ///
-/// [`TrackQueue`]: struct.TrackQueue.html
+/// [`TrackQueue`]: TrackQueue
 struct TrackQueueCore {
     tracks: VecDeque<Queued>,
 }
@@ -163,11 +163,11 @@ impl TrackQueue {
 
     /// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.
     ///
-    /// This is used with [`voice::create_player`] if additional configuration or event handlers
+    /// This is used with [`create_player`] if additional configuration or event handlers
     /// are required before enqueueing the audio track.
     ///
-    /// [`Track`]: struct.Track.html
-    /// [`voice::create_player`]: fn.create_player.html
+    /// [`Track`]: Track
+    /// [`create_player`]: super::create_player
     pub fn add(&self, mut track: Track, handler: &mut Driver) {
         self.add_raw(&mut track);
         handler.play(track);
@@ -208,7 +208,7 @@ impl TrackQueue {
     ///
     /// The returned entry can be readded to *this* queue via [`modify_queue`].
     ///
-    /// [`modify_queue`]: #method.modify_queue
+    /// [`modify_queue`]: TrackQueue::modify_queue
     pub fn dequeue(&self, index: usize) -> Option<Queued> {
         self.modify_queue(|vq| vq.remove(index))
     }
@@ -285,7 +285,7 @@ impl TrackQueue {
     ///
     /// Use [`modify_queue`] for direct modification of the queue.
     ///
-    /// [`modify_queue`]: #method.modify_queue
+    /// [`modify_queue`]: TrackQueue::modify_queue
     pub fn current_queue(&self) -> Vec<TrackHandle> {
         let inner = self.inner.lock();
 

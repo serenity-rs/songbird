@@ -29,8 +29,7 @@ enum Return {
 /// If the `"driver"` feature is enabled, then a Call exposes all control methods of
 /// [`Driver`] via `Deref(Mut)`.
 ///
-/// [`Driver`]: driver/struct.Driver.html
-/// [`Shard`]: ../gateway/struct.Shard.html
+/// [`Driver`]: struct@Driver
 #[derive(Clone, Debug)]
 pub struct Call {
     connection: Option<(ChannelId, ConnectionProgress, Return)>,
@@ -45,11 +44,14 @@ pub struct Call {
     /// Whether the current handler is set to mute voice connections.
     self_mute: bool,
     user_id: UserId,
-    /// Will be set when a `Call` is made via the [`new`][`Call::new`]
+    /// Will be set when a `Call` is made via the [`new`]
     /// method.
     ///
-    /// When set via [`standalone`][`Call::standalone`], it will not be
+    /// When set via [`standalone`](`Call::standalone`), it will not be
     /// present.
+    ///
+    /// [`new`]: Call::new
+    /// [`standalone`]: Call::standalone
     ws: Option<Shard>,
 }
 
@@ -153,7 +155,7 @@ impl Call {
     /// **Note**: If the `Call` was created via [`standalone`], then this
     /// will _only_ update whether the connection is internally deafened.
     ///
-    /// [`standalone`]: #method.standalone
+    /// [`standalone`]: Call::standalone
     #[instrument(skip(self))]
     pub async fn deafen(&mut self, deaf: bool) -> JoinResult<()> {
         self.self_deaf = deaf;
@@ -217,7 +219,7 @@ impl Call {
     /// will _only_ update whether the connection is internally connected to a
     /// voice channel.
     ///
-    /// [`standalone`]: #method.standalone
+    /// [`standalone`]: Call::standalone
     #[instrument(skip(self))]
     pub async fn leave(&mut self) -> JoinResult<()> {
         // Only send an update if we were in a voice channel.
@@ -237,7 +239,7 @@ impl Call {
     /// **Note**: If the `Call` was created via [`standalone`], then this
     /// will _only_ update whether the connection is internally muted.
     ///
-    /// [`standalone`]: #method.standalone
+    /// [`standalone`]: Call::standalone
     #[instrument(skip(self))]
     pub async fn mute(&mut self, mute: bool) -> JoinResult<()> {
         self.self_mute = mute;
@@ -259,11 +261,7 @@ impl Call {
     /// You should only need to use this if you initialized the `Call` via
     /// [`standalone`].
     ///
-    /// Refer to the documentation for [`connect`] for when this will
-    /// automatically connect to a voice channel.
-    ///
-    /// [`connect`]: #method.connect
-    /// [`standalone`]: #method.standalone
+    /// [`standalone`]: Call::standalone
     #[instrument(skip(self, token))]
     pub fn update_server(&mut self, endpoint: String, token: String) {
         let try_conn = if let Some((_, ref mut progress, _)) = self.connection.as_mut() {
@@ -282,11 +280,7 @@ impl Call {
     /// You should only need to use this if you initialized the `Call` via
     /// [`standalone`].
     ///
-    /// refer to the documentation for [`connect`] for when this will
-    /// automatically connect to a voice channel.
-    ///
-    /// [`connect`]: #method.connect
-    /// [`standalone`]: #method.standalone
+    /// [`standalone`]: Call::standalone
     #[instrument(skip(self))]
     pub fn update_state(&mut self, session_id: String) {
         let try_conn = if let Some((_, ref mut progress, _)) = self.connection.as_mut() {
@@ -304,7 +298,7 @@ impl Call {
     ///
     /// Does nothing if initialized via [`standalone`].
     ///
-    /// [`standalone`]: #method.standalone
+    /// [`standalone`]: Call::standalone
     #[instrument(skip(self))]
     async fn update(&mut self) -> JoinResult<()> {
         if let Some(ws) = self.ws.as_mut() {

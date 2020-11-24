@@ -25,9 +25,9 @@ use streamcatcher::{Catcher, Config};
 /// cost of audio processing. This is a significant *3 Mbps (375 kiB/s)*,
 /// or 131 MiB of RAM for a 6 minute song.
 ///
-/// [`Input`]: ../struct.Input.html
-/// [`Compressed`]: struct.Compressed.html
-/// [`Restartable`]: ../struct.Restartable.html
+/// [`Input`]: Input
+/// [`Compressed`]: super::Compressed
+/// [`Restartable`]: crate::input::restartable::Restartable
 #[derive(Clone, Debug)]
 pub struct Memory {
     /// Inner shared bytestore.
@@ -45,7 +45,7 @@ pub struct Memory {
 impl Memory {
     /// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.
     ///
-    /// [`Input`]: ../struct.Input.html
+    /// [`Input`]: Input
     pub fn new(source: Input) -> Result<Self> {
         Self::with_config(source, None)
     }
@@ -54,10 +54,10 @@ impl Memory {
     ///
     /// `length_hint` may be used to control the size of the initial chunk, preventing
     /// needless allocations and copies. If this is not present, the value specified in
-    /// `source`'s [`Metadata.duration`] will be used, assuming that the source is uncompressed.
+    /// `source`'s [`Metadata::duration`] will be used, assuming that the source is uncompressed.
     ///
-    /// [`Input`]: ../struct.Input.html
-    /// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration
+    /// [`Input`]: Input
+    /// [`Metadata::duration`]: crate::input::Metadata::duration
     pub fn with_config(mut source: Input, config: Option<Config>) -> Result<Self> {
         let stereo = source.stereo;
         let kind = (&source.kind).into();

@@ -41,7 +41,7 @@ struct ClientData {
 /// This manager transparently maps guild state and a source of shard information
 /// into individual calls, and forwards state updates which affect call state.
 ///
-/// [`Call`]: struct.Call.html
+/// [`Call`]: Call
 #[derive(Debug)]
 pub struct Songbird {
     client_data: PRwLock<ClientData>,
@@ -58,7 +58,7 @@ impl Songbird {
     ///
     /// This must be [registered] after creation.
     ///
-    /// [registered]: serenity/fn.register_with.html
+    /// [registered]: crate::serenity::register_with
     pub fn serenity() -> Arc<Self> {
         Arc::new(Self {
             client_data: Default::default(),
@@ -77,7 +77,7 @@ impl Songbird {
     /// users are responsible for passing in any events using
     /// [`process`].
     ///
-    /// [`process`]: #method.process
+    /// [`process`]: Songbird::process
     pub fn twilight<U>(cluster: Cluster, shard_count: u64, user_id: U) -> Arc<Self>
     where
         U: Into<UserId>,
@@ -101,7 +101,7 @@ impl Songbird {
     /// If this struct is already initialised (e.g., from [`::twilight`]),
     /// or a previous call, then this function is a no-op.
     ///
-    /// [`::twilight`]: #method.twilight
+    /// [`::twilight`]: Songbird::twilight
     pub fn initialise_client_data<U: Into<UserId>>(&self, shard_count: u64, user_id: U) {
         let mut client_data = self.client_data.write();
 
@@ -116,7 +116,7 @@ impl Songbird {
 
     /// Retreives a [`Call`] for the given guild, if one already exists.
     ///
-    /// [`Call`]: struct.Call.html
+    /// [`Call`]: Call
     pub fn get<G: Into<GuildId>>(&self, guild_id: G) -> Option<Arc<Mutex<Call>>> {
         let map_read = self.calls.read();
         map_read.get(&guild_id.into()).cloned()
@@ -127,7 +127,7 @@ impl Songbird {
     ///
     /// This will not join any calls, or cause connection state to change.
     ///
-    /// [`Call`]: struct.Call.html
+    /// [`Call`]: Call
     pub fn get_or_insert(&self, guild_id: GuildId) -> Arc<Mutex<Call>> {
         self.get(guild_id).unwrap_or_else(|| {
             let mut map_read = self.calls.write();
@@ -183,8 +183,8 @@ impl Songbird {
     /// If you _only_ need to retrieve the handler for a target, then use
     /// [`get`].
     ///
-    /// [`Call`]: struct.Call.html
-    /// [`get`]: #method.get
+    /// [`Call`]: Call
+    /// [`get`]: Songbird::get
     #[inline]
     pub async fn join<C, G>(
         &self,
@@ -220,7 +220,7 @@ impl Songbird {
     /// This method returns the handle and the connection info needed for other libraries
     /// or drivers, such as lavalink, and does not actually start or run a voice call.
     ///
-    /// [`Call`]: struct.Call.html
+    /// [`Call`]: Call
     #[inline]
     pub async fn join_gateway<C, G>(
         &self,
@@ -257,9 +257,9 @@ impl Songbird {
     /// This is a wrapper around [getting][`get`] a handler and calling
     /// [`leave`] on it.
     ///
-    /// [`Call`]: struct.Call.html
-    /// [`get`]: #method.get
-    /// [`leave`]: struct.Call.html#method.leave
+    /// [`Call`]: Call
+    /// [`get`]: Songbird::get
+    /// [`leave`]: Call::leave
     #[inline]
     pub async fn leave<G: Into<GuildId>>(&self, guild_id: G) -> JoinResult<()> {
         self._leave(guild_id.into()).await
@@ -282,7 +282,7 @@ impl Songbird {
     /// An Err(...) value implies that the gateway could not be contacted,
     /// and that leaving should be attempted again later (i.e., after reconnect).
     ///
-    /// [`Call`]: struct.Call.html
+    /// [`Call`]: Call
     #[inline]
     pub async fn remove<G: Into<GuildId>>(&self, guild_id: G) -> JoinResult<()> {
         self._remove(guild_id.into()).await

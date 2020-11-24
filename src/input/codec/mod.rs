@@ -9,7 +9,7 @@ use std::{fmt::Debug, mem};
 
 /// State used to decode input bytes of an [`Input`].
 ///
-/// [`Input`]: ../struct.Input.html
+/// [`Input`]: Input
 #[non_exhaustive]
 #[derive(Clone, Debug)]
 pub enum Codec {
@@ -18,19 +18,19 @@ pub enum Codec {
     ///
     /// Must be combined with a non-[`Raw`] container.
     ///
-    /// [`Raw`]: ../enum.Container.html#variant.Raw
+    /// [`Raw`]: Container::Raw
     Opus(OpusDecoderState),
     /// The inner bytestream is encoded using raw `i16` samples.
     ///
     /// Must be combined with a [`Raw`] container.
     ///
-    /// [`Raw`]: ../enum.Container.html#variant.Raw
+    /// [`Raw`]: Container::Raw
     Pcm,
     /// The inner bytestream is encoded using raw `f32` samples.
     ///
     /// Must be combined with a [`Raw`] container.
     ///
-    /// [`Raw`]: ../enum.Container.html#variant.Raw
+    /// [`Raw`]: Container::Raw
     FloatPcm,
 }
 
@@ -48,7 +48,7 @@ impl From<&Codec> for CodecType {
 
 /// Type of data being passed into an [`Input`].
 ///
-/// [`Input`]: ../struct.Input.html
+/// [`Input`]: Input
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
 pub enum CodecType {
@@ -56,19 +56,19 @@ pub enum CodecType {
     ///
     /// Must be combined with a non-[`Raw`] container.
     ///
-    /// [`Raw`]: ../enum.Container.html#variant.Raw
+    /// [`Raw`]: Container::Raw
     Opus,
     /// The inner bytestream is encoded using raw `i16` samples.
     ///
     /// Must be combined with a [`Raw`] container.
     ///
-    /// [`Raw`]: ../enum.Container.html#variant.Raw
+    /// [`Raw`]: Container::Raw
     Pcm,
     /// The inner bytestream is encoded using raw `f32` samples.
     ///
     /// Must be combined with a [`Raw`] container.
     ///
-    /// [`Raw`]: ../enum.Container.html#variant.Raw
+    /// [`Raw`]: Container::Raw
     FloatPcm,
 }
 

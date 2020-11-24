@@ -71,7 +71,9 @@ pub(crate) async fn _ffmpeg(path: &OsStr) -> Result<Input> {
 ///     "pcm_s16le",
 ///     "-",
 /// ]));
-///```
+/// ```
+///
+/// [`ffmpeg`]: ffmpeg
 pub async fn ffmpeg_optioned<P: AsRef<OsStr>>(
     path: P,
     pre_input_args: &[&str],

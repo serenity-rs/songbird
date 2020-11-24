@@ -1,12 +1,13 @@
 use super::*;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 /// Track and voice core events.
 ///
 /// Untimed events persist while the `action` in [`EventData`]
 /// returns `None`.
 ///
-/// [`EventData`]: struct.EventData.html
+/// [`EventData`]: EventData
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum UntimedEvent {
     /// Untimed events belonging to a track, such as state changes, end, or loops.
     Track(TrackEvent),

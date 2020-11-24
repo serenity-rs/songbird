@@ -15,7 +15,7 @@ use uuid::Uuid;
 /// the underlying [`Track`] object has been discarded. Those which aren't refer
 /// to immutable properties of the underlying stream.
 ///
-/// [`Track`]: struct.Track.html
+/// [`Track`]: Track
 pub struct TrackHandle {
     command_channel: UnboundedSender<TrackCommand>,
     seekable: bool,
@@ -26,7 +26,7 @@ impl TrackHandle {
     /// Creates a new handle, using the given command sink and hint as to whether
     /// the underlying [`Input`] supports seek operations.
     ///
-    /// [`Input`]: ../input/struct.Input.html
+    /// [`Input`]: crate::input::Input
     pub fn new(command_channel: UnboundedSender<TrackCommand>, seekable: bool, uuid: Uuid) -> Self {
         Self {
             command_channel,
@@ -50,7 +50,7 @@ impl TrackHandle {
     /// This is *final*, and will cause the audio context to fire
     /// a [`TrackEvent::End`] event.
     ///
-    /// [`TrackEvent::End`]: ../events/enum.TrackEvent.html#variant.End
+    /// [`TrackEvent::End`]: crate::events::TrackEvent::End
     pub fn stop(&self) -> TrackResult {
         self.send(TrackCommand::Stop)
     }
@@ -62,11 +62,11 @@ impl TrackHandle {
 
     /// Denotes whether the underlying [`Input`] stream is compatible with arbitrary seeking.
     ///
-    /// If this returns `false`, all calls to [`seek`] will fail, and the track is
+    /// If this returns `false`, all calls to [`seek_time`] will fail, and the track is
     /// incapable of looping.
     ///
-    /// [`seek`]: #method.seek
-    /// [`Input`]: ../input/struct.Input.html
+    /// [`seek_time`]: TrackHandle::seek_time
+    /// [`Input`]: crate::input::Input
     pub fn is_seekable(&self) -> bool {
         self.seekable
     }
@@ -76,7 +76,7 @@ impl TrackHandle {
     /// If the underlying [`Input`] does not support this behaviour,
     /// then all calls will fail.
     ///
-    /// [`Input`]: ../input/struct.Input.html
+    /// [`Input`]: crate::input::Input
     pub fn seek_time(&self, position: Duration) -> TrackResult {
         if self.seekable {
             self.send(TrackCommand::Seek(position))
@@ -91,8 +91,8 @@ impl TrackHandle {
     /// within the supplied function or closure. *Taking excess time could prevent
     /// timely sending of packets, causing audio glitches and delays*.
     ///
-    /// [`Track`]: struct.Track.html
-    /// [`EventContext::Track`]: ../events/enum.EventContext.html#variant.Track
+    /// [`Track`]: Track
+    /// [`EventContext::Track`]: crate::events::EventContext::Track
     pub fn add_event<F: EventHandler + 'static>(&self, event: Event, action: F) -> TrackResult {
         let cmd = TrackCommand::AddEvent(EventData::new(event, action));
         if event.is_global_only() {
@@ -108,7 +108,7 @@ impl TrackHandle {
     /// within the supplied function or closure. *Taking excess time could prevent
     /// timely sending of packets, causing audio glitches and delays*.
     ///
-    /// [`Track`]: struct.Track.html
+    /// [`Track`]: Track
     pub fn action<F>(&self, action: F) -> TrackResult
     where
         F: FnOnce(&mut Track) + Send + Sync + 'static,
@@ -160,7 +160,7 @@ impl TrackHandle {
     #[inline]
     /// Send a raw command to the [`Track`] object.
     ///
-    /// [`Track`]: struct.Track.html
+    /// [`Track`]: Track
     pub fn send(&self, cmd: TrackCommand) -> TrackResult {
         self.command_channel.send(cmd)
     }

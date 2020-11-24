@@ -125,8 +125,8 @@ impl Driver {
     ///
     /// This can be a source created via [`ffmpeg`] or [`ytdl`].
     ///
-    /// [`ffmpeg`]: ../input/fn.ffmpeg.html
-    /// [`ytdl`]: ../input/fn.ytdl.html
+    /// [`ffmpeg`]: crate::input::ffmpeg
+    /// [`ytdl`]: crate::input::ytdl
     #[instrument(skip(self))]
     pub fn play_source(&mut self, source: Input) -> TrackHandle {
         let (player, handle) = super::create_player(source);
@@ -140,7 +140,7 @@ impl Driver {
     /// Unlike [`play_source`], this stops all other sources attached
     /// to the channel.
     ///
-    /// [`play_source`]: #method.play_source
+    /// [`play_source`]: Driver::play_source
     #[instrument(skip(self))]
     pub fn play_only_source(&mut self, source: Input) -> TrackHandle {
         let (player, handle) = super::create_player(source);
@@ -156,9 +156,9 @@ impl Driver {
     /// that this allows for direct manipulation of the [`Track`] object
     /// before it is passed over to the voice and mixing contexts.
     ///
-    /// [`create_player`]: ../tracks/fn.create_player.html
-    /// [`Track`]: ../tracks/struct.Track.html
-    /// [`play_source`]: #method.play_source
+    /// [`create_player`]: crate::tracks::create_player
+    /// [`create_player`]: crate::tracks::Track
+    /// [`play_source`]: Driver::play_source
     #[instrument(skip(self))]
     pub fn play(&mut self, track: Track) {
         self.send(CoreMessage::AddTrack(track));
@@ -171,10 +171,10 @@ impl Driver {
     /// channel. Like [`play`], however, this allows for direct manipulation of the
     /// [`Track`] object before it is passed over to the voice and mixing contexts.
     ///
-    /// [`create_player`]: ../tracks/fn.create_player.html
-    /// [`Track`]: ../tracks/struct.Track.html
-    /// [`play_only_source`]: #method.play_only_source
-    /// [`play`]: #method.play
+    /// [`create_player`]: crate::tracks::create_player
+    /// [`Track`]: crate::tracks::Track
+    /// [`play_only_source`]: Driver::play_only_source
+    /// [`play`]: Driver::play
     #[instrument(skip(self))]
     pub fn play_only(&mut self, track: Track) {
         self.send(CoreMessage::SetTrack(Some(track)));
@@ -216,9 +216,9 @@ impl Driver {
     /// within the supplied function or closure. *Taking excess time could prevent
     /// timely sending of packets, causing audio glitches and delays*.
     ///
-    /// [`Track`]: ../tracks/struct.Track.html
-    /// [`TrackEvent`]: ../events/enum.TrackEvent.html
-    /// [`EventContext`]: ../events/enum.EventContext.html
+    /// [`Track`]: crate::tracks::Track
+    /// [`TrackEvent`]: crate::events::TrackEvent
+    /// [`EventContext`]: crate::events::EventContext
     #[instrument(skip(self, action))]
     pub fn add_global_event<F: EventHandler + 'static>(&mut self, event: Event, action: F) {
         self.send(CoreMessage::AddEvent(EventData::new(event, action)));
@@ -243,8 +243,8 @@ impl Driver {
     /// Queue additions should be made via [`enqueue`] and
     /// [`enqueue_source`].
     ///
-    /// [`enqueue`]: #method.enqueue
-    /// [`enqueue_source`]: #method.enqueue_source
+    /// [`enqueue`]: Driver::enqueue
+    /// [`enqueue_source`]: Driver::enqueue_source
     pub fn queue(&self) -> &TrackQueue {
         &self.queue
     }
@@ -253,7 +253,7 @@ impl Driver {
     ///
     /// Requires the `"builtin-queue"` feature.
     ///
-    /// [`Input`]: ../input/struct.input.html
+    /// [`Input`]: crate::input::Input
     pub fn enqueue_source(&mut self, source: Input) {
         let (mut track, _) = tracks::create_player(source);
         self.queue.add_raw(&mut track);
@@ -264,7 +264,7 @@ impl Driver {
     ///
     /// Requires the `"builtin-queue"` feature.
     ///
-    /// [`Track`]: ../tracks/struct.track.html
+    /// [`Track`]: crate::tracks::Track
     pub fn enqueue(&mut self, mut track: Track) {
         self.queue.add_raw(&mut track);
         self.play(track);
