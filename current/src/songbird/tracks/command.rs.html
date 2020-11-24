@@ -52,6 +52,7 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
+<span id="54">54</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">events</span>::<span class="ident">EventData</span>;
@@ -61,8 +62,9 @@
 <span class="doccomment">/// A request from external code using a [`TrackHandle`] to modify</span>
 <span class="doccomment">/// or act upon an [`Track`] object.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Track`]: struct.Track.html</span>
-<span class="doccomment">/// [`TrackHandle`]: struct.TrackHandle.html</span>
+<span class="doccomment">/// [`Track`]: Track</span>
+<span class="doccomment">/// [`TrackHandle`]: TrackHandle</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TrackCommand</span> {
     <span class="doccomment">/// Set the track&#39;s play_mode to play/resume.</span>
     <span class="ident">Play</span>,

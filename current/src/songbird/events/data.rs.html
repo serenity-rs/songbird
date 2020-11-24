@@ -107,10 +107,10 @@
     <span class="doccomment">/// Event handlers will be re-added with their new trigger condition,</span>
     <span class="doccomment">/// or removed if [`Cancel`]led</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EventContext`]: enum.EventContext.html</span>
-    <span class="doccomment">/// [`Event`]: enum.Event.html</span>
-    <span class="doccomment">/// [`Delayed`]: enum.Event.html#variant.Delayed</span>
-    <span class="doccomment">/// [`Cancel`]: enum.Event.html#variant.Cancel</span>
+    <span class="doccomment">/// [`EventContext`]: EventContext</span>
+    <span class="doccomment">/// [`Event`]: Event</span>
+    <span class="doccomment">/// [`Delayed`]: Event::Delayed</span>
+    <span class="doccomment">/// [`Cancel`]: Event::Cancel</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">EventHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">event</span>: <span class="ident">Event</span>, <span class="ident">action</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">event</span>,

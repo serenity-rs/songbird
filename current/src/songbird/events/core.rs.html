@@ -30,15 +30,17 @@
 <span id="29">29</span>
 <span id="30">30</span>
 <span id="31">31</span>
+<span id="32">32</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="doccomment">/// Voice core events occur on receipt of</span>
 <span class="doccomment">/// voice packets and telemetry.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Core events persist while the `action` in [`EventData`]</span>
 <span class="doccomment">/// returns `None`.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`EventData`]: struct.EventData.html</span>
+<span class="doccomment">/// [`EventData`]: super::EventData</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CoreEvent</span> {
     <span class="doccomment">/// Fired on receipt of a speaking state update from another host.</span>
     <span class="doccomment">///</span>

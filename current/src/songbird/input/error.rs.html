@@ -102,7 +102,7 @@
 
 <span class="doccomment">/// An error returned when creating a new [`Input`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
+<span class="doccomment">/// [`Input`]: crate::input::Input</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
@@ -166,7 +166,7 @@
 
 <span class="doccomment">/// An error returned from the [`dca`] method.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`dca`]: ../fn.dca.html</span>
+<span class="doccomment">/// [`dca`]: crate::input::dca</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DcaError</span> {
@@ -184,7 +184,7 @@
 
 <span class="doccomment">/// Convenience type for fallible return of [`Input`]s.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
+<span class="doccomment">/// [`Input`]: crate::input::Input</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "songbird";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

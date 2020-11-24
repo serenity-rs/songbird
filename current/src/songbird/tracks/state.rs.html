@@ -29,17 +29,14 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
-<span id="31">31</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// State of an [`Track`] object, designed to be passed to event handlers</span>
-<span class="doccomment">/// and retrieved remotely via [`TrackHandle::get_info`] or</span>
-<span class="doccomment">/// [`TrackHandle::get_info_blocking`].</span>
+<span class="doccomment">/// and retrieved remotely via [`TrackHandle::get_info`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Track`]: struct.Track.html</span>
-<span class="doccomment">/// [`TrackHandle::get_info`]: struct.TrackHandle.html#method.get_info</span>
-<span class="doccomment">/// [`TrackHandle::get_info_blocking`]: struct.TrackHandle.html#method.get_info_blocking</span>
+<span class="doccomment">/// [`Track`]: Track</span>
+<span class="doccomment">/// [`TrackHandle::get_info`]: TrackHandle::get_info</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrackState</span> {
     <span class="doccomment">/// Play status (e.g., active, paused, stopped) of this track.</span>
@@ -48,7 +45,8 @@
     <span class="kw">pub</span> <span class="ident">volume</span>: <span class="ident">f32</span>,
     <span class="doccomment">/// Current playback position in the source.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is altered by loops and seeks</span>
+    <span class="doccomment">/// This is altered by loops and seeks, and represents this track&#39;s</span>
+    <span class="doccomment">/// position in its underlying input stream.</span>
     <span class="kw">pub</span> <span class="ident">position</span>: <span class="ident">Duration</span>,
     <span class="doccomment">/// Total playback time, increasing monotonically.</span>
     <span class="kw">pub</span> <span class="ident">play_time</span>: <span class="ident">Duration</span>,

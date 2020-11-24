@@ -15,8 +15,8 @@
 <span id="14">14</span>
 <span id="15">15</span>
 <span id="16">16</span>
+<span id="17">17</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="doccomment">/// Track events correspond to certain actions or changes</span>
 <span class="doccomment">/// of state, such as a track finishing, looping, or being</span>
 <span class="doccomment">/// manually stopped. Voice core events occur on receipt of</span>
@@ -25,7 +25,9 @@
 <span class="doccomment">/// Track events persist while the `action` in [`EventData`]</span>
 <span class="doccomment">/// returns `None`.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`EventData`]: struct.EventData.html</span>
+<span class="doccomment">/// [`EventData`]: super::EventData</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TrackEvent</span> {
     <span class="doccomment">/// The attached track has ended.</span>
     <span class="ident">End</span>,

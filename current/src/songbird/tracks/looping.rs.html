@@ -22,10 +22,10 @@
 <span id="21">21</span>
 <span id="22">22</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="doccomment">/// Looping behaviour for a [`Track`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Track`]: struct.Track.html</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LoopState</span> {
     <span class="doccomment">/// Track will loop endlessly until loop state is changed or</span>
     <span class="doccomment">/// manually stopped.</span>
@@ -35,7 +35,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `Finite(0)` is the `Default`, stopping the track once its [`Input`] ends.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: ../input/struct.Input.html</span>
+    <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="ident">Finite</span>(<span class="ident">usize</span>),
 }
 

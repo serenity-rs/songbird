@@ -110,7 +110,7 @@
 
 <span class="doccomment">/// State used to decode input bytes of an [`Input`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
+<span class="doccomment">/// [`Input`]: Input</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Codec</span> {
@@ -119,19 +119,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Must be combined with a non-[`Raw`] container.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Raw`]: ../enum.Container.html#variant.Raw</span>
+    <span class="doccomment">/// [`Raw`]: Container::Raw</span>
     <span class="ident">Opus</span>(<span class="ident">OpusDecoderState</span>),
     <span class="doccomment">/// The inner bytestream is encoded using raw `i16` samples.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Must be combined with a [`Raw`] container.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Raw`]: ../enum.Container.html#variant.Raw</span>
+    <span class="doccomment">/// [`Raw`]: Container::Raw</span>
     <span class="ident">Pcm</span>,
     <span class="doccomment">/// The inner bytestream is encoded using raw `f32` samples.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Must be combined with a [`Raw`] container.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Raw`]: ../enum.Container.html#variant.Raw</span>
+    <span class="doccomment">/// [`Raw`]: Container::Raw</span>
     <span class="ident">FloatPcm</span>,
 }
 
@@ -149,7 +149,7 @@
 
 <span class="doccomment">/// Type of data being passed into an [`Input`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
+<span class="doccomment">/// [`Input`]: Input</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CodecType</span> {
@@ -157,19 +157,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Must be combined with a non-[`Raw`] container.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Raw`]: ../enum.Container.html#variant.Raw</span>
+    <span class="doccomment">/// [`Raw`]: Container::Raw</span>
     <span class="ident">Opus</span>,
     <span class="doccomment">/// The inner bytestream is encoded using raw `i16` samples.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Must be combined with a [`Raw`] container.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Raw`]: ../enum.Container.html#variant.Raw</span>
+    <span class="doccomment">/// [`Raw`]: Container::Raw</span>
     <span class="ident">Pcm</span>,
     <span class="doccomment">/// The inner bytestream is encoded using raw `f32` samples.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Must be combined with a [`Raw`] container.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Raw`]: ../enum.Container.html#variant.Raw</span>
+    <span class="doccomment">/// [`Raw`]: Container::Raw</span>
     <span class="ident">FloatPcm</span>,
 }
 

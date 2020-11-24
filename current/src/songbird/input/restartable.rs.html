@@ -339,9 +339,9 @@
 <span class="doccomment">/// cannot be spared. Forward seeks will drain the track until reaching</span>
 <span class="doccomment">/// the desired timestamp.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: struct.Input.html</span>
-<span class="doccomment">/// [`Memory`]: cached/struct.Memory.html</span>
-<span class="doccomment">/// [`Compressed`]: cached/struct.Compressed.html</span>
+<span class="doccomment">/// [`Input`]: Input</span>
+<span class="doccomment">/// [`Memory`]: cached::Memory</span>
+<span class="doccomment">/// [`Compressed`]: cached::Compressed</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Restartable</span> {
     <span class="ident">async_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>,
     <span class="ident">awaiting_source</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RecreateChannel</span><span class="op">&gt;</span>,
@@ -391,7 +391,7 @@
 <span class="doccomment">/// Trait used to create an instance of a [`Reader`] at instantiation and when</span>
 <span class="doccomment">/// a backwards seek is needed.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Reader`]: ../reader/enum.Reader.html</span>
+<span class="doccomment">/// [`Reader`]: reader::Reader</span>
 <span class="attribute">#[<span class="ident">async_trait</span>]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Restart</span> {
     <span class="doccomment">/// Tries to create a replacement source.</span>

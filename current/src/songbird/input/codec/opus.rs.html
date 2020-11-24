@@ -49,7 +49,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// Inner state</span>
+<span class="doccomment">/// Inner state used to decode Opus input sources.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OpusDecoderState</span> {
     <span class="doccomment">/// Inner decoder used to convert opus frames into a stream of samples.</span>
     <span class="kw">pub</span> <span class="ident">decoder</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">OpusDecoder</span><span class="op">&gt;</span><span class="op">&gt;</span>,

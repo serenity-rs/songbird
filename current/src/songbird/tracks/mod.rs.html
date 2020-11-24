@@ -756,8 +756,8 @@
 <span class="doccomment">/// Typically, this would be used if you wished to directly work on or configure</span>
 <span class="doccomment">/// the [`Track`] object before it is passed over to the driver.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Track`]: struct.Track.html</span>
-<span class="doccomment">/// [`TrackHandle`]: struct.TrackHandle.html</span>
+<span class="doccomment">/// [`Track`]: Track</span>
+<span class="doccomment">/// [`TrackHandle`]: TrackHandle</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_player</span>(<span class="ident">source</span>: <span class="ident">Input</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Track</span>, <span class="ident">TrackHandle</span>) {
     <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">mpsc</span>::<span class="ident">unbounded_channel</span>();
     <span class="kw">let</span> <span class="ident">can_seek</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">is_seekable</span>();
@@ -773,7 +773,7 @@
 <span class="doccomment">/// Failure indicates that the accessed audio object has been</span>
 <span class="doccomment">/// removed or deleted by the audio context.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`TrackHandle`]: struct.TrackHandle.html</span>
+<span class="doccomment">/// [`TrackHandle`]: TrackHandle</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TrackResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Alias for return value from calls to [`TrackHandle::get_info`].</span>
@@ -784,7 +784,7 @@
 <span class="doccomment">/// Failure indicates that the accessed audio object has been</span>
 <span class="doccomment">/// removed or deleted by the audio context.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`TrackHandle::get_info`]: struct.TrackHandle.html#method.get_info</span>
+<span class="doccomment">/// [`TrackHandle::get_info`]: TrackHandle::get_info</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TrackQueryResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OneshotReceiver</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "songbird";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

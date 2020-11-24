@@ -205,14 +205,14 @@
 <span class="doccomment">/// Users may define their own data sources using [`Extension`]</span>
 <span class="doccomment">/// and [`ExtensionSeek`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Extension`]: #variant.Extension</span>
-<span class="doccomment">/// [`ExtensionSeek`]: #variant.ExtensionSeek</span>
+<span class="doccomment">/// [`Extension`]: Reader::Extension</span>
+<span class="doccomment">/// [`ExtensionSeek`]: Reader::ExtensionSeek</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Reader</span> {
     <span class="doccomment">/// Piped output of another program (i.e., [`ffmpeg`]).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Does not support seeking.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`ffmpeg`]: ../fn.ffmpeg.html</span>
+    <span class="doccomment">/// [`ffmpeg`]: super::ffmpeg</span>
     <span class="ident">Pipe</span>(<span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">ChildContainer</span><span class="op">&gt;</span>),
     <span class="doccomment">/// A cached, raw in-memory store, provided by Songbird.</span>
     <span class="doccomment">///</span>
