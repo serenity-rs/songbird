@@ -22,7 +22,13 @@ const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
 
 /// Creates a streamed audio source with `youtube-dl` and `ffmpeg`.
 ///
-/// Uses `youtube-dlc` if the `youtube-dlc` feature is enabled.
+/// This source is not seek-compatible.
+/// If you need looping or track seeking, then consider using
+/// [`Restartable::ytdl`].
+///
+/// Uses `youtube-dlc` if the `"youtube-dlc"` feature is enabled.
+///
+/// [`Restartable::ytdl`]: crate::input::restartable::Restartable::ytdl
 pub async fn ytdl(uri: &str) -> Result<Input> {
     _ytdl(uri, &[]).await
 }
@@ -110,6 +116,14 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
 
 /// Creates a streamed audio source from YouTube search results with `youtube-dl(c)`,`ffmpeg`, and `ytsearch`.
 /// Takes the first video listed from the YouTube search.
+///
+/// This source is not seek-compatible.
+/// If you need looping or track seeking, then consider using
+/// [`Restartable::ytdl_search`].
+///
+/// Uses `youtube-dlc` if the `"youtube-dlc"` feature is enabled.
+///
+/// [`Restartable::ytdl_search`]: crate::input::restartable::Restartable::ytdl_search
 pub async fn ytdl_search(name: &str) -> Result<Input> {
     ytdl(&format!("ytsearch1:{}", name)).await
 }

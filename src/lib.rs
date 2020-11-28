@@ -79,7 +79,7 @@ pub use crate::{
 };
 
 #[cfg(feature = "gateway")]
-pub use crate::{handler::Call, manager::Songbird};
+pub use crate::{handler::*, manager::*};
 
 #[cfg(feature = "serenity")]
 pub use crate::serenity::*;

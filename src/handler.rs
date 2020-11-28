@@ -9,7 +9,7 @@ use crate::{
     info::{ConnectionInfo, ConnectionProgress},
     shards::Shard,
 };
-use flume::{Receiver, Sender};
+use flume::{r#async::RecvFut, Sender};
 use serde_json::json;
 use tracing::instrument;
 
@@ -173,11 +173,21 @@ impl Call {
 
     #[cfg(feature = "driver")]
     /// Connect or switch to the given voice channel by its Id.
+    ///
+    /// This function acts as a future in two stages:
+    /// * The first `await` sends the request over the gateway.
+    /// * The second `await`s a the driver's connection attempt.
+    ///   To prevent deadlock, any mutexes around this Call
+    ///   *must* be released before this result is queried.
+    ///
+    /// When using [`Songbird::join`], this pattern is correctly handled for you.
+    ///
+    /// [`Songbird::join`]: crate::Songbird::join
     #[instrument(skip(self))]
     pub async fn join(
         &mut self,
         channel_id: ChannelId,
-    ) -> JoinResult<Receiver<ConnectionResult<()>>> {
+    ) -> JoinResult<RecvFut<'static, ConnectionResult<()>>> {
         let (tx, rx) = flume::unbounded();
 
         self.connection = Some((
@@ -186,7 +196,7 @@ impl Call {
             Return::Conn(tx),
         ));
 
-        self.update().await.map(|_| rx)
+        self.update().await.map(|_| rx.into_recv_async())
     }
 
     /// Join the selected voice channel, *without* running/starting an RTP
@@ -194,11 +204,21 @@ impl Call {
     ///
     /// Use this if you require connection info for lavalink,
     /// some other voice implementation, or don't want to use the driver for a given call.
+    ///
+    /// This function acts as a future in two stages:
+    /// * The first `await` sends the request over the gateway.
+    /// * The second `await`s voice session data from Discord.
+    ///   To prevent deadlock, any mutexes around this Call
+    ///   *must* be released before this result is queried.
+    ///
+    /// When using [`Songbird::join_gateway`], this pattern is correctly handled for you.
+    ///
+    /// [`Songbird::join_gateway`]: crate::Songbird::join_gateway
     #[instrument(skip(self))]
     pub async fn join_gateway(
         &mut self,
         channel_id: ChannelId,
-    ) -> JoinResult<Receiver<ConnectionInfo>> {
+    ) -> JoinResult<RecvFut<'static, ConnectionInfo>> {
         let (tx, rx) = flume::unbounded();
 
         self.connection = Some((
@@ -207,7 +227,7 @@ impl Call {
             Return::Info(tx),
         ));
 
-        self.update().await.map(|_| rx)
+        self.update().await.map(|_| rx.into_recv_async())
     }
 
     /// Leaves the current voice channel, disconnecting from it.

@@ -15,7 +15,7 @@ mod decode_mode;
 pub(crate) mod tasks;
 
 pub use config::Config;
-use connection::error::Result;
+use connection::error::{Error, Result};
 pub use crypto::*;
 pub use decode_mode::DecodeMode;
 
@@ -30,7 +30,12 @@ use crate::{
     EventHandler,
 };
 use audiopus::Bitrate;
-use flume::{Receiver, SendError, Sender};
+use core::{
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
+};
+use flume::{r#async::RecvFut, SendError, Sender};
 use tasks::message::CoreMessage;
 use tracing::instrument;
 
@@ -80,13 +85,18 @@ impl Driver {
     }
 
     /// Connects to a voice channel using the specified server.
+    ///
+    /// This method instantly contacts the driver tasks, and its
+    /// does not need to be `await`ed to start the actual connection.
     #[instrument(skip(self))]
-    pub fn connect(&mut self, info: ConnectionInfo) -> Receiver<Result<()>> {
+    pub fn connect(&mut self, info: ConnectionInfo) -> Connect {
         let (tx, rx) = flume::bounded(1);
 
         self.raw_connect(info, tx);
 
-        rx
+        Connect {
+            inner: rx.into_recv_async(),
+        }
     }
 
     /// Connects to a voice channel using the specified server.
@@ -283,5 +293,26 @@ impl Drop for Driver {
     fn drop(&mut self) {
         self.leave();
         let _ = self.sender.send(CoreMessage::Poison);
+    }
+}
+
+/// Future for a call to [`Driver::connect`].
+///
+/// This future awaits the *result* of a connection; the driver
+/// is messaged at the time of the call.
+///
+/// [`Driver::connect`]: Driver::connect
+pub struct Connect {
+    inner: RecvFut<'static, Result<()>>,
+}
+
+impl Future for Connect {
+    type Output = Result<()>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        match Pin::new(&mut self.inner).poll(cx) {
+            Poll::Ready(r) => Poll::Ready(r.map_err(|_| Error::AttemptDiscarded).and_then(|x| x)),
+            Poll::Pending => Poll::Pending,
+        }
     }
 }

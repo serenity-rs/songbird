@@ -1,5 +1,5 @@
 #[cfg(feature = "driver")]
-use crate::{driver::Config, error::ConnectionResult};
+use crate::driver::Config;
 use crate::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
@@ -9,7 +9,6 @@ use crate::{
 };
 #[cfg(feature = "serenity")]
 use async_trait::async_trait;
-use flume::Receiver;
 #[cfg(feature = "serenity")]
 use futures::channel::mpsc::UnboundedSender as Sender;
 use parking_lot::RwLock as PRwLock;
@@ -114,7 +113,7 @@ impl Songbird {
         client_data.initialised = true;
     }
 
-    /// Retreives a [`Call`] for the given guild, if one already exists.
+    /// Retrieves a [`Call`] for the given guild, if one already exists.
     ///
     /// [`Call`]: Call
     pub fn get<G: Into<GuildId>>(&self, guild_id: G) -> Option<Arc<Mutex<Call>>> {
@@ -122,7 +121,7 @@ impl Songbird {
         map_read.get(&guild_id.into()).cloned()
     }
 
-    /// Retreives a [`Call`] for the given guild, creating a new one if
+    /// Retrieves a [`Call`] for the given guild, creating a new one if
     /// none is found.
     ///
     /// This will not join any calls, or cause connection state to change.
@@ -186,11 +185,7 @@ impl Songbird {
     /// [`Call`]: Call
     /// [`get`]: Songbird::get
     #[inline]
-    pub async fn join<C, G>(
-        &self,
-        guild_id: G,
-        channel_id: C,
-    ) -> (Arc<Mutex<Call>>, JoinResult<Receiver<ConnectionResult<()>>>)
+    pub async fn join<C, G>(&self, guild_id: G, channel_id: C) -> (Arc<Mutex<Call>>, JoinResult<()>)
     where
         C: Into<ChannelId>,
         G: Into<GuildId>,
@@ -203,12 +198,20 @@ impl Songbird {
         &self,
         guild_id: GuildId,
         channel_id: ChannelId,
-    ) -> (Arc<Mutex<Call>>, JoinResult<Receiver<ConnectionResult<()>>>) {
+    ) -> (Arc<Mutex<Call>>, JoinResult<()>) {
         let call = self.get_or_insert(guild_id);
 
-        let result = {
+        let stage_1 = {
             let mut handler = call.lock().await;
             handler.join(channel_id).await
+        };
+
+        let result = match stage_1 {
+            Ok(chan) => chan
+                .await
+                .map_err(|_| JoinError::Dropped)
+                .and_then(|x| x.map_err(JoinError::from)),
+            Err(e) => Err(e),
         };
 
         (call, result)
@@ -226,7 +229,7 @@ impl Songbird {
         &self,
         guild_id: G,
         channel_id: C,
-    ) -> (Arc<Mutex<Call>>, JoinResult<Receiver<ConnectionInfo>>)
+    ) -> (Arc<Mutex<Call>>, JoinResult<ConnectionInfo>)
     where
         C: Into<ChannelId>,
         G: Into<GuildId>,
@@ -238,12 +241,17 @@ impl Songbird {
         &self,
         guild_id: GuildId,
         channel_id: ChannelId,
-    ) -> (Arc<Mutex<Call>>, JoinResult<Receiver<ConnectionInfo>>) {
+    ) -> (Arc<Mutex<Call>>, JoinResult<ConnectionInfo>) {
         let call = self.get_or_insert(guild_id);
 
-        let result = {
+        let stage_1 = {
             let mut handler = call.lock().await;
             handler.join_gateway(channel_id).await
+        };
+
+        let result = match stage_1 {
+            Ok(chan) => chan.await.map_err(|_| JoinError::Dropped),
+            Err(e) => Err(e),
         };
 
         (call, result)

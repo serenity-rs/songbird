@@ -240,7 +240,7 @@ impl TrackQueue {
     }
 
     /// Pause the track at the head of the queue.
-    pub fn pause(&self) -> TrackResult {
+    pub fn pause(&self) -> TrackResult<()> {
         let inner = self.inner.lock();
 
         if let Some(handle) = inner.tracks.front() {
@@ -251,7 +251,7 @@ impl TrackQueue {
     }
 
     /// Resume the track at the head of the queue.
-    pub fn resume(&self) -> TrackResult {
+    pub fn resume(&self) -> TrackResult<()> {
         let inner = self.inner.lock();
 
         if let Some(handle) = inner.tracks.front() {
@@ -273,7 +273,7 @@ impl TrackQueue {
     }
 
     /// Skip to the next track in the queue, if it exists.
-    pub fn skip(&self) -> TrackResult {
+    pub fn skip(&self) -> TrackResult<()> {
         let inner = self.inner.lock();
 
         inner.stop_current()
@@ -295,7 +295,7 @@ impl TrackQueue {
 
 impl TrackQueueCore {
     /// Skip to the next track in the queue, if it exists.
-    fn stop_current(&self) -> TrackResult {
+    fn stop_current(&self) -> TrackResult<()> {
         if let Some(handle) = self.tracks.front() {
             handle.stop()
         } else {
