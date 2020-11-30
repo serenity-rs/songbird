@@ -430,7 +430,7 @@
 <span class="doccomment">/// This manager transparently maps guild state and a source of shard information</span>
 <span class="doccomment">/// into individual calls, and forwards state updates which affect call state.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Call`]: struct.Call.html</span>
+<span class="doccomment">/// [`Call`]: Call</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Songbird</span> {
     <span class="ident">client_data</span>: <span class="ident">PRwLock</span><span class="op">&lt;</span><span class="ident">ClientData</span><span class="op">&gt;</span>,
@@ -447,7 +447,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This must be [registered] after creation.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [registered]: serenity/fn.register_with.html</span>
+    <span class="doccomment">/// [registered]: crate::serenity::register_with</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serenity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="self">Self</span> {
             <span class="ident">client_data</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
@@ -466,7 +466,7 @@
     <span class="doccomment">/// users are responsible for passing in any events using</span>
     <span class="doccomment">/// [`process`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`process`]: #method.process</span>
+    <span class="doccomment">/// [`process`]: Songbird::process</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">twilight</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">cluster</span>: <span class="ident">Cluster</span>, <span class="ident">shard_count</span>: <span class="ident">u64</span>, <span class="ident">user_id</span>: <span class="ident">U</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span>,
@@ -490,7 +490,7 @@
     <span class="doccomment">/// If this struct is already initialised (e.g., from [`::twilight`]),</span>
     <span class="doccomment">/// or a previous call, then this function is a no-op.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`::twilight`]: #method.twilight</span>
+    <span class="doccomment">/// [`::twilight`]: Songbird::twilight</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialise_client_data</span><span class="op">&lt;</span><span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">shard_count</span>: <span class="ident">u64</span>, <span class="ident">user_id</span>: <span class="ident">U</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client_data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">client_data</span>.<span class="ident">write</span>();
 
@@ -505,7 +505,7 @@
 
     <span class="doccomment">/// Retreives a [`Call`] for the given guild, if one already exists.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Call`]: struct.Call.html</span>
+    <span class="doccomment">/// [`Call`]: Call</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">GuildId</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">guild_id</span>: <span class="ident">G</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">map_read</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">calls</span>.<span class="ident">read</span>();
         <span class="ident">map_read</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">guild_id</span>.<span class="ident">into</span>()).<span class="ident">cloned</span>()
@@ -516,7 +516,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will not join any calls, or cause connection state to change.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Call`]: struct.Call.html</span>
+    <span class="doccomment">/// [`Call`]: Call</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_insert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">guild_id</span>: <span class="ident">GuildId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">guild_id</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map_read</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">calls</span>.<span class="ident">write</span>();
@@ -572,8 +572,8 @@
     <span class="doccomment">/// If you _only_ need to retrieve the handler for a target, then use</span>
     <span class="doccomment">/// [`get`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Call`]: struct.Call.html</span>
-    <span class="doccomment">/// [`get`]: #method.get</span>
+    <span class="doccomment">/// [`Call`]: Call</span>
+    <span class="doccomment">/// [`get`]: Songbird::get</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">G</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -609,7 +609,7 @@
     <span class="doccomment">/// This method returns the handle and the connection info needed for other libraries</span>
     <span class="doccomment">/// or drivers, such as lavalink, and does not actually start or run a voice call.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Call`]: struct.Call.html</span>
+    <span class="doccomment">/// [`Call`]: Call</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">join_gateway</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">G</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -646,9 +646,9 @@
     <span class="doccomment">/// This is a wrapper around [getting][`get`] a handler and calling</span>
     <span class="doccomment">/// [`leave`] on it.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Call`]: struct.Call.html</span>
-    <span class="doccomment">/// [`get`]: #method.get</span>
-    <span class="doccomment">/// [`leave`]: struct.Call.html#method.leave</span>
+    <span class="doccomment">/// [`Call`]: Call</span>
+    <span class="doccomment">/// [`get`]: Songbird::get</span>
+    <span class="doccomment">/// [`leave`]: Call::leave</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">leave</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">GuildId</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">guild_id</span>: <span class="ident">G</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">_leave</span>(<span class="ident">guild_id</span>.<span class="ident">into</span>()).<span class="ident">await</span>
@@ -671,7 +671,7 @@
     <span class="doccomment">/// An Err(...) value implies that the gateway could not be contacted,</span>
     <span class="doccomment">/// and that leaving should be attempted again later (i.e., after reconnect).</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Call`]: struct.Call.html</span>
+    <span class="doccomment">/// [`Call`]: Call</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">remove</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">GuildId</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">guild_id</span>: <span class="ident">G</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">_remove</span>(<span class="ident">guild_id</span>.<span class="ident">into</span>()).<span class="ident">await</span>

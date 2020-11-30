@@ -335,12 +335,6 @@
 <span id="334">334</span>
 <span id="335">335</span>
 <span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -373,8 +367,7 @@
 <span class="doccomment">/// If the `&quot;driver&quot;` feature is enabled, then a Call exposes all control methods of</span>
 <span class="doccomment">/// [`Driver`] via `Deref(Mut)`.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Driver`]: driver/struct.Driver.html</span>
-<span class="doccomment">/// [`Shard`]: ../gateway/struct.Shard.html</span>
+<span class="doccomment">/// [`Driver`]: struct@Driver</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Call</span> {
     <span class="ident">connection</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ChannelId</span>, <span class="ident">ConnectionProgress</span>, <span class="ident">Return</span>)<span class="op">&gt;</span>,
@@ -389,11 +382,14 @@
     <span class="doccomment">/// Whether the current handler is set to mute voice connections.</span>
     <span class="ident">self_mute</span>: <span class="ident">bool</span>,
     <span class="ident">user_id</span>: <span class="ident">UserId</span>,
-    <span class="doccomment">/// Will be set when a `Call` is made via the [`new`][`Call::new`]</span>
+    <span class="doccomment">/// Will be set when a `Call` is made via the [`new`]</span>
     <span class="doccomment">/// method.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// When set via [`standalone`][`Call::standalone`], it will not be</span>
+    <span class="doccomment">/// When set via [`standalone`](`Call::standalone`), it will not be</span>
     <span class="doccomment">/// present.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`new`]: Call::new</span>
+    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shard</span><span class="op">&gt;</span>,
 }
 
@@ -497,7 +493,7 @@
     <span class="doccomment">/// **Note**: If the `Call` was created via [`standalone`], then this</span>
     <span class="doccomment">/// will _only_ update whether the connection is internally deafened.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: #method.standalone</span>
+    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">deafen</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">deaf</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">self_deaf</span> <span class="op">=</span> <span class="ident">deaf</span>;
@@ -561,7 +557,7 @@
     <span class="doccomment">/// will _only_ update whether the connection is internally connected to a</span>
     <span class="doccomment">/// voice channel.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: #method.standalone</span>
+    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">leave</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Only send an update if we were in a voice channel.</span>
@@ -581,7 +577,7 @@
     <span class="doccomment">/// **Note**: If the `Call` was created via [`standalone`], then this</span>
     <span class="doccomment">/// will _only_ update whether the connection is internally muted.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: #method.standalone</span>
+    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">mute</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mute</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">self_mute</span> <span class="op">=</span> <span class="ident">mute</span>;
@@ -603,11 +599,7 @@
     <span class="doccomment">/// You should only need to use this if you initialized the `Call` via</span>
     <span class="doccomment">/// [`standalone`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Refer to the documentation for [`connect`] for when this will</span>
-    <span class="doccomment">/// automatically connect to a voice channel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`connect`]: #method.connect</span>
-    <span class="doccomment">/// [`standalone`]: #method.standalone</span>
+    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">token</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_server</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">endpoint</span>: <span class="ident">String</span>, <span class="ident">token</span>: <span class="ident">String</span>) {
         <span class="kw">let</span> <span class="ident">try_conn</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">progress</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection</span>.<span class="ident">as_mut</span>() {
@@ -626,11 +618,7 @@
     <span class="doccomment">/// You should only need to use this if you initialized the `Call` via</span>
     <span class="doccomment">/// [`standalone`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// refer to the documentation for [`connect`] for when this will</span>
-    <span class="doccomment">/// automatically connect to a voice channel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`connect`]: #method.connect</span>
-    <span class="doccomment">/// [`standalone`]: #method.standalone</span>
+    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">session_id</span>: <span class="ident">String</span>) {
         <span class="kw">let</span> <span class="ident">try_conn</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">progress</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection</span>.<span class="ident">as_mut</span>() {
@@ -648,7 +636,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Does nothing if initialized via [`standalone`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: #method.standalone</span>
+    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ws</span>.<span class="ident">as_mut</span>() {

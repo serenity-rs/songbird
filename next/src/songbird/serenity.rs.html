@@ -86,7 +86,7 @@
 <span class="doccomment">/// Zero-size type used to retrieve the registered [`Songbird`] instance</span>
 <span class="doccomment">/// from serenity&#39;s inner TypeMap.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Songbird`]: ../struct.Songbird.html</span>
+<span class="doccomment">/// [`Songbird`]: Songbird</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SongbirdKey</span>;
 
 <span class="kw">impl</span> <span class="ident">TypeMapKey</span> <span class="kw">for</span> <span class="ident">SongbirdKey</span> {
@@ -127,7 +127,7 @@
     <span class="doccomment">/// Registers a new Songbird voice system with serenity, storing it for easy</span>
     <span class="doccomment">/// access via [`get`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`get`]: fn.get.html</span>
+    <span class="doccomment">/// [`get`]: get</span>
     <span class="kw">fn</span> <span class="ident">register_songbird</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     <span class="doccomment">/// Registers a given Songbird voice system with serenity, as above.</span>
     <span class="kw">fn</span> <span class="ident">register_songbird_with</span>(<span class="self">self</span>, <span class="ident">voice</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;

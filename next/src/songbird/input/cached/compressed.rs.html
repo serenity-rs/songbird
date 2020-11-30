@@ -348,9 +348,9 @@
 <span class="doccomment">/// retrieved as **compressed Opus audio**. There is an associated memory cost,</span>
 <span class="doccomment">/// but this is far smaller than using a [`Memory`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
-<span class="doccomment">/// [`Memory`]: struct.Memory.html</span>
-<span class="doccomment">/// [`Restartable`]: ../struct.Restartable.html</span>
+<span class="doccomment">/// [`Input`]: Input</span>
+<span class="doccomment">/// [`Memory`]: super::Memory</span>
+<span class="doccomment">/// [`Restartable`]: crate::input::restartable::Restartable</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Compressed</span> {
     <span class="doccomment">/// Inner shared bytestore.</span>
@@ -364,7 +364,7 @@
 <span class="kw">impl</span> <span class="ident">Compressed</span> {
     <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
+    <span class="doccomment">/// [`Input`]: Input</span>
     <span class="doccomment">/// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">with_config</span>(<span class="ident">source</span>, <span class="ident">bitrate</span>, <span class="prelude-val">None</span>)
@@ -374,10 +374,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `config.length_hint` may be used to control the size of the initial chunk, preventing</span>
     <span class="doccomment">/// needless allocations and copies. If this is not present, the value specified in</span>
-    <span class="doccomment">/// `source`&#39;s [`Metadata.duration`] will be used.</span>
+    <span class="doccomment">/// `source`&#39;s [`Metadata::duration`] will be used.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
-    <span class="doccomment">/// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration</span>
+    <span class="doccomment">/// [`Input`]: Input</span>
+    <span class="doccomment">/// [`Metadata::duration`]: crate::input::Metadata::duration</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_config</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>, <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">channels</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">stereo</span> {
             <span class="ident">Channels</span>::<span class="ident">Stereo</span>
@@ -397,8 +397,8 @@
     <span class="doccomment">/// `length_hint` functions as in [`new`]. This function&#39;s behaviour is undefined if your encoder</span>
     <span class="doccomment">/// has a different sample rate than 48kHz, and if the decoder has a different channel count from the source.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
-    <span class="doccomment">/// [`new`]: #method.new</span>
+    <span class="doccomment">/// [`Input`]: Input</span>
+    <span class="doccomment">/// [`new`]: Compressed::new</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_encoder</span>(
         <span class="kw-2">mut</span> <span class="ident">source</span>: <span class="ident">Input</span>,
         <span class="ident">encoder</span>: <span class="ident">OpusEncoder</span>,
@@ -459,7 +459,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Created and managed by [`Compressed`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Compressed`]: struct.Compressed.html</span>
+<span class="doccomment">/// [`Compressed`]: Compressed</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OpusCompressor</span> {
     <span class="ident">encoder</span>: <span class="ident">OpusEncoder</span>,

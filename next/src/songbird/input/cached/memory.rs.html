@@ -143,9 +143,9 @@
 <span class="doccomment">/// cost of audio processing. This is a significant *3 Mbps (375 kiB/s)*,</span>
 <span class="doccomment">/// or 131 MiB of RAM for a 6 minute song.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
-<span class="doccomment">/// [`Compressed`]: struct.Compressed.html</span>
-<span class="doccomment">/// [`Restartable`]: ../struct.Restartable.html</span>
+<span class="doccomment">/// [`Input`]: Input</span>
+<span class="doccomment">/// [`Compressed`]: super::Compressed</span>
+<span class="doccomment">/// [`Restartable`]: crate::input::restartable::Restartable</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Memory</span> {
     <span class="doccomment">/// Inner shared bytestore.</span>
@@ -163,7 +163,7 @@
 <span class="kw">impl</span> <span class="ident">Memory</span> {
     <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
+    <span class="doccomment">/// [`Input`]: Input</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">source</span>: <span class="ident">Input</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">with_config</span>(<span class="ident">source</span>, <span class="prelude-val">None</span>)
     }
@@ -172,10 +172,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `length_hint` may be used to control the size of the initial chunk, preventing</span>
     <span class="doccomment">/// needless allocations and copies. If this is not present, the value specified in</span>
-    <span class="doccomment">/// `source`&#39;s [`Metadata.duration`] will be used, assuming that the source is uncompressed.</span>
+    <span class="doccomment">/// `source`&#39;s [`Metadata::duration`] will be used, assuming that the source is uncompressed.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: ../struct.Input.html</span>
-    <span class="doccomment">/// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration</span>
+    <span class="doccomment">/// [`Input`]: Input</span>
+    <span class="doccomment">/// [`Metadata::duration`]: crate::input::Metadata::duration</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_config</span>(<span class="kw-2">mut</span> <span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">stereo</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">stereo</span>;
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">source</span>.<span class="ident">kind</span>).<span class="ident">into</span>();

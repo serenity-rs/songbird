@@ -269,7 +269,7 @@
 <span class="doccomment">/// Timed events are stored in a binary heap for fast selection, and have custom `Eq`,</span>
 <span class="doccomment">/// `Ord`, etc. implementations to support (only) this.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`EventData`]: struct.EventData.html</span>
+<span class="doccomment">/// [`EventData`]: EventData</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EventStore</span> {
     <span class="ident">timed</span>: <span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">EventData</span><span class="op">&gt;</span>,
     <span class="ident">untimed</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">UntimedEvent</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EventData</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -287,7 +287,7 @@
     <span class="doccomment">/// This is usually automatically installed by the driver once</span>
     <span class="doccomment">/// a track has been registered.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Track`]: ../tracks/struct.Track.html</span>
+    <span class="doccomment">/// [`Track`]: crate::tracks::Track</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_local</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">EventStore</span> {
             <span class="ident">local_only</span>: <span class="bool-val">true</span>,
@@ -299,7 +299,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Updates `evt` according to [`EventData::compute_activation`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EventData::compute_activation`]: struct.EventData.html#method.compute_activation</span>
+    <span class="doccomment">/// [`EventData::compute_activation`]: EventData::compute_activation</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_event</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">evt</span>: <span class="ident">EventData</span>, <span class="ident">now</span>: <span class="ident">Duration</span>) {
         <span class="ident">evt</span>.<span class="ident">compute_activation</span>(<span class="ident">now</span>);
 

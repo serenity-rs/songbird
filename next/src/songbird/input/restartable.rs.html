@@ -293,6 +293,12 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A source which supports seeking by recreating its input stream.</span>
 <span class="doccomment">//!</span>
@@ -306,8 +312,8 @@
 <span class="doccomment">//! success/failure is confirmed, the track produces silence.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">async_trait</span>::<span class="ident">async_trait</span>;
 <span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">TryRecvError</span>};
-<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">executor</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">ffi</span>::<span class="ident">OsStr</span>,
     <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">FormatError</span>, <span class="ident">Formatter</span>},
@@ -333,9 +339,9 @@
 <span class="doccomment">/// cannot be spared. Forward seeks will drain the track until reaching</span>
 <span class="doccomment">/// the desired timestamp.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: struct.Input.html</span>
-<span class="doccomment">/// [`Memory`]: cached/struct.Memory.html</span>
-<span class="doccomment">/// [`Compressed`]: cached/struct.Compressed.html</span>
+<span class="doccomment">/// [`Input`]: Input</span>
+<span class="doccomment">/// [`Memory`]: cached::Memory</span>
+<span class="doccomment">/// [`Compressed`]: cached::Compressed</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Restartable</span> {
     <span class="ident">async_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>,
     <span class="ident">awaiting_source</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RecreateChannel</span><span class="op">&gt;</span>,
@@ -346,8 +352,8 @@
 
 <span class="kw">impl</span> <span class="ident">Restartable</span> {
     <span class="doccomment">/// Create a new source, which can be restarted using a `recreator` function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="kw-2">mut</span> <span class="ident">recreator</span>: <span class="kw">impl</span> <span class="ident">Restart</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">recreator</span>.<span class="ident">call_restart</span>(<span class="prelude-val">None</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">source</span><span class="op">|</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="kw-2">mut</span> <span class="ident">recreator</span>: <span class="kw">impl</span> <span class="ident">Restart</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="ident">recreator</span>.<span class="ident">call_restart</span>(<span class="prelude-val">None</span>).<span class="ident">await</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">source</span><span class="op">|</span> <span class="self">Self</span> {
             <span class="ident">async_handle</span>: <span class="prelude-val">None</span>,
             <span class="ident">awaiting_source</span>: <span class="prelude-val">None</span>,
             <span class="ident">position</span>: <span class="number">0</span>,
@@ -357,32 +363,24 @@
     }
 
     <span class="doccomment">/// Create a new restartable ffmpeg source for a local file.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ffmpeg</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">FfmpegRestarter</span> { <span class="ident">path</span> })
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">ffmpeg</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">FfmpegRestarter</span> { <span class="ident">path</span> }).<span class="ident">await</span>
     }
 
     <span class="doccomment">/// Create a new restartable ytdl source.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The cost of restarting and seeking will probably be *very* high:</span>
     <span class="doccomment">/// expect a pause if you seek backwards.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ytdl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">time</span> {
-                <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs</span>(), <span class="ident">time</span>.<span class="ident">subsec_millis</span>());
-
-                <span class="ident">executor</span>::<span class="ident">block_on</span>(<span class="ident">_ytdl</span>(<span class="ident">uri</span>.<span class="ident">as_ref</span>(), <span class="kw-2">&amp;</span>[<span class="string">&quot;-ss&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">ts</span>]))
-            } <span class="kw">else</span> {
-                <span class="ident">executor</span>::<span class="ident">block_on</span>(<span class="ident">ytdl</span>(<span class="ident">uri</span>.<span class="ident">as_ref</span>()))
-            }
-        })
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">ytdl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">uri</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">YtdlRestarter</span> { <span class="ident">uri</span> }).<span class="ident">await</span>
     }
 
     <span class="doccomment">/// Create a new restartable ytdl source, using the first result of a youtube search.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The cost of restarting and seeking will probably be *very* high:</span>
     <span class="doccomment">/// expect a pause if you seek backwards.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">ytdl</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>))
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="self">Self</span>::<span class="ident">ytdl</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>)).<span class="ident">await</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prep_with_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">handle</span>: <span class="ident">Handle</span>) {
@@ -393,64 +391,76 @@
 <span class="doccomment">/// Trait used to create an instance of a [`Reader`] at instantiation and when</span>
 <span class="doccomment">/// a backwards seek is needed.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Many closures derive this automatically.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Reader`]: ../reader/enum.Reader.html</span>
+<span class="doccomment">/// [`Reader`]: reader::Reader</span>
+<span class="attribute">#[<span class="ident">async_trait</span>]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Restart</span> {
     <span class="doccomment">/// Tries to create a replacement source.</span>
-    <span class="kw">fn</span> <span class="ident">call_restart</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span>;
+    <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">call_restart</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">struct</span> <span class="ident">FfmpegRestarter</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
 {
     <span class="ident">path</span>: <span class="ident">P</span>,
 }
 
+<span class="attribute">#[<span class="ident">async_trait</span>]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="ident">Restart</span> <span class="kw">for</span> <span class="ident">FfmpegRestarter</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
 {
-    <span class="kw">fn</span> <span class="ident">call_restart</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
-        <span class="ident">executor</span>::<span class="ident">block_on</span>(<span class="ident">async</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">time</span> {
-                <span class="kw">let</span> <span class="ident">is_stereo</span> <span class="op">=</span> <span class="ident">is_stereo</span>(<span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>())
-                    .<span class="ident">await</span>
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> (<span class="bool-val">false</span>, <span class="ident">Default</span>::<span class="ident">default</span>()));
-                <span class="kw">let</span> <span class="ident">stereo_val</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_stereo</span>.<span class="number">0</span> { <span class="string">&quot;2&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;1&quot;</span> };
-
-                <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs</span>(), <span class="ident">time</span>.<span class="ident">subsec_millis</span>());
-                <span class="ident">_ffmpeg_optioned</span>(
-                    <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>(),
-                    <span class="kw-2">&amp;</span>[<span class="string">&quot;-ss&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">ts</span>],
-                    <span class="kw-2">&amp;</span>[
-                        <span class="string">&quot;-f&quot;</span>,
-                        <span class="string">&quot;s16le&quot;</span>,
-                        <span class="string">&quot;-ac&quot;</span>,
-                        <span class="ident">stereo_val</span>,
-                        <span class="string">&quot;-ar&quot;</span>,
-                        <span class="string">&quot;48000&quot;</span>,
-                        <span class="string">&quot;-acodec&quot;</span>,
-                        <span class="string">&quot;pcm_f32le&quot;</span>,
-                        <span class="string">&quot;-&quot;</span>,
-                    ],
-                    <span class="prelude-val">Some</span>(<span class="ident">is_stereo</span>),
-                )
+    <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">call_restart</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">time</span> {
+            <span class="kw">let</span> <span class="ident">is_stereo</span> <span class="op">=</span> <span class="ident">is_stereo</span>(<span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>())
                 .<span class="ident">await</span>
-            } <span class="kw">else</span> {
-                <span class="ident">ffmpeg</span>(<span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>()).<span class="ident">await</span>
-            }
-        })
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> (<span class="bool-val">false</span>, <span class="ident">Default</span>::<span class="ident">default</span>()));
+            <span class="kw">let</span> <span class="ident">stereo_val</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_stereo</span>.<span class="number">0</span> { <span class="string">&quot;2&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;1&quot;</span> };
+
+            <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs</span>(), <span class="ident">time</span>.<span class="ident">subsec_millis</span>());
+            <span class="ident">_ffmpeg_optioned</span>(
+                <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>(),
+                <span class="kw-2">&amp;</span>[<span class="string">&quot;-ss&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">ts</span>],
+                <span class="kw-2">&amp;</span>[
+                    <span class="string">&quot;-f&quot;</span>,
+                    <span class="string">&quot;s16le&quot;</span>,
+                    <span class="string">&quot;-ac&quot;</span>,
+                    <span class="ident">stereo_val</span>,
+                    <span class="string">&quot;-ar&quot;</span>,
+                    <span class="string">&quot;48000&quot;</span>,
+                    <span class="string">&quot;-acodec&quot;</span>,
+                    <span class="string">&quot;pcm_f32le&quot;</span>,
+                    <span class="string">&quot;-&quot;</span>,
+                ],
+                <span class="prelude-val">Some</span>(<span class="ident">is_stereo</span>),
+            )
+            .<span class="ident">await</span>
+        } <span class="kw">else</span> {
+            <span class="ident">ffmpeg</span>(<span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>()).<span class="ident">await</span>
+        }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="ident">Restart</span> <span class="kw">for</span> <span class="ident">P</span>
+<span class="kw">struct</span> <span class="ident">YtdlRestarter</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">FnMut</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
 {
-    <span class="kw">fn</span> <span class="ident">call_restart</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
-        (<span class="self">self</span>)(<span class="ident">time</span>)
+    <span class="ident">uri</span>: <span class="ident">P</span>,
+}
+
+<span class="attribute">#[<span class="ident">async_trait</span>]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="ident">Restart</span> <span class="kw">for</span> <span class="ident">YtdlRestarter</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
+{
+    <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">call_restart</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">time</span> {
+            <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs</span>(), <span class="ident">time</span>.<span class="ident">subsec_millis</span>());
+
+            <span class="ident">_ytdl</span>(<span class="self">self</span>.<span class="ident">uri</span>.<span class="ident">as_ref</span>(), <span class="kw-2">&amp;</span>[<span class="string">&quot;-ss&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">ts</span>]).<span class="ident">await</span>
+        } <span class="kw">else</span> {
+            <span class="ident">ytdl</span>(<span class="self">self</span>.<span class="ident">uri</span>.<span class="ident">as_ref</span>()).<span class="ident">await</span>
+        }
     }
 }
 
@@ -554,9 +564,11 @@
 
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">rec</span>) <span class="op">=</span> <span class="ident">recreator</span> {
                             <span class="ident">handle</span>.<span class="ident">spawn</span>(<span class="ident">async</span> <span class="kw">move</span> {
-                                <span class="kw">let</span> <span class="ident">ret_val</span> <span class="op">=</span> <span class="ident">rec</span>.<span class="ident">call_restart</span>(<span class="prelude-val">Some</span>(
-                                    <span class="ident">utils</span>::<span class="ident">byte_count_to_timestamp</span>(<span class="ident">offset</span>, <span class="ident">stereo</span>),
-                                ));
+                                <span class="kw">let</span> <span class="ident">ret_val</span> <span class="op">=</span> <span class="ident">rec</span>
+                                    .<span class="ident">call_restart</span>(<span class="prelude-val">Some</span>(<span class="ident">utils</span>::<span class="ident">byte_count_to_timestamp</span>(
+                                        <span class="ident">offset</span>, <span class="ident">stereo</span>,
+                                    )))
+                                    .<span class="ident">await</span>;
 
                                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">ret_val</span>.<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">new</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">v</span>, <span class="ident">rec</span>)));
                             });

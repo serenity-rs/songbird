@@ -27,16 +27,18 @@
 <span id="26">26</span>
 <span id="27">27</span>
 <span id="28">28</span>
+<span id="29">29</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="doccomment">/// Track and voice core events.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Untimed events persist while the `action` in [`EventData`]</span>
 <span class="doccomment">/// returns `None`.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`EventData`]: struct.EventData.html</span>
+<span class="doccomment">/// [`EventData`]: EventData</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UntimedEvent</span> {
     <span class="doccomment">/// Untimed events belonging to a track, such as state changes, end, or loops.</span>
     <span class="ident">Track</span>(<span class="ident">TrackEvent</span>),

@@ -291,6 +291,19 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">driver</span>::<span class="ident">Driver</span>,
@@ -347,8 +360,8 @@
 <span class="doccomment">/// # };</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`TrackEvent`]: ../events/enum.TrackEvent.html</span>
-<span class="doccomment">/// [`Driver::queue`]: ../driver/struct.Driver.html#method.queue</span>
+<span class="doccomment">/// [`TrackEvent`]: crate::events::TrackEvent</span>
+<span class="doccomment">/// [`Driver::queue`]: crate::driver::Driver::queue</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrackQueue</span> {
     <span class="comment">// NOTE: the choice of a parking lot mutex is quite deliberate</span>
@@ -382,7 +395,7 @@
 <span class="doccomment">/// This abstracts away thread-safety from the user,</span>
 <span class="doccomment">/// and offers a convenient location to store further state if required.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`TrackQueue`]: struct.TrackQueue.html</span>
+<span class="doccomment">/// [`TrackQueue`]: TrackQueue</span>
 <span class="kw">struct</span> <span class="ident">TrackQueueCore</span> {
     <span class="ident">tracks</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Queued</span><span class="op">&gt;</span>,
 }
@@ -457,11 +470,11 @@
 
     <span class="doccomment">/// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is used with [`voice::create_player`] if additional configuration or event handlers</span>
+    <span class="doccomment">/// This is used with [`create_player`] if additional configuration or event handlers</span>
     <span class="doccomment">/// are required before enqueueing the audio track.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Track`]: struct.Track.html</span>
-    <span class="doccomment">/// [`voice::create_player`]: fn.create_player.html</span>
+    <span class="doccomment">/// [`Track`]: Track</span>
+    <span class="doccomment">/// [`create_player`]: super::create_player</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">track</span>: <span class="ident">Track</span>, <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Driver</span>) {
         <span class="self">self</span>.<span class="ident">add_raw</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">track</span>);
         <span class="ident">handler</span>.<span class="ident">play</span>(<span class="ident">track</span>);
@@ -502,7 +515,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned entry can be readded to *this* queue via [`modify_queue`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`modify_queue`]: #method.modify_queue</span>
+    <span class="doccomment">/// [`modify_queue`]: TrackQueue::modify_queue</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dequeue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Queued</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">modify_queue</span>(<span class="op">|</span><span class="ident">vq</span><span class="op">|</span> <span class="ident">vq</span>.<span class="ident">remove</span>(<span class="ident">index</span>))
     }
@@ -571,6 +584,19 @@
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
 
         <span class="ident">inner</span>.<span class="ident">stop_current</span>()
+    }
+
+    <span class="doccomment">/// Returns a list of currently queued tracks.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Does not allow for modification of the queue, instead returns a snapshot of the queue at the time of calling.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Use [`modify_queue`] for direct modification of the queue.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`modify_queue`]: TrackQueue::modify_queue</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_queue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackHandle</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+
+        <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="ident">q</span>.<span class="ident">handle</span>()).<span class="ident">collect</span>()
     }
 }
 

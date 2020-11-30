@@ -95,7 +95,7 @@
     <span class="doccomment">/// driver is actively connected, but will apply to subsequent</span>
     <span class="doccomment">/// sessions.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CryptoMode::Normal`]: enum.CryptoMode.html#variant.Normal</span>
+    <span class="doccomment">/// [`CryptoMode::Normal`]: CryptoMode::Normal</span>
     <span class="kw">pub</span> <span class="ident">crypto_mode</span>: <span class="ident">CryptoMode</span>,
     <span class="doccomment">/// Configures whether decoding and decryption occur for all received packets.</span>
     <span class="doccomment">///</span>
@@ -107,10 +107,10 @@
     <span class="doccomment">/// Defaults to [`DecodeMode::Decrypt`]. This is due to per-packet decoding costs,</span>
     <span class="doccomment">/// which most users will not want to pay, but allowing speaking events which are commonly used.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`DecodeMode::Decode`]: enum.DecodeMode.html#variant.Decode</span>
-    <span class="doccomment">/// [`DecodeMode::Decrypt`]: enum.DecodeMode.html#variant.Decrypt</span>
-    <span class="doccomment">/// [`DecodeMode::Pass`]: enum.DecodeMode.html#variant.Pass</span>
-    <span class="doccomment">/// [user speaking events]: ../events/enum.CoreEvent.html#variant.SpeakingUpdate</span>
+    <span class="doccomment">/// [`DecodeMode::Decode`]: DecodeMode::Decode</span>
+    <span class="doccomment">/// [`DecodeMode::Decrypt`]: DecodeMode::Decrypt</span>
+    <span class="doccomment">/// [`DecodeMode::Pass`]: DecodeMode::Pass</span>
+    <span class="doccomment">/// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate</span>
     <span class="kw">pub</span> <span class="ident">decode_mode</span>: <span class="ident">DecodeMode</span>,
     <span class="doccomment">/// Number of concurrently active tracks to allocate memory for.</span>
     <span class="doccomment">///</span>
