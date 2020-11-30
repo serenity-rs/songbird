@@ -7,7 +7,11 @@ use crate::{
     driver::{Config, DecodeMode},
     events::CoreContext,
 };
-use audiopus::{coder::Decoder as OpusDecoder, Channels};
+use audiopus::{
+    coder::Decoder as OpusDecoder,
+    error::{Error as OpusError, ErrorCode},
+    Channels,
+};
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::{RtpExtensionPacket, RtpPacket},
@@ -26,6 +30,50 @@ struct SsrcState {
     silent_frame_count: u16,
     decoder: OpusDecoder,
     last_seq: u16,
+    decode_size: PacketDecodeSize,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum PacketDecodeSize {
+    /// Minimum frame size on Discord.
+    TwentyMillis,
+    /// Hybrid packet, sent by Firefox web client.
+    ///
+    /// Likely 20ms frame + 10ms frame.
+    ThirtyMillis,
+    /// Next largest frame size.
+    FortyMillis,
+    /// Maximum Opus frame size.
+    SixtyMillis,
+    /// Maximum Opus packet size: 120ms.
+    Max,
+}
+
+impl PacketDecodeSize {
+    fn bump_up(self) -> Self {
+        use PacketDecodeSize::*;
+        match self {
+            TwentyMillis => ThirtyMillis,
+            ThirtyMillis => FortyMillis,
+            FortyMillis => SixtyMillis,
+            SixtyMillis | Max => Max,
+        }
+    }
+
+    fn can_bump_up(self) -> bool {
+        self != PacketDecodeSize::Max
+    }
+
+    fn len(self) -> usize {
+        use PacketDecodeSize::*;
+        match self {
+            TwentyMillis => STEREO_FRAME_SIZE,
+            ThirtyMillis => (STEREO_FRAME_SIZE / 2) * 3,
+            FortyMillis => 2 * STEREO_FRAME_SIZE,
+            SixtyMillis => 3 * STEREO_FRAME_SIZE,
+            Max => 6 * STEREO_FRAME_SIZE,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -42,6 +90,7 @@ impl SsrcState {
             decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
                 .expect("Failed to create new Opus decoder for source."),
             last_seq: pkt.get_sequence().into(),
+            decode_size: PacketDecodeSize::TwentyMillis,
         }
     }
 
@@ -127,7 +176,7 @@ impl SsrcState {
         }?;
 
         let pkt = if decode {
-            let mut out = vec![0; STEREO_FRAME_SIZE];
+            let mut out = vec![0; self.decode_size.len()];
 
             for _ in 0..missed_packets {
                 let missing_frame: Option<&[u8]> = None;
@@ -136,17 +185,40 @@ impl SsrcState {
                 }
             }
 
-            let audio_len = self
-                .decoder
-                .decode(Some(&data[start..]), &mut out[..], false)
-                .map_err(|e| {
-                    error!("Failed to decode received packet: {:?}.", e);
-                    e
-                })?;
+            // In general, we should expect 20 ms frames.
+            // However, Discord occasionally like to surprise us with something bigger.
+            // This is *sender-dependent behaviour*.
+            //
+            // This should scan up to find the "correct" size that a source is using,
+            // and then remember that.
+            loop {
+                let tried_audio_len =
+                    self.decoder
+                        .decode(Some(&data[start..]), &mut out[..], false);
 
-            // Decoding to stereo: audio_len refers to sample count irrespective of channel count.
-            // => multiply by number of channels.
-            out.truncate(2 * audio_len);
+                match tried_audio_len {
+                    Ok(audio_len) => {
+                        // Decoding to stereo: audio_len refers to sample count irrespective of channel count.
+                        // => multiply by number of channels.
+                        out.truncate(2 * audio_len);
+
+                        break;
+                    },
+                    Err(OpusError::Opus(ErrorCode::BufferTooSmall)) => {
+                        if self.decode_size.can_bump_up() {
+                            self.decode_size = self.decode_size.bump_up();
+                            out = vec![0; self.decode_size.len()];
+                        } else {
+                            error!("Received packet larger than Opus standard maximum,");
+                            return Err(Error::IllegalVoicePacket);
+                        }
+                    },
+                    Err(e) => {
+                        error!("Failed to decode received packet: {:?}.", e);
+                        return Err(e.into());
+                    },
+                }
+            }
 
             Some(out)
         } else {
