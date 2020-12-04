@@ -15,6 +15,12 @@ use tokio::process::Command as TokioCommand;
 use tracing::debug;
 
 /// Opens an audio file through `ffmpeg` and creates an audio source.
+///
+/// This source is not seek-compatible.
+/// If you need looping or track seeking, then consider using
+/// [`Restartable::ffmpeg`].
+///
+/// [`Restartable::ffmpeg`]: crate::input::restartable::Restartable::ffmpeg
 pub async fn ffmpeg<P: AsRef<OsStr>>(path: P) -> Result<Input> {
     _ffmpeg(path.as_ref()).await
 }

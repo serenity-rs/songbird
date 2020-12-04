@@ -322,7 +322,7 @@ impl Mixer {
             if temp_len > 0 || opus_len.is_some() {
                 track.step_frame();
             } else if track.do_loop() {
-                if let Some(time) = track.seek_time(Default::default()) {
+                if let Ok(time) = track.seek_time(Default::default()) {
                     // have to reproduce self.fire_event here
                     // to circumvent the borrow checker's lack of knowledge.
                     //

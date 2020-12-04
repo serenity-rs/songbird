@@ -11,7 +11,11 @@ use xsalsa20poly1305::aead::Error as CryptoError;
 
 /// Errors encountered while connecting to a Discord voice server over the driver.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
+    /// The driver hung up an internal signaller, either due to another connection attempt
+    /// or a crash.
+    AttemptDiscarded,
     /// An error occurred during [en/de]cryption of voice packets or key generation.
     Crypto(CryptoError),
     /// Server did not return the expected crypto mode during negotiation.
@@ -83,6 +87,7 @@ impl fmt::Display for Error {
         write!(f, "Failed to connect to Discord RTP server: ")?;
         use Error::*;
         match self {
+            AttemptDiscarded => write!(f, "connection attempt was aborted/discarded."),
             Crypto(c) => write!(f, "cryptography error {}.", c),
             CryptoModeInvalid => write!(f, "server changed negotiated encryption mode."),
             CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode."),

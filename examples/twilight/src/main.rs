@@ -127,10 +127,9 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 
     let (_handle, success) = state.songbird.join(guild_id, channel_id).await;
 
-    let content = match success?.recv_async().await {
-        Ok(Ok(())) => format!("Joined <#{}>!", channel_id),
-        Ok(Err(e)) => format!("Failed to join <#{}>! Why: {:?}", channel_id, e),
-        _ => format!("Failed to join <#{}>: Gateway error!", channel_id),
+    let content = match success {
+        Ok(()) => format!("Joined <#{}>!", channel_id),
+        Err(e) => format!("Failed to join <#{}>! Why: {:?}", channel_id, e),
     };
 
     state
@@ -237,7 +236,7 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
     let store = state.trackdata.read().await;
 
     let content = if let Some(handle) = store.get(&guild_id) {
-        let info = handle.get_info()?.await?;
+        let info = handle.get_info().await?;
 
         let paused = match info.playing {
             PlayMode::Play => {

@@ -4,10 +4,7 @@ use crate::{
     input::Metadata,
 };
 use std::{sync::Arc, time::Duration};
-use tokio::sync::{
-    mpsc::{error::SendError, UnboundedSender},
-    oneshot,
-};
+use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -46,12 +43,12 @@ impl TrackHandle {
     }
 
     /// Unpauses an audio track.
-    pub fn play(&self) -> TrackResult {
+    pub fn play(&self) -> TrackResult<()> {
         self.send(TrackCommand::Play)
     }
 
     /// Pauses an audio track.
-    pub fn pause(&self) -> TrackResult {
+    pub fn pause(&self) -> TrackResult<()> {
         self.send(TrackCommand::Pause)
     }
 
@@ -61,12 +58,12 @@ impl TrackHandle {
     /// a [`TrackEvent::End`] event.
     ///
     /// [`TrackEvent::End`]: crate::events::TrackEvent::End
-    pub fn stop(&self) -> TrackResult {
+    pub fn stop(&self) -> TrackResult<()> {
         self.send(TrackCommand::Stop)
     }
 
     /// Sets the volume of an audio track.
-    pub fn set_volume(&self, volume: f32) -> TrackResult {
+    pub fn set_volume(&self, volume: f32) -> TrackResult<()> {
         self.send(TrackCommand::Volume(volume))
     }
 
@@ -83,43 +80,43 @@ impl TrackHandle {
 
     /// Seeks along the track to the specified position.
     ///
-    /// If the underlying [`Input`] does not support this behaviour,
-    /// then all calls will fail.
+    /// If the underlying [`Input`] does not support seeking,
+    /// then all calls will fail with [`TrackError::SeekUnsupported`].
     ///
     /// [`Input`]: crate::input::Input
-    pub fn seek_time(&self, position: Duration) -> TrackResult {
+    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    pub fn seek_time(&self, position: Duration) -> TrackResult<()> {
         if self.seekable {
             self.send(TrackCommand::Seek(position))
         } else {
-            Err(SendError(TrackCommand::Seek(position)))
+            Err(TrackError::SeekUnsupported)
         }
     }
 
     /// Attach an event handler to an audio track. These will receive [`EventContext::Track`].
     ///
-    /// Users **must** ensure that no costly work or blocking occurs
-    /// within the supplied function or closure. *Taking excess time could prevent
-    /// timely sending of packets, causing audio glitches and delays*.
+    /// Events which can only be fired by the global context return [`TrackError::InvalidTrackEvent`]
     ///
     /// [`Track`]: Track
     /// [`EventContext::Track`]: crate::events::EventContext::Track
-    pub fn add_event<F: EventHandler + 'static>(&self, event: Event, action: F) -> TrackResult {
+    /// [`TrackError::InvalidTrackEvent`]: TrackError::InvalidTrackEvent
+    pub fn add_event<F: EventHandler + 'static>(&self, event: Event, action: F) -> TrackResult<()> {
         let cmd = TrackCommand::AddEvent(EventData::new(event, action));
         if event.is_global_only() {
-            Err(SendError(cmd))
+            Err(TrackError::InvalidTrackEvent)
         } else {
             self.send(cmd)
         }
     }
 
-    /// Perform an arbitrary action on a raw [`Track`] object.
+    /// Perform an arbitrary synchronous action on a raw [`Track`] object.
     ///
     /// Users **must** ensure that no costly work or blocking occurs
     /// within the supplied function or closure. *Taking excess time could prevent
     /// timely sending of packets, causing audio glitches and delays*.
     ///
     /// [`Track`]: Track
-    pub fn action<F>(&self, action: F) -> TrackResult
+    pub fn action<F>(&self, action: F) -> TrackResult<()>
     where
         F: FnOnce(&mut Track) + Send + Sync + 'static,
     {
@@ -127,38 +124,55 @@ impl TrackHandle {
     }
 
     /// Request playback information and state from the audio context.
-    ///
-    /// Crucially, the audio thread will respond *at a later time*:
-    /// It is up to the user when or how this should be read from the returned channel.
-    pub fn get_info(&self) -> TrackQueryResult {
+    pub async fn get_info(&self) -> TrackResult<Box<TrackState>> {
         let (tx, rx) = oneshot::channel();
-        self.send(TrackCommand::Request(tx)).map(move |_| rx)
+        self.send(TrackCommand::Request(tx))?;
+
+        rx.await.map_err(|_| TrackError::Finished)
     }
 
     /// Set an audio track to loop indefinitely.
-    pub fn enable_loop(&self) -> TrackResult {
+    ///
+    /// If the underlying [`Input`] does not support seeking,
+    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    ///
+    /// [`Input`]: crate::input::Input
+    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    pub fn enable_loop(&self) -> TrackResult<()> {
         if self.seekable {
             self.send(TrackCommand::Loop(LoopState::Infinite))
         } else {
-            Err(SendError(TrackCommand::Loop(LoopState::Infinite)))
+            Err(TrackError::SeekUnsupported)
         }
     }
 
     /// Set an audio track to no longer loop.
-    pub fn disable_loop(&self) -> TrackResult {
+    ///
+    /// If the underlying [`Input`] does not support seeking,
+    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    ///
+    /// [`Input`]: crate::input::Input
+    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    pub fn disable_loop(&self) -> TrackResult<()> {
         if self.seekable {
             self.send(TrackCommand::Loop(LoopState::Finite(0)))
         } else {
-            Err(SendError(TrackCommand::Loop(LoopState::Finite(0))))
+            Err(TrackError::SeekUnsupported)
         }
     }
 
     /// Set an audio track to loop a set number of times.
-    pub fn loop_for(&self, count: usize) -> TrackResult {
+    ///
+    /// If the underlying [`Input`] does not support seeking,
+    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    ///
+    /// [`Input`]: crate::input::Input
+    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    pub fn loop_for(&self, count: usize) -> TrackResult<()> {
         if self.seekable {
             self.send(TrackCommand::Loop(LoopState::Finite(count)))
         } else {
-            Err(SendError(TrackCommand::Loop(LoopState::Finite(count))))
+            Err(TrackError::SeekUnsupported)
         }
     }
 
@@ -182,7 +196,11 @@ impl TrackHandle {
     /// Send a raw command to the [`Track`] object.
     ///
     /// [`Track`]: Track
-    pub fn send(&self, cmd: TrackCommand) -> TrackResult {
-        self.command_channel.send(cmd)
+    pub fn send(&self, cmd: TrackCommand) -> TrackResult<()> {
+        // As the send channels are unbounded, we can be reasonably certain
+        // that send failure == cancellation.
+        self.command_channel
+            .send(cmd)
+            .map_err(|_e| TrackError::Finished)
     }
 }

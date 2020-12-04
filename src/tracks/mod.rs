@@ -15,24 +15,18 @@
 //! [`create_player`]: fn.create_player.html
 
 mod command;
+mod error;
 mod handle;
 mod looping;
 mod mode;
 mod queue;
 mod state;
 
-pub use self::{command::*, handle::*, looping::*, mode::*, queue::*, state::*};
+pub use self::{command::*, error::*, handle::*, looping::*, mode::*, queue::*, state::*};
 
 use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::Input};
 use std::time::Duration;
-use tokio::sync::{
-    mpsc::{
-        self,
-        error::{SendError, TryRecvError},
-        UnboundedReceiver,
-    },
-    oneshot::Receiver as OneshotReceiver,
-};
+use tokio::sync::mpsc::{self, error::TryRecvError, UnboundedReceiver};
 use uuid::Uuid;
 
 /// Control object for audio playback.
@@ -63,18 +57,18 @@ use uuid::Uuid;
 /// # };
 /// ```
 ///
-/// [`Driver::play_only`]: ../struct.Driver.html#method.play_only
-/// [`Driver::play`]: ../struct.Driver.html#method.play
-/// [`TrackHandle`]: struct.TrackHandle.html
-/// [`create_player`]: fn.create_player.html
+/// [`Driver::play_only`]: crate::driver::Driver::play_only
+/// [`Driver::play`]: crate::driver::Driver::play
+/// [`TrackHandle`]: TrackHandle
+/// [`create_player`]: create_player
 #[derive(Debug)]
 pub struct Track {
     /// Whether or not this sound is currently playing.
     ///
     /// Can be controlled with [`play`] or [`pause`] if chaining is desired.
     ///
-    /// [`play`]: #method.play
-    /// [`pause`]: #method.pause
+    /// [`play`]: Track::play
+    /// [`pause`]: Track::pause
     pub(crate) playing: PlayMode,
 
     /// The desired volume for playback.
@@ -83,7 +77,7 @@ pub struct Track {
     ///
     /// Can be controlled with [`volume`] if chaining is desired.
     ///
-    /// [`volume`]: #method.volume
+    /// [`volume`]: Track::volume
     pub(crate) volume: f32,
 
     /// Underlying data access object.
@@ -187,7 +181,7 @@ impl Track {
 
     /// Sets [`volume`] in a manner that allows method chaining.
     ///
-    /// [`volume`]: #structfield.volume
+    /// [`volume`]: Track::volume
     pub fn set_volume(&mut self, volume: f32) -> &mut Self {
         self.volume = volume;
 
@@ -209,12 +203,20 @@ impl Track {
         self.play_time
     }
 
-    /// Sets [`loops`] in a manner that allows method chaining.
+    /// Set an audio track to loop a set number of times.
     ///
-    /// [`loops`]: #structfield.loops
-    pub fn set_loops(&mut self, loops: LoopState) -> &mut Self {
-        self.loops = loops;
-        self
+    /// If the underlying [`Input`] does not support seeking,
+    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    ///
+    /// [`Input`]: crate::input::Input
+    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    pub fn set_loops(&mut self, loops: LoopState) -> TrackResult<()> {
+        if self.source.is_seekable() {
+            self.loops = loops;
+            Ok(())
+        } else {
+            Err(TrackError::SeekUnsupported)
+        }
     }
 
     pub(crate) fn do_loop(&mut self) -> bool {
@@ -234,11 +236,9 @@ impl Track {
         self.play_time += TIMESTEP_LENGTH;
     }
 
-    /// Receives and acts upon any commands forwarded by [`TrackHandle`]s.
+    /// Receives and acts upon any commands forwarded by TrackHandles.
     ///
     /// *Used internally*, this should not be exposed to users.
-    ///
-    /// [`TrackHandle`]: struct.TrackHandle.html
     pub(crate) fn process_commands(&mut self, index: usize, ic: &Interconnect) {
         // Note: disconnection and an empty channel are both valid,
         // and should allow the audio object to keep running as intended.
@@ -280,13 +280,13 @@ impl Track {
                                 TrackStateChange::Volume(self.volume),
                             ));
                         },
-                        Seek(time) => {
-                            self.seek_time(time);
-                            let _ = ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Position(self.position),
-                            ));
-                        },
+                        Seek(time) =>
+                            if let Ok(new_time) = self.seek_time(time) {
+                                let _ = ic.events.send(EventMessage::ChangeState(
+                                    index,
+                                    TrackStateChange::Position(new_time),
+                                ));
+                            },
                         AddEvent(evt) => {
                             let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
                         },
@@ -300,13 +300,13 @@ impl Track {
                         Request(tx) => {
                             let _ = tx.send(Box::new(self.state()));
                         },
-                        Loop(loops) => {
-                            self.set_loops(loops);
-                            let _ = ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Loops(self.loops, true),
-                            ));
-                        },
+                        Loop(loops) =>
+                            if self.set_loops(loops).is_ok() {
+                                let _ = ic.events.send(EventMessage::ChangeState(
+                                    index,
+                                    TrackStateChange::Loops(self.loops, true),
+                                ));
+                            },
                     }
                 },
                 Err(TryRecvError::Closed) => {
@@ -325,7 +325,7 @@ impl Track {
     /// The primary use-case of this is sending information across
     /// threads in response to a [`TrackHandle`].
     ///
-    /// [`TrackHandle`]: struct.TrackHandle.html
+    /// [`TrackHandle`]: TrackHandle
     pub fn state(&self) -> TrackState {
         TrackState {
             playing: self.playing,
@@ -338,15 +338,18 @@ impl Track {
 
     /// Seek to a specific point in the track.
     ///
-    /// Returns `None` if unsupported.
-    pub fn seek_time(&mut self, pos: Duration) -> Option<Duration> {
-        let out = self.source.seek_time(pos);
-
-        if let Some(t) = out {
+    /// If the underlying [`Input`] does not support seeking,
+    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    ///
+    /// [`Input`]: crate::input::Input
+    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    pub fn seek_time(&mut self, pos: Duration) -> TrackResult<Duration> {
+        if let Some(t) = self.source.seek_time(pos) {
             self.position = t;
+            Ok(t)
+        } else {
+            Err(TrackError::SeekUnsupported)
         }
-
-        out
     }
 
     /// Returns this track's unique identifier.
@@ -373,22 +376,3 @@ pub fn create_player(source: Input) -> (Track, TrackHandle) {
 
     (player, handle)
 }
-
-/// Alias for most result-free calls to a [`TrackHandle`].
-///
-/// Failure indicates that the accessed audio object has been
-/// removed or deleted by the audio context.
-///
-/// [`TrackHandle`]: TrackHandle
-pub type TrackResult = Result<(), SendError<TrackCommand>>;
-
-/// Alias for return value from calls to [`TrackHandle::get_info`].
-///
-/// Crucially, the audio thread will respond *at a later time*:
-/// It is up to the user when or how this should be read from the returned channel.
-///
-/// Failure indicates that the accessed audio object has been
-/// removed or deleted by the audio context.
-///
-/// [`TrackHandle::get_info`]: TrackHandle::get_info
-pub type TrackQueryResult = Result<OneshotReceiver<Box<TrackState>>, SendError<TrackCommand>>;

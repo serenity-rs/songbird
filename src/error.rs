@@ -14,6 +14,8 @@ use twilight_gateway::shard::CommandError;
 /// Error returned when a manager or call handler is
 /// unable to send messages over Discord's gateway.
 pub enum JoinError {
+    /// Request to join was dropped, cancelled, or replaced.
+    Dropped,
     /// No available gateway connection was provided to send
     /// voice state update messages.
     NoSender,
@@ -21,6 +23,9 @@ pub enum JoinError {
     ///
     /// [`Call`]: crate::Call
     NoCall,
+    #[cfg(feature = "driver")]
+    /// The driver failed to establish a voice connection.
+    Driver(ConnectionError),
     #[cfg(feature = "serenity")]
     /// Serenity-specific WebSocket send error.
     Serenity(TrySendError<InterMessage>),
@@ -34,8 +39,11 @@ impl fmt::Display for JoinError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Failed to Join Voice channel: ")?;
         match self {
+            JoinError::Dropped => write!(f, "request was cancelled/dropped."),
             JoinError::NoSender => write!(f, "no gateway destination."),
             JoinError::NoCall => write!(f, "tried to leave a non-existent call."),
+            #[cfg(feature = "driver")]
+            JoinError::Driver(t) => write!(f, "internal driver error {}.", t),
             #[cfg(feature = "serenity")]
             JoinError::Serenity(t) => write!(f, "serenity failure {}.", t),
             #[cfg(feature = "twilight")]
@@ -61,9 +69,19 @@ impl From<CommandError> for JoinError {
     }
 }
 
+#[cfg(all(feature = "driver", feature = "gateway"))]
+impl From<ConnectionError> for JoinError {
+    fn from(e: ConnectionError) -> Self {
+        JoinError::Driver(e)
+    }
+}
+
 #[cfg(feature = "gateway")]
 /// Convenience type for Discord gateway error handling.
 pub type JoinResult<T> = Result<T, JoinError>;
 
 #[cfg(feature = "driver")]
-pub use crate::driver::connection::error::{Error as ConnectionError, Result as ConnectionResult};
+pub use crate::{
+    driver::connection::error::{Error as ConnectionError, Result as ConnectionResult},
+    tracks::{TrackError, TrackResult},
+};
