@@ -22,23 +22,24 @@ use tokio::runtime::Handle;
 use tracing::{error, instrument};
 use xsalsa20poly1305::TAG_SIZE;
 
-struct Mixer {
-    async_handle: Handle,
-    bitrate: Bitrate,
-    config: Config,
-    conn_active: Option<MixerConnection>,
-    deadline: Instant,
-    encoder: OpusEncoder,
-    interconnect: Interconnect,
-    mix_rx: Receiver<MixerMessage>,
-    muted: bool,
-    packet: [u8; VOICE_PACKET_MAX],
-    prevent_events: bool,
-    silence_frames: u8,
-    sleeper: SpinSleeper,
-    soft_clip: SoftClip,
-    tracks: Vec<Track>,
-    ws: Option<Sender<WsMessage>>,
+pub struct Mixer {
+    pub async_handle: Handle,
+    pub bitrate: Bitrate,
+    pub config: Config,
+    pub conn_active: Option<MixerConnection>,
+    pub deadline: Instant,
+    pub encoder: OpusEncoder,
+    pub interconnect: Interconnect,
+    pub mix_rx: Receiver<MixerMessage>,
+    pub muted: bool,
+    pub packet: [u8; VOICE_PACKET_MAX],
+    pub prevent_events: bool,
+    pub silence_frames: u8,
+    pub skip_sleep: bool,
+    pub sleeper: SpinSleeper,
+    pub soft_clip: SoftClip,
+    pub tracks: Vec<Track>,
+    pub ws: Option<Sender<WsMessage>>,
 }
 
 fn new_encoder(bitrate: Bitrate) -> Result<OpusEncoder> {
@@ -49,7 +50,7 @@ fn new_encoder(bitrate: Bitrate) -> Result<OpusEncoder> {
 }
 
 impl Mixer {
-    fn new(
+    pub fn new(
         mix_rx: Receiver<MixerMessage>,
         async_handle: Handle,
         interconnect: Interconnect,
@@ -86,6 +87,7 @@ impl Mixer {
             packet,
             prevent_events: false,
             silence_frames: 0,
+            skip_sleep: false,
             sleeper: Default::default(),
             soft_clip,
             tracks,
@@ -398,12 +400,16 @@ impl Mixer {
 
     #[inline]
     fn march_deadline(&mut self) {
+        if self.skip_sleep {
+            return;
+        }
+
         self.sleeper
             .sleep(self.deadline.saturating_duration_since(Instant::now()));
         self.deadline += TIMESTEP_LENGTH;
     }
 
-    fn cycle(&mut self) -> Result<()> {
+    pub fn cycle(&mut self) -> Result<()> {
         if self.conn_active.is_none() {
             self.march_deadline();
             return Ok(());

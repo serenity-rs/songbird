@@ -72,7 +72,7 @@ pub enum EventContext<'a> {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) enum CoreContext {
+pub enum CoreContext {
     SpeakingStateUpdate(Speaking),
     SpeakingUpdate {
         ssrc: u32,

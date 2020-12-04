@@ -54,7 +54,7 @@ use tracing::{info, warn};
 /// ```
 ///
 /// [`TrackEvent`]: crate::events::TrackEvent
-/// [`Driver::queue`]: crate::driver::Driver::queue
+/// [`Driver::queue`]: crate::driver::Driver
 #[derive(Clone, Debug, Default)]
 pub struct TrackQueue {
     // NOTE: the choice of a parking lot mutex is quite deliberate

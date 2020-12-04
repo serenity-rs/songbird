@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use super::{Interconnect, UdpRxMessage, UdpTxMessage, WsMessage};
 
 use crate::{
@@ -8,7 +10,7 @@ use crate::{
 use flume::Sender;
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
-pub(crate) struct MixerConnection {
+pub struct MixerConnection {
     pub cipher: Cipher,
     pub crypto_state: CryptoState,
     pub udp_rx: Sender<UdpRxMessage>,
@@ -22,7 +24,7 @@ impl Drop for MixerConnection {
     }
 }
 
-pub(crate) enum MixerMessage {
+pub enum MixerMessage {
     AddTrack(Track),
     SetTrack(Option<Track>),
 
