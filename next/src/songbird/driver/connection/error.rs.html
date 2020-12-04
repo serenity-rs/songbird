@@ -104,6 +104,11 @@
 <span id="103">103</span>
 <span id="104">104</span>
 <span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Connection errors and convenience types.</span>
 
@@ -118,7 +123,11 @@
 
 <span class="doccomment">/// Errors encountered while connecting to a Discord voice server over the driver.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="doccomment">/// The driver hung up an internal signaller, either due to another connection attempt</span>
+    <span class="doccomment">/// or a crash.</span>
+    <span class="ident">AttemptDiscarded</span>,
     <span class="doccomment">/// An error occurred during [en/de]cryption of voice packets or key generation.</span>
     <span class="ident">Crypto</span>(<span class="ident">CryptoError</span>),
     <span class="doccomment">/// Server did not return the expected crypto mode during negotiation.</span>
@@ -190,6 +199,7 @@
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Failed to connect to Discord RTP server: &quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">use</span> <span class="ident">Error</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">AttemptDiscarded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt was aborted/discarded.&quot;</span>),
             <span class="ident">Crypto</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;cryptography error {}.&quot;</span>, <span class="ident">c</span>),
             <span class="ident">CryptoModeInvalid</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;server changed negotiated encryption mode.&quot;</span>),
             <span class="ident">CryptoModeUnavailable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;server did not offer chosen encryption mode.&quot;</span>),

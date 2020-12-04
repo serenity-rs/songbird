@@ -147,6 +147,12 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">child_to_reader</span>,
@@ -165,6 +171,12 @@
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">debug</span>;
 
 <span class="doccomment">/// Opens an audio file through `ffmpeg` and creates an audio source.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This source is not seek-compatible.</span>
+<span class="doccomment">/// If you need looping or track seeking, then consider using</span>
+<span class="doccomment">/// [`Restartable::ffmpeg`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`Restartable::ffmpeg`]: crate::input::restartable::Restartable::ffmpeg</span>
 <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">ffmpeg</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
     <span class="ident">_ffmpeg</span>(<span class="ident">path</span>.<span class="ident">as_ref</span>()).<span class="ident">await</span>
 }

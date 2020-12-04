@@ -286,6 +286,37 @@
 <span id="285">285</span>
 <span id="286">286</span>
 <span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Runner for a voice connection.</span>
 <span class="doccomment">//!</span>
@@ -304,7 +335,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">tasks</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config</span>::<span class="ident">Config</span>;
-<span class="kw">use</span> <span class="ident">connection</span>::<span class="ident">error</span>::<span class="prelude-ty">Result</span>;
+<span class="kw">use</span> <span class="ident">connection</span>::<span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crypto</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">decode_mode</span>::<span class="ident">DecodeMode</span>;
 
@@ -319,7 +350,12 @@
     <span class="ident">EventHandler</span>,
 };
 <span class="kw">use</span> <span class="ident">audiopus</span>::<span class="ident">Bitrate</span>;
-<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">SendError</span>, <span class="ident">Sender</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">future</span>::<span class="ident">Future</span>,
+    <span class="ident">pin</span>::<span class="ident">Pin</span>,
+    <span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
+};
+<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">r#async</span>::<span class="ident">RecvFut</span>, <span class="ident">SendError</span>, <span class="ident">Sender</span>};
 <span class="kw">use</span> <span class="ident">tasks</span>::<span class="ident">message</span>::<span class="ident">CoreMessage</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">instrument</span>;
 
@@ -369,13 +405,18 @@
     }
 
     <span class="doccomment">/// Connects to a voice channel using the specified server.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method instantly contacts the driver tasks, and its</span>
+    <span class="doccomment">/// does not need to be `await`ed to start the actual connection.</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connect</span> {
         <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">bounded</span>(<span class="number">1</span>);
 
         <span class="self">self</span>.<span class="ident">raw_connect</span>(<span class="ident">info</span>, <span class="ident">tx</span>);
 
-        <span class="ident">rx</span>
+        <span class="ident">Connect</span> {
+            <span class="ident">inner</span>: <span class="ident">rx</span>.<span class="ident">into_recv_async</span>(),
+        }
     }
 
     <span class="doccomment">/// Connects to a voice channel using the specified server.</span>
@@ -572,6 +613,27 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">leave</span>();
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">Poison</span>);
+    }
+}
+
+<span class="doccomment">/// Future for a call to [`Driver::connect`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This future awaits the *result* of a connection; the driver</span>
+<span class="doccomment">/// is messaged at the time of the call.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`Driver::connect`]: Driver::connect</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Connect</span> {
+    <span class="ident">inner</span>: <span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Connect</span> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll</span>(<span class="ident">cx</span>) {
+            <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">r</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="ident">AttemptDiscarded</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>)),
+            <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+        }
     }
 }
 </pre></div>

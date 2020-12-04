@@ -547,7 +547,7 @@
     }
 
     <span class="doccomment">/// Pause the track at the head of the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">front</span>() {
@@ -558,7 +558,7 @@
     }
 
     <span class="doccomment">/// Resume the track at the head of the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">front</span>() {
@@ -580,7 +580,7 @@
     }
 
     <span class="doccomment">/// Skip to the next track in the queue, if it exists.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
 
         <span class="ident">inner</span>.<span class="ident">stop_current</span>()
@@ -602,7 +602,7 @@
 
 <span class="kw">impl</span> <span class="ident">TrackQueueCore</span> {
     <span class="doccomment">/// Skip to the next track in the queue, if it exists.</span>
-    <span class="kw">fn</span> <span class="ident">stop_current</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="kw">fn</span> <span class="ident">stop_current</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">front</span>() {
             <span class="ident">handle</span>.<span class="ident">stop</span>()
         } <span class="kw">else</span> {
