@@ -167,7 +167,13 @@ impl TrackHandle {
         self.uuid
     }
 
-    /// Returns the metadata stored in the handle
+    /// Returns the metadata stored in the handle.
+    ///
+    /// Metadata is cloned from the inner [`Input`] at
+    /// the time a track/handle is created, and is effectively
+    /// read-only from then on.
+    ///
+    /// [`Input`]: crate::input::Input
     pub fn metadata(&self) -> Arc<Metadata> {
         self.metadata.clone()
     }
