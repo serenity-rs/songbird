@@ -1,6 +1,9 @@
 use super::*;
-use crate::events::{Event, EventData, EventHandler};
-use std::time::Duration;
+use crate::{
+    events::{Event, EventData, EventHandler},
+    input::Metadata,
+};
+use std::{sync::Arc, time::Duration};
 use tokio::sync::{
     mpsc::{error::SendError, UnboundedSender},
     oneshot,
@@ -20,6 +23,7 @@ pub struct TrackHandle {
     command_channel: UnboundedSender<TrackCommand>,
     seekable: bool,
     uuid: Uuid,
+    metadata: Arc<Metadata>,
 }
 
 impl TrackHandle {
@@ -27,11 +31,17 @@ impl TrackHandle {
     /// the underlying [`Input`] supports seek operations.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn new(command_channel: UnboundedSender<TrackCommand>, seekable: bool, uuid: Uuid) -> Self {
+    pub fn new(
+        command_channel: UnboundedSender<TrackCommand>,
+        seekable: bool,
+        uuid: Uuid,
+        metadata: Metadata,
+    ) -> Self {
         Self {
             command_channel,
             seekable,
             uuid,
+            metadata: Arc::new(metadata),
         }
     }
 
@@ -155,6 +165,17 @@ impl TrackHandle {
     /// Returns this handle's (and track's) unique identifier.
     pub fn uuid(&self) -> Uuid {
         self.uuid
+    }
+
+    /// Returns the metadata stored in the handle.
+    ///
+    /// Metadata is cloned from the inner [`Input`] at
+    /// the time a track/handle is created, and is effectively
+    /// read-only from then on.
+    ///
+    /// [`Input`]: crate::input::Input
+    pub fn metadata(&self) -> Arc<Metadata> {
+        self.metadata.clone()
     }
 
     #[inline]

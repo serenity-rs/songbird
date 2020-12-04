@@ -366,7 +366,8 @@ impl Track {
 pub fn create_player(source: Input) -> (Track, TrackHandle) {
     let (tx, rx) = mpsc::unbounded_channel();
     let can_seek = source.is_seekable();
-    let handle = TrackHandle::new(tx, can_seek, Uuid::new_v4());
+    let metadata = source.metadata.clone();
+    let handle = TrackHandle::new(tx, can_seek, Uuid::new_v4(), metadata);
 
     let player = Track::new_raw(source, rx, handle.clone());
 
