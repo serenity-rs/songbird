@@ -187,6 +187,24 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -194,10 +212,7 @@
     <span class="ident">input</span>::<span class="ident">Metadata</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::{
-    <span class="ident">mpsc</span>::{<span class="ident">error</span>::<span class="ident">SendError</span>, <span class="ident">UnboundedSender</span>},
-    <span class="ident">oneshot</span>,
-};
+<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::{<span class="ident">mpsc</span>::<span class="ident">UnboundedSender</span>, <span class="ident">oneshot</span>};
 <span class="kw">use</span> <span class="ident">uuid</span>::<span class="ident">Uuid</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -236,12 +251,12 @@
     }
 
     <span class="doccomment">/// Unpauses an audio track.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Play</span>)
     }
 
     <span class="doccomment">/// Pauses an audio track.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Pause</span>)
     }
 
@@ -251,12 +266,12 @@
     <span class="doccomment">/// a [`TrackEvent::End`] event.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`TrackEvent::End`]: crate::events::TrackEvent::End</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Stop</span>)
     }
 
     <span class="doccomment">/// Sets the volume of an audio track.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_volume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">volume</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_volume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">volume</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Volume</span>(<span class="ident">volume</span>))
     }
 
@@ -273,43 +288,43 @@
 
     <span class="doccomment">/// Seeks along the track to the specified position.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// If the underlying [`Input`] does not support this behaviour,</span>
-    <span class="doccomment">/// then all calls will fail.</span>
+    <span class="doccomment">/// If the underlying [`Input`] does not support seeking,</span>
+    <span class="doccomment">/// then all calls will fail with [`TrackError::SeekUnsupported`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seekable</span> {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Seek</span>(<span class="ident">position</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">SendError</span>(<span class="ident">TrackCommand</span>::<span class="ident">Seek</span>(<span class="ident">position</span>)))
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
         }
     }
 
     <span class="doccomment">/// Attach an event handler to an audio track. These will receive [`EventContext::Track`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Users **must** ensure that no costly work or blocking occurs</span>
-    <span class="doccomment">/// within the supplied function or closure. *Taking excess time could prevent</span>
-    <span class="doccomment">/// timely sending of packets, causing audio glitches and delays*.</span>
+    <span class="doccomment">/// Events which can only be fired by the global context return [`TrackError::InvalidTrackEvent`]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Track`]: Track</span>
     <span class="doccomment">/// [`EventContext::Track`]: crate::events::EventContext::Track</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_event</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">EventHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>, <span class="ident">action</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="doccomment">/// [`TrackError::InvalidTrackEvent`]: TrackError::InvalidTrackEvent</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_event</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">EventHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>, <span class="ident">action</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">TrackCommand</span>::<span class="ident">AddEvent</span>(<span class="ident">EventData</span>::<span class="ident">new</span>(<span class="ident">event</span>, <span class="ident">action</span>));
         <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">is_global_only</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">SendError</span>(<span class="ident">cmd</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">InvalidTrackEvent</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">cmd</span>)
         }
     }
 
-    <span class="doccomment">/// Perform an arbitrary action on a raw [`Track`] object.</span>
+    <span class="doccomment">/// Perform an arbitrary synchronous action on a raw [`Track`] object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Users **must** ensure that no costly work or blocking occurs</span>
     <span class="doccomment">/// within the supplied function or closure. *Taking excess time could prevent</span>
     <span class="doccomment">/// timely sending of packets, causing audio glitches and delays*.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Track`]: Track</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">action</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">action</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">action</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">action</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Track</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
@@ -317,38 +332,55 @@
     }
 
     <span class="doccomment">/// Request playback information and state from the audio context.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Crucially, the audio thread will respond *at a later time*:</span>
-    <span class="doccomment">/// It is up to the user when or how this should be read from the returned channel.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackQueryResult</span> {
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot</span>::<span class="ident">channel</span>();
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Request</span>(<span class="ident">tx</span>)).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">rx</span>)
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Request</span>(<span class="ident">tx</span>))<span class="question-mark">?</span>;
+
+        <span class="ident">rx</span>.<span class="ident">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
     }
 
     <span class="doccomment">/// Set an audio track to loop indefinitely.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the underlying [`Input`] does not support seeking,</span>
+    <span class="doccomment">/// then all calls will fail with [`TrackError::SeekUnsupported`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Input`]: crate::input::Input</span>
+    <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seekable</span> {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Infinite</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">SendError</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Infinite</span>)))
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
         }
     }
 
     <span class="doccomment">/// Set an audio track to no longer loop.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the underlying [`Input`] does not support seeking,</span>
+    <span class="doccomment">/// then all calls will fail with [`TrackError::SeekUnsupported`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Input`]: crate::input::Input</span>
+    <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seekable</span> {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Finite</span>(<span class="number">0</span>)))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">SendError</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Finite</span>(<span class="number">0</span>))))
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
         }
     }
 
     <span class="doccomment">/// Set an audio track to loop a set number of times.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">loop_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">count</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the underlying [`Input`] does not support seeking,</span>
+    <span class="doccomment">/// then all calls will fail with [`TrackError::SeekUnsupported`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Input`]: crate::input::Input</span>
+    <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">loop_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">count</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seekable</span> {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Finite</span>(<span class="ident">count</span>)))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">SendError</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Finite</span>(<span class="ident">count</span>))))
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
         }
     }
 
@@ -372,8 +404,12 @@
     <span class="doccomment">/// Send a raw command to the [`Track`] object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Track`]: Track</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cmd</span>: <span class="ident">TrackCommand</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span> {
-        <span class="self">self</span>.<span class="ident">command_channel</span>.<span class="ident">send</span>(<span class="ident">cmd</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cmd</span>: <span class="ident">TrackCommand</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="comment">// As the send channels are unbounded, we can be reasonably certain</span>
+        <span class="comment">// that send failure == cancellation.</span>
+        <span class="self">self</span>.<span class="ident">command_channel</span>
+            .<span class="ident">send</span>(<span class="ident">cmd</span>)
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
     }
 }
 </pre></div>

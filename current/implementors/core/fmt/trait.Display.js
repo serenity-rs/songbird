@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["songbird"] = [{"text":"impl Display for Error","synthetic":false,"types":[]},{"text":"impl Display for JoinError","synthetic":false,"types":[]},{"text":"impl Display for ChannelId","synthetic":false,"types":[]},{"text":"impl Display for GuildId","synthetic":false,"types":[]},{"text":"impl Display for UserId","synthetic":false,"types":[]}];
+implementors["songbird"] = [{"text":"impl Display for Error","synthetic":false,"types":[]},{"text":"impl Display for JoinError","synthetic":false,"types":[]},{"text":"impl Display for ChannelId","synthetic":false,"types":[]},{"text":"impl Display for GuildId","synthetic":false,"types":[]},{"text":"impl Display for UserId","synthetic":false,"types":[]},{"text":"impl Display for TrackError","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

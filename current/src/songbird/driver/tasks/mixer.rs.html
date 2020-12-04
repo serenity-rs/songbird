@@ -864,7 +864,7 @@
             <span class="kw">if</span> <span class="ident">temp_len</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">opus_len</span>.<span class="ident">is_some</span>() {
                 <span class="ident">track</span>.<span class="ident">step_frame</span>();
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">do_loop</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">seek_time</span>(<span class="ident">Default</span>::<span class="ident">default</span>()) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">seek_time</span>(<span class="ident">Default</span>::<span class="ident">default</span>()) {
                     <span class="comment">// have to reproduce self.fire_event here</span>
                     <span class="comment">// to circumvent the borrow checker&#39;s lack of knowledge.</span>
                     <span class="comment">//</span>
