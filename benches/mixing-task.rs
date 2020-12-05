@@ -152,8 +152,8 @@ fn no_passthrough(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Float Input (No Passthrough)");
 
-    for i in 0..=6 {
-        let track_count = 1 << i;
+    for shift in 0..=6 {
+        let track_count = 1 << shift;
 
         group.bench_with_input(
             BenchmarkId::new("Single Packet", track_count),
@@ -168,7 +168,7 @@ fn no_passthrough(c: &mut Criterion) {
                 )
             },
         );
-        group.bench_with_input(BenchmarkId::new("n=5 Packets", track_count), &i, |b, i| {
+        group.bench_with_input(BenchmarkId::new("n=5 Packets", track_count), &track_count, |b, i| {
             b.iter_batched_ref(
                 || black_box(mixer_float(*i, rt.handle().clone())),
                 |input| {
