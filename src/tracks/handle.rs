@@ -1,6 +1,7 @@
 use super::*;
 use crate::{
     events::{Event, EventData, EventHandler},
+    id::UserId,
     input::Metadata,
 };
 use std::{sync::Arc, time::Duration};
@@ -21,6 +22,7 @@ pub struct TrackHandle {
     seekable: bool,
     uuid: Uuid,
     metadata: Arc<Metadata>,
+    requester: Option<UserId>,
 }
 
 impl TrackHandle {
@@ -28,17 +30,19 @@ impl TrackHandle {
     /// the underlying [`Input`] supports seek operations.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn new(
+    pub fn new<U: Into<UserId>>(
         command_channel: UnboundedSender<TrackCommand>,
         seekable: bool,
         uuid: Uuid,
         metadata: Metadata,
+        requester: Option<U>,
     ) -> Self {
         Self {
             command_channel,
             seekable,
             uuid,
             metadata: Arc::new(metadata),
+            requester: requester.map(|r| r.into()),
         }
     }
 
@@ -190,6 +194,11 @@ impl TrackHandle {
     /// [`Input`]: crate::input::Input
     pub fn metadata(&self) -> Arc<Metadata> {
         self.metadata.clone()
+    }
+
+    /// Returns the requester's Discord ID stored in the handle.
+    pub fn requester(&self) -> Option<UserId> {
+        self.requester
     }
 
     #[inline]
