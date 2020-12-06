@@ -45,7 +45,7 @@ use uuid::Uuid;
 /// # Example
 ///
 /// ```rust,no_run
-/// use songbird::{driver::Driver, ffmpeg, tracks::create_player, id::UserId};
+/// use songbird::{driver::Driver, ffmpeg, tracks::create_player};
 ///
 /// # async {
 /// // A Call is also valid here!
@@ -53,7 +53,7 @@ use uuid::Uuid;
 /// let source = ffmpeg("../audio/my-favourite-song.mp3")
 ///     .await
 ///     .expect("This might fail: handle this error!");
-/// let (mut audio, audio_handle) = create_player(source, None::<UserId>);
+/// let (mut audio, audio_handle) = create_player(source);
 ///
 /// audio.set_volume(0.5);
 ///

@@ -217,7 +217,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         let sources = sources_lock.lock().await;
         let source = sources.get("song").expect("Handle placed into cache at startup.");
 
-        let song = handler.play_source(source.into(), None::<songbird::id::UserId>);
+        let song = handler.play_source(source.into());
         let _ = song.set_volume(1.0);
         let _ = song.enable_loop();
 
@@ -250,7 +250,7 @@ impl VoiceEventHandler for LoopPlaySound {
         };
 
         let mut handler = self.call_lock.lock().await;
-        let sound = handler.play_source(src, None::<songbird::id::UserId>);
+        let sound = handler.play_source(src);
         let _ = sound.set_volume(0.5);
 
         None
@@ -329,7 +329,7 @@ async fn ting(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
         let sources = sources_lock.lock().await;
         let source = sources.get("ting").expect("Handle placed into cache at startup.");
 
-        let _sound = handler.play_source(source.into(), None::<songbird::id::UserId>);
+        let _sound = handler.play_source(source.into());
 
         check_msg(msg.channel_id.say(&ctx.http, "Ting!").await);
     } else {

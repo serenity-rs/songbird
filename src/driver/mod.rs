@@ -19,17 +19,16 @@ use connection::error::{Error, Result};
 pub use crypto::*;
 pub use decode_mode::DecodeMode;
 
-#[cfg(feature = "builtin-queue")]
-use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,
-    id::UserId,
     input::Input,
     tracks::{self, Track, TrackHandle},
     ConnectionInfo,
     Event,
     EventHandler,
 };
+#[cfg(feature = "builtin-queue")]
+use crate::{id::UserId, tracks::TrackQueue};
 use audiopus::Bitrate;
 use core::{
     future::Future,

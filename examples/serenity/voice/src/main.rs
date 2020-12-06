@@ -227,7 +227,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             },
         };
 
-        handler.play_source(source, Some(msg.author.id));
+        handler.play_source(source);
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {

@@ -28,7 +28,7 @@ use tracing::{info, warn};
 /// ```rust,no_run
 /// use songbird::{
 ///     driver::Driver,
-///     id::{GuildId,UserId},
+///     id::GuildId,
 ///     ffmpeg,
 ///     tracks::{create_player, TrackQueue},
 /// };
@@ -50,7 +50,7 @@ use tracing::{info, warn};
 ///     .or_default();
 ///
 /// // Queueing a track is this easy!
-/// queue.add_source(source, &mut driver, None::<UserId>);
+/// queue.add_source(source, &mut driver);
 /// # };
 /// ```
 ///

@@ -360,7 +360,7 @@ async fn play_fade(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
 
         // This handler object will allow you to, as needed,
         // control the audio track via events and further commands.
-        let song = handler.play_source(source, Some(msg.author.id));
+        let song = handler.play_source(source);
         let send_http = ctx.http.clone();
         let chan_id = msg.channel_id;
 
@@ -488,7 +488,7 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             },
         };
 
-        handler.enqueue_source(source, None::<songbird::id::UserId>);
+        handler.enqueue_source(source);
 
         check_msg(
             msg.channel_id
