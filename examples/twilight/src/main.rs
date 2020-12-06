@@ -208,7 +208,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 
         if let Some(call_lock) = state.songbird.get(guild_id) {
             let mut call = call_lock.lock().await;
-            let handle = call.play_source(input);
+            let handle = call.play_source(input, None::<songbird::id::UserId>);
 
             let mut store = state.trackdata.write().await;
             store.insert(guild_id, handle);
