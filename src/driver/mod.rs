@@ -19,6 +19,8 @@ use connection::error::{Error, Result};
 pub use crypto::*;
 pub use decode_mode::DecodeMode;
 
+#[cfg(feature = "builtin-queue")]
+use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,
     input::Input,
@@ -27,8 +29,6 @@ use crate::{
     Event,
     EventHandler,
 };
-#[cfg(feature = "builtin-queue")]
-use crate::{id::UserId, tracks::TrackQueue};
 use audiopus::Bitrate;
 use core::{
     future::Future,
@@ -138,12 +138,8 @@ impl Driver {
     /// [`ffmpeg`]: crate::input::ffmpeg
     /// [`ytdl`]: crate::input::ytdl
     #[instrument(skip(self))]
-    pub fn play_source<U: Into<UserId> + std::fmt::Debug>(
-        &mut self,
-        source: Input,
-        requester: Option<U>,
-    ) -> TrackHandle {
-        let (player, handle) = super::create_player(source, requester);
+    pub fn play_source(&mut self, source: Input) -> TrackHandle {
+        let (player, handle) = super::create_player(source);
         self.send(CoreMessage::AddTrack(player));
 
         handle
@@ -156,12 +152,8 @@ impl Driver {
     ///
     /// [`play_source`]: Driver::play_source
     #[instrument(skip(self))]
-    pub fn play_only_source<U: Into<UserId> + std::fmt::Debug>(
-        &mut self,
-        source: Input,
-        requester: Option<U>,
-    ) -> TrackHandle {
-        let (player, handle) = super::create_player(source, requester);
+    pub fn play_only_source(&mut self, source: Input) -> TrackHandle {
+        let (player, handle) = super::create_player(source);
         self.send(CoreMessage::SetTrack(Some(player)));
 
         handle
@@ -272,8 +264,8 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn enqueue_source<U: Into<UserId>>(&mut self, source: Input, requester: Option<U>) {
-        let (mut track, _) = tracks::create_player(source, requester);
+    pub fn enqueue_source(&mut self, source: Input) {
+        let (mut track, _) = tracks::create_player(source);
         self.queue.add_raw(&mut track);
         self.play(track);
     }

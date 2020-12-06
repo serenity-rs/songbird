@@ -24,13 +24,7 @@ mod state;
 
 pub use self::{command::*, error::*, handle::*, looping::*, mode::*, queue::*, state::*};
 
-use crate::{
-    constants::*,
-    driver::tasks::message::*,
-    events::EventStore,
-    id::UserId,
-    input::Input,
-};
+use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::Input};
 use std::time::Duration;
 use tokio::sync::mpsc::{self, error::TryRecvError, UnboundedReceiver};
 use uuid::Uuid;
@@ -372,11 +366,11 @@ impl Track {
 ///
 /// [`Track`]: Track
 /// [`TrackHandle`]: TrackHandle
-pub fn create_player<U: Into<UserId>>(source: Input, requester: Option<U>) -> (Track, TrackHandle) {
+pub fn create_player(source: Input) -> (Track, TrackHandle) {
     let (tx, rx) = mpsc::unbounded_channel();
     let can_seek = source.is_seekable();
     let metadata = source.metadata.clone();
-    let handle = TrackHandle::new(tx, can_seek, Uuid::new_v4(), metadata, requester);
+    let handle = TrackHandle::new(tx, can_seek, Uuid::new_v4(), metadata);
 
     let player = Track::new_raw(source, rx, handle.clone());
 

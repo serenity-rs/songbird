@@ -1,7 +1,6 @@
 use crate::{
     driver::Driver,
     events::{Event, EventContext, EventData, EventHandler, TrackEvent},
-    id::UserId,
     input::Input,
     tracks::{self, Track, TrackHandle, TrackResult},
 };
@@ -157,13 +156,8 @@ impl TrackQueue {
     }
 
     /// Adds an audio source to the queue, to be played in the channel managed by `handler`.
-    pub fn add_source<U: Into<UserId>>(
-        &self,
-        source: Input,
-        handler: &mut Driver,
-        requester: Option<U>,
-    ) {
-        let (audio, _) = tracks::create_player(source, requester);
+    pub fn add_source(&self, source: Input, handler: &mut Driver) {
+        let (audio, _) = tracks::create_player(source);
         self.add(audio, handler);
     }
 
