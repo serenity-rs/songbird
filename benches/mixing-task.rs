@@ -168,17 +168,21 @@ fn no_passthrough(c: &mut Criterion) {
                 )
             },
         );
-        group.bench_with_input(BenchmarkId::new("n=5 Packets", track_count), &track_count, |b, i| {
-            b.iter_batched_ref(
-                || black_box(mixer_float(*i, rt.handle().clone())),
-                |input| {
-                    for i in 0..5 {
-                        input.0.cycle();
-                    }
-                },
-                BatchSize::SmallInput,
-            )
-        });
+        group.bench_with_input(
+            BenchmarkId::new("n=5 Packets", track_count),
+            &track_count,
+            |b, i| {
+                b.iter_batched_ref(
+                    || black_box(mixer_float(*i, rt.handle().clone())),
+                    |input| {
+                        for i in 0..5 {
+                            input.0.cycle();
+                        }
+                    },
+                    BatchSize::SmallInput,
+                )
+            },
+        );
     }
 
     group.finish();

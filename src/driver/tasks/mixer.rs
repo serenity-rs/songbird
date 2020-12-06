@@ -291,70 +291,6 @@ impl Mixer {
     }
 
     #[inline]
-    fn mix_tracks<'a>(
-        &mut self,
-        opus_frame: &'a mut [u8],
-        mix_buffer: &mut [f32; STEREO_FRAME_SIZE],
-    ) -> Result<(usize, &'a [u8])> {
-        let mut len = 0;
-
-        // Opus frame passthrough.
-        // This requires that we have only one track, who has volume 1.0, and an
-        // Opus codec type.
-        let do_passthrough = self.tracks.len() == 1 && {
-            let track = &self.tracks[0];
-            (track.volume - 1.0).abs() < f32::EPSILON && track.source.supports_passthrough()
-        };
-
-        for (i, track) in self.tracks.iter_mut().enumerate() {
-            let vol = track.volume;
-            let stream = &mut track.source;
-
-            if track.playing != PlayMode::Play {
-                continue;
-            }
-
-            let (temp_len, opus_len) = if do_passthrough {
-                (0, track.source.read_opus_frame(opus_frame).ok())
-            } else {
-                (stream.mix(mix_buffer, vol), None)
-            };
-
-            len = len.max(temp_len);
-            if temp_len > 0 || opus_len.is_some() {
-                track.step_frame();
-            } else if track.do_loop() {
-                if let Ok(time) = track.seek_time(Default::default()) {
-                    // have to reproduce self.fire_event here
-                    // to circumvent the borrow checker's lack of knowledge.
-                    //
-                    // In event of error, one of the later event calls will
-                    // trigger the event thread rebuild: it is more prudent that
-                    // the mixer works as normal right now.
-                    if !self.prevent_events {
-                        let _ = self.interconnect.events.send(EventMessage::ChangeState(
-                            i,
-                            TrackStateChange::Position(time),
-                        ));
-                        let _ = self.interconnect.events.send(EventMessage::ChangeState(
-                            i,
-                            TrackStateChange::Loops(track.loops, false),
-                        ));
-                    }
-                }
-            } else {
-                track.end();
-            }
-
-            if let Some(opus_len) = opus_len {
-                return Ok((STEREO_FRAME_SIZE, &opus_frame[..opus_len]));
-            }
-        }
-
-        Ok((len, &opus_frame[..0]))
-    }
-
-    #[inline]
     fn audio_commands_events(&mut self) -> Result<()> {
         // Apply user commands.
         for (i, track) in self.tracks.iter_mut().enumerate() {
@@ -415,31 +351,50 @@ impl Mixer {
             return Ok(());
         }
 
-        // TODO: can we make opus_frame_backing *actually* a view over
-        // some region of self.packet, derived using the encryption mode?
-        // This saves a copy on Opus passthrough.
-        let mut opus_frame_backing = [0u8; STEREO_FRAME_SIZE];
         let mut mix_buffer = [0f32; STEREO_FRAME_SIZE];
-
-        // Slice which mix tracks may use to passthrough direct Opus frames.
-        let mut opus_space = &mut opus_frame_backing[..];
 
         // Walk over all the audio files, combining into one audio frame according
         // to volume, play state, etc.
-        let (mut len, mut opus_frame) = self.mix_tracks(&mut opus_space, &mut mix_buffer)?;
+        let mut mix_len = {
+            let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
+                "FATAL: Too few bytes in self.packet for RTP header.\
+                    (Blame: VOICE_PACKET_MAX?)",
+            );
+
+            let payload = rtp.payload_mut();
+
+            // self.mix_tracks(&mut payload[TAG_SIZE..], &mut mix_buffer)
+            mix_tracks(
+                &mut payload[TAG_SIZE..],
+                &mut mix_buffer,
+                &mut self.tracks,
+                &self.interconnect,
+                self.prevent_events,
+            )
+        };
 
         self.soft_clip.apply(&mut mix_buffer[..])?;
 
         if self.muted {
-            len = 0;
+            mix_len = MixType::MixedPcm(0);
         }
 
-        if len == 0 {
+        if mix_len == MixType::MixedPcm(0) {
             if self.silence_frames > 0 {
                 self.silence_frames -= 1;
 
                 // Explicit "Silence" frame.
-                opus_frame = &SILENT_FRAME[..];
+                let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
+                    "FATAL: Too few bytes in self.packet for RTP header.\
+                        (Blame: VOICE_PACKET_MAX?)",
+                );
+
+                let payload = rtp.payload_mut();
+
+                (&mut payload[TAG_SIZE..TAG_SIZE + SILENT_FRAME.len()])
+                    .copy_from_slice(&SILENT_FRAME[..]);
+
+                mix_len = MixType::Passthrough(SILENT_FRAME.len());
             } else {
                 // Per official guidelines, send 5x silence BEFORE we stop speaking.
                 if let Some(ws) = &self.ws {
@@ -463,7 +418,7 @@ impl Mixer {
         }
 
         self.march_deadline();
-        self.prep_and_send_packet(mix_buffer, opus_frame)?;
+        self.prep_and_send_packet(mix_buffer, mix_len)?;
 
         Ok(())
     }
@@ -472,7 +427,7 @@ impl Mixer {
         self.encoder.set_bitrate(bitrate).map_err(Into::into)
     }
 
-    fn prep_and_send_packet(&mut self, buffer: [f32; 1920], opus_frame: &[u8]) -> Result<()> {
+    fn prep_and_send_packet(&mut self, buffer: [f32; 1920], mix_len: MixType) -> Result<()> {
         let conn = self
             .conn_active
             .as_mut()
@@ -487,16 +442,15 @@ impl Mixer {
             let payload = rtp.payload_mut();
             let crypto_mode = conn.crypto_state.kind();
 
-            let payload_len = if opus_frame.is_empty() {
-                let total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
-                self.encoder.encode_float(
-                    &buffer[..STEREO_FRAME_SIZE],
-                    &mut payload[TAG_SIZE..total_payload_space],
-                )?
-            } else {
-                let len = opus_frame.len();
-                payload[TAG_SIZE..TAG_SIZE + len].clone_from_slice(opus_frame);
-                len
+            let payload_len = match mix_len {
+                MixType::Passthrough(opus_len) => opus_len,
+                MixType::MixedPcm(_samples) => {
+                    let total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
+                    self.encoder.encode_float(
+                        &buffer[..STEREO_FRAME_SIZE],
+                        &mut payload[TAG_SIZE..total_payload_space],
+                    )?
+                },
             };
 
             let final_payload_size = conn
@@ -527,6 +481,78 @@ impl Mixer {
 
         Ok(())
     }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum MixType {
+    Passthrough(usize),
+    MixedPcm(usize),
+}
+
+#[inline]
+fn mix_tracks<'a>(
+    opus_frame: &'a mut [u8],
+    mix_buffer: &mut [f32; STEREO_FRAME_SIZE],
+    tracks: &mut Vec<Track>,
+    interconnect: &Interconnect,
+    prevent_events: bool,
+) -> MixType {
+    let mut len = 0;
+
+    // Opus frame passthrough.
+    // This requires that we have only one track, who has volume 1.0, and an
+    // Opus codec type.
+    let do_passthrough = tracks.len() == 1 && {
+        let track = &tracks[0];
+        (track.volume - 1.0).abs() < f32::EPSILON && track.source.supports_passthrough()
+    };
+
+    for (i, track) in tracks.iter_mut().enumerate() {
+        let vol = track.volume;
+        let stream = &mut track.source;
+
+        if track.playing != PlayMode::Play {
+            continue;
+        }
+
+        let (temp_len, opus_len) = if do_passthrough {
+            (0, track.source.read_opus_frame(opus_frame).ok())
+        } else {
+            (stream.mix(mix_buffer, vol), None)
+        };
+
+        len = len.max(temp_len);
+        if temp_len > 0 || opus_len.is_some() {
+            track.step_frame();
+        } else if track.do_loop() {
+            if let Ok(time) = track.seek_time(Default::default()) {
+                // have to reproduce self.fire_event here
+                // to circumvent the borrow checker's lack of knowledge.
+                //
+                // In event of error, one of the later event calls will
+                // trigger the event thread rebuild: it is more prudent that
+                // the mixer works as normal right now.
+                if !prevent_events {
+                    let _ = interconnect.events.send(EventMessage::ChangeState(
+                        i,
+                        TrackStateChange::Position(time),
+                    ));
+                    let _ = interconnect.events.send(EventMessage::ChangeState(
+                        i,
+                        TrackStateChange::Loops(track.loops, false),
+                    ));
+                }
+            }
+        } else {
+            track.end();
+        }
+
+        if let Some(opus_len) = opus_len {
+            return MixType::Passthrough(opus_len);
+        }
+    }
+
+    MixType::MixedPcm(len)
 }
 
 /// The mixing thread is a synchronous context due to its compute-bound nature.
