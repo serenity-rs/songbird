@@ -26,6 +26,10 @@ pub struct Metadata {
     pub duration: Option<Duration>,
     /// The sample rate of this stream.
     pub sample_rate: Option<u32>,
+    /// The source url of this stream.
+    pub source_url: Option<String>,
+    /// The thumbnail url of this stream.
+    pub thumbnail: Option<String>,
 }
 
 impl Metadata {
@@ -92,6 +96,8 @@ impl Metadata {
             start_time,
             duration,
             sample_rate,
+
+            ..Default::default()
         }
     }
 
@@ -137,6 +143,16 @@ impl Metadata {
             .and_then(Value::as_f64)
             .map(Duration::from_secs_f64);
 
+        let source_url = obj
+            .and_then(|m| m.get("webpage_url"))
+            .and_then(Value::as_str)
+            .map(str::to_string);
+
+        let thumbnail = obj
+            .and_then(|m| m.get("thumbnail"))
+            .and_then(Value::as_str)
+            .map(str::to_string);
+
         Self {
             title,
             artist,
@@ -145,6 +161,8 @@ impl Metadata {
             channels: Some(2),
             duration,
             sample_rate: Some(SAMPLE_RATE_RAW as u32),
+            source_url,
+            thumbnail,
 
             ..Default::default()
         }
@@ -161,6 +179,8 @@ impl Metadata {
             start_time: self.start_time.take(),
             duration: self.duration.take(),
             sample_rate: self.sample_rate.take(),
+            source_url: self.source_url.take(),
+            thumbnail: self.thumbnail.take(),
         }
     }
 }
