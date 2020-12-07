@@ -93,9 +93,9 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
             Ok(RemoveTrack(i)) => {
                 info!("Event state for track {} of {} removed.", i, events.len());
 
-                events.remove(i);
-                states.remove(i);
-                handles.remove(i);
+                events.swap_remove(i);
+                states.swap_remove(i);
+                handles.swap_remove(i);
             },
             Ok(RemoveAllTracks) => {
                 info!("Event state for all tracks removed.");

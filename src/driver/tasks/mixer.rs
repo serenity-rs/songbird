@@ -312,7 +312,7 @@ impl Mixer {
 
             if track.playing.is_done() {
                 let p_state = track.playing();
-                self.tracks.remove(i);
+                self.tracks.swap_remove(i);
                 to_remove.push(i);
                 self.fire_event(EventMessage::ChangeState(
                     i,
@@ -427,6 +427,7 @@ impl Mixer {
         self.encoder.set_bitrate(bitrate).map_err(Into::into)
     }
 
+    #[inline]
     fn prep_and_send_packet(&mut self, buffer: [f32; 1920], mix_len: MixType) -> Result<()> {
         let conn = self
             .conn_active

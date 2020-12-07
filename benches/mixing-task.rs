@@ -80,7 +80,7 @@ fn mixer_float(
     let mut tracks = vec![];
     for i in 0..num_tracks {
         let input = Input::float_pcm(true, floats.clone().into());
-        tracks.push(tracks::create_player(input).0);
+        tracks.push(tracks::create_player(input).0.into());
     }
 
     out.0.tracks = tracks;
@@ -104,9 +104,9 @@ fn mixer_float_drop(
 
     let mut tracks = vec![];
     for i in 0..num_tracks {
-        let floats = utils::make_sine(i * STEREO_FRAME_SIZE, true);
+        let floats = utils::make_sine((i / 5) * STEREO_FRAME_SIZE, true);
         let input = Input::float_pcm(true, floats.clone().into());
-        tracks.push(tracks::create_player(input).0);
+        tracks.push(tracks::create_player(input).0.into());
     }
 
     out.0.tracks = tracks;
@@ -140,7 +140,7 @@ fn mixer_opus(
     .expect("These parameters are well-defined.");
     src.raw.load_all();
 
-    tracks.push(tracks::create_player(src.into()).0);
+    tracks.push(tracks::create_player(src.into()).0.into());
 
     out.0.tracks = tracks;
 
@@ -162,7 +162,7 @@ fn no_passthrough(c: &mut Criterion) {
                 b.iter_batched_ref(
                     || black_box(mixer_float(*i, rt.handle().clone())),
                     |input| {
-                        input.0.cycle();
+                        black_box(input.0.cycle());
                     },
                     BatchSize::SmallInput,
                 )
@@ -176,7 +176,7 @@ fn no_passthrough(c: &mut Criterion) {
                     || black_box(mixer_float(*i, rt.handle().clone())),
                     |input| {
                         for i in 0..5 {
-                            input.0.cycle();
+                            black_box(input.0.cycle());
                         }
                     },
                     BatchSize::SmallInput,
@@ -191,13 +191,16 @@ fn no_passthrough(c: &mut Criterion) {
 fn passthrough(c: &mut Criterion) {
     let rt = Runtime::new().unwrap();
 
+    println!("{:?} bytes", std::mem::size_of::<tracks::Track>());
+    println!("{:?} bytes", std::mem::size_of::<Input>());
+
     let mut group = c.benchmark_group("Opus Input (Passthrough)");
 
     group.bench_function("Single Packet", |b| {
         b.iter_batched_ref(
             || black_box(mixer_opus(rt.handle().clone())),
             |input| {
-                input.0.cycle();
+                black_box(input.0.cycle());
             },
             BatchSize::SmallInput,
         )
@@ -207,7 +210,7 @@ fn passthrough(c: &mut Criterion) {
             || black_box(mixer_opus(rt.handle().clone())),
             |input| {
                 for i in 0..5 {
-                    input.0.cycle();
+                    black_box(input.0.cycle());
                 }
             },
             BatchSize::SmallInput,
@@ -220,12 +223,12 @@ fn passthrough(c: &mut Criterion) {
 fn culling(c: &mut Criterion) {
     let rt = Runtime::new().unwrap();
 
-    c.bench_function("Worst-case Track Culling (10 tracks)", |b| {
+    c.bench_function("Worst-case Track Culling (15 tracks, 5 pkts)", |b| {
         b.iter_batched_ref(
-            || black_box(mixer_float_drop(10, rt.handle().clone())),
+            || black_box(mixer_float_drop(15, rt.handle().clone())),
             |input| {
-                for i in 0..10 {
-                    input.0.cycle();
+                for i in 0..5 {
+                    black_box(input.0.cycle());
                 }
             },
             BatchSize::SmallInput,
