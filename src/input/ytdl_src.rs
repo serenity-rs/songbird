@@ -67,29 +67,28 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
         .spawn()?;
 
     let stderr = youtube_dl.stderr.take();
-
     let (returned_stderr, value) = task::spawn_blocking(move || {
-        if let Some(mut s) = stderr {
-            let out: Option<Value> = {
-                let mut o_vec = vec![];
-                let mut serde_read = BufReader::new(s.by_ref());
-                // Newline...
-                if let Ok(len) = serde_read.read_until(0xA, &mut o_vec) {
-                    serde_json::from_slice(&o_vec[..len]).ok()
-                } else {
-                    None
-                }
-            };
+        let mut s = stderr.unwrap();
+        let out: Result<Value> = {
+            let mut o_vec = vec![];
+            let mut serde_read = BufReader::new(s.by_ref());
+            // Newline...
+            if let Ok(len) = serde_read.read_until(0xA, &mut o_vec) {
+                serde_json::from_slice(&o_vec[..len]).map_err(|err| Error::Json {
+                    error: err,
+                    parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),
+                })
+            } else {
+                Result::Err(Error::Metadata)
+            }
+        };
 
-            (Some(s), out)
-        } else {
-            (None, None)
-        }
+        (s, out)
     })
     .await
     .map_err(|_| Error::Metadata)?;
 
-    youtube_dl.stderr = returned_stderr;
+    youtube_dl.stderr = Some(returned_stderr);
 
     let ffmpeg = Command::new("ffmpeg")
         .args(pre_args)
@@ -101,7 +100,7 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
         .stdout(Stdio::piped())
         .spawn()?;
 
-    let metadata = Metadata::from_ytdl_output(value.unwrap_or_default());
+    let metadata = Metadata::from_ytdl_output(value?);
 
     trace!("ytdl metadata {:?}", metadata);
 
