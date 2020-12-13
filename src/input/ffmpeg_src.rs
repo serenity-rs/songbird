@@ -140,7 +140,12 @@ pub(crate) async fn is_stereo(path: &OsStr) -> Result<(bool, Metadata)> {
         .output()
         .await?;
 
-    let value: Value = serde_json::from_reader(&out.stdout[..])?;
+    let value: Value = serde_json::from_reader(&out.stdout[..]).map_err(|err| Error::Json {
+        error: err,
+        parsed_text: std::str::from_utf8(&out.stdout[..])
+            .unwrap_or_default()
+            .to_string(),
+    })?;
 
     let metadata = Metadata::from_ffprobe_json(&value);
 

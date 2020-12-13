@@ -16,7 +16,12 @@ pub enum Error {
     /// An error occurred while reading, or opening a file.
     Io(IoError),
     /// An error occurred while parsing JSON (i.e., during metadata/stereo detection).
-    Json(JsonError),
+    Json {
+        /// Json error
+        error: JsonError,
+        /// Text that failed to be parsed
+        parsed_text: String,
+    },
     /// An error occurred within the Opus codec.
     Opus(OpusError),
     /// Failed to extract metadata from alternate pipe.
@@ -54,12 +59,6 @@ impl From<DcaError> for Error {
 impl From<IoError> for Error {
     fn from(e: IoError) -> Error {
         Error::Io(e)
-    }
-}
-
-impl From<JsonError> for Error {
-    fn from(e: JsonError) -> Self {
-        Error::Json(e)
     }
 }
 
