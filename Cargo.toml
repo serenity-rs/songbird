@@ -43,7 +43,7 @@ version = "0.2"
 
 [dependencies.flume]
 optional = true
-version = "0.9"
+version = "0.10"
 
 [dependencies.futures]
 version = "0.3"
