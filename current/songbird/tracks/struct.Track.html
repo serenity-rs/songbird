@@ -16,7 +16,7 @@ access to a raw object of this type via <a href="../../songbird/tracks/fn.create
 <span class="comment">// A Call is also valid here!</span>
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handler</span>: <span class="ident">Driver</span> <span class="op">=</span> <span class="ident">Default</span>::<span class="ident">default</span>();
 <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">ffmpeg</span>(<span class="string">&quot;../audio/my-favourite-song.mp3&quot;</span>)
-    .<span class="ident">await</span>
+    .<span class="kw">await</span>
     .<span class="ident">expect</span>(<span class="string">&quot;This might fail: handle this error!&quot;</span>);
 <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">audio</span>, <span class="ident">audio_handle</span>) <span class="op">=</span> <span class="ident">create_player</span>(<span class="ident">source</span>);
 

@@ -658,7 +658,7 @@
 
 <span class="kw">impl</span> <span class="ident">UdpRx</span> {
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interconnect</span>) {
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interconnect</span>) {
         <span class="kw">loop</span> {
             <span class="ident">tokio</span>::<span class="macro">select</span><span class="macro">!</span> {
                 <span class="prelude-val">Ok</span>((<span class="ident">len</span>, <span class="ident">_addr</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">udp_socket</span>.<span class="ident">recv_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet_buffer</span>[..]) <span class="op">=</span><span class="op">&gt;</span> {
@@ -803,7 +803,7 @@
 }
 
 <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">interconnect</span>, <span class="ident">rx</span>, <span class="ident">cipher</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(
     <span class="kw-2">mut</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
     <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
     <span class="ident">cipher</span>: <span class="ident">Cipher</span>,
@@ -821,7 +821,7 @@
         <span class="ident">udp_socket</span>,
     };
 
-    <span class="ident">state</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">interconnect</span>).<span class="ident">await</span>;
+    <span class="ident">state</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">interconnect</span>).<span class="kw">await</span>;
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;UDP receive handle stopped.&quot;</span>);
 }

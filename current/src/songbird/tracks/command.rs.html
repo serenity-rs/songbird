@@ -81,7 +81,7 @@
     <span class="doccomment">/// Register an event on this track.</span>
     <span class="ident">AddEvent</span>(<span class="ident">EventData</span>),
     <span class="doccomment">/// Run some closure on this track, with direct access to the core object.</span>
-    <span class="ident">Do</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Track</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>),
+    <span class="ident">Do</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Track</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Request a read-only view of this track&#39;s state.</span>
     <span class="ident">Request</span>(<span class="ident">OneshotSender</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Change the loop count/strategy of this track.</span>

@@ -539,6 +539,39 @@
 <span id="538">538</span>
 <span id="539">539</span>
 <span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -564,23 +597,24 @@
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">instrument</span>};
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::<span class="ident">TAG_SIZE</span>;
 
-<span class="kw">struct</span> <span class="ident">Mixer</span> {
-    <span class="ident">async_handle</span>: <span class="ident">Handle</span>,
-    <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>,
-    <span class="ident">config</span>: <span class="ident">Config</span>,
-    <span class="ident">conn_active</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MixerConnection</span><span class="op">&gt;</span>,
-    <span class="ident">deadline</span>: <span class="ident">Instant</span>,
-    <span class="ident">encoder</span>: <span class="ident">OpusEncoder</span>,
-    <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
-    <span class="ident">mix_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>,
-    <span class="ident">muted</span>: <span class="ident">bool</span>,
-    <span class="ident">packet</span>: [<span class="ident">u8</span>; <span class="ident">VOICE_PACKET_MAX</span>],
-    <span class="ident">prevent_events</span>: <span class="ident">bool</span>,
-    <span class="ident">silence_frames</span>: <span class="ident">u8</span>,
-    <span class="ident">sleeper</span>: <span class="ident">SpinSleeper</span>,
-    <span class="ident">soft_clip</span>: <span class="ident">SoftClip</span>,
-    <span class="ident">tracks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Track</span><span class="op">&gt;</span>,
-    <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Mixer</span> {
+    <span class="kw">pub</span> <span class="ident">async_handle</span>: <span class="ident">Handle</span>,
+    <span class="kw">pub</span> <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>,
+    <span class="kw">pub</span> <span class="ident">config</span>: <span class="ident">Config</span>,
+    <span class="kw">pub</span> <span class="ident">conn_active</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MixerConnection</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">deadline</span>: <span class="ident">Instant</span>,
+    <span class="kw">pub</span> <span class="ident">encoder</span>: <span class="ident">OpusEncoder</span>,
+    <span class="kw">pub</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
+    <span class="kw">pub</span> <span class="ident">mix_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">muted</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">packet</span>: [<span class="ident">u8</span>; <span class="ident">VOICE_PACKET_MAX</span>],
+    <span class="kw">pub</span> <span class="ident">prevent_events</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">silence_frames</span>: <span class="ident">u8</span>,
+    <span class="kw">pub</span> <span class="ident">skip_sleep</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">sleeper</span>: <span class="ident">SpinSleeper</span>,
+    <span class="kw">pub</span> <span class="ident">soft_clip</span>: <span class="ident">SoftClip</span>,
+    <span class="kw">pub</span> <span class="ident">tracks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Track</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">fn</span> <span class="ident">new_encoder</span>(<span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OpusEncoder</span><span class="op">&gt;</span> {
@@ -591,7 +625,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Mixer</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">mix_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>,
         <span class="ident">async_handle</span>: <span class="ident">Handle</span>,
         <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
@@ -628,6 +662,7 @@
             <span class="ident">packet</span>,
             <span class="ident">prevent_events</span>: <span class="bool-val">false</span>,
             <span class="ident">silence_frames</span>: <span class="number">0</span>,
+            <span class="ident">skip_sleep</span>: <span class="bool-val">false</span>,
             <span class="ident">sleeper</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
             <span class="ident">soft_clip</span>,
             <span class="ident">tracks</span>,
@@ -831,70 +866,6 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mix_tracks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">opus_frame</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>],
-        <span class="ident">mix_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="comment">// Opus frame passthrough.</span>
-        <span class="comment">// This requires that we have only one track, who has volume 1.0, and an</span>
-        <span class="comment">// Opus codec type.</span>
-        <span class="kw">let</span> <span class="ident">do_passthrough</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> {
-            <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tracks</span>[<span class="number">0</span>];
-            (<span class="ident">track</span>.<span class="ident">volume</span> <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">f32</span>::<span class="ident">EPSILON</span> <span class="op">&amp;&amp;</span> <span class="ident">track</span>.<span class="ident">source</span>.<span class="ident">supports_passthrough</span>()
-        };
-
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">track</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">vol</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">volume</span>;
-            <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">track</span>.<span class="ident">source</span>;
-
-            <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">playing</span> <span class="op">!</span><span class="op">=</span> <span class="ident">PlayMode</span>::<span class="ident">Play</span> {
-                <span class="kw">continue</span>;
-            }
-
-            <span class="kw">let</span> (<span class="ident">temp_len</span>, <span class="ident">opus_len</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">do_passthrough</span> {
-                (<span class="number">0</span>, <span class="ident">track</span>.<span class="ident">source</span>.<span class="ident">read_opus_frame</span>(<span class="ident">opus_frame</span>).<span class="ident">ok</span>())
-            } <span class="kw">else</span> {
-                (<span class="ident">stream</span>.<span class="ident">mix</span>(<span class="ident">mix_buffer</span>, <span class="ident">vol</span>), <span class="prelude-val">None</span>)
-            };
-
-            <span class="ident">len</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">max</span>(<span class="ident">temp_len</span>);
-            <span class="kw">if</span> <span class="ident">temp_len</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">opus_len</span>.<span class="ident">is_some</span>() {
-                <span class="ident">track</span>.<span class="ident">step_frame</span>();
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">do_loop</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">seek_time</span>(<span class="ident">Default</span>::<span class="ident">default</span>()) {
-                    <span class="comment">// have to reproduce self.fire_event here</span>
-                    <span class="comment">// to circumvent the borrow checker&#39;s lack of knowledge.</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// In event of error, one of the later event calls will</span>
-                    <span class="comment">// trigger the event thread rebuild: it is more prudent that</span>
-                    <span class="comment">// the mixer works as normal right now.</span>
-                    <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">prevent_events</span> {
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
-                            <span class="ident">i</span>,
-                            <span class="ident">TrackStateChange</span>::<span class="ident">Position</span>(<span class="ident">time</span>),
-                        ));
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
-                            <span class="ident">i</span>,
-                            <span class="ident">TrackStateChange</span>::<span class="ident">Loops</span>(<span class="ident">track</span>.<span class="ident">loops</span>, <span class="bool-val">false</span>),
-                        ));
-                    }
-                }
-            } <span class="kw">else</span> {
-                <span class="ident">track</span>.<span class="ident">end</span>();
-            }
-
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">opus_len</span>) <span class="op">=</span> <span class="ident">opus_len</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">STEREO_FRAME_SIZE</span>, <span class="kw-2">&amp;</span><span class="ident">opus_frame</span>[..<span class="ident">opus_len</span>]));
-            }
-        }
-
-        <span class="prelude-val">Ok</span>((<span class="ident">len</span>, <span class="kw-2">&amp;</span><span class="ident">opus_frame</span>[..<span class="number">0</span>]))
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">audio_commands_events</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Apply user commands.</span>
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">track</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
@@ -916,7 +887,7 @@
 
             <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">playing</span>.<span class="ident">is_done</span>() {
                 <span class="kw">let</span> <span class="ident">p_state</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">playing</span>();
-                <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">remove</span>(<span class="ident">i</span>);
+                <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
                 <span class="ident">to_remove</span>.<span class="ident">push</span>(<span class="ident">i</span>);
                 <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
                     <span class="ident">i</span>,
@@ -940,42 +911,65 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">march_deadline</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">skip_sleep</span> {
+            <span class="kw">return</span>;
+        }
+
         <span class="self">self</span>.<span class="ident">sleeper</span>
             .<span class="ident">sleep</span>(<span class="self">self</span>.<span class="ident">deadline</span>.<span class="ident">saturating_duration_since</span>(<span class="ident">Instant</span>::<span class="ident">now</span>()));
         <span class="self">self</span>.<span class="ident">deadline</span> <span class="op">+</span><span class="op">=</span> <span class="ident">TIMESTEP_LENGTH</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">cycle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cycle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn_active</span>.<span class="ident">is_none</span>() {
             <span class="self">self</span>.<span class="ident">march_deadline</span>();
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
 
-        <span class="comment">// TODO: can we make opus_frame_backing *actually* a view over</span>
-        <span class="comment">// some region of self.packet, derived using the encryption mode?</span>
-        <span class="comment">// This saves a copy on Opus passthrough.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opus_frame_backing</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">STEREO_FRAME_SIZE</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mix_buffer</span> <span class="op">=</span> [<span class="number">0f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>];
-
-        <span class="comment">// Slice which mix tracks may use to passthrough direct Opus frames.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opus_space</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">opus_frame_backing</span>[..];
 
         <span class="comment">// Walk over all the audio files, combining into one audio frame according</span>
         <span class="comment">// to volume, play state, etc.</span>
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">len</span>, <span class="kw-2">mut</span> <span class="ident">opus_frame</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">mix_tracks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">opus_space</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mix_buffer</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mix_len</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+                <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
+                    (Blame: VOICE_PACKET_MAX?)&quot;</span>,
+            );
+
+            <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">rtp</span>.<span class="ident">payload_mut</span>();
+
+            <span class="comment">// self.mix_tracks(&amp;mut payload[TAG_SIZE..], &amp;mut mix_buffer)</span>
+            <span class="ident">mix_tracks</span>(
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">payload</span>[<span class="ident">TAG_SIZE</span>..],
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mix_buffer</span>,
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">tracks</span>,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">interconnect</span>,
+                <span class="self">self</span>.<span class="ident">prevent_events</span>,
+            )
+        };
 
         <span class="self">self</span>.<span class="ident">soft_clip</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mix_buffer</span>[..])<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">muted</span> {
-            <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
+            <span class="ident">mix_len</span> <span class="op">=</span> <span class="ident">MixType</span>::<span class="ident">MixedPcm</span>(<span class="number">0</span>);
         }
 
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">mix_len</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MixType</span>::<span class="ident">MixedPcm</span>(<span class="number">0</span>) {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">silence_frames</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="self">self</span>.<span class="ident">silence_frames</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
 
                 <span class="comment">// Explicit &quot;Silence&quot; frame.</span>
-                <span class="ident">opus_frame</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">SILENT_FRAME</span>[..];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+                    <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
+                        (Blame: VOICE_PACKET_MAX?)&quot;</span>,
+                );
+
+                <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">rtp</span>.<span class="ident">payload_mut</span>();
+
+                (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">payload</span>[<span class="ident">TAG_SIZE</span>..<span class="ident">TAG_SIZE</span> <span class="op">+</span> <span class="ident">SILENT_FRAME</span>.<span class="ident">len</span>()])
+                    .<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">SILENT_FRAME</span>[..]);
+
+                <span class="ident">mix_len</span> <span class="op">=</span> <span class="ident">MixType</span>::<span class="ident">Passthrough</span>(<span class="ident">SILENT_FRAME</span>.<span class="ident">len</span>());
             } <span class="kw">else</span> {
                 <span class="comment">// Per official guidelines, send 5x silence BEFORE we stop speaking.</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ws</span> {
@@ -999,7 +993,7 @@
         }
 
         <span class="self">self</span>.<span class="ident">march_deadline</span>();
-        <span class="self">self</span>.<span class="ident">prep_and_send_packet</span>(<span class="ident">mix_buffer</span>, <span class="ident">opus_frame</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">prep_and_send_packet</span>(<span class="ident">mix_buffer</span>, <span class="ident">mix_len</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -1008,7 +1002,8 @@
         <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">set_bitrate</span>(<span class="ident">bitrate</span>).<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">prep_and_send_packet</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: [<span class="ident">f32</span>; <span class="number">1920</span>], <span class="ident">opus_frame</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">prep_and_send_packet</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: [<span class="ident">f32</span>; <span class="number">1920</span>], <span class="ident">mix_len</span>: <span class="ident">MixType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">conn_active</span>
             .<span class="ident">as_mut</span>()
@@ -1023,16 +1018,15 @@
             <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">rtp</span>.<span class="ident">payload_mut</span>();
             <span class="kw">let</span> <span class="ident">crypto_mode</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">crypto_state</span>.<span class="ident">kind</span>();
 
-            <span class="kw">let</span> <span class="ident">payload_len</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">opus_frame</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">let</span> <span class="ident">total_payload_space</span> <span class="op">=</span> <span class="ident">payload</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">crypto_mode</span>.<span class="ident">payload_suffix_len</span>();
-                <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">encode_float</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">buffer</span>[..<span class="ident">STEREO_FRAME_SIZE</span>],
-                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">payload</span>[<span class="ident">TAG_SIZE</span>..<span class="ident">total_payload_space</span>],
-                )<span class="question-mark">?</span>
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">opus_frame</span>.<span class="ident">len</span>();
-                <span class="ident">payload</span>[<span class="ident">TAG_SIZE</span>..<span class="ident">TAG_SIZE</span> <span class="op">+</span> <span class="ident">len</span>].<span class="ident">clone_from_slice</span>(<span class="ident">opus_frame</span>);
-                <span class="ident">len</span>
+            <span class="kw">let</span> <span class="ident">payload_len</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mix_len</span> {
+                <span class="ident">MixType</span>::<span class="ident">Passthrough</span>(<span class="ident">opus_len</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">opus_len</span>,
+                <span class="ident">MixType</span>::<span class="ident">MixedPcm</span>(<span class="ident">_samples</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">total_payload_space</span> <span class="op">=</span> <span class="ident">payload</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">crypto_mode</span>.<span class="ident">payload_suffix_len</span>();
+                    <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">encode_float</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">buffer</span>[..<span class="ident">STEREO_FRAME_SIZE</span>],
+                        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">payload</span>[<span class="ident">TAG_SIZE</span>..<span class="ident">total_payload_space</span>],
+                    )<span class="question-mark">?</span>
+                },
             };
 
             <span class="kw">let</span> <span class="ident">final_payload_size</span> <span class="op">=</span> <span class="ident">conn</span>
@@ -1063,6 +1057,78 @@
 
         <span class="prelude-val">Ok</span>(())
     }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">enum</span> <span class="ident">MixType</span> {
+    <span class="ident">Passthrough</span>(<span class="ident">usize</span>),
+    <span class="ident">MixedPcm</span>(<span class="ident">usize</span>),
+}
+
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">fn</span> <span class="ident">mix_tracks</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="ident">opus_frame</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>],
+    <span class="ident">mix_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>],
+    <span class="ident">tracks</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Track</span><span class="op">&gt;</span>,
+    <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>,
+    <span class="ident">prevent_events</span>: <span class="ident">bool</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MixType</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
+
+    <span class="comment">// Opus frame passthrough.</span>
+    <span class="comment">// This requires that we have only one track, who has volume 1.0, and an</span>
+    <span class="comment">// Opus codec type.</span>
+    <span class="kw">let</span> <span class="ident">do_passthrough</span> <span class="op">=</span> <span class="ident">tracks</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> {
+        <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tracks</span>[<span class="number">0</span>];
+        (<span class="ident">track</span>.<span class="ident">volume</span> <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">f32</span>::<span class="ident">EPSILON</span> <span class="op">&amp;&amp;</span> <span class="ident">track</span>.<span class="ident">source</span>.<span class="ident">supports_passthrough</span>()
+    };
+
+    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">track</span>) <span class="kw">in</span> <span class="ident">tracks</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
+        <span class="kw">let</span> <span class="ident">vol</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">volume</span>;
+        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">track</span>.<span class="ident">source</span>;
+
+        <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">playing</span> <span class="op">!</span><span class="op">=</span> <span class="ident">PlayMode</span>::<span class="ident">Play</span> {
+            <span class="kw">continue</span>;
+        }
+
+        <span class="kw">let</span> (<span class="ident">temp_len</span>, <span class="ident">opus_len</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">do_passthrough</span> {
+            (<span class="number">0</span>, <span class="ident">track</span>.<span class="ident">source</span>.<span class="ident">read_opus_frame</span>(<span class="ident">opus_frame</span>).<span class="ident">ok</span>())
+        } <span class="kw">else</span> {
+            (<span class="ident">stream</span>.<span class="ident">mix</span>(<span class="ident">mix_buffer</span>, <span class="ident">vol</span>), <span class="prelude-val">None</span>)
+        };
+
+        <span class="ident">len</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">max</span>(<span class="ident">temp_len</span>);
+        <span class="kw">if</span> <span class="ident">temp_len</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">opus_len</span>.<span class="ident">is_some</span>() {
+            <span class="ident">track</span>.<span class="ident">step_frame</span>();
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">do_loop</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">seek_time</span>(<span class="ident">Default</span>::<span class="ident">default</span>()) {
+                <span class="comment">// have to reproduce self.fire_event here</span>
+                <span class="comment">// to circumvent the borrow checker&#39;s lack of knowledge.</span>
+                <span class="comment">//</span>
+                <span class="comment">// In event of error, one of the later event calls will</span>
+                <span class="comment">// trigger the event thread rebuild: it is more prudent that</span>
+                <span class="comment">// the mixer works as normal right now.</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">prevent_events</span> {
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
+                        <span class="ident">i</span>,
+                        <span class="ident">TrackStateChange</span>::<span class="ident">Position</span>(<span class="ident">time</span>),
+                    ));
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
+                        <span class="ident">i</span>,
+                        <span class="ident">TrackStateChange</span>::<span class="ident">Loops</span>(<span class="ident">track</span>.<span class="ident">loops</span>, <span class="bool-val">false</span>),
+                    ));
+                }
+            }
+        } <span class="kw">else</span> {
+            <span class="ident">track</span>.<span class="ident">end</span>();
+        }
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">opus_len</span>) <span class="op">=</span> <span class="ident">opus_len</span> {
+            <span class="kw">return</span> <span class="ident">MixType</span>::<span class="ident">Passthrough</span>(<span class="ident">opus_len</span>);
+        }
+    }
+
+    <span class="ident">MixType</span>::<span class="ident">MixedPcm</span>(<span class="ident">len</span>)
 }
 
 <span class="doccomment">/// The mixing thread is a synchronous context due to its compute-bound nature.</span>

@@ -3,7 +3,7 @@
 play in sequence.</p>
 <p>This makes use of <a href="../../songbird/events/enum.TrackEvent.html"><code>TrackEvent</code></a>s to determine when the current
 song or audio file has finished before playing the next entry.</p>
-<p>One of these is automatically included via <a href="../../songbird/driver/struct.Driver.html#method.queue"><code>Driver::queue</code></a> when
+<p>One of these is automatically included via <a href="../../songbird/driver/struct.Driver.html"><code>Driver::queue</code></a> when
 the <code>&quot;builtin-queue&quot;</code> feature is enabled.</p>
 <p><code>examples/serenity/voice_events_queue</code> demonstrates how a user might manage,
 track and use this to run a song queue in many guilds in parallel.
@@ -25,7 +25,7 @@ This code is trivial to extend if extra functionality is needed.</p>
 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queues</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">GuildId</span>, <span class="ident">TrackQueue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Default</span>::<span class="ident">default</span>();
 
 <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">ffmpeg</span>(<span class="string">&quot;../audio/my-favourite-song.mp3&quot;</span>)
-    .<span class="ident">await</span>
+    .<span class="kw">await</span>
     .<span class="ident">expect</span>(<span class="string">&quot;This might fail: handle this error!&quot;</span>);
 
 <span class="comment">// We need to ensure that this guild has a TrackQueue created for it.</span>

@@ -159,11 +159,11 @@
 <span class="doccomment">/// Uses `youtube-dlc` if the `&quot;youtube-dlc&quot;` feature is enabled.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Restartable::ytdl`]: crate::input::restartable::Restartable::ytdl</span>
-<span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">ytdl</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
-    <span class="ident">_ytdl</span>(<span class="ident">uri</span>, <span class="kw-2">&amp;</span>[]).<span class="ident">await</span>
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ytdl</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
+    <span class="ident">_ytdl</span>(<span class="ident">uri</span>, <span class="kw-2">&amp;</span>[]).<span class="kw">await</span>
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">_ytdl</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pre_args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">_ytdl</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pre_args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">ytdl_args</span> <span class="op">=</span> [
         <span class="string">&quot;--print-json&quot;</span>,
         <span class="string">&quot;-f&quot;</span>,
@@ -215,7 +215,7 @@
 
         (<span class="ident">s</span>, <span class="ident">out</span>)
     })
-    .<span class="ident">await</span>
+    .<span class="kw">await</span>
     .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="ident">Metadata</span>)<span class="question-mark">?</span>;
 
     <span class="ident">youtube_dl</span>.<span class="ident">stderr</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">returned_stderr</span>);
@@ -253,8 +253,8 @@
 <span class="doccomment">/// Uses `youtube-dlc` if the `&quot;youtube-dlc&quot;` feature is enabled.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Restartable::ytdl_search`]: crate::input::restartable::Restartable::ytdl_search</span>
-<span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
-    <span class="ident">ytdl</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>)).<span class="ident">await</span>
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
+    <span class="ident">ytdl</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>)).<span class="kw">await</span>
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "songbird";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

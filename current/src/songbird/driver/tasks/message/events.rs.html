@@ -30,14 +30,18 @@
 <span id="29">29</span>
 <span id="30">30</span>
 <span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events</span>::{<span class="ident">CoreContext</span>, <span class="ident">EventData</span>, <span class="ident">EventStore</span>},
     <span class="ident">tracks</span>::{<span class="ident">LoopState</span>, <span class="ident">PlayMode</span>, <span class="ident">TrackHandle</span>, <span class="ident">TrackState</span>},
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">EventMessage</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EventMessage</span> {
     <span class="comment">// Event related.</span>
     <span class="comment">// Track events should fire off the back of state changes.</span>
     <span class="ident">AddGlobalEvent</span>(<span class="ident">EventData</span>),

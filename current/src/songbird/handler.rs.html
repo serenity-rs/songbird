@@ -515,10 +515,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">deafen</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">deaf</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">deafen</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">deaf</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">self_deaf</span> <span class="op">=</span> <span class="ident">deaf</span>;
 
-        <span class="self">self</span>.<span class="ident">update</span>().<span class="ident">await</span>
+        <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Returns whether the current connection is self-deafened in this server.</span>
@@ -542,7 +542,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Songbird::join`]: crate::Songbird::join</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">join</span>(
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">join</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">ConnectionResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -554,7 +554,7 @@
             <span class="ident">Return</span>::<span class="ident">Conn</span>(<span class="ident">tx</span>),
         ));
 
-        <span class="self">self</span>.<span class="ident">update</span>().<span class="ident">await</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">rx</span>.<span class="ident">into_recv_async</span>())
+        <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">rx</span>.<span class="ident">into_recv_async</span>())
     }
 
     <span class="doccomment">/// Join the selected voice channel, *without* running/starting an RTP</span>
@@ -573,7 +573,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Songbird::join_gateway`]: crate::Songbird::join_gateway</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">join_gateway</span>(
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">join_gateway</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">ConnectionInfo</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -585,7 +585,7 @@
             <span class="ident">Return</span>::<span class="ident">Info</span>(<span class="ident">tx</span>),
         ));
 
-        <span class="self">self</span>.<span class="ident">update</span>().<span class="ident">await</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">rx</span>.<span class="ident">into_recv_async</span>())
+        <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">rx</span>.<span class="ident">into_recv_async</span>())
     }
 
     <span class="doccomment">/// Leaves the current voice channel, disconnecting from it.</span>
@@ -599,14 +599,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">leave</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">leave</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Only send an update if we were in a voice channel.</span>
         <span class="self">self</span>.<span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">leave</span>();
 
-        <span class="self">self</span>.<span class="ident">update</span>().<span class="ident">await</span>
+        <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Sets whether the current connection is to be muted.</span>
@@ -619,13 +619,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">mute</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mute</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">mute</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mute</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">self_mute</span> <span class="op">=</span> <span class="ident">mute</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">mute</span>(<span class="ident">mute</span>);
 
-        <span class="self">self</span>.<span class="ident">update</span>().<span class="ident">await</span>
+        <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Returns whether the current connection is self-muted in this server.</span>
@@ -678,7 +678,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`standalone`]: Call::standalone</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ws</span>.<span class="ident">as_mut</span>() {
             <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="macro">json</span><span class="macro">!</span>({
                 <span class="string">&quot;op&quot;</span>: <span class="number">4</span>,
@@ -690,7 +690,7 @@
                 }
             });
 
-            <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">map</span>).<span class="ident">await</span>
+            <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">map</span>).<span class="kw">await</span>
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">JoinError</span>::<span class="ident">NoSender</span>)
         }

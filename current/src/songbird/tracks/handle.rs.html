@@ -205,6 +205,14 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -225,10 +233,15 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Track`]: Track</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrackHandle</span> {
+    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">InnerHandle</span><span class="op">&gt;</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">InnerHandle</span> {
     <span class="ident">command_channel</span>: <span class="ident">UnboundedSender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
     <span class="ident">seekable</span>: <span class="ident">bool</span>,
     <span class="ident">uuid</span>: <span class="ident">Uuid</span>,
-    <span class="ident">metadata</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
+    <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TrackHandle</span> {
@@ -240,14 +253,16 @@
         <span class="ident">command_channel</span>: <span class="ident">UnboundedSender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
         <span class="ident">seekable</span>: <span class="ident">bool</span>,
         <span class="ident">uuid</span>: <span class="ident">Uuid</span>,
-        <span class="ident">metadata</span>: <span class="ident">Metadata</span>,
+        <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">InnerHandle</span> {
             <span class="ident">command_channel</span>,
             <span class="ident">seekable</span>,
             <span class="ident">uuid</span>,
-            <span class="ident">metadata</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">metadata</span>),
-        }
+            <span class="ident">metadata</span>,
+        });
+
+        <span class="self">Self</span> { <span class="ident">inner</span> }
     }
 
     <span class="doccomment">/// Unpauses an audio track.</span>
@@ -283,7 +298,7 @@
     <span class="doccomment">/// [`seek_time`]: TrackHandle::seek_time</span>
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">seekable</span>
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">seekable</span>
     }
 
     <span class="doccomment">/// Seeks along the track to the specified position.</span>
@@ -294,7 +309,7 @@
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seekable</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_seekable</span>() {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Seek</span>(<span class="ident">position</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
@@ -332,11 +347,11 @@
     }
 
     <span class="doccomment">/// Request playback information and state from the audio context.</span>
-    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot</span>::<span class="ident">channel</span>();
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Request</span>(<span class="ident">tx</span>))<span class="question-mark">?</span>;
 
-        <span class="ident">rx</span>.<span class="ident">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
+        <span class="ident">rx</span>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
     }
 
     <span class="doccomment">/// Set an audio track to loop indefinitely.</span>
@@ -347,7 +362,7 @@
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seekable</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_seekable</span>() {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Infinite</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
@@ -362,7 +377,7 @@
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seekable</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_seekable</span>() {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Finite</span>(<span class="number">0</span>)))
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
@@ -377,7 +392,7 @@
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">loop_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">count</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">seekable</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_seekable</span>() {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Finite</span>(<span class="ident">count</span>)))
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
@@ -386,7 +401,7 @@
 
     <span class="doccomment">/// Returns this handle&#39;s (and track&#39;s) unique identifier.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uuid</span> {
-        <span class="self">self</span>.<span class="ident">uuid</span>
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">uuid</span>
     }
 
     <span class="doccomment">/// Returns the metadata stored in the handle.</span>
@@ -396,8 +411,8 @@
     <span class="doccomment">/// read-only from then on.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">metadata</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Metadata</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">metadata</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -407,7 +422,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cmd</span>: <span class="ident">TrackCommand</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// As the send channels are unbounded, we can be reasonably certain</span>
         <span class="comment">// that send failure == cancellation.</span>
-        <span class="self">self</span>.<span class="ident">command_channel</span>
+        <span class="self">self</span>.<span class="ident">inner</span>
+            .<span class="ident">command_channel</span>
             .<span class="ident">send</span>(<span class="ident">cmd</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
     }

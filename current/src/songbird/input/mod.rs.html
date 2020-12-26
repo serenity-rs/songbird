@@ -681,7 +681,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Input</span> {
     <span class="doccomment">/// Information about the played source.</span>
-    <span class="kw">pub</span> <span class="ident">metadata</span>: <span class="ident">Metadata</span>,
+    <span class="kw">pub</span> <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Indicates whether `source` is stereo or mono.</span>
     <span class="kw">pub</span> <span class="ident">stereo</span>: <span class="ident">bool</span>,
     <span class="doccomment">/// Underlying audio data bytestream.</span>
@@ -715,7 +715,7 @@
         <span class="ident">metadata</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Input</span> {
-            <span class="ident">metadata</span>: <span class="ident">metadata</span>.<span class="ident">unwrap_or_default</span>(),
+            <span class="ident">metadata</span>: <span class="ident">metadata</span>.<span class="ident">unwrap_or_default</span>().<span class="ident">into</span>(),
             <span class="ident">stereo</span>,
             <span class="ident">reader</span>,
             <span class="ident">kind</span>,

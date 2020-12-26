@@ -40,7 +40,11 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Interconnect</span>, <span class="ident">UdpRxMessage</span>, <span class="ident">UdpTxMessage</span>, <span class="ident">WsMessage</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -51,7 +55,7 @@
 <span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::<span class="ident">XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">MixerConnection</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MixerConnection</span> {
     <span class="kw">pub</span> <span class="ident">cipher</span>: <span class="ident">Cipher</span>,
     <span class="kw">pub</span> <span class="ident">crypto_state</span>: <span class="ident">CryptoState</span>,
     <span class="kw">pub</span> <span class="ident">udp_rx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
@@ -65,7 +69,7 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">MixerMessage</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MixerMessage</span> {
     <span class="ident">AddTrack</span>(<span class="ident">Track</span>),
     <span class="ident">SetTrack</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Track</span><span class="op">&gt;</span>),
 

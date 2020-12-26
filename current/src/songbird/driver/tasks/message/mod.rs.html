@@ -48,7 +48,11 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+
 <span class="kw">mod</span> <span class="ident">core</span>;
 <span class="kw">mod</span> <span class="ident">events</span>;
 <span class="kw">mod</span> <span class="ident">mixer</span>;
@@ -56,13 +60,13 @@
 <span class="kw">mod</span> <span class="ident">udp_tx</span>;
 <span class="kw">mod</span> <span class="ident">ws</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">core</span>::<span class="kw-2">*</span>, <span class="ident">events</span>::<span class="kw-2">*</span>, <span class="ident">mixer</span>::<span class="kw-2">*</span>, <span class="ident">udp_rx</span>::<span class="kw-2">*</span>, <span class="ident">udp_tx</span>::<span class="kw-2">*</span>, <span class="ident">ws</span>::<span class="kw-2">*</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">core</span>::<span class="kw-2">*</span>, <span class="ident">events</span>::<span class="kw-2">*</span>, <span class="ident">mixer</span>::<span class="kw-2">*</span>, <span class="ident">udp_rx</span>::<span class="kw-2">*</span>, <span class="ident">udp_tx</span>::<span class="kw-2">*</span>, <span class="ident">ws</span>::<span class="kw-2">*</span>};
 
 <span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">info</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Interconnect</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interconnect</span> {
     <span class="kw">pub</span> <span class="ident">core</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">events</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">mixer</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>,
@@ -86,9 +90,9 @@
         <span class="self">self</span>.<span class="ident">events</span> <span class="op">=</span> <span class="ident">evt_tx</span>;
 
         <span class="kw">let</span> <span class="ident">ic</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
-        <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="ident">async</span> <span class="kw">move</span> {
+        <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
             <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event processor restarted.&quot;</span>);
-            <span class="kw">super</span>::<span class="ident">events</span>::<span class="ident">runner</span>(<span class="ident">ic</span>, <span class="ident">evt_rx</span>).<span class="ident">await</span>;
+            <span class="kw">super</span>::<span class="ident">events</span>::<span class="ident">runner</span>(<span class="ident">ic</span>, <span class="ident">evt_rx</span>).<span class="kw">await</span>;
             <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
         });
 
