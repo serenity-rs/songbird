@@ -169,9 +169,10 @@ impl CryptoMode {
     }
 }
 
+#[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
-pub(crate) enum CryptoState {
+pub enum CryptoState {
     Normal,
     Suffix,
     Lite(Wrapping<u32>),
@@ -217,6 +218,7 @@ impl CryptoState {
         endpoint
     }
 
+    /// Returns the underlying (stateless) type of the active crypto mode.
     pub fn kind(&self) -> CryptoMode {
         CryptoMode::from(*self)
     }

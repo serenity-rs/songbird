@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use crate::{
     driver::{connection::error::Error, Config},
     events::EventData,

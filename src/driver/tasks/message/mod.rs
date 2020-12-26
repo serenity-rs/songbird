@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 mod core;
 mod events;
 mod mixer;
@@ -5,13 +7,13 @@ mod udp_rx;
 mod udp_tx;
 mod ws;
 
-pub(crate) use self::{core::*, events::*, mixer::*, udp_rx::*, udp_tx::*, ws::*};
+pub use self::{core::*, events::*, mixer::*, udp_rx::*, udp_tx::*, ws::*};
 
 use flume::Sender;
 use tracing::info;
 
 #[derive(Clone, Debug)]
-pub(crate) struct Interconnect {
+pub struct Interconnect {
     pub core: Sender<CoreMessage>,
     pub events: Sender<EventMessage>,
     pub mixer: Sender<MixerMessage>,

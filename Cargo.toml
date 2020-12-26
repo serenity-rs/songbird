@@ -158,10 +158,18 @@ serenity-deps = ["async-trait"]
 youtube-dlc = []
 builtin-queue = []
 
+internals = []
+
 [[bench]]
-name = "mixing"
-path = "benches/mixing.rs"
+name = "base-mixing"
+path = "benches/base-mixing.rs"
+harness = false
+
+[[bench]]
+name = "mixing-task"
+path = "benches/mixing-task.rs"
+required-features = ["internals"]
 harness = false
 
 [package.metadata.docs.rs]
-all-features = true
+features = ["default", "twilight-rustls", "builtin-queue", "stock-zlib"]

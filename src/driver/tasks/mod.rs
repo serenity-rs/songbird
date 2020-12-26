@@ -1,7 +1,9 @@
+#![allow(missing_docs)]
+
 pub mod error;
 mod events;
-pub(crate) mod message;
-mod mixer;
+pub mod message;
+pub mod mixer;
 pub(crate) mod udp_rx;
 pub(crate) mod udp_tx;
 pub(crate) mod ws;

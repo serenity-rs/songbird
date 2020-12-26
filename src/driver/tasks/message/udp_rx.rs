@@ -1,7 +1,9 @@
+#![allow(missing_docs)]
+
 use super::Interconnect;
 use crate::driver::Config;
 
-pub(crate) enum UdpRxMessage {
+pub enum UdpRxMessage {
     SetConfig(Config),
     ReplaceInterconnect(Interconnect),
 

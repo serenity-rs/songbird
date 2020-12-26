@@ -8,6 +8,9 @@
 //! generation from being slowed down past its deadline, or from affecting other
 //! asynchronous tasks your bot must handle.
 
+#[cfg(feature = "internals")]
+pub mod bench_internals;
+
 mod config;
 pub(crate) mod connection;
 mod crypto;
@@ -16,7 +19,8 @@ pub(crate) mod tasks;
 
 pub use config::Config;
 use connection::error::{Error, Result};
-pub use crypto::*;
+pub use crypto::CryptoMode;
+pub(crate) use crypto::CryptoState;
 pub use decode_mode::DecodeMode;
 
 #[cfg(feature = "builtin-queue")]
