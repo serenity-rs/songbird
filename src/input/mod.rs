@@ -85,7 +85,7 @@ use tracing::{debug, error};
 #[derive(Debug)]
 pub struct Input {
     /// Information about the played source.
-    pub metadata: Metadata,
+    pub metadata: Box<Metadata>,
     /// Indicates whether `source` is stereo or mono.
     pub stereo: bool,
     /// Underlying audio data bytestream.
@@ -119,7 +119,7 @@ impl Input {
         metadata: Option<Metadata>,
     ) -> Self {
         Input {
-            metadata: metadata.unwrap_or_default(),
+            metadata: metadata.unwrap_or_default().into(),
             stereo,
             reader,
             kind,

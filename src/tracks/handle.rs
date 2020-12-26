@@ -17,10 +17,15 @@ use uuid::Uuid;
 ///
 /// [`Track`]: Track
 pub struct TrackHandle {
+    inner: Arc<InnerHandle>,
+}
+
+#[derive(Clone, Debug)]
+struct InnerHandle {
     command_channel: UnboundedSender<TrackCommand>,
     seekable: bool,
     uuid: Uuid,
-    metadata: Arc<Metadata>,
+    metadata: Box<Metadata>,
 }
 
 impl TrackHandle {
@@ -32,14 +37,16 @@ impl TrackHandle {
         command_channel: UnboundedSender<TrackCommand>,
         seekable: bool,
         uuid: Uuid,
-        metadata: Metadata,
+        metadata: Box<Metadata>,
     ) -> Self {
-        Self {
+        let inner = Arc::new(InnerHandle {
             command_channel,
             seekable,
             uuid,
-            metadata: Arc::new(metadata),
-        }
+            metadata,
+        });
+
+        Self { inner }
     }
 
     /// Unpauses an audio track.
@@ -75,7 +82,7 @@ impl TrackHandle {
     /// [`seek_time`]: TrackHandle::seek_time
     /// [`Input`]: crate::input::Input
     pub fn is_seekable(&self) -> bool {
-        self.seekable
+        self.inner.seekable
     }
 
     /// Seeks along the track to the specified position.
@@ -86,7 +93,7 @@ impl TrackHandle {
     /// [`Input`]: crate::input::Input
     /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
     pub fn seek_time(&self, position: Duration) -> TrackResult<()> {
-        if self.seekable {
+        if self.is_seekable() {
             self.send(TrackCommand::Seek(position))
         } else {
             Err(TrackError::SeekUnsupported)
@@ -139,7 +146,7 @@ impl TrackHandle {
     /// [`Input`]: crate::input::Input
     /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
     pub fn enable_loop(&self) -> TrackResult<()> {
-        if self.seekable {
+        if self.is_seekable() {
             self.send(TrackCommand::Loop(LoopState::Infinite))
         } else {
             Err(TrackError::SeekUnsupported)
@@ -154,7 +161,7 @@ impl TrackHandle {
     /// [`Input`]: crate::input::Input
     /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
     pub fn disable_loop(&self) -> TrackResult<()> {
-        if self.seekable {
+        if self.is_seekable() {
             self.send(TrackCommand::Loop(LoopState::Finite(0)))
         } else {
             Err(TrackError::SeekUnsupported)
@@ -169,7 +176,7 @@ impl TrackHandle {
     /// [`Input`]: crate::input::Input
     /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
     pub fn loop_for(&self, count: usize) -> TrackResult<()> {
-        if self.seekable {
+        if self.is_seekable() {
             self.send(TrackCommand::Loop(LoopState::Finite(count)))
         } else {
             Err(TrackError::SeekUnsupported)
@@ -178,7 +185,7 @@ impl TrackHandle {
 
     /// Returns this handle's (and track's) unique identifier.
     pub fn uuid(&self) -> Uuid {
-        self.uuid
+        self.inner.uuid
     }
 
     /// Returns the metadata stored in the handle.
@@ -188,8 +195,8 @@ impl TrackHandle {
     /// read-only from then on.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn metadata(&self) -> Arc<Metadata> {
-        self.metadata.clone()
+    pub fn metadata(&self) -> &Metadata {
+        &self.inner.metadata
     }
 
     #[inline]
@@ -199,7 +206,8 @@ impl TrackHandle {
     pub fn send(&self, cmd: TrackCommand) -> TrackResult<()> {
         // As the send channels are unbounded, we can be reasonably certain
         // that send failure == cancellation.
-        self.command_channel
+        self.inner
+            .command_channel
             .send(cmd)
             .map_err(|_e| TrackError::Finished)
     }

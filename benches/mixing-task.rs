@@ -191,9 +191,6 @@ fn no_passthrough(c: &mut Criterion) {
 fn passthrough(c: &mut Criterion) {
     let rt = Runtime::new().unwrap();
 
-    println!("{:?} bytes", std::mem::size_of::<tracks::Track>());
-    println!("{:?} bytes", std::mem::size_of::<Input>());
-
     let mut group = c.benchmark_group("Opus Input (Passthrough)");
 
     group.bench_function("Single Packet", |b| {
