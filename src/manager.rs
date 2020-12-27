@@ -182,8 +182,11 @@ impl Songbird {
     /// If you _only_ need to retrieve the handler for a target, then use
     /// [`get`].
     ///
+    /// Twilight users should read the caveats mentioned in [`process`].
+    ///
     /// [`Call`]: Call
     /// [`get`]: Songbird::get
+    /// [`process`]: #method.process
     #[inline]
     pub async fn join<C, G>(&self, guild_id: G, channel_id: C) -> (Arc<Mutex<Call>>, JoinResult<()>)
     where
@@ -310,6 +313,17 @@ impl Songbird {
     ///
     /// When using twilight, you are required to call this with all inbound
     /// (voice) events, *i.e.*, at least `VoiceStateUpdate`s and `VoiceServerUpdate`s.
+    ///
+    /// Users *must* ensure that calls to this function happen on a **separate task**
+    /// to any calls to [`join`], [`join_gateway`]. The simplest way to ensure this is
+    /// to `tokio::spawn` any command invocation.
+    ///
+    /// Returned futures generally require the inner [`Call`] to be updated via this function,
+    /// and will deadlock if event processing is not carried out on another spawned task.
+    ///
+    /// [`join`]: Songbird::join
+    /// [`join_gateway`]: Songbird::join_gateway
+    /// [`Call`]: Call
     pub async fn process(&self, event: &TwilightEvent) {
         match event {
             TwilightEvent::VoiceServerUpdate(v) => {
