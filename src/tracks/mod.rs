@@ -226,7 +226,7 @@ impl Track {
             LoopState::Finite(ref mut n) => {
                 *n -= 1;
                 true
-            }
+            },
         }
     }
 
@@ -258,66 +258,64 @@ impl Track {
                                 index,
                                 TrackStateChange::Mode(self.playing),
                             ));
-                        }
+                        },
                         Pause => {
                             self.pause();
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Mode(self.playing),
                             ));
-                        }
+                        },
                         Stop => {
                             self.stop();
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Mode(self.playing),
                             ));
-                        }
+                        },
                         Volume(vol) => {
                             self.set_volume(vol);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Volume(self.volume),
                             ));
-                        }
-                        Seek(time) => {
+                        },
+                        Seek(time) =>
                             if let Ok(new_time) = self.seek_time(time) {
                                 let _ = ic.events.send(EventMessage::ChangeState(
                                     index,
                                     TrackStateChange::Position(new_time),
                                 ));
-                            }
-                        }
+                            },
                         AddEvent(evt) => {
                             let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
-                        }
+                        },
                         Do(action) => {
                             action(self);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Total(self.state()),
                             ));
-                        }
+                        },
                         Request(tx) => {
                             let _ = tx.send(Box::new(self.state()));
-                        }
-                        Loop(loops) => {
+                        },
+                        Loop(loops) =>
                             if self.set_loops(loops).is_ok() {
                                 let _ = ic.events.send(EventMessage::ChangeState(
                                     index,
                                     TrackStateChange::Loops(self.loops, true),
                                 ));
-                            }
-                        }
+                            },
                     }
-                }
+                },
                 Err(TryRecvError::Closed) => {
                     // this branch will never be visited.
                     break;
-                }
+                },
                 Err(TryRecvError::Empty) => {
                     break;
-                }
+                },
             }
         }
     }
