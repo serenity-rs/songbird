@@ -213,6 +213,16 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -288,6 +298,16 @@
     <span class="doccomment">/// Sets the volume of an audio track.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_volume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">volume</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Volume</span>(<span class="ident">volume</span>))
+    }
+
+    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Currently, only [`Restartable`] sources support lazy setup.</span>
+    <span class="doccomment">/// This call is a no-op for all others.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Restartable`]: crate::input::restartable::Restartable</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_playable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">MakePlayable</span>)
     }
 
     <span class="doccomment">/// Denotes whether the underlying [`Input`] stream is compatible with arbitrary seeking.</span>

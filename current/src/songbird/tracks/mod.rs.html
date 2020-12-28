@@ -377,6 +377,17 @@
 <span id="376">376</span>
 <span id="377">377</span>
 <span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Live, controllable audio instances.</span>
 <span class="doccomment">//!</span>
@@ -687,6 +698,7 @@
                                     <span class="ident">TrackStateChange</span>::<span class="ident">Loops</span>(<span class="self">self</span>.<span class="ident">loops</span>, <span class="bool-val">true</span>),
                                 ));
                             },
+                        <span class="ident">MakePlayable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">make_playable</span>(),
                     }
                 },
                 <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -698,6 +710,16 @@
                 },
             }
         }
+    }
+
+    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Currently, only [`Restartable`] sources support lazy setup.</span>
+    <span class="doccomment">/// This call is a no-op for all others.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Restartable`]: crate::input::restartable::Restartable</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_playable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">reader</span>.<span class="ident">make_playable</span>();
     }
 
     <span class="doccomment">/// Creates a read-only copy of the audio track&#39;s state.</span>
