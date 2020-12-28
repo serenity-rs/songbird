@@ -307,6 +307,7 @@ impl Track {
                                     TrackStateChange::Loops(self.loops, true),
                                 ));
                             },
+                        MakePlayable => self.make_playable(),
                     }
                 },
                 Err(TryRecvError::Closed) => {
@@ -318,6 +319,16 @@ impl Track {
                 },
             }
         }
+    }
+
+    /// Ready a track for playing if it is lazily initialised.
+    ///
+    /// Currently, only [`Restartable`] sources support lazy setup.
+    /// This call is a no-op for all others.
+    ///
+    /// [`Restartable`]: crate::input::restartable::Restartable
+    pub fn make_playable(&mut self) {
+        self.source.reader.make_playable();
     }
 
     /// Creates a read-only copy of the audio track's state.

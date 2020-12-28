@@ -86,6 +86,15 @@ impl Reader {
             _ => {},
         }
     }
+
+    #[allow(clippy::single_match)]
+    pub(crate) fn make_playable(&mut self) {
+        use Reader::*;
+        match self {
+            Restartable(r) => r.make_playable(),
+            _ => {},
+        }
+    }
 }
 
 impl Read for Reader {

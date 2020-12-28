@@ -35,7 +35,10 @@ use serenity::{
 };
 
 use songbird::{
-    input,
+    input::{
+        self,
+        restartable::Restartable,
+    },
     Event,
     EventContext,
     EventHandler as VoiceEventHandler,
@@ -477,7 +480,10 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
-        let source = match input::ytdl(&url).await {
+
+        // Here, we use lazy restartable sources to make sure that we don't pay
+        // for decoding, playback on tracks which aren't actually live yet.
+        let source = match Restartable::ytdl(url, true).await {
             Ok(source) => source,
             Err(why) => {
                 println!("Err starting source: {:?}", why);
@@ -488,7 +494,7 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             },
         };
 
-        handler.enqueue_source(source);
+        handler.enqueue_source(source.into());
 
         check_msg(
             msg.channel_id

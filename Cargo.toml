@@ -54,7 +54,7 @@ version = "0.11"
 
 [dependencies.rand]
 optional = true
-version = "0.7"
+version = "0.8"
 
 [dependencies.serenity]
 optional = true

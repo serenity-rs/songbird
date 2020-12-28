@@ -30,6 +30,8 @@ pub enum TrackCommand {
     Request(OneshotSender<Box<TrackState>>),
     /// Change the loop count/strategy of this track.
     Loop(LoopState),
+    /// Prompts a track's input to become live and usable, if it is not already.
+    MakePlayable,
 }
 
 impl std::fmt::Debug for TrackCommand {
@@ -48,6 +50,7 @@ impl std::fmt::Debug for TrackCommand {
                 Do(_f) => "Do([function])".to_string(),
                 Request(tx) => format!("Request({:?})", tx),
                 Loop(loops) => format!("Loop({:?})", loops),
+                MakePlayable => "MakePlayable".to_string(),
             }
         )
     }

@@ -74,6 +74,16 @@ impl TrackHandle {
         self.send(TrackCommand::Volume(volume))
     }
 
+    /// Ready a track for playing if it is lazily initialised.
+    ///
+    /// Currently, only [`Restartable`] sources support lazy setup.
+    /// This call is a no-op for all others.
+    ///
+    /// [`Restartable`]: crate::input::restartable::Restartable
+    pub fn make_playable(&self) -> TrackResult<()> {
+        self.send(TrackCommand::MakePlayable)
+    }
+
     /// Denotes whether the underlying [`Input`] stream is compatible with arbitrary seeking.
     ///
     /// If this returns `false`, all calls to [`seek_time`] will fail, and the track is

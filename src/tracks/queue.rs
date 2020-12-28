@@ -6,7 +6,7 @@ use crate::{
 };
 use async_trait::async_trait;
 use parking_lot::Mutex;
-use std::{collections::VecDeque, ops::Deref, sync::Arc};
+use std::{collections::VecDeque, ops::Deref, sync::Arc, time::Duration};
 use tracing::{info, warn};
 
 /// A simple queue for several audio sources, designed to
@@ -145,6 +145,23 @@ impl EventHandler for QueueHandler {
     }
 }
 
+struct SongPreloader {
+    remote_lock: Arc<Mutex<TrackQueueCore>>,
+}
+
+#[async_trait]
+impl EventHandler for SongPreloader {
+    async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
+        let inner = self.remote_lock.lock();
+
+        if let Some(track) = inner.tracks.get(1) {
+            let _ = track.0.make_playable();
+        }
+
+        None
+    }
+}
+
 impl TrackQueue {
     /// Create a new, empty, track queue.
     pub fn new() -> Self {
@@ -193,6 +210,23 @@ impl TrackQueue {
                 EventData::new(Event::Track(TrackEvent::End), QueueHandler { remote_lock }),
                 track.position,
             );
+
+        // Attempts to start loading the next track before this one ends.
+        // Idea is to provide as close to gapless playback as possible,
+        // while minimising memory use.
+        if let Some(time) = track.source.metadata.duration {
+            let preload_time = time.checked_sub(Duration::from_secs(5)).unwrap_or_default();
+            let remote_lock = self.inner.clone();
+
+            track
+                .events
+                .as_mut()
+                .expect("Queue inspecting EventStore on new Track: did not exist.")
+                .add_event(
+                    EventData::new(Event::Delayed(preload_time), SongPreloader { remote_lock }),
+                    track.position,
+                );
+        }
 
         inner.tracks.push_back(Queued(track_handle));
     }
