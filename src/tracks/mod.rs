@@ -357,7 +357,7 @@ impl Track {
         self.uuid
     }
 
-    /// Sets this track's and this track's handle's unique identifer
+    /// Sets this track's unique identifer, however does not set the handle's unique identifier
     pub fn set_uuid(&mut self, new_uuid: Uuid) {
         self.uuid = new_uuid;
         self.handle.set_uuid(new_uuid);

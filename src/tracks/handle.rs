@@ -187,8 +187,8 @@ impl TrackHandle {
         self.uuid
     }
 
-    /// Sets this handle's unique identifier
-    pub(crate) fn set_uuid(&mut self, new_uuid: Uuid) {
+    /// Sets this handle's unique identifier, however does not set this track's unique identifier
+    pub fn set_uuid(&mut self, new_uuid: Uuid) {
         self.uuid = new_uuid
     }
 
