@@ -13,9 +13,8 @@ tracing-futures = "0.2"
 path = "../../../"
 
 [dependencies.serenity]
+version = "0.10"
 features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"]
-git = "https://github.com/serenity-rs/serenity"
-branch = "current"
 
 [dependencies.tokio]
 version = "0.2"
