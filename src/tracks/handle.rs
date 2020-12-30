@@ -24,8 +24,8 @@ pub struct TrackHandle {
 struct InnerHandle {
     command_channel: UnboundedSender<TrackCommand>,
     seekable: bool,
-    uuid: Uuid,
     metadata: Box<Metadata>,
+    uuid: Uuid,
 }
 
 impl TrackHandle {
@@ -42,8 +42,8 @@ impl TrackHandle {
         let inner = Arc::new(InnerHandle {
             command_channel,
             seekable,
-            uuid,
             metadata,
+            uuid,
         });
 
         Self { inner }
