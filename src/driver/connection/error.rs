@@ -93,9 +93,8 @@ impl fmt::Display for Error {
             CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode."),
             EndpointUrl => write!(f, "endpoint URL received from gateway was invalid."),
             ExpectedHandshake => write!(f, "voice initialisation protocol was violated."),
-            IllegalDiscoveryResponse => {
-                write!(f, "IP discovery/NAT punching response was invalid.")
-            },
+            IllegalDiscoveryResponse =>
+                write!(f, "IP discovery/NAT punching response was invalid."),
             IllegalIp => write!(f, "IP discovery/NAT punching response had bad IP value."),
             Io(i) => write!(f, "I/O failure ({}).", i),
             Json(j) => write!(f, "JSON (de)serialization issue ({}).", j),

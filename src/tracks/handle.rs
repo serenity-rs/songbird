@@ -18,7 +18,6 @@ use uuid::Uuid;
 /// [`Track`]: Track
 pub struct TrackHandle {
     inner: Arc<InnerHandle>,
-    uuid: Uuid,
 }
 
 #[derive(Clone, Debug)]
@@ -26,6 +25,7 @@ struct InnerHandle {
     command_channel: UnboundedSender<TrackCommand>,
     seekable: bool,
     metadata: Box<Metadata>,
+    uuid: Uuid,
 }
 
 impl TrackHandle {
@@ -43,9 +43,10 @@ impl TrackHandle {
             command_channel,
             seekable,
             metadata,
+            uuid,
         });
 
-        Self { uuid, inner }
+        Self { inner }
     }
 
     /// Unpauses an audio track.
@@ -184,12 +185,7 @@ impl TrackHandle {
 
     /// Returns this handle's (and track's) unique identifier.
     pub fn uuid(&self) -> Uuid {
-        self.uuid
-    }
-
-    /// Sets this handle's unique identifier, however does not set this track's unique identifier
-    pub fn set_uuid(&mut self, new_uuid: Uuid) {
-        self.uuid = new_uuid
+        self.inner.uuid
     }
 
     /// Returns the metadata stored in the handle.

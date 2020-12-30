@@ -356,12 +356,6 @@ impl Track {
     pub fn uuid(&self) -> Uuid {
         self.uuid
     }
-
-    /// Sets this track's unique identifer, however does not set the handle's unique identifier
-    pub fn set_uuid(&mut self, new_uuid: Uuid) {
-        self.uuid = new_uuid;
-        self.handle.set_uuid(new_uuid);
-    }
 }
 
 /// Creates a [`Track`] object to pass into the audio context, and a [`TrackHandle`]
@@ -372,11 +366,19 @@ impl Track {
 ///
 /// [`Track`]: Track
 /// [`TrackHandle`]: TrackHandle
+#[inline]
 pub fn create_player(source: Input) -> (Track, TrackHandle) {
+    create_player_with_uuid(source, Uuid::new_v4())
+}
+
+/// Refer to the documentation for [`create_player`] however, allows for a custom uuid to be inserted into the Track and Handle
+///
+/// [`create_player`]: create_player
+pub fn create_player_with_uuid(source: Input, uuid: Uuid) -> (Track, TrackHandle) {
     let (tx, rx) = mpsc::unbounded_channel();
     let can_seek = source.is_seekable();
     let metadata = source.metadata.clone();
-    let handle = TrackHandle::new(tx, can_seek, Uuid::new_v4(), metadata);
+    let handle = TrackHandle::new(tx, can_seek, uuid, metadata);
 
     let player = Track::new_raw(source, rx, handle.clone());
 
