@@ -382,9 +382,12 @@ pub fn create_player(source: Input) -> (Track, TrackHandle) {
     create_player_with_uuid(source, Uuid::new_v4())
 }
 
-/// Refer to the documentation for [`create_player`] however, allows for a custom uuid to be inserted into the Track and Handle
+/// Creates a [`Track`] and [`TrackHandle`] as in [`create_player`], allowing
+/// a custom UUID to be set.
 ///
 /// [`create_player`]: create_player
+/// [`Track`]: Track
+/// [`TrackHandle`]: TrackHandle
 pub fn create_player_with_uuid(source: Input, uuid: Uuid) -> (Track, TrackHandle) {
     let (tx, rx) = mpsc::unbounded_channel();
     let can_seek = source.is_seekable();

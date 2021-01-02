@@ -91,6 +91,10 @@ optional = true
 version = "0.2"
 default-features = false
 
+[dependencies.typemap_rev]
+optional = true
+version = "0.1"
+
 [dependencies.url]
 optional = true
 version = "2"
@@ -140,6 +144,7 @@ driver = [
     "tokio/rt-core",
     "tokio/sync",
     "tokio/time",
+    "typemap_rev",
     "url",
     "uuid",
     "xsalsa20poly1305",

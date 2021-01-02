@@ -3,29 +3,45 @@ use crate::{
     events::{Event, EventData, EventHandler},
     input::Metadata,
 };
-use std::{sync::Arc, time::Duration};
-use tokio::sync::{mpsc::UnboundedSender, oneshot};
+use std::{fmt, sync::Arc, time::Duration};
+use tokio::sync::{mpsc::UnboundedSender, oneshot, RwLock};
+use typemap_rev::TypeMap;
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
-/// Handle for safe control of a [`Track`] track from other threads, outside
+/// Handle for safe control of a [`Track`] from other threads, outside
 /// of the audio mixing and voice handling context.
 ///
-/// Almost all method calls here are fallible; in most cases, this will be because
+/// These are cheap to clone, using `Arc<...>` internally.
+///
+/// Many method calls here are fallible; in most cases, this will be because
 /// the underlying [`Track`] object has been discarded. Those which aren't refer
-/// to immutable properties of the underlying stream.
+/// to immutable properties of the underlying stream, or shared data not used
+/// by the driver.
 ///
 /// [`Track`]: Track
 pub struct TrackHandle {
     inner: Arc<InnerHandle>,
 }
 
-#[derive(Clone, Debug)]
 struct InnerHandle {
     command_channel: UnboundedSender<TrackCommand>,
     seekable: bool,
-    metadata: Box<Metadata>,
     uuid: Uuid,
+    metadata: Box<Metadata>,
+    typemap: RwLock<TypeMap>,
+}
+
+impl fmt::Debug for InnerHandle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("InnerHandle")
+            .field("command_channel", &self.command_channel)
+            .field("seekable", &self.seekable)
+            .field("uuid", &self.uuid)
+            .field("metadata", &self.metadata)
+            .field("typemap", &"<LOCK>")
+            .finish()
+    }
 }
 
 impl TrackHandle {
@@ -42,8 +58,9 @@ impl TrackHandle {
         let inner = Arc::new(InnerHandle {
             command_channel,
             seekable,
-            metadata,
             uuid,
+            metadata,
+            typemap: RwLock::new(TypeMap::new()),
         });
 
         Self { inner }
@@ -207,6 +224,17 @@ impl TrackHandle {
     /// [`Input`]: crate::input::Input
     pub fn metadata(&self) -> &Metadata {
         &self.inner.metadata
+    }
+
+    /// Allows access to this track's attached TypeMap.
+    ///
+    /// TypeMaps allow additional, user-defined data shared by all handles
+    /// to be attached to any track.
+    ///
+    /// Driver code will never attempt to lock access to this map,
+    /// preventing deadlock/stalling.
+    pub fn typemap(&self) -> &RwLock<TypeMap> {
+        &self.inner.typemap
     }
 
     #[inline]
