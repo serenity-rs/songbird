@@ -223,35 +223,79 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events</span>::{<span class="ident">Event</span>, <span class="ident">EventData</span>, <span class="ident">EventHandler</span>},
     <span class="ident">input</span>::<span class="ident">Metadata</span>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::{<span class="ident">mpsc</span>::<span class="ident">UnboundedSender</span>, <span class="ident">oneshot</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
+<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::{<span class="ident">mpsc</span>::<span class="ident">UnboundedSender</span>, <span class="ident">oneshot</span>, <span class="ident">RwLock</span>};
+<span class="kw">use</span> <span class="ident">typemap_rev</span>::<span class="ident">TypeMap</span>;
 <span class="kw">use</span> <span class="ident">uuid</span>::<span class="ident">Uuid</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// Handle for safe control of a [`Track`] track from other threads, outside</span>
+<span class="doccomment">/// Handle for safe control of a [`Track`] from other threads, outside</span>
 <span class="doccomment">/// of the audio mixing and voice handling context.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Almost all method calls here are fallible; in most cases, this will be because</span>
+<span class="doccomment">/// These are cheap to clone, using `Arc&lt;...&gt;` internally.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Many method calls here are fallible; in most cases, this will be because</span>
 <span class="doccomment">/// the underlying [`Track`] object has been discarded. Those which aren&#39;t refer</span>
-<span class="doccomment">/// to immutable properties of the underlying stream.</span>
+<span class="doccomment">/// to immutable properties of the underlying stream, or shared data not used</span>
+<span class="doccomment">/// by the driver.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Track`]: Track</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrackHandle</span> {
     <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">InnerHandle</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">InnerHandle</span> {
     <span class="ident">command_channel</span>: <span class="ident">UnboundedSender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
     <span class="ident">seekable</span>: <span class="ident">bool</span>,
-    <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
     <span class="ident">uuid</span>: <span class="ident">Uuid</span>,
+    <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
+    <span class="ident">typemap</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">TypeMap</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">InnerHandle</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;InnerHandle&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;command_channel&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">command_channel</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;seekable&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">seekable</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;uuid&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uuid</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;metadata&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">metadata</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;typemap&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;LOCK&gt;&quot;</span>)
+            .<span class="ident">finish</span>()
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">TrackHandle</span> {
@@ -268,8 +312,9 @@
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">InnerHandle</span> {
             <span class="ident">command_channel</span>,
             <span class="ident">seekable</span>,
-            <span class="ident">metadata</span>,
             <span class="ident">uuid</span>,
+            <span class="ident">metadata</span>,
+            <span class="ident">typemap</span>: <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">TypeMap</span>::<span class="ident">new</span>()),
         });
 
         <span class="self">Self</span> { <span class="ident">inner</span> }
@@ -433,6 +478,17 @@
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Metadata</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">metadata</span>
+    }
+
+    <span class="doccomment">/// Allows access to this track&#39;s attached TypeMap.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// TypeMaps allow additional, user-defined data shared by all handles</span>
+    <span class="doccomment">/// to be attached to any track.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Driver code will never attempt to lock access to this map,</span>
+    <span class="doccomment">/// preventing deadlock/stalling.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typemap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">TypeMap</span><span class="op">&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">typemap</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
