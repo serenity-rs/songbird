@@ -3,7 +3,11 @@
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UdpTxMessage</span> {
     <span class="ident">Packet</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>), <span class="comment">// TODO: do something cheaper.</span>
     <span class="ident">Poison</span>,

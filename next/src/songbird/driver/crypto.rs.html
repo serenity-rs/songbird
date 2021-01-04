@@ -222,6 +222,8 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Encryption schemes supported by Discord&#39;s secure RTP negotiation.</span>
 <span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">NetworkEndian</span>, <span class="ident">WriteBytesExt</span>};
@@ -394,9 +396,10 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">CryptoState</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CryptoState</span> {
     <span class="ident">Normal</span>,
     <span class="ident">Suffix</span>,
     <span class="ident">Lite</span>(<span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>),
@@ -442,6 +445,7 @@
         <span class="ident">endpoint</span>
     }
 
+    <span class="doccomment">/// Returns the underlying (stateless) type of the active crypto mode.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CryptoMode</span> {
         <span class="ident">CryptoMode</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }

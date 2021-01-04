@@ -317,6 +317,10 @@
 <span id="316">316</span>
 <span id="317">317</span>
 <span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Runner for a voice connection.</span>
 <span class="doccomment">//!</span>
@@ -328,6 +332,9 @@
 <span class="doccomment">//! generation from being slowed down past its deadline, or from affecting other</span>
 <span class="doccomment">//! asynchronous tasks your bot must handle.</span>
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internals&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bench_internals</span>;
+
 <span class="kw">mod</span> <span class="ident">config</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">connection</span>;
 <span class="kw">mod</span> <span class="ident">crypto</span>;
@@ -336,7 +343,8 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config</span>::<span class="ident">Config</span>;
 <span class="kw">use</span> <span class="ident">connection</span>::<span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crypto</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crypto</span>::<span class="ident">CryptoMode</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">crypto</span>::<span class="ident">CryptoState</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">decode_mode</span>::<span class="ident">DecodeMode</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>

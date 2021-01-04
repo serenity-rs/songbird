@@ -95,7 +95,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EventData</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">event</span>: <span class="ident">Event</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">fire_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">action</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">EventHandler</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">action</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">EventHandler</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">EventData</span> {

@@ -171,11 +171,15 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">mod</span> <span class="ident">events</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">message</span>;
-<span class="kw">mod</span> <span class="ident">mixer</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">message</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">mixer</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">udp_rx</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">udp_tx</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">ws</span>;
@@ -190,9 +194,9 @@
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">instrument</span>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start</span>(<span class="ident">config</span>: <span class="ident">Config</span>, <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>) {
-    <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="ident">async</span> <span class="kw">move</span> {
+    <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
         <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Driver started.&quot;</span>);
-        <span class="ident">runner</span>(<span class="ident">config</span>, <span class="ident">rx</span>, <span class="ident">tx</span>).<span class="ident">await</span>;
+        <span class="ident">runner</span>(<span class="ident">config</span>, <span class="ident">rx</span>, <span class="ident">tx</span>).<span class="kw">await</span>;
         <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Driver finished.&quot;</span>);
     });
 }
@@ -208,9 +212,9 @@
     };
 
     <span class="kw">let</span> <span class="ident">ic</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">clone</span>();
-    <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="ident">async</span> <span class="kw">move</span> {
+    <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
         <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event processor started.&quot;</span>);
-        <span class="ident">events</span>::<span class="ident">runner</span>(<span class="ident">ic</span>, <span class="ident">evt_rx</span>).<span class="ident">await</span>;
+        <span class="ident">events</span>::<span class="ident">runner</span>(<span class="ident">ic</span>, <span class="ident">evt_rx</span>).<span class="kw">await</span>;
         <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
     });
 
@@ -226,13 +230,13 @@
 }
 
 <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">rx</span>, <span class="ident">tx</span>))]</span>
-<span class="ident">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(<span class="kw-2">mut</span> <span class="ident">config</span>: <span class="ident">Config</span>, <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>) {
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(<span class="kw-2">mut</span> <span class="ident">config</span>: <span class="ident">Config</span>, <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interconnect</span> <span class="op">=</span> <span class="ident">start_internals</span>(<span class="ident">tx</span>, <span class="ident">config</span>.<span class="ident">clone</span>());
 
     <span class="kw">loop</span> {
-        <span class="kw">match</span> <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="ident">await</span> {
+        <span class="kw">match</span> <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage</span>::<span class="ident">ConnectWithResult</span>(<span class="ident">info</span>, <span class="ident">tx</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_config</span>) <span class="op">=</span> <span class="ident">next_config</span>.<span class="ident">take</span>() {
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>
@@ -243,7 +247,7 @@
                     <span class="ident">config</span>
                 };
 
-                <span class="ident">connection</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Connection</span>::<span class="ident">new</span>(<span class="ident">info</span>, <span class="kw-2">&amp;</span><span class="ident">interconnect</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>).<span class="ident">await</span> {
+                <span class="ident">connection</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Connection</span>::<span class="ident">new</span>(<span class="ident">info</span>, <span class="kw-2">&amp;</span><span class="ident">interconnect</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>).<span class="kw">await</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">connection</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// Other side may not be listening: this is fine.</span>
                         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(()));
@@ -290,7 +294,7 @@
                     <span class="comment">// if still issue, full connect.</span>
                     <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">info</span>.<span class="ident">clone</span>();
 
-                    <span class="kw">let</span> <span class="ident">full_connect</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">conn</span>.<span class="ident">reconnect</span>().<span class="ident">await</span> {
+                    <span class="kw">let</span> <span class="ident">full_connect</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">conn</span>.<span class="ident">reconnect</span>().<span class="kw">await</span> {
                         <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>);
                             <span class="bool-val">false</span>
@@ -298,7 +302,7 @@
                         <span class="prelude-val">Err</span>(<span class="ident">ConnectionError</span>::<span class="ident">InterconnectFailure</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="ident">interconnect</span>.<span class="ident">restart_volatile_internals</span>();
 
-                            <span class="kw">match</span> <span class="ident">conn</span>.<span class="ident">reconnect</span>().<span class="ident">await</span> {
+                            <span class="kw">match</span> <span class="ident">conn</span>.<span class="ident">reconnect</span>().<span class="kw">await</span> {
                                 <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> {
                                     <span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>);
                                     <span class="bool-val">false</span>
@@ -311,7 +315,7 @@
 
                     <span class="kw">if</span> <span class="ident">full_connect</span> {
                         <span class="ident">connection</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">new</span>(<span class="ident">info</span>, <span class="kw-2">&amp;</span><span class="ident">interconnect</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>)
-                            .<span class="ident">await</span>
+                            .<span class="kw">await</span>
                             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                                 <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Catastrophic connection failure. Stopping. {:?}&quot;</span>, <span class="ident">e</span>);
                                 <span class="ident">e</span>
@@ -325,7 +329,7 @@
                     <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">info</span>.<span class="ident">clone</span>();
 
                     <span class="ident">connection</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">new</span>(<span class="ident">info</span>, <span class="kw-2">&amp;</span><span class="ident">interconnect</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>)
-                        .<span class="ident">await</span>
+                        .<span class="kw">await</span>
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                             <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Catastrophic connection failure. Stopping. {:?}&quot;</span>, <span class="ident">e</span>);
                             <span class="ident">e</span>
