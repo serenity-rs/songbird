@@ -3,8 +3,9 @@ use crate::{
     events::{Event, EventData, EventHandler},
     input::Metadata,
 };
+use flume::Sender;
 use std::{fmt, sync::Arc, time::Duration};
-use tokio::sync::{mpsc::UnboundedSender, oneshot, RwLock};
+use tokio::sync::RwLock;
 use typemap_rev::TypeMap;
 use uuid::Uuid;
 
@@ -25,7 +26,7 @@ pub struct TrackHandle {
 }
 
 struct InnerHandle {
-    command_channel: UnboundedSender<TrackCommand>,
+    command_channel: Sender<TrackCommand>,
     seekable: bool,
     uuid: Uuid,
     metadata: Box<Metadata>,
@@ -50,7 +51,7 @@ impl TrackHandle {
     ///
     /// [`Input`]: crate::input::Input
     pub fn new(
-        command_channel: UnboundedSender<TrackCommand>,
+        command_channel: Sender<TrackCommand>,
         seekable: bool,
         uuid: Uuid,
         metadata: Box<Metadata>,
@@ -159,10 +160,10 @@ impl TrackHandle {
 
     /// Request playback information and state from the audio context.
     pub async fn get_info(&self) -> TrackResult<Box<TrackState>> {
-        let (tx, rx) = oneshot::channel();
+        let (tx, rx) = flume::bounded(1);
         self.send(TrackCommand::Request(tx))?;
 
-        rx.await.map_err(|_| TrackError::Finished)
+        rx.recv_async().await.map_err(|_| TrackError::Finished)
     }
 
     /// Set an audio track to loop indefinitely.

@@ -20,8 +20,8 @@ use discortp::{
     PacketSize,
 };
 use flume::Receiver;
-use std::collections::HashMap;
-use tokio::net::udp::RecvHalf;
+use std::{collections::HashMap, sync::Arc};
+use tokio::net::UdpSocket;
 use tracing::{error, info, instrument, warn};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
@@ -236,7 +236,7 @@ struct UdpRx {
     config: Config,
     packet_buffer: [u8; VOICE_PACKET_MAX],
     rx: Receiver<UdpRxMessage>,
-    udp_socket: RecvHalf,
+    udp_socket: Arc<UdpSocket>,
 }
 
 impl UdpRx {
@@ -391,7 +391,7 @@ pub(crate) async fn runner(
     rx: Receiver<UdpRxMessage>,
     cipher: Cipher,
     config: Config,
-    udp_socket: RecvHalf,
+    udp_socket: Arc<UdpSocket>,
 ) {
     info!("UDP receive handle started.");
 
