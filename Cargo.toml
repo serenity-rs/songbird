@@ -58,17 +58,13 @@ version = "0.8"
 
 [dependencies.serenity]
 optional = true
-#version = "0.10"
+version = "0.10"
 default-features = false
 features = ["voice", "gateway"]
-git = "https://github.com/serenity-rs/serenity"
-branch = "current"
 
 [dependencies.serenity-voice-model]
 optional = true
-#version = "0.10"
-git = "https://github.com/serenity-rs/serenity"
-branch = "current"
+version = "0.1"
 
 [dependencies.spin_sleep]
 optional = true
