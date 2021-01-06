@@ -291,7 +291,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ws_error</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">should_reconnect</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-            <span class="kw">let</span> <span class="ident">hb</span> <span class="op">=</span> <span class="ident">time</span>::<span class="ident">delay_until</span>(<span class="ident">next_heartbeat</span>);
+            <span class="kw">let</span> <span class="ident">hb</span> <span class="op">=</span> <span class="ident">time</span>::<span class="ident">sleep_until</span>(<span class="ident">next_heartbeat</span>);
 
             <span class="ident">tokio</span>::<span class="macro">select</span><span class="macro">!</span> {
                 <span class="kw">_</span> <span class="op">=</span> <span class="ident">hb</span> <span class="op">=</span><span class="op">&gt;</span> {

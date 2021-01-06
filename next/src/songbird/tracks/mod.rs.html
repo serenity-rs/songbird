@@ -395,10 +395,6 @@
 <span id="394">394</span>
 <span id="395">395</span>
 <span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Live, controllable audio instances.</span>
 <span class="doccomment">//!</span>
@@ -427,8 +423,8 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">command</span>::<span class="kw-2">*</span>, <span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">handle</span>::<span class="kw-2">*</span>, <span class="ident">looping</span>::<span class="kw-2">*</span>, <span class="ident">mode</span>::<span class="kw-2">*</span>, <span class="ident">queue</span>::<span class="kw-2">*</span>, <span class="ident">state</span>::<span class="kw-2">*</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">constants</span>::<span class="kw-2">*</span>, <span class="ident">driver</span>::<span class="ident">tasks</span>::<span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">events</span>::<span class="ident">EventStore</span>, <span class="ident">input</span>::<span class="ident">Input</span>};
+<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">TryRecvError</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::{<span class="self">self</span>, <span class="ident">error</span>::<span class="ident">TryRecvError</span>, <span class="ident">UnboundedReceiver</span>};
 <span class="kw">use</span> <span class="ident">uuid</span>::<span class="ident">Uuid</span>;
 
 <span class="doccomment">/// Control object for audio playback.</span>
@@ -504,7 +500,7 @@
     <span class="doccomment">/// Track commands are sent in this manner to ensure that access</span>
     <span class="doccomment">/// occurs in a thread-safe manner, without allowing any external</span>
     <span class="doccomment">/// code to lock access to audio objects and block packet generation.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">commands</span>: <span class="ident">UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">commands</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Handle for safe control of this audio track from other threads.</span>
     <span class="doccomment">///</span>
@@ -526,11 +522,7 @@
     <span class="doccomment">/// In general, you should probably use [`create_player`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`create_player`]: fn.create_player.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_raw</span>(
-        <span class="ident">source</span>: <span class="ident">Input</span>,
-        <span class="ident">commands</span>: <span class="ident">UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
-        <span class="ident">handle</span>: <span class="ident">TrackHandle</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_raw</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">commands</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>, <span class="ident">handle</span>: <span class="ident">TrackHandle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">uuid</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">uuid</span>();
 
         <span class="self">Self</span> {
@@ -712,7 +704,7 @@
                         <span class="ident">MakePlayable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">make_playable</span>(),
                     }
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Disconnected</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// this branch will never be visited.</span>
                     <span class="kw">break</span>;
                 },
@@ -791,7 +783,7 @@
 <span class="doccomment">/// [`Track`]: Track</span>
 <span class="doccomment">/// [`TrackHandle`]: TrackHandle</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_player_with_uuid</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">uuid</span>: <span class="ident">Uuid</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Track</span>, <span class="ident">TrackHandle</span>) {
-    <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">mpsc</span>::<span class="ident">unbounded_channel</span>();
+    <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
     <span class="kw">let</span> <span class="ident">can_seek</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">is_seekable</span>();
     <span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">metadata</span>.<span class="ident">clone</span>();
     <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">TrackHandle</span>::<span class="ident">new</span>(<span class="ident">tx</span>, <span class="ident">can_seek</span>, <span class="ident">uuid</span>, <span class="ident">metadata</span>);

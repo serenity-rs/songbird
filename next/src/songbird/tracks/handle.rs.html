@@ -251,14 +251,16 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
+<span id="253">253</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events</span>::{<span class="ident">Event</span>, <span class="ident">EventData</span>, <span class="ident">EventHandler</span>},
     <span class="ident">input</span>::<span class="ident">Metadata</span>,
 };
+<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::{<span class="ident">mpsc</span>::<span class="ident">UnboundedSender</span>, <span class="ident">oneshot</span>, <span class="ident">RwLock</span>};
+<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::<span class="ident">RwLock</span>;
 <span class="kw">use</span> <span class="ident">typemap_rev</span>::<span class="ident">TypeMap</span>;
 <span class="kw">use</span> <span class="ident">uuid</span>::<span class="ident">Uuid</span>;
 
@@ -279,7 +281,7 @@
 }
 
 <span class="kw">struct</span> <span class="ident">InnerHandle</span> {
-    <span class="ident">command_channel</span>: <span class="ident">UnboundedSender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
+    <span class="ident">command_channel</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
     <span class="ident">seekable</span>: <span class="ident">bool</span>,
     <span class="ident">uuid</span>: <span class="ident">Uuid</span>,
     <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
@@ -304,7 +306,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">command_channel</span>: <span class="ident">UnboundedSender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
+        <span class="ident">command_channel</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
         <span class="ident">seekable</span>: <span class="ident">bool</span>,
         <span class="ident">uuid</span>: <span class="ident">Uuid</span>,
         <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
@@ -413,10 +415,10 @@
 
     <span class="doccomment">/// Request playback information and state from the audio context.</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot</span>::<span class="ident">channel</span>();
+        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">bounded</span>(<span class="number">1</span>);
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Request</span>(<span class="ident">tx</span>))<span class="question-mark">?</span>;
 
-        <span class="ident">rx</span>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
+        <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
     }
 
     <span class="doccomment">/// Set an audio track to loop indefinitely.</span>

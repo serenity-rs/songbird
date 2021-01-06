@@ -437,8 +437,8 @@
     <span class="ident">PacketSize</span>,
 };
 <span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Receiver</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">net</span>::<span class="ident">udp</span>::<span class="ident">RecvHalf</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>};
+<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">net</span>::<span class="ident">UdpSocket</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">instrument</span>, <span class="ident">warn</span>};
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::<span class="ident">XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>;
 
@@ -653,7 +653,7 @@
     <span class="ident">config</span>: <span class="ident">Config</span>,
     <span class="ident">packet_buffer</span>: [<span class="ident">u8</span>; <span class="ident">VOICE_PACKET_MAX</span>],
     <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
-    <span class="ident">udp_socket</span>: <span class="ident">RecvHalf</span>,
+    <span class="ident">udp_socket</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">UdpSocket</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">UdpRx</span> {
@@ -808,7 +808,7 @@
     <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
     <span class="ident">cipher</span>: <span class="ident">Cipher</span>,
     <span class="ident">config</span>: <span class="ident">Config</span>,
-    <span class="ident">udp_socket</span>: <span class="ident">RecvHalf</span>,
+    <span class="ident">udp_socket</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">UdpSocket</span><span class="op">&gt;</span>,
 ) {
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;UDP receive handle started.&quot;</span>);
 
