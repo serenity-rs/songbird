@@ -57,7 +57,7 @@ impl AuxNetwork {
             let mut ws_error = false;
             let mut should_reconnect = false;
 
-            let hb = time::delay_until(next_heartbeat);
+            let hb = time::sleep_until(next_heartbeat);
 
             tokio::select! {
                 _ = hb => {

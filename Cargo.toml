@@ -26,7 +26,7 @@ version = "0.1"
 default-features = false
 features = ["tokio-runtime"]
 optional = true
-version = "0.9"
+version = "0.11"
 
 [dependencies.audiopus]
 optional = true
@@ -58,6 +58,7 @@ version = "0.8"
 
 [dependencies.serenity]
 optional = true
+#version = "0.10"
 default-features = false
 features = ["voice", "gateway"]
 git = "https://github.com/serenity-rs/serenity"
@@ -65,6 +66,7 @@ branch = "current"
 
 [dependencies.serenity-voice-model]
 optional = true
+#version = "0.10"
 git = "https://github.com/serenity-rs/serenity"
 branch = "current"
 
@@ -78,18 +80,22 @@ version = "0.1"
 
 [dependencies.tokio]
 optional = true
-version = "0.2"
+version = "1.0"
 default-features = false
 
 [dependencies.twilight-gateway]
 optional = true
-version = "0.2"
+#version = "0.3"
 default-features = false
+git = "https://github.com/twilight-rs/twilight"
+branch = "v0.3"
 
 [dependencies.twilight-model]
 optional = true
-version = "0.2"
+#version = "0.3"
 default-features = false
+git = "https://github.com/twilight-rs/twilight"
+branch = "v0.3"
 
 [dependencies.typemap_rev]
 optional = true
@@ -135,13 +141,12 @@ driver = [
     "serenity-voice-model",
     "spin_sleep",
     "streamcatcher",
-    "tokio/blocking",
     "tokio/fs",
     "tokio/io-util",
     "tokio/macros",
     "tokio/net",
     "tokio/process",
-    "tokio/rt-core",
+    "tokio/rt",
     "tokio/sync",
     "tokio/time",
     "typemap_rev",

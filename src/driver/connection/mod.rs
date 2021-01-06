@@ -18,7 +18,7 @@ use crate::{
 use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
 use error::{Error, Result};
 use flume::Sender;
-use std::{net::IpAddr, str::FromStr};
+use std::{net::IpAddr, str::FromStr, sync::Arc};
 use tokio::net::UdpSocket;
 use tracing::{debug, info, instrument};
 use url::Url;
@@ -97,7 +97,7 @@ impl Connection {
             return Err(Error::CryptoModeUnavailable);
         }
 
-        let mut udp = UdpSocket::bind("0.0.0.0:0").await?;
+        let udp = UdpSocket::bind("0.0.0.0:0").await?;
         udp.connect((ready.ip, ready.port)).await?;
 
         // Follow Discord's IP Discovery procedures, in case NAT tunnelling is needed.
@@ -161,7 +161,9 @@ impl Connection {
         let (ws_msg_tx, ws_msg_rx) = flume::unbounded();
         let (udp_sender_msg_tx, udp_sender_msg_rx) = flume::unbounded();
         let (udp_receiver_msg_tx, udp_receiver_msg_rx) = flume::unbounded();
-        let (udp_rx, udp_tx) = udp.split();
+
+        let udp_rx = Arc::new(udp);
+        let udp_tx = Arc::clone(&udp_rx);
 
         let ssrc = ready.ssrc;
 

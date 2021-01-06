@@ -25,8 +25,8 @@ mod state;
 pub use self::{command::*, error::*, handle::*, looping::*, mode::*, queue::*, state::*};
 
 use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::Input};
+use flume::{Receiver, TryRecvError};
 use std::time::Duration;
-use tokio::sync::mpsc::{self, error::TryRecvError, UnboundedReceiver};
 use uuid::Uuid;
 
 /// Control object for audio playback.
@@ -102,7 +102,7 @@ pub struct Track {
     /// Track commands are sent in this manner to ensure that access
     /// occurs in a thread-safe manner, without allowing any external
     /// code to lock access to audio objects and block packet generation.
-    pub(crate) commands: UnboundedReceiver<TrackCommand>,
+    pub(crate) commands: Receiver<TrackCommand>,
 
     /// Handle for safe control of this audio track from other threads.
     ///
@@ -124,11 +124,7 @@ impl Track {
     /// In general, you should probably use [`create_player`].
     ///
     /// [`create_player`]: fn.create_player.html
-    pub fn new_raw(
-        source: Input,
-        commands: UnboundedReceiver<TrackCommand>,
-        handle: TrackHandle,
-    ) -> Self {
+    pub fn new_raw(source: Input, commands: Receiver<TrackCommand>, handle: TrackHandle) -> Self {
         let uuid = handle.uuid();
 
         Self {
@@ -310,7 +306,7 @@ impl Track {
                         MakePlayable => self.make_playable(),
                     }
                 },
-                Err(TryRecvError::Closed) => {
+                Err(TryRecvError::Disconnected) => {
                     // this branch will never be visited.
                     break;
                 },
@@ -389,7 +385,7 @@ pub fn create_player(source: Input) -> (Track, TrackHandle) {
 /// [`Track`]: Track
 /// [`TrackHandle`]: TrackHandle
 pub fn create_player_with_uuid(source: Input, uuid: Uuid) -> (Track, TrackHandle) {
-    let (tx, rx) = mpsc::unbounded_channel();
+    let (tx, rx) = flume::unbounded();
     let can_seek = source.is_seekable();
     let metadata = source.metadata.clone();
     let handle = TrackHandle::new(tx, can_seek, uuid, metadata);
