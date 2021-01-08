@@ -81,17 +81,13 @@ default-features = false
 
 [dependencies.twilight-gateway]
 optional = true
-#version = "0.3"
+version = "0.3"
 default-features = false
-git = "https://github.com/twilight-rs/twilight"
-branch = "v0.3"
 
 [dependencies.twilight-model]
 optional = true
-#version = "0.3"
+version = "0.3"
 default-features = false
-git = "https://github.com/twilight-rs/twilight"
-branch = "v0.3"
 
 [dependencies.typemap_rev]
 optional = true
