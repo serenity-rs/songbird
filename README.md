@@ -1,4 +1,4 @@
-[![docs-badge][]][docs] [![build badge]][build]
+[![docs-badge][]][docs] [![build badge]][build] [![guild-badge][]][guild] [![crates.io version]][crates.io link] [![rust 1.48.0+ badge]][rust 1.48.0+ link]
 
 # Songbird
 
@@ -60,3 +60,12 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 
 [docs-badge]: https://img.shields.io/badge/docs-online-4d76ae.svg?style=flat-square
 [docs]: https://serenity-rs.github.io/songbird/current
+
+[guild]: https://discord.gg/9X7vCus
+[guild-badge]: https://img.shields.io/discord/381880193251409931.svg?style=flat-square&colorB=7289DA
+
+[crates.io link]: https://crates.io/crates/songbird
+[crates.io version]: https://img.shields.io/crates/v/songbird.svg?style=flat-square
+
+[rust 1.48.0+ badge]: https://img.shields.io/badge/rust-1.48.0+-93450a.svg?style=flat-square
+[rust 1.48.0+ link]: https://blog.rust-lang.org/2020/11/19/Rust-1.48.html

@@ -13,7 +13,7 @@ tracing-futures = "0.2"
 path = "../../../"
 
 [dependencies.serenity]
-version = "0.10.0"
+version = "0.10"
 features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"]
 
 [dependencies.tokio]
