@@ -26,7 +26,7 @@ version = "0.1"
 default-features = false
 features = ["tokio-runtime"]
 optional = true
-version = "0.9"
+version = "0.11"
 
 [dependencies.audiopus]
 optional = true
@@ -64,7 +64,7 @@ features = ["voice", "gateway"]
 
 [dependencies.serenity-voice-model]
 optional = true
-version = "0.10"
+version = "0.1"
 
 [dependencies.spin_sleep]
 optional = true
@@ -76,18 +76,22 @@ version = "0.1"
 
 [dependencies.tokio]
 optional = true
-version = "0.2"
+version = "1.0"
 default-features = false
 
 [dependencies.twilight-gateway]
 optional = true
-version = "0.2"
+version = "0.3"
 default-features = false
 
 [dependencies.twilight-model]
 optional = true
-version = "0.2"
+version = "0.3"
 default-features = false
+
+[dependencies.typemap_rev]
+optional = true
+version = "0.1"
 
 [dependencies.url]
 optional = true
@@ -129,15 +133,15 @@ driver = [
     "serenity-voice-model",
     "spin_sleep",
     "streamcatcher",
-    "tokio/blocking",
     "tokio/fs",
     "tokio/io-util",
     "tokio/macros",
     "tokio/net",
     "tokio/process",
-    "tokio/rt-core",
+    "tokio/rt",
     "tokio/sync",
     "tokio/time",
+    "typemap_rev",
     "url",
     "uuid",
     "xsalsa20poly1305",

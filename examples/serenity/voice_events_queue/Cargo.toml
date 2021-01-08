@@ -18,5 +18,5 @@ version = "0.10"
 features = ["cache", "standard_framework", "voice", "rustls_backend"]
 
 [dependencies.tokio]
-version = "0.2"
-features = ["macros"]
+version = "1.0"
+features = ["macros", "rt-multi-thread"]

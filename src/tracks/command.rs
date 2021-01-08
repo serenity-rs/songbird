@@ -1,7 +1,7 @@
 use super::*;
 use crate::events::EventData;
+use flume::Sender;
 use std::time::Duration;
-use tokio::sync::oneshot::Sender as OneshotSender;
 
 /// A request from external code using a [`TrackHandle`] to modify
 /// or act upon an [`Track`] object.
@@ -27,7 +27,7 @@ pub enum TrackCommand {
     /// Run some closure on this track, with direct access to the core object.
     Do(Box<dyn FnOnce(&mut Track) + Send + Sync + 'static>),
     /// Request a read-only view of this track's state.
-    Request(OneshotSender<Box<TrackState>>),
+    Request(Sender<Box<TrackState>>),
     /// Change the loop count/strategy of this track.
     Loop(LoopState),
     /// Prompts a track's input to become live and usable, if it is not already.

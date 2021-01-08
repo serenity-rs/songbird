@@ -2,14 +2,15 @@ use super::message::*;
 use crate::constants::*;
 use discortp::discord::MutableKeepalivePacket;
 use flume::Receiver;
+use std::sync::Arc;
 use tokio::{
-    net::udp::SendHalf,
-    time::{timeout_at, Elapsed, Instant},
+    net::UdpSocket,
+    time::{timeout_at, Instant},
 };
 use tracing::{error, info, instrument, trace};
 
 #[instrument(skip(udp_msg_rx))]
-pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, mut udp_tx: SendHalf) {
+pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx: Arc<UdpSocket>) {
     info!("UDP transmit handle started.");
 
     let mut keepalive_bytes = [0u8; MutableKeepalivePacket::minimum_packet_size()];
@@ -22,7 +23,7 @@ pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, mut ud
     loop {
         use UdpTxMessage::*;
         match timeout_at(ka_time, udp_msg_rx.recv_async()).await {
-            Err(Elapsed { .. }) => {
+            Err(_) => {
                 trace!("Sending UDP Keepalive.");
                 if let Err(e) = udp_tx.send(&keepalive_bytes[..]).await {
                     error!("Fatal UDP keepalive send error: {:?}.", e);

@@ -66,6 +66,8 @@ pub use audiopus::{self as opus, Bitrate};
 pub use discortp as packet;
 #[cfg(feature = "driver")]
 pub use serenity_voice_model as model;
+#[cfg(feature = "driver")]
+pub use typemap_rev as typemap;
 
 #[cfg(test)]
 use utils as test_utils;
