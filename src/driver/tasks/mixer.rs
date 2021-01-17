@@ -228,21 +228,31 @@ impl Mixer {
             // event failure? rebuild interconnect.
             // ws or udp failure? full connect
             // (soft reconnect is covered by the ws task.)
+            //
+            // in both cases, send failure is fatal,
+            // but will only occur on disconnect.
+            // expecting this is fairly noisy, so exit silently.
             if events_failure {
                 self.prevent_events = true;
-                self.interconnect
+                let sent = self
+                    .interconnect
                     .core
-                    .send(CoreMessage::RebuildInterconnect)
-                    .expect("FATAL: No way to rebuild driver core from mixer.");
+                    .send(CoreMessage::RebuildInterconnect);
                 events_failure = false;
+
+                if sent.is_err() {
+                    break;
+                }
             }
 
             if conn_failure {
-                self.interconnect
-                    .core
-                    .send(CoreMessage::FullReconnect)
-                    .expect("FATAL: No way to rebuild driver core from mixer.");
+                self.conn_active = None;
+                let sent = self.interconnect.core.send(CoreMessage::FullReconnect);
                 conn_failure = false;
+
+                if sent.is_err() {
+                    break;
+                }
             }
         }
     }

@@ -36,7 +36,11 @@ pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx
                     error!("Fatal UDP packet send error: {:?}.", e);
                     break;
                 },
-            Ok(Err(_)) | Ok(Ok(Poison)) => {
+            Ok(Err(e)) => {
+                error!("Fatal UDP packet receive error: {:?}.", e);
+                break;
+            },
+            Ok(Ok(Poison)) => {
                 break;
             },
         }
