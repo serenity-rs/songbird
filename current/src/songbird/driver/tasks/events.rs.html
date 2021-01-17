@@ -117,6 +117,9 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -162,6 +165,9 @@
                 <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Firing core event {:?}.&quot;</span>, <span class="ident">evt</span>);
 
                 <span class="ident">global</span>.<span class="ident">fire_core_event</span>(<span class="ident">evt</span>, <span class="ident">ctx</span>).<span class="kw">await</span>;
+            },
+            <span class="prelude-val">Ok</span>(<span class="ident">RemoveGlobalEvents</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">global</span>.<span class="ident">remove_handlers</span>();
             },
             <span class="prelude-val">Ok</span>(<span class="ident">AddTrack</span>(<span class="ident">store</span>, <span class="ident">state</span>, <span class="ident">handle</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">events</span>.<span class="ident">push</span>(<span class="ident">store</span>);

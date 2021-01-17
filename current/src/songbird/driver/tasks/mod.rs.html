@@ -173,6 +173,9 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 
@@ -284,6 +287,9 @@
             },
             <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage</span>::<span class="ident">AddEvent</span>(<span class="ident">evt</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">AddGlobalEvent</span>(<span class="ident">evt</span>));
+            },
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage</span>::<span class="ident">RemoveGlobalEvents</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">RemoveGlobalEvents</span>);
             },
             <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage</span>::<span class="ident">Mute</span>(<span class="ident">m</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage</span>::<span class="ident">SetMute</span>(<span class="ident">m</span>));
