@@ -12,6 +12,7 @@ use super::{
     connection::{error::Error as ConnectionError, Connection},
     Config,
 };
+use crate::events::CoreContext;
 use flume::{Receiver, RecvError, Sender};
 use message::*;
 use tokio::runtime::Handle;
@@ -75,11 +76,20 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     Ok(connection) => {
                         // Other side may not be listening: this is fine.
                         let _ = tx.send(Ok(()));
+
+                        let _ = interconnect
+                            .events
+                            .send(EventMessage::FireCoreEvent(CoreContext::DriverConnect));
+
                         Some(connection)
                     },
                     Err(why) => {
                         // See above.
                         let _ = tx.send(Err(why));
+
+                        let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                            CoreContext::DriverConnectFailed,
+                        ));
 
                         None
                     },
@@ -145,9 +155,18 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                             .await
                             .map_err(|e| {
                                 error!("Catastrophic connection failure. Stopping. {:?}", e);
+                                let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                                    CoreContext::DriverReconnectFailed,
+                                ));
                                 e
                             })
                             .ok();
+                    }
+
+                    if connection.is_some() {
+                        let _ = interconnect
+                            .events
+                            .send(EventMessage::FireCoreEvent(CoreContext::DriverReconnect));
                     }
                 }
             },
@@ -159,9 +178,18 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                         .await
                         .map_err(|e| {
                             error!("Catastrophic connection failure. Stopping. {:?}", e);
+                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                                CoreContext::DriverReconnectFailed,
+                            ));
                             e
                         })
                         .ok();
+
+                    if connection.is_some() {
+                        let _ = interconnect
+                            .events
+                            .send(EventMessage::FireCoreEvent(CoreContext::DriverReconnect));
+                    }
                 },
             Ok(CoreMessage::RebuildInterconnect) => {
                 interconnect.restart_volatile_internals();

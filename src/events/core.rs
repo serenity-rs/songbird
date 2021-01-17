@@ -29,4 +29,14 @@ pub enum CoreEvent {
     ClientConnect,
     /// Fires whenever a user disconnects from the same stream as the bot.
     ClientDisconnect,
+    /// Fires when this driver successully connects to a voice channel.
+    DriverConnect,
+    /// Fires when this driver successful reconnects after a network error.
+    DriverReconnect,
+    /// Fires when this driver fails to connect to a voice channel.
+    DriverConnectFailed,
+    /// Fires when this driver fails to reconnect to a voice channel after a network error.
+    ///
+    /// Users will need to manually reconnect on receipt of this error.
+    DriverReconnectFailed,
 }

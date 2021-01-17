@@ -69,6 +69,16 @@ pub enum EventContext<'a> {
     ClientConnect(ClientConnect),
     /// Fired whenever a client disconnects.
     ClientDisconnect(ClientDisconnect),
+    /// Fires when this driver successully connects to a voice channel.
+    DriverConnect,
+    /// Fires when this driver successful reconnects after a network error.
+    DriverReconnect,
+    /// Fires when this driver fails to connect to a voice channel.
+    DriverConnectFailed,
+    /// Fires when this driver fails to reconnect to a voice channel after a network error.
+    ///
+    /// Users will need to manually reconnect on receipt of this error.
+    DriverReconnectFailed,
 }
 
 #[derive(Clone, Debug)]
@@ -91,6 +101,10 @@ pub enum CoreContext {
     },
     ClientConnect(ClientConnect),
     ClientDisconnect(ClientDisconnect),
+    DriverConnect,
+    DriverReconnect,
+    DriverConnectFailed,
+    DriverReconnectFailed,
 }
 
 impl<'a> CoreContext {
@@ -125,6 +139,10 @@ impl<'a> CoreContext {
             },
             ClientConnect(evt) => EventContext::ClientConnect(*evt),
             ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),
+            DriverConnect => EventContext::DriverConnect,
+            DriverReconnect => EventContext::DriverReconnect,
+            DriverConnectFailed => EventContext::DriverConnectFailed,
+            DriverReconnectFailed => EventContext::DriverReconnectFailed,
         }
     }
 }
@@ -142,6 +160,10 @@ impl EventContext<'_> {
             RtcpPacket { .. } => Some(CoreEvent::RtcpPacket),
             ClientConnect { .. } => Some(CoreEvent::ClientConnect),
             ClientDisconnect { .. } => Some(CoreEvent::ClientDisconnect),
+            DriverConnect => Some(CoreEvent::DriverConnect),
+            DriverReconnect => Some(CoreEvent::DriverReconnect),
+            DriverConnectFailed => Some(CoreEvent::DriverConnectFailed),
+            DriverReconnectFailed => Some(CoreEvent::DriverReconnectFailed),
             _ => None,
         }
     }
