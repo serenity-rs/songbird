@@ -43,6 +43,9 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
 
                 global.fire_core_event(evt, ctx).await;
             },
+            Ok(RemoveGlobalEvents) => {
+                global.remove_handlers();
+            },
             Ok(AddTrack(store, state, handle)) => {
                 events.push(store);
                 states.push(state);

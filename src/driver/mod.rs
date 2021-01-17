@@ -238,6 +238,12 @@ impl Driver {
         self.send(CoreMessage::AddEvent(EventData::new(event, action)));
     }
 
+    /// Removes all global event handlers from an audio context.
+    #[instrument(skip(self))]
+    pub fn remove_all_global_events(&mut self) {
+        self.send(CoreMessage::RemoveGlobalEvents);
+    }
+
     /// Sends a message to the inner tasks, restarting it if necessary.
     fn send(&mut self, status: CoreMessage) {
         // Restart thread if it errored.

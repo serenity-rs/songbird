@@ -12,6 +12,7 @@ pub enum EventMessage {
     AddGlobalEvent(EventData),
     AddTrackEvent(usize, EventData),
     FireCoreEvent(CoreContext),
+    RemoveGlobalEvents,
 
     AddTrack(EventStore, TrackState, TrackHandle),
     ChangeState(usize, TrackStateChange),

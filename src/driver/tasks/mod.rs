@@ -109,6 +109,9 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
             Ok(CoreMessage::AddEvent(evt)) => {
                 let _ = interconnect.events.send(EventMessage::AddGlobalEvent(evt));
             },
+            Ok(CoreMessage::RemoveGlobalEvents) => {
+                let _ = interconnect.events.send(EventMessage::RemoveGlobalEvents);
+            },
             Ok(CoreMessage::Mute(m)) => {
                 let _ = interconnect.mixer.send(MixerMessage::SetMute(m));
             },

@@ -164,6 +164,10 @@ impl GlobalEvents {
         holder.push(index);
     }
 
+    pub(crate) fn remove_handlers(&mut self) {
+        self.store = EventStore::new();
+    }
+
     pub(crate) async fn tick(
         &mut self,
         events: &mut Vec<EventStore>,

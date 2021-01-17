@@ -18,6 +18,7 @@ pub enum CoreMessage {
     AddTrack(Track),
     SetBitrate(Bitrate),
     AddEvent(EventData),
+    RemoveGlobalEvents,
     SetConfig(Config),
     Mute(bool),
     Reconnect,
