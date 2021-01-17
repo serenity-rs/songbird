@@ -572,6 +572,16 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -803,21 +813,31 @@
             <span class="comment">// event failure? rebuild interconnect.</span>
             <span class="comment">// ws or udp failure? full connect</span>
             <span class="comment">// (soft reconnect is covered by the ws task.)</span>
+            <span class="comment">//</span>
+            <span class="comment">// in both cases, send failure is fatal,</span>
+            <span class="comment">// but will only occur on disconnect.</span>
+            <span class="comment">// expecting this is fairly noisy, so exit silently.</span>
             <span class="kw">if</span> <span class="ident">events_failure</span> {
                 <span class="self">self</span>.<span class="ident">prevent_events</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="self">self</span>.<span class="ident">interconnect</span>
+                <span class="kw">let</span> <span class="ident">sent</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interconnect</span>
                     .<span class="ident">core</span>
-                    .<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">RebuildInterconnect</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;FATAL: No way to rebuild driver core from mixer.&quot;</span>);
+                    .<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">RebuildInterconnect</span>);
                 <span class="ident">events_failure</span> <span class="op">=</span> <span class="bool-val">false</span>;
+
+                <span class="kw">if</span> <span class="ident">sent</span>.<span class="ident">is_err</span>() {
+                    <span class="kw">break</span>;
+                }
             }
 
             <span class="kw">if</span> <span class="ident">conn_failure</span> {
-                <span class="self">self</span>.<span class="ident">interconnect</span>
-                    .<span class="ident">core</span>
-                    .<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">FullReconnect</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;FATAL: No way to rebuild driver core from mixer.&quot;</span>);
+                <span class="self">self</span>.<span class="ident">conn_active</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <span class="kw">let</span> <span class="ident">sent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interconnect</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">FullReconnect</span>);
                 <span class="ident">conn_failure</span> <span class="op">=</span> <span class="bool-val">false</span>;
+
+                <span class="kw">if</span> <span class="ident">sent</span>.<span class="ident">is_err</span>() {
+                    <span class="kw">break</span>;
+                }
             }
         }
     }
