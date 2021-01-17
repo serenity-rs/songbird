@@ -147,6 +147,28 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -219,6 +241,16 @@
     <span class="ident">ClientConnect</span>(<span class="ident">ClientConnect</span>),
     <span class="doccomment">/// Fired whenever a client disconnects.</span>
     <span class="ident">ClientDisconnect</span>(<span class="ident">ClientDisconnect</span>),
+    <span class="doccomment">/// Fires when this driver successully connects to a voice channel.</span>
+    <span class="ident">DriverConnect</span>,
+    <span class="doccomment">/// Fires when this driver successful reconnects after a network error.</span>
+    <span class="ident">DriverReconnect</span>,
+    <span class="doccomment">/// Fires when this driver fails to connect to a voice channel.</span>
+    <span class="ident">DriverConnectFailed</span>,
+    <span class="doccomment">/// Fires when this driver fails to reconnect to a voice channel after a network error.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Users will need to manually reconnect on receipt of this error.</span>
+    <span class="ident">DriverReconnectFailed</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -241,6 +273,10 @@
     },
     <span class="ident">ClientConnect</span>(<span class="ident">ClientConnect</span>),
     <span class="ident">ClientDisconnect</span>(<span class="ident">ClientDisconnect</span>),
+    <span class="ident">DriverConnect</span>,
+    <span class="ident">DriverReconnect</span>,
+    <span class="ident">DriverConnectFailed</span>,
+    <span class="ident">DriverReconnectFailed</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">CoreContext</span> {
@@ -275,6 +311,10 @@
             },
             <span class="ident">ClientConnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">ClientConnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
             <span class="ident">ClientDisconnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">ClientDisconnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
+            <span class="ident">DriverConnect</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">DriverConnect</span>,
+            <span class="ident">DriverReconnect</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">DriverReconnect</span>,
+            <span class="ident">DriverConnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">DriverConnectFailed</span>,
+            <span class="ident">DriverReconnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">DriverReconnectFailed</span>,
         }
     }
 }
@@ -292,6 +332,10 @@
             <span class="ident">RtcpPacket</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">RtcpPacket</span>),
             <span class="ident">ClientConnect</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">ClientConnect</span>),
             <span class="ident">ClientDisconnect</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">ClientDisconnect</span>),
+            <span class="ident">DriverConnect</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">DriverConnect</span>),
+            <span class="ident">DriverReconnect</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">DriverReconnect</span>),
+            <span class="ident">DriverConnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">DriverConnectFailed</span>),
+            <span class="ident">DriverReconnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">DriverReconnectFailed</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }

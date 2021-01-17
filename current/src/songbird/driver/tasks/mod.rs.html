@@ -176,6 +176,34 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 
@@ -191,6 +219,7 @@
     <span class="ident">connection</span>::{<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">ConnectionError</span>, <span class="ident">Connection</span>},
     <span class="ident">Config</span>,
 };
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">events</span>::<span class="ident">CoreContext</span>;
 <span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">RecvError</span>, <span class="ident">Sender</span>};
 <span class="kw">use</span> <span class="ident">message</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
@@ -254,11 +283,20 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">connection</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// Other side may not be listening: this is fine.</span>
                         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(()));
+
+                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>
+                            .<span class="ident">events</span>
+                            .<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(<span class="ident">CoreContext</span>::<span class="ident">DriverConnect</span>));
+
                         <span class="prelude-val">Some</span>(<span class="ident">connection</span>)
                     },
                     <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// See above.</span>
                         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">why</span>));
+
+                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(
+                            <span class="ident">CoreContext</span>::<span class="ident">DriverConnectFailed</span>,
+                        ));
 
                         <span class="prelude-val">None</span>
                     },
@@ -324,9 +362,18 @@
                             .<span class="kw">await</span>
                             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                                 <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Catastrophic connection failure. Stopping. {:?}&quot;</span>, <span class="ident">e</span>);
+                                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(
+                                    <span class="ident">CoreContext</span>::<span class="ident">DriverReconnectFailed</span>,
+                                ));
                                 <span class="ident">e</span>
                             })
                             .<span class="ident">ok</span>();
+                    }
+
+                    <span class="kw">if</span> <span class="ident">connection</span>.<span class="ident">is_some</span>() {
+                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>
+                            .<span class="ident">events</span>
+                            .<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(<span class="ident">CoreContext</span>::<span class="ident">DriverReconnect</span>));
                     }
                 }
             },
@@ -338,9 +385,18 @@
                         .<span class="kw">await</span>
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                             <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Catastrophic connection failure. Stopping. {:?}&quot;</span>, <span class="ident">e</span>);
+                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(
+                                <span class="ident">CoreContext</span>::<span class="ident">DriverReconnectFailed</span>,
+                            ));
                             <span class="ident">e</span>
                         })
                         .<span class="ident">ok</span>();
+
+                    <span class="kw">if</span> <span class="ident">connection</span>.<span class="ident">is_some</span>() {
+                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>
+                            .<span class="ident">events</span>
+                            .<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(<span class="ident">CoreContext</span>::<span class="ident">DriverReconnect</span>));
+                    }
                 },
             <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage</span>::<span class="ident">RebuildInterconnect</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">interconnect</span>.<span class="ident">restart_volatile_internals</span>();

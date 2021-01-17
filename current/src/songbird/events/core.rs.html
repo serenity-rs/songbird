@@ -31,6 +31,16 @@
 <span id="30">30</span>
 <span id="31">31</span>
 <span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// Voice core events occur on receipt of</span>
 <span class="doccomment">/// voice packets and telemetry.</span>
@@ -63,6 +73,16 @@
     <span class="ident">ClientConnect</span>,
     <span class="doccomment">/// Fires whenever a user disconnects from the same stream as the bot.</span>
     <span class="ident">ClientDisconnect</span>,
+    <span class="doccomment">/// Fires when this driver successully connects to a voice channel.</span>
+    <span class="ident">DriverConnect</span>,
+    <span class="doccomment">/// Fires when this driver successful reconnects after a network error.</span>
+    <span class="ident">DriverReconnect</span>,
+    <span class="doccomment">/// Fires when this driver fails to connect to a voice channel.</span>
+    <span class="ident">DriverConnectFailed</span>,
+    <span class="doccomment">/// Fires when this driver fails to reconnect to a voice channel after a network error.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Users will need to manually reconnect on receipt of this error.</span>
+    <span class="ident">DriverReconnectFailed</span>,
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "songbird";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
