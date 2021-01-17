@@ -1,3 +1,5 @@
+use crate::events::TrackEvent;
+
 /// Playback status of a track.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
@@ -27,6 +29,15 @@ impl PlayMode {
         match self {
             Play | Pause => other,
             state => state,
+        }
+    }
+
+    pub(crate) fn as_track_event(self) -> TrackEvent {
+        use PlayMode::*;
+        match self {
+            Play => TrackEvent::Play,
+            Pause => TrackEvent::Pause,
+            Stop | End => TrackEvent::End,
         }
     }
 }

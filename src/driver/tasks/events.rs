@@ -70,8 +70,8 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
                     Mode(mode) => {
                         let old = state.playing;
                         state.playing = mode;
-                        if old != mode && mode.is_done() {
-                            global.fire_track_event(TrackEvent::End, i);
+                        if old != mode {
+                            global.fire_track_event(mode.as_track_event(), i);
                         }
                     },
                     Volume(vol) => {
