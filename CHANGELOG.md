@@ -10,13 +10,13 @@ Thanks to the following for their contributions:
 
 ### Added
 
-- [any] Events: Add Play/Pause events. ([@FelixMcFelix]) [c:868c44c]
-- [any] Events: Add (re)connect success/fail events. ([@FelixMcFelix]) [c:cb2398f]
-- [any] Driver: Add ability to clear all global event handlers. ([@FelixMcFelix]) [c:55b8e7f]
+- [events] Events: Add Play/Pause events. ([@FelixMcFelix]) [c:868c44c]
+- [events] Events: Add (re)connect success/fail events. ([@FelixMcFelix]) [c:cb2398f]
+- [driver] Driver: Add ability to clear all global event handlers. ([@FelixMcFelix]) [c:55b8e7f]
 
 ### Fixed
 
-- [any] Driver: Fix noisy errors, UDP message send failure spam. ([@FelixMcFelix]) [c:dcb6ad9]
+- [driver] Driver: Fix noisy errors, UDP message send failure spam. ([@FelixMcFelix]) [c:dcb6ad9]
 
 ## [0.1.0] — 2021-01-08 — **Robin**
 
