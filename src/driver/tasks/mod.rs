@@ -1,5 +1,6 @@
 #![allow(missing_docs)]
 
+pub(crate) mod disposal;
 pub mod error;
 mod events;
 pub mod message;

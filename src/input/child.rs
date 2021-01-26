@@ -5,6 +5,12 @@ use std::{
 };
 use tracing::debug;
 
+#[cfg(unix)]
+use nix::{
+    sys::signal::{self, Signal},
+    unistd::Pid,
+};
+
 /// Handle for a child process which ensures that any subprocesses are properly closed
 /// on drop.
 #[derive(Debug)]
@@ -31,7 +37,18 @@ impl Read for ChildContainer {
 
 impl Drop for ChildContainer {
     fn drop(&mut self) {
-        if let Err(e) = self.0.kill() {
+        #[cfg(not(unix))]
+        let attempt = self.0.kill();
+
+        #[cfg(unix)]
+        let attempt = {
+            let pid = Pid::from_raw(self.0.id() as i32);
+            let _ = signal::kill(pid, Signal::SIGINT);
+
+            self.0.wait()
+        };
+
+        if let Err(e) = attempt {
             debug!("Error awaiting child process: {:?}", e);
         }
     }

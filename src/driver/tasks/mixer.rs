@@ -1,4 +1,4 @@
-use super::{error::Result, message::*, Config};
+use super::{disposal, error::Result, message::*, Config};
 use crate::{
     constants::*,
     tracks::{PlayMode, Track},
@@ -28,6 +28,7 @@ pub struct Mixer {
     pub config: Config,
     pub conn_active: Option<MixerConnection>,
     pub deadline: Instant,
+    pub disposer: Sender<DisposalMessage>,
     pub encoder: OpusEncoder,
     pub interconnect: Interconnect,
     pub mix_rx: Receiver<MixerMessage>,
@@ -74,12 +75,17 @@ impl Mixer {
 
         let tracks = Vec::with_capacity(1.max(config.preallocated_tracks));
 
+        // Create an object disposal thread here.
+        let (disposer, disposal_rx) = flume::unbounded();
+        std::thread::spawn(move || disposal::runner(disposal_rx));
+
         Self {
             async_handle,
             bitrate,
             config,
             conn_active: None,
             deadline: Instant::now(),
+            disposer,
             encoder,
             interconnect,
             mix_rx,
@@ -322,12 +328,13 @@ impl Mixer {
 
             if track.playing.is_done() {
                 let p_state = track.playing();
-                self.tracks.swap_remove(i);
+                let to_drop = self.tracks.swap_remove(i);
                 to_remove.push(i);
                 self.fire_event(EventMessage::ChangeState(
                     i,
                     TrackStateChange::Mode(p_state),
                 ))?;
+                let _ = self.disposer.send(DisposalMessage::Track(to_drop));
             } else {
                 i += 1;
             }
@@ -580,4 +587,6 @@ pub(crate) fn runner(
     let mut mixer = Mixer::new(mix_rx, async_handle, interconnect, config);
 
     mixer.run();
+
+    let _ = mixer.disposer.send(DisposalMessage::Poison);
 }

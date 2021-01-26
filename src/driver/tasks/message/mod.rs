@@ -1,13 +1,14 @@
 #![allow(missing_docs)]
 
 mod core;
+mod disposal;
 mod events;
 mod mixer;
 mod udp_rx;
 mod udp_tx;
 mod ws;
 
-pub use self::{core::*, events::*, mixer::*, udp_rx::*, udp_tx::*, ws::*};
+pub use self::{core::*, disposal::*, events::*, mixer::*, udp_rx::*, udp_tx::*, ws::*};
 
 use flume::Sender;
 use tracing::info;
