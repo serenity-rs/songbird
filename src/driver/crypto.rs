@@ -131,9 +131,9 @@ impl CryptoMode {
         let (tag_bytes, data_bytes) = body_remaining.split_at_mut(body_start);
         let tag = Tag::from_slice(tag_bytes);
 
-        Ok(cipher
+        cipher
             .decrypt_in_place_detached(nonce_slice, b"", data_bytes, tag)
-            .map(|_| (body_start, body_tail))?)
+            .map(|_| (body_start, body_tail))
     }
 
     /// Encrypts a Discord RT(C)P packet using the given key.

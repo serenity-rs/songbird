@@ -36,6 +36,10 @@ version = "0.2"
 optional = true
 version = "1"
 
+[dependencies.dashmap]
+optional = true
+version = "4"
+
 [dependencies.discortp]
 features = ["discord-full"]
 optional = true
@@ -117,6 +121,7 @@ default = [
     "gateway",
 ]
 gateway = [
+    "dashmap",
     "flume",
     "parking_lot",
     "tokio/sync",

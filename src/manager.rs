@@ -9,6 +9,7 @@ use crate::{
 };
 #[cfg(feature = "serenity")]
 use async_trait::async_trait;
+use dashmap::DashMap;
 #[cfg(feature = "serenity")]
 use futures::channel::mpsc::UnboundedSender as Sender;
 use parking_lot::RwLock as PRwLock;
@@ -21,7 +22,7 @@ use serenity::{
         voice::VoiceState,
     },
 };
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 use tokio::sync::Mutex;
 #[cfg(feature = "twilight")]
 use twilight_gateway::Cluster;
@@ -44,7 +45,7 @@ struct ClientData {
 #[derive(Debug)]
 pub struct Songbird {
     client_data: PRwLock<ClientData>,
-    calls: PRwLock<HashMap<GuildId, Arc<Mutex<Call>>>>,
+    calls: DashMap<GuildId, Arc<Mutex<Call>>>,
     sharder: Sharder,
 
     #[cfg(feature = "driver")]
@@ -117,8 +118,9 @@ impl Songbird {
     ///
     /// [`Call`]: Call
     pub fn get<G: Into<GuildId>>(&self, guild_id: G) -> Option<Arc<Mutex<Call>>> {
-        let map_read = self.calls.read();
-        map_read.get(&guild_id.into()).cloned()
+        self.calls
+            .get(&guild_id.into())
+            .map(|mapref| Arc::clone(&mapref))
     }
 
     /// Retrieves a [`Call`] for the given guild, creating a new one if
@@ -129,9 +131,7 @@ impl Songbird {
     /// [`Call`]: Call
     pub fn get_or_insert(&self, guild_id: GuildId) -> Arc<Mutex<Call>> {
         self.get(guild_id).unwrap_or_else(|| {
-            let mut map_read = self.calls.write();
-
-            map_read
+            self.calls
                 .entry(guild_id)
                 .or_insert_with(|| {
                     let info = self.manager_info();
@@ -301,8 +301,7 @@ impl Songbird {
 
     async fn _remove(&self, guild_id: GuildId) -> JoinResult<()> {
         self.leave(guild_id).await?;
-        let mut calls = self.calls.write();
-        calls.remove(&guild_id);
+        self.calls.remove(&guild_id);
         Ok(())
     }
 }
