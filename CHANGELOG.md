@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.1.2] — 2021-01-26
+
+This patch release fixes a PID/zombie process leak affecting bots running on Linux/Mac, and prevents youtube-dl warnings from being converted into fatal errors.
+
+This release also changes `Songbird` managers to use DashMap internally, which should substantially speed up concurrent shard accesses to the central call registry.
+
+Thanks to the following for their contributions:
+
+- [@FelixMcFelix]
+
+### Changed
+
+- [gateway] Gateway: Move from RwLock<HashMap> to DashMap ([@FelixMcFelix]) [c:a0e905a]
+- [misc] Chore: Categorise v0.1.1 commits ([@FelixMcFelix]) [c:196d5be]
+
+### Fixed
+
+- [driver] Input & Driver: Fix zombie processes on Unix (#39) ([@FelixMcFelix]) [c:fe2282c]
+- [input] Fix: Prevent ytdl treating warnings as errors. ([@FelixMcFelix]) [c:658fd83]
+
 ## [0.1.1] — 2021-01-17
 
 This is a short patch release, fixing some error message spam under network failures, adding some new convenience event classes, as well as making it easier to cancel many event handlers.
@@ -107,6 +127,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.1.2]: https://github.com/serenity-rs/songbird/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/serenity-rs/songbird/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/serenity-rs/songbird/compare/v0.0.1...v0.1.0
 
@@ -140,6 +161,10 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:a0e905a]: https://github.com/serenity-rs/songbird/commit/a0e905a83fc83b6eb0b8fa26340572cd15eefc35
+[c:196d5be]: https://github.com/serenity-rs/songbird/commit/196d5be3d24032e671a93ff1611fb0164b20f5da
+[c:fe2282c]: https://github.com/serenity-rs/songbird/commit/fe2282cfde6033a869b78fa4689926258bd6d180
+[c:658fd83]: https://github.com/serenity-rs/songbird/commit/658fd830c15a5751c57290ee858eea7a92f20ae5
 [c:868c44c]: https://github.com/serenity-rs/songbird/commit/868c44c19f1d223b05e7d38a5376d6a24ba353a4
 [c:cb2398f]: https://github.com/serenity-rs/songbird/commit/cb2398f1827d7b34b381c389e6099b37ed505f82
 [c:55b8e7f]: https://github.com/serenity-rs/songbird/commit/55b8e7fb4e58c2dacd2569ea75d59305cadc1196
