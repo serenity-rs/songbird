@@ -37,6 +37,23 @@
 <span id="36">36</span>
 <span id="37">37</span>
 <span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -44,6 +61,12 @@
     <span class="ident">process</span>::<span class="ident">Child</span>,
 };
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">debug</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
+<span class="kw">use</span> <span class="ident">nix</span>::{
+    <span class="ident">sys</span>::<span class="ident">signal</span>::{<span class="self">self</span>, <span class="ident">Signal</span>},
+    <span class="ident">unistd</span>::<span class="ident">Pid</span>,
+};
 
 <span class="doccomment">/// Handle for a child process which ensures that any subprocesses are properly closed</span>
 <span class="doccomment">/// on drop.</span>
@@ -71,7 +94,18 @@
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ChildContainer</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">kill</span>() {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">unix</span>))]</span>
+        <span class="kw">let</span> <span class="ident">attempt</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">kill</span>();
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
+        <span class="kw">let</span> <span class="ident">attempt</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="ident">Pid</span>::<span class="ident">from_raw</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">id</span>() <span class="kw">as</span> <span class="ident">i32</span>);
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">signal</span>::<span class="ident">kill</span>(<span class="ident">pid</span>, <span class="ident">Signal</span>::<span class="ident">SIGINT</span>);
+
+            <span class="self">self</span>.<span class="number">0</span>.<span class="ident">wait</span>()
+        };
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">attempt</span> {
             <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Error awaiting child process: {:?}&quot;</span>, <span class="ident">e</span>);
         }
     }

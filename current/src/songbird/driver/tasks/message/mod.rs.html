@@ -50,17 +50,19 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
+<span id="52">52</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 
 <span class="kw">mod</span> <span class="ident">core</span>;
+<span class="kw">mod</span> <span class="ident">disposal</span>;
 <span class="kw">mod</span> <span class="ident">events</span>;
 <span class="kw">mod</span> <span class="ident">mixer</span>;
 <span class="kw">mod</span> <span class="ident">udp_rx</span>;
 <span class="kw">mod</span> <span class="ident">udp_tx</span>;
 <span class="kw">mod</span> <span class="ident">ws</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">core</span>::<span class="kw-2">*</span>, <span class="ident">events</span>::<span class="kw-2">*</span>, <span class="ident">mixer</span>::<span class="kw-2">*</span>, <span class="ident">udp_rx</span>::<span class="kw-2">*</span>, <span class="ident">udp_tx</span>::<span class="kw-2">*</span>, <span class="ident">ws</span>::<span class="kw-2">*</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">core</span>::<span class="kw-2">*</span>, <span class="ident">disposal</span>::<span class="kw-2">*</span>, <span class="ident">events</span>::<span class="kw-2">*</span>, <span class="ident">mixer</span>::<span class="kw-2">*</span>, <span class="ident">udp_rx</span>::<span class="kw-2">*</span>, <span class="ident">udp_tx</span>::<span class="kw-2">*</span>, <span class="ident">ws</span>::<span class="kw-2">*</span>};
 
 <span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">info</span>;

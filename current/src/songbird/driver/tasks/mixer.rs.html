@@ -582,8 +582,17 @@
 <span id="581">581</span>
 <span id="582">582</span>
 <span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">constants</span>::<span class="kw-2">*</span>,
     <span class="ident">tracks</span>::{<span class="ident">PlayMode</span>, <span class="ident">Track</span>},
@@ -613,6 +622,7 @@
     <span class="kw">pub</span> <span class="ident">config</span>: <span class="ident">Config</span>,
     <span class="kw">pub</span> <span class="ident">conn_active</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MixerConnection</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">deadline</span>: <span class="ident">Instant</span>,
+    <span class="kw">pub</span> <span class="ident">disposer</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">DisposalMessage</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">encoder</span>: <span class="ident">OpusEncoder</span>,
     <span class="kw">pub</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
     <span class="kw">pub</span> <span class="ident">mix_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>,
@@ -659,12 +669,17 @@
 
         <span class="kw">let</span> <span class="ident">tracks</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">1</span>.<span class="ident">max</span>(<span class="ident">config</span>.<span class="ident">preallocated_tracks</span>));
 
+        <span class="comment">// Create an object disposal thread here.</span>
+        <span class="kw">let</span> (<span class="ident">disposer</span>, <span class="ident">disposal_rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
+        <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">disposal</span>::<span class="ident">runner</span>(<span class="ident">disposal_rx</span>));
+
         <span class="self">Self</span> {
             <span class="ident">async_handle</span>,
             <span class="ident">bitrate</span>,
             <span class="ident">config</span>,
             <span class="ident">conn_active</span>: <span class="prelude-val">None</span>,
             <span class="ident">deadline</span>: <span class="ident">Instant</span>::<span class="ident">now</span>(),
+            <span class="ident">disposer</span>,
             <span class="ident">encoder</span>,
             <span class="ident">interconnect</span>,
             <span class="ident">mix_rx</span>,
@@ -907,12 +922,13 @@
 
             <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">playing</span>.<span class="ident">is_done</span>() {
                 <span class="kw">let</span> <span class="ident">p_state</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">playing</span>();
-                <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
+                <span class="kw">let</span> <span class="ident">to_drop</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
                 <span class="ident">to_remove</span>.<span class="ident">push</span>(<span class="ident">i</span>);
                 <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
                     <span class="ident">i</span>,
                     <span class="ident">TrackStateChange</span>::<span class="ident">Mode</span>(<span class="ident">p_state</span>),
                 ))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">disposer</span>.<span class="ident">send</span>(<span class="ident">DisposalMessage</span>::<span class="ident">Track</span>(<span class="ident">to_drop</span>));
             } <span class="kw">else</span> {
                 <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
@@ -1165,6 +1181,8 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mixer</span> <span class="op">=</span> <span class="ident">Mixer</span>::<span class="ident">new</span>(<span class="ident">mix_rx</span>, <span class="ident">async_handle</span>, <span class="ident">interconnect</span>, <span class="ident">config</span>);
 
     <span class="ident">mixer</span>.<span class="ident">run</span>();
+
+    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">mixer</span>.<span class="ident">disposer</span>.<span class="ident">send</span>(<span class="ident">DisposalMessage</span>::<span class="ident">Poison</span>);
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird"></div>
