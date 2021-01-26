@@ -52,6 +52,10 @@ version = "0.10"
 [dependencies.futures]
 version = "0.3"
 
+[dependencies.nix]
+version = "0.19"
+optional = true
+
 [dependencies.parking_lot]
 optional = true
 version = "0.11"
@@ -133,6 +137,7 @@ driver = [
     "byteorder",
     "discortp",
     "flume",
+    "nix",
     "parking_lot",
     "rand",
     "serenity-voice-model",
