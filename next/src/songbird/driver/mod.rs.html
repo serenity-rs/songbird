@@ -321,6 +321,12 @@
 <span id="320">320</span>
 <span id="321">321</span>
 <span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Runner for a voice connection.</span>
 <span class="doccomment">//!</span>
@@ -562,6 +568,12 @@
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">AddEvent</span>(<span class="ident">EventData</span>::<span class="ident">new</span>(<span class="ident">event</span>, <span class="ident">action</span>)));
     }
 
+    <span class="doccomment">/// Removes all global event handlers from an audio context.</span>
+    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_all_global_events</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">RemoveGlobalEvents</span>);
+    }
+
     <span class="doccomment">/// Sends a message to the inner tasks, restarting it if necessary.</span>
     <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">status</span>: <span class="ident">CoreMessage</span>) {
         <span class="comment">// Restart thread if it errored.</span>
@@ -645,4 +657,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "songbird";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

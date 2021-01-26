@@ -117,6 +117,9 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -163,6 +166,9 @@
 
                 <span class="ident">global</span>.<span class="ident">fire_core_event</span>(<span class="ident">evt</span>, <span class="ident">ctx</span>).<span class="kw">await</span>;
             },
+            <span class="prelude-val">Ok</span>(<span class="ident">RemoveGlobalEvents</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">global</span>.<span class="ident">remove_handlers</span>();
+            },
             <span class="prelude-val">Ok</span>(<span class="ident">AddTrack</span>(<span class="ident">store</span>, <span class="ident">state</span>, <span class="ident">handle</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">events</span>.<span class="ident">push</span>(<span class="ident">store</span>);
                 <span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">state</span>);
@@ -187,8 +193,8 @@
                     <span class="ident">Mode</span>(<span class="ident">mode</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">playing</span>;
                         <span class="ident">state</span>.<span class="ident">playing</span> <span class="op">=</span> <span class="ident">mode</span>;
-                        <span class="kw">if</span> <span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mode</span> <span class="op">&amp;&amp;</span> <span class="ident">mode</span>.<span class="ident">is_done</span>() {
-                            <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">TrackEvent</span>::<span class="ident">End</span>, <span class="ident">i</span>);
+                        <span class="kw">if</span> <span class="ident">old</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mode</span> {
+                            <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">mode</span>.<span class="ident">as_track_event</span>(), <span class="ident">i</span>);
                         }
                     },
                     <span class="ident">Volume</span>(<span class="ident">vol</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -237,4 +243,5 @@
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event thread exited.&quot;</span>);
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "songbird";</script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird"></div>
+    <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

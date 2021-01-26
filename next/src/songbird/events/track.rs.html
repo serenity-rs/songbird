@@ -16,6 +16,14 @@
 <span id="15">15</span>
 <span id="16">16</span>
 <span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// Track events correspond to certain actions or changes</span>
 <span class="doccomment">/// of state, such as a track finishing, looping, or being</span>
@@ -29,10 +37,19 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TrackEvent</span> {
+    <span class="doccomment">/// The attached track has resumed playing.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This event will not fire when a track first starts,</span>
+    <span class="doccomment">/// but will fire when a track changes from, e.g., paused to playing.</span>
+    <span class="doccomment">/// This is most relevant for queue users.</span>
+    <span class="ident">Play</span>,
+    <span class="doccomment">/// The attached track has been paused.</span>
+    <span class="ident">Pause</span>,
     <span class="doccomment">/// The attached track has ended.</span>
     <span class="ident">End</span>,
     <span class="doccomment">/// The attached track has looped.</span>
     <span class="ident">Loop</span>,
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "songbird";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
