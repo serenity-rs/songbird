@@ -1,55 +1,79 @@
 use super::*;
 use std::{
     io::{BufReader, Read},
+    mem,
     process::Child,
 };
+use tokio::runtime::Handle;
 use tracing::debug;
-
-#[cfg(unix)]
-use nix::{
-    sys::signal::{self, Signal},
-    unistd::Pid,
-};
 
 /// Handle for a child process which ensures that any subprocesses are properly closed
 /// on drop.
+///
+/// # Warning
+/// To allow proper cleanup of child processes, if you create a process chain you must
+/// make sure to use `From<Vec<Child>>`. Here, the *last* process in the `Vec` will be
+/// used as the audio byte source.
 #[derive(Debug)]
-pub struct ChildContainer(Child);
+pub struct ChildContainer(Vec<Child>);
 
-pub(crate) fn child_to_reader<T>(child: Child) -> Reader {
+pub(crate) fn children_to_reader<T>(children: Vec<Child>) -> Reader {
     Reader::Pipe(BufReader::with_capacity(
         STEREO_FRAME_SIZE * mem::size_of::<T>() * CHILD_BUFFER_LEN,
-        ChildContainer(child),
+        ChildContainer(children),
     ))
 }
 
 impl From<Child> for Reader {
     fn from(container: Child) -> Self {
-        child_to_reader::<f32>(container)
+        children_to_reader::<f32>(vec![container])
+    }
+}
+
+impl From<Vec<Child>> for Reader {
+    fn from(container: Vec<Child>) -> Self {
+        children_to_reader::<f32>(container)
     }
 }
 
 impl Read for ChildContainer {
     fn read(&mut self, buffer: &mut [u8]) -> IoResult<usize> {
-        self.0.stdout.as_mut().unwrap().read(buffer)
+        match self.0.last_mut() {
+            Some(ref mut child) => child.stdout.as_mut().unwrap().read(buffer),
+            None => Ok(0),
+        }
     }
 }
 
 impl Drop for ChildContainer {
     fn drop(&mut self) {
-        #[cfg(not(unix))]
-        let attempt = self.0.kill();
+        let children = mem::take(&mut self.0);
 
-        #[cfg(unix)]
-        let attempt = {
-            let pid = Pid::from_raw(self.0.id() as i32);
-            let _ = signal::kill(pid, Signal::SIGINT);
-
-            self.0.wait()
-        };
-
-        if let Err(e) = attempt {
-            debug!("Error awaiting child process: {:?}", e);
+        if let Ok(handle) = Handle::try_current() {
+            handle.spawn_blocking(move || {
+                cleanup_child_processes(children);
+            });
+        } else {
+            cleanup_child_processes(children);
         }
+    }
+}
+
+fn cleanup_child_processes(mut children: Vec<Child>) {
+    let attempt = if let Some(child) = children.last_mut() {
+        child.kill()
+    } else {
+        return;
+    };
+
+    let attempt = attempt.and_then(|_| {
+        children
+            .iter_mut()
+            .rev()
+            .try_for_each(|child| child.wait().map(|_| ()))
+    });
+
+    if let Err(e) = attempt {
+        debug!("Error awaiting child process: {:?}", e);
     }
 }

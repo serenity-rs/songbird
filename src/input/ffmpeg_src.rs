@@ -1,5 +1,5 @@
 use super::{
-    child_to_reader,
+    children_to_reader,
     error::{Error, Result},
     Codec,
     Container,
@@ -115,7 +115,7 @@ pub(crate) async fn _ffmpeg_optioned(
 
     Ok(Input::new(
         is_stereo,
-        child_to_reader::<f32>(command),
+        children_to_reader::<f32>(vec![command]),
         Codec::FloatPcm,
         Container::Raw,
         Some(metadata),

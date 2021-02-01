@@ -1,5 +1,5 @@
 use super::{
-    child_to_reader,
+    children_to_reader,
     error::{Error, Result},
     Codec,
     Container,
@@ -92,12 +92,14 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
 
     youtube_dl.stderr = Some(returned_stderr);
 
+    let taken_stdout = youtube_dl.stdout.take().ok_or(Error::Stdout)?;
+
     let ffmpeg = Command::new("ffmpeg")
         .args(pre_args)
         .arg("-i")
         .arg("-")
         .args(&ffmpeg_args)
-        .stdin(youtube_dl.stdout.ok_or(Error::Stdout)?)
+        .stdin(taken_stdout)
         .stderr(Stdio::null())
         .stdout(Stdio::piped())
         .spawn()?;
@@ -108,7 +110,7 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
 
     Ok(Input::new(
         true,
-        child_to_reader::<f32>(ffmpeg),
+        children_to_reader::<f32>(vec![youtube_dl, ffmpeg]),
         Codec::FloatPcm,
         Container::Raw,
         Some(metadata),
