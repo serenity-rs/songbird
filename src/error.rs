@@ -4,12 +4,12 @@
 use futures::channel::mpsc::TrySendError;
 #[cfg(feature = "serenity")]
 use serenity::gateway::InterMessage;
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 use std::{error::Error, fmt};
 #[cfg(feature = "twilight")]
 use twilight_gateway::shard::CommandError;
 
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 #[derive(Debug)]
 /// Error returned when a manager or call handler is
 /// unable to send messages over Discord's gateway.
@@ -23,7 +23,7 @@ pub enum JoinError {
     ///
     /// [`Call`]: crate::Call
     NoCall,
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     /// The driver failed to establish a voice connection.
     Driver(ConnectionError),
     #[cfg(feature = "serenity")]
@@ -34,7 +34,7 @@ pub enum JoinError {
     Twilight(CommandError),
 }
 
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 impl fmt::Display for JoinError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Failed to Join Voice channel: ")?;
@@ -42,7 +42,7 @@ impl fmt::Display for JoinError {
             JoinError::Dropped => write!(f, "request was cancelled/dropped."),
             JoinError::NoSender => write!(f, "no gateway destination."),
             JoinError::NoCall => write!(f, "tried to leave a non-existent call."),
-            #[cfg(feature = "driver")]
+            #[cfg(feature = "driver-core")]
             JoinError::Driver(t) => write!(f, "internal driver error {}.", t),
             #[cfg(feature = "serenity")]
             JoinError::Serenity(t) => write!(f, "serenity failure {}.", t),
@@ -52,35 +52,35 @@ impl fmt::Display for JoinError {
     }
 }
 
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 impl Error for JoinError {}
 
-#[cfg(all(feature = "serenity", feature = "gateway"))]
+#[cfg(all(feature = "serenity", feature = "gateway-core"))]
 impl From<TrySendError<InterMessage>> for JoinError {
     fn from(e: TrySendError<InterMessage>) -> Self {
         JoinError::Serenity(e)
     }
 }
 
-#[cfg(all(feature = "twilight", feature = "gateway"))]
+#[cfg(all(feature = "twilight", feature = "gateway-core"))]
 impl From<CommandError> for JoinError {
     fn from(e: CommandError) -> Self {
         JoinError::Twilight(e)
     }
 }
 
-#[cfg(all(feature = "driver", feature = "gateway"))]
+#[cfg(all(feature = "driver-core", feature = "gateway-core"))]
 impl From<ConnectionError> for JoinError {
     fn from(e: ConnectionError) -> Self {
         JoinError::Driver(e)
     }
 }
 
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 /// Convenience type for Discord gateway error handling.
 pub type JoinResult<T> = Result<T, JoinError>;
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub use crate::{
     driver::connection::error::{Error as ConnectionError, Result as ConnectionResult},
     tracks::{TrackError, TrackResult},

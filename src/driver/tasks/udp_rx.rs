@@ -21,7 +21,10 @@ use discortp::{
 };
 use flume::Receiver;
 use std::{collections::HashMap, sync::Arc};
-use tokio::net::UdpSocket;
+#[cfg(not(feature = "tokio-02-marker"))]
+use tokio::{net::UdpSocket, select};
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::{net::udp::RecvHalf, select};
 use tracing::{error, info, instrument, warn};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
@@ -236,14 +239,18 @@ struct UdpRx {
     config: Config,
     packet_buffer: [u8; VOICE_PACKET_MAX],
     rx: Receiver<UdpRxMessage>,
+
+    #[cfg(not(feature = "tokio-02-marker"))]
     udp_socket: Arc<UdpSocket>,
+    #[cfg(feature = "tokio-02-marker")]
+    udp_socket: RecvHalf,
 }
 
 impl UdpRx {
     #[instrument(skip(self))]
     async fn run(&mut self, interconnect: &mut Interconnect) {
         loop {
-            tokio::select! {
+            select! {
                 Ok((len, _addr)) = self.udp_socket.recv_from(&mut self.packet_buffer[..]) => {
                     self.process_udp_message(interconnect, len);
                 }
@@ -385,6 +392,7 @@ impl UdpRx {
     }
 }
 
+#[cfg(not(feature = "tokio-02-marker"))]
 #[instrument(skip(interconnect, rx, cipher))]
 pub(crate) async fn runner(
     mut interconnect: Interconnect,
@@ -392,6 +400,31 @@ pub(crate) async fn runner(
     cipher: Cipher,
     config: Config,
     udp_socket: Arc<UdpSocket>,
+) {
+    info!("UDP receive handle started.");
+
+    let mut state = UdpRx {
+        cipher,
+        decoder_map: Default::default(),
+        config,
+        packet_buffer: [0u8; VOICE_PACKET_MAX],
+        rx,
+        udp_socket,
+    };
+
+    state.run(&mut interconnect).await;
+
+    info!("UDP receive handle stopped.");
+}
+
+#[cfg(feature = "tokio-02-marker")]
+#[instrument(skip(interconnect, rx, cipher))]
+pub(crate) async fn runner(
+    mut interconnect: Interconnect,
+    rx: Receiver<UdpRxMessage>,
+    cipher: Cipher,
+    config: Config,
+    udp_socket: RecvHalf,
 ) {
     info!("UDP receive handle started.");
 

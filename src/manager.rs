@@ -1,4 +1,4 @@
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 use crate::driver::Config;
 use crate::{
     error::{JoinError, JoinResult},
@@ -23,7 +23,10 @@ use serenity::{
     },
 };
 use std::sync::Arc;
+#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::sync::Mutex;
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::sync::Mutex;
 #[cfg(feature = "twilight")]
 use twilight_gateway::Cluster;
 #[cfg(feature = "twilight")]
@@ -48,7 +51,7 @@ pub struct Songbird {
     calls: DashMap<GuildId, Arc<Mutex<Call>>>,
     sharder: Sharder,
 
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     driver_config: PRwLock<Option<Config>>,
 }
 
@@ -65,7 +68,7 @@ impl Songbird {
             calls: Default::default(),
             sharder: Sharder::Serenity(Default::default()),
 
-            #[cfg(feature = "driver")]
+            #[cfg(feature = "driver-core")]
             driver_config: Default::default(),
         })
     }
@@ -91,7 +94,7 @@ impl Songbird {
             calls: Default::default(),
             sharder: Sharder::Twilight(cluster),
 
-            #[cfg(feature = "driver")]
+            #[cfg(feature = "driver-core")]
             driver_config: Default::default(),
         })
     }
@@ -141,7 +144,7 @@ impl Songbird {
                         .get_shard(shard)
                         .expect("Failed to get shard handle: shard_count incorrect?");
 
-                    #[cfg(feature = "driver")]
+                    #[cfg(feature = "driver-core")]
                     let call = Call::from_driver_config(
                         guild_id,
                         shard_handle,
@@ -149,7 +152,7 @@ impl Songbird {
                         self.driver_config.read().clone().unwrap_or_default(),
                     );
 
-                    #[cfg(not(feature = "driver"))]
+                    #[cfg(not(feature = "driver-core"))]
                     let call = Call::new(guild_id, shard_handle, info.user_id);
 
                     Arc::new(Mutex::new(call))
@@ -164,7 +167,7 @@ impl Songbird {
         *client_data
     }
 
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     /// Connects to a target by retrieving its relevant [`Call`] and
     /// connecting, or creating the handler if required.
     ///
@@ -196,7 +199,7 @@ impl Songbird {
         self._join(guild_id.into(), channel_id.into()).await
     }
 
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     async fn _join(
         &self,
         guild_id: GuildId,
@@ -388,7 +391,7 @@ impl VoiceGatewayManager for Songbird {
     }
 }
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 impl Songbird {
     /// Sets a shared configuration for all drivers created from this
     /// manager.

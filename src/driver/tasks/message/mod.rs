@@ -11,6 +11,10 @@ mod ws;
 pub use self::{core::*, disposal::*, events::*, mixer::*, udp_rx::*, udp_tx::*, ws::*};
 
 use flume::Sender;
+#[cfg(not(feature = "tokio-02-marker"))]
+use tokio::spawn;
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::spawn;
 use tracing::info;
 
 #[derive(Clone, Debug)]
@@ -38,7 +42,7 @@ impl Interconnect {
         self.events = evt_tx;
 
         let ic = self.clone();
-        tokio::spawn(async move {
+        spawn(async move {
             info!("Event processor restarted.");
             super::events::runner(ic, evt_rx).await;
             info!("Event processor finished.");

@@ -22,7 +22,7 @@ jobs:
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-features
+        args: --features full-doc
 
   test:
     name: Test
@@ -39,6 +39,7 @@ jobs:
           - Windows
           - driver only
           - gateway only
+          - legacy tokio
 
         include:
           - name: beta
@@ -51,8 +52,13 @@ jobs:
             os: windows-latest
           - name: driver only
             features: driver rustls
+            dont-test: true
           - name: gateway only
             features: serenity-rustls
+            dont-test: true
+          - name: legacy tokio
+            features: serenity-rustls-tokio-02 driver-tokio-02
+            dont-test: true
 
     steps:
       - name: Checkout sources
@@ -84,18 +90,18 @@ jobs:
 
       - name: Build all features
         if: matrix.features == ''
-        run: cargo build --all-features
+        run: cargo build --features full-doc
 
       - name: Test all features
         if: matrix.features == ''
-        run: cargo test --all-features
+        run: cargo test --features full-doc
 
       - name: Build some features
         if: matrix.features
         run: cargo build --no-default-features --features "${{ matrix.features }}"
 
       - name: Test some features
-        if: matrix.features
+        if: ${{ !matrix.dont-test && matrix.features }}
         run: cargo test --no-default-features --features "${{ matrix.features }}"
 
   doc:
@@ -131,7 +137,7 @@ jobs:
         env:
           RUSTDOCFLAGS: -D broken_intra_doc_links
         run: |
-          cargo doc --no-deps --all-features
+          cargo doc --no-deps --features full-doc
 
   examples:
     name: Examples

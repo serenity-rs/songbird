@@ -19,15 +19,18 @@ use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPa
 use error::{Error, Result};
 use flume::Sender;
 use std::{net::IpAddr, str::FromStr, sync::Arc};
-use tokio::net::UdpSocket;
+#[cfg(not(feature = "tokio-02-marker"))]
+use tokio::{net::UdpSocket, spawn};
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::{net::UdpSocket, spawn};
 use tracing::{debug, info, instrument};
 use url::Url;
 use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher};
 
-#[cfg(all(feature = "rustls", not(feature = "native")))]
+#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 use ws::create_rustls_client;
 
-#[cfg(feature = "native")]
+#[cfg(feature = "native-marker")]
 use ws::create_native_tls_client;
 
 pub(crate) struct Connection {
@@ -43,10 +46,10 @@ impl Connection {
     ) -> Result<Connection> {
         let url = generate_url(&mut info.endpoint)?;
 
-        #[cfg(all(feature = "rustls", not(feature = "native")))]
+        #[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
         let mut client = create_rustls_client(url).await?;
 
-        #[cfg(feature = "native")]
+        #[cfg(feature = "native-marker")]
         let mut client = create_native_tls_client(url).await?;
 
         let mut hello = None;
@@ -97,7 +100,11 @@ impl Connection {
             return Err(Error::CryptoModeUnavailable);
         }
 
+        #[cfg(not(feature = "tokio-02-marker"))]
         let udp = UdpSocket::bind("0.0.0.0:0").await?;
+        #[cfg(feature = "tokio-02-marker")]
+        let mut udp = UdpSocket::bind("0.0.0.0:0").await?;
+
         udp.connect((ready.ip, ready.port)).await?;
 
         // Follow Discord's IP Discovery procedures, in case NAT tunnelling is needed.
@@ -124,7 +131,7 @@ impl Connection {
             }
 
             // We could do something clever like binary search,
-            // but possibility of UDP spoofing preclueds us from
+            // but possibility of UDP spoofing precludes us from
             // making the assumption we can find a "left edge" of '\0's.
             let nul_byte_index = view
                 .get_address_raw()
@@ -162,8 +169,14 @@ impl Connection {
         let (udp_sender_msg_tx, udp_sender_msg_rx) = flume::unbounded();
         let (udp_receiver_msg_tx, udp_receiver_msg_rx) = flume::unbounded();
 
-        let udp_rx = Arc::new(udp);
-        let udp_tx = Arc::clone(&udp_rx);
+        #[cfg(not(feature = "tokio-02-marker"))]
+        let (udp_rx, udp_tx) = {
+            let udp_rx = Arc::new(udp);
+            let udp_tx = Arc::clone(&udp_rx);
+            (udp_rx, udp_tx)
+        };
+        #[cfg(feature = "tokio-02-marker")]
+        let (udp_rx, udp_tx) = udp.split();
 
         let ssrc = ready.ssrc;
 
@@ -182,7 +195,7 @@ impl Connection {
             .mixer
             .send(MixerMessage::SetConn(mix_conn, ready.ssrc))?;
 
-        tokio::spawn(ws_task::runner(
+        spawn(ws_task::runner(
             interconnect.clone(),
             ws_msg_rx,
             client,
@@ -190,14 +203,14 @@ impl Connection {
             hello.heartbeat_interval,
         ));
 
-        tokio::spawn(udp_rx::runner(
+        spawn(udp_rx::runner(
             interconnect.clone(),
             udp_receiver_msg_rx,
             cipher,
             config.clone(),
             udp_rx,
         ));
-        tokio::spawn(udp_tx::runner(udp_sender_msg_rx, ssrc, udp_tx));
+        spawn(udp_tx::runner(udp_sender_msg_rx, ssrc, udp_tx));
 
         Ok(Connection {
             info,
@@ -212,10 +225,10 @@ impl Connection {
         // Thread may have died, we want to send to prompt a clean exit
         // (if at all possible) and then proceed as normal.
 
-        #[cfg(all(feature = "rustls", not(feature = "native")))]
+        #[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
         let mut client = create_rustls_client(url).await?;
 
-        #[cfg(feature = "native")]
+        #[cfg(feature = "native-marker")]
         let mut client = create_native_tls_client(url).await?;
 
         client
