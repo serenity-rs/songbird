@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["songbird"] = [{"text":"impl NeedsBytes for OpusCompressor","synthetic":false,"types":[]}];
+implementors["songbird"] = [{"text":"impl NeedsBytes for <a class=\"struct\" href=\"songbird/input/cached/struct.OpusCompressor.html\" title=\"struct songbird::input::cached::OpusCompressor\">OpusCompressor</a>","synthetic":false,"types":["songbird::input::cached::compressed::OpusCompressor"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
