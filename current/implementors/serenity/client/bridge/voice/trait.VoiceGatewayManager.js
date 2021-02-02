@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["songbird"] = [{"text":"impl VoiceGatewayManager for Songbird","synthetic":false,"types":[]}];
+implementors["songbird"] = [{"text":"impl <a class=\"trait\" href=\"https://docs.rs/serenity/*/serenity/client/bridge/voice/trait.VoiceGatewayManager.html\" title=\"trait serenity::client::bridge::voice::VoiceGatewayManager\">VoiceGatewayManager</a> for <a class=\"struct\" href=\"songbird/struct.Songbird.html\" title=\"struct songbird::Songbird\">Songbird</a>","synthetic":false,"types":["songbird::manager::Songbird"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

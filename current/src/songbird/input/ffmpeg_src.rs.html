@@ -160,7 +160,7 @@
 <span id="159">159</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">child_to_reader</span>,
+    <span class="ident">children_to_reader</span>,
     <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">Codec</span>,
     <span class="ident">Container</span>,
@@ -276,7 +276,7 @@
 
     <span class="prelude-val">Ok</span>(<span class="ident">Input</span>::<span class="ident">new</span>(
         <span class="ident">is_stereo</span>,
-        <span class="ident">child_to_reader</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="ident">command</span>),
+        <span class="ident">children_to_reader</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">command</span>]),
         <span class="ident">Codec</span>::<span class="ident">FloatPcm</span>,
         <span class="ident">Container</span>::<span class="ident">Raw</span>,
         <span class="prelude-val">Some</span>(<span class="ident">metadata</span>),
