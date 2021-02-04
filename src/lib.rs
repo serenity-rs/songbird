@@ -38,41 +38,41 @@
 //! [lavalink]: https://github.com/Frederikam/Lavalink
 
 pub mod constants;
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub mod driver;
 pub mod error;
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub mod events;
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 mod handler;
 pub mod id;
 pub(crate) mod info;
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub mod input;
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 mod manager;
 #[cfg(feature = "serenity")]
 pub mod serenity;
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 pub mod shards;
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub mod tracks;
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 mod ws;
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub use audiopus::{self as opus, Bitrate};
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub use discortp as packet;
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub use serenity_voice_model as model;
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub use typemap_rev as typemap;
 
 #[cfg(test)]
 use utils as test_utils;
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 pub use crate::{
     driver::Driver,
     events::{CoreEvent, Event, EventContext, EventHandler, TrackEvent},
@@ -80,7 +80,7 @@ pub use crate::{
     tracks::create_player,
 };
 
-#[cfg(feature = "gateway")]
+#[cfg(feature = "gateway-core")]
 pub use crate::{handler::*, manager::*};
 
 #[cfg(feature = "serenity")]

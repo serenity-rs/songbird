@@ -1,6 +1,6 @@
 //! Newtypes around Discord IDs for library cross-compatibility.
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 use crate::model::id::{GuildId as DriverGuild, UserId as DriverUser};
 #[cfg(feature = "serenity")]
 use serenity::model::id::{
@@ -73,7 +73,7 @@ impl From<SerenityGuild> for GuildId {
     }
 }
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 impl From<GuildId> for DriverGuild {
     fn from(id: GuildId) -> Self {
         Self(id.0)
@@ -106,7 +106,7 @@ impl From<SerenityUser> for UserId {
     }
 }
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 impl From<UserId> for DriverUser {
     fn from(id: UserId) -> Self {
         Self(id.0)

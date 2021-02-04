@@ -10,11 +10,23 @@ use crate::{
     },
     ws::{Error as WsError, ReceiverExt, SenderExt, WsStream},
 };
+#[cfg(not(feature = "tokio-02-marker"))]
 use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
+#[cfg(feature = "tokio-02-marker")]
+use async_tungstenite_compat::tungstenite::protocol::frame::coding::CloseCode;
 use flume::Receiver;
 use rand::random;
 use std::time::Duration;
-use tokio::time::{self, Instant};
+#[cfg(not(feature = "tokio-02-marker"))]
+use tokio::{
+    select,
+    time::{sleep_until, Instant},
+};
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::{
+    select,
+    time::{delay_until as sleep_until, Instant},
+};
 use tracing::{error, info, instrument, trace, warn};
 
 struct AuxNetwork {
@@ -57,9 +69,9 @@ impl AuxNetwork {
             let mut ws_error = false;
             let mut should_reconnect = false;
 
-            let hb = time::sleep_until(next_heartbeat);
+            let hb = sleep_until(next_heartbeat);
 
-            tokio::select! {
+            select! {
                 _ = hb => {
                     ws_error = match self.send_heartbeat().await {
                         Err(e) => {

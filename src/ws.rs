@@ -6,14 +6,26 @@
 use crate::model::Event;
 
 use async_trait::async_trait;
+#[cfg(not(feature = "tokio-02-marker"))]
 use async_tungstenite::{
+    self as tungstenite,
+    tokio::ConnectStream,
+    tungstenite::{error::Error as TungsteniteError, protocol::CloseFrame, Message},
+    WebSocketStream,
+};
+#[cfg(feature = "tokio-02-marker")]
+use async_tungstenite_compat::{
+    self as tungstenite,
     tokio::ConnectStream,
     tungstenite::{error::Error as TungsteniteError, protocol::CloseFrame, Message},
     WebSocketStream,
 };
 use futures::{SinkExt, StreamExt, TryStreamExt};
 use serde_json::Error as JsonError;
-use tokio::time::timeout;
+#[cfg(not(feature = "tokio-02-marker"))]
+use tokio::time::{timeout, Duration};
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::time::{timeout, Duration};
 use tracing::{instrument, warn};
 
 pub type WsStream = WebSocketStream<ConnectStream>;
@@ -23,7 +35,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     Json(JsonError),
-    #[cfg(all(feature = "rustls", not(feature = "native")))]
+    #[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
     Tls(RustlsError),
 
     /// The discord voice gateway does not support or offer zlib compression.
@@ -41,7 +53,7 @@ impl From<JsonError> for Error {
     }
 }
 
-#[cfg(all(feature = "rustls", not(feature = "native")))]
+#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 impl From<RustlsError> for Error {
     fn from(e: RustlsError) -> Error {
         Error::Tls(e)
@@ -55,7 +67,7 @@ impl From<TungsteniteError> for Error {
 }
 
 use futures::stream::SplitSink;
-#[cfg(all(feature = "rustls", not(feature = "native")))]
+#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -77,7 +89,7 @@ pub trait SenderExt {
 #[async_trait]
 impl ReceiverExt for WsStream {
     async fn recv_json(&mut self) -> Result<Option<Event>> {
-        const TIMEOUT: tokio::time::Duration = tokio::time::Duration::from_millis(500);
+        const TIMEOUT: Duration = Duration::from_millis(500);
 
         let ws_message = match timeout(TIMEOUT, self.next()).await {
             Ok(Some(Ok(v))) => Some(v),
@@ -138,7 +150,7 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
 /// An error that occured while connecting over rustls
 #[derive(Debug)]
 #[non_exhaustive]
-#[cfg(all(feature = "rustls", not(feature = "native")))]
+#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 pub enum RustlsError {
     /// An error with the handshake in tungstenite
     HandshakeError,
@@ -146,14 +158,14 @@ pub enum RustlsError {
     Io(IoError),
 }
 
-#[cfg(all(feature = "rustls", not(feature = "native")))]
+#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 impl From<IoError> for RustlsError {
     fn from(e: IoError) -> Self {
         RustlsError::Io(e)
     }
 }
 
-#[cfg(all(feature = "rustls", not(feature = "native")))]
+#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 impl Display for RustlsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
@@ -164,7 +176,7 @@ impl Display for RustlsError {
     }
 }
 
-#[cfg(all(feature = "rustls", not(feature = "native")))]
+#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 impl StdError for RustlsError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
@@ -174,12 +186,12 @@ impl StdError for RustlsError {
     }
 }
 
-#[cfg(all(feature = "rustls", not(feature = "native")))]
+#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 #[instrument]
 pub(crate) async fn create_rustls_client(url: Url) -> Result<WsStream> {
-    let (stream, _) = async_tungstenite::tokio::connect_async_with_config::<Url>(
+    let (stream, _) = tungstenite::tokio::connect_async_with_config::<Url>(
         url,
-        Some(async_tungstenite::tungstenite::protocol::WebSocketConfig {
+        Some(tungstenite::tungstenite::protocol::WebSocketConfig {
             max_message_size: None,
             max_frame_size: None,
             max_send_queue: None,
@@ -191,12 +203,12 @@ pub(crate) async fn create_rustls_client(url: Url) -> Result<WsStream> {
     Ok(stream)
 }
 
-#[cfg(feature = "native")]
+#[cfg(feature = "native-marker")]
 #[instrument]
 pub(crate) async fn create_native_tls_client(url: Url) -> Result<WsStream> {
-    let (stream, _) = async_tungstenite::tokio::connect_async_with_config::<Url>(
+    let (stream, _) = tungstenite::tokio::connect_async_with_config::<Url>(
         url,
-        Some(async_tungstenite::tungstenite::protocol::WebSocketConfig {
+        Some(tungstenite::tungstenite::protocol::WebSocketConfig {
             max_message_size: None,
             max_frame_size: None,
             max_send_queue: None,

@@ -1,16 +1,16 @@
 //! Constants affecting driver function and API handling.
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 use audiopus::{Bitrate, SampleRate};
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 use discortp::rtp::RtpType;
 use std::time::Duration;
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 /// The voice gateway version used by the library.
 pub const VOICE_GATEWAY_VERSION: u8 = crate::model::constants::GATEWAY_VERSION;
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 /// Sample rate of audio to be sent to Discord.
 pub const SAMPLE_RATE: SampleRate = SampleRate::Hz48000;
 
@@ -23,7 +23,7 @@ pub const AUDIO_FRAME_RATE: usize = 50;
 /// Length of time between any two audio frames.
 pub const TIMESTEP_LENGTH: Duration = Duration::from_millis(1000 / AUDIO_FRAME_RATE as u64);
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 /// Default bitrate for audio.
 pub const DEFAULT_BITRATE: Bitrate = Bitrate::BitsPerSecond(128_000);
 
@@ -70,6 +70,6 @@ pub const SILENT_FRAME: [u8; 3] = [0xf8, 0xff, 0xfe];
 /// The one (and only) RTP version.
 pub const RTP_VERSION: u8 = 2;
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 /// Profile type used by Discord's Opus audio traffic.
 pub const RTP_PROFILE_TYPE: RtpType = RtpType::Dynamic(120);

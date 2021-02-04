@@ -16,11 +16,14 @@ use super::{
 use crate::events::CoreContext;
 use flume::{Receiver, RecvError, Sender};
 use message::*;
-use tokio::runtime::Handle;
+#[cfg(not(feature = "tokio-02-marker"))]
+use tokio::{runtime::Handle, spawn};
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::{runtime::Handle, spawn};
 use tracing::{error, info, instrument};
 
 pub(crate) fn start(config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMessage>) {
-    tokio::spawn(async move {
+    spawn(async move {
         info!("Driver started.");
         runner(config, rx, tx).await;
         info!("Driver finished.");
@@ -38,7 +41,7 @@ fn start_internals(core: Sender<CoreMessage>, config: Config) -> Interconnect {
     };
 
     let ic = interconnect.clone();
-    tokio::spawn(async move {
+    spawn(async move {
         info!("Event processor started.");
         events::runner(ic, evt_rx).await;
         info!("Event processor finished.");

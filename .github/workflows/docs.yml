@@ -41,7 +41,7 @@ jobs:
         env:
           RUSTDOCFLAGS: -D broken_intra_doc_links
         run: |
-          cargo doc --no-deps --features default,twilight-rustls,builtin-queue,stock-zlib
+          cargo doc --no-deps --features full-doc
 
       - name: Prepare docs
         shell: bash -e -O extglob {0}

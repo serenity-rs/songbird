@@ -1,4 +1,7 @@
-#[cfg(all(feature = "driver", not(any(feature = "rustls", feature = "native"))))]
+#[cfg(all(
+    feature = "driver",
+    not(any(feature = "rustls-marker", feature = "native-marker"))
+))]
 compile_error!(
     "You have the `driver` feature enabled: \
     either the `rustls` or `native` feature must be

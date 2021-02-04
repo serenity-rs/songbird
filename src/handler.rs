@@ -1,4 +1,4 @@
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 use crate::{
     driver::{Config, Driver},
     error::ConnectionResult,
@@ -13,13 +13,13 @@ use flume::{r#async::RecvFut, Sender};
 use serde_json::json;
 use tracing::instrument;
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug)]
 enum Return {
     Info(Sender<ConnectionInfo>),
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     Conn(Sender<ConnectionResult<()>>),
 }
 
@@ -34,7 +34,7 @@ enum Return {
 pub struct Call {
     connection: Option<(ChannelId, ConnectionProgress, Return)>,
 
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     /// The internal controller of the voice connection monitor thread.
     driver: Driver,
 
@@ -64,7 +64,7 @@ impl Call {
         Self::new_raw(guild_id, Some(ws), user_id)
     }
 
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     /// Creates a new Call, configuring the driver as specified.
     #[inline]
     #[instrument]
@@ -91,7 +91,7 @@ impl Call {
         Self::new_raw(guild_id, None, user_id)
     }
 
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     /// Creates a new standalone Call, configuring the driver as specified.
     #[inline]
     #[instrument]
@@ -106,7 +106,7 @@ impl Call {
     fn new_raw(guild_id: GuildId, ws: Option<Shard>, user_id: UserId) -> Self {
         Call {
             connection: None,
-            #[cfg(feature = "driver")]
+            #[cfg(feature = "driver-core")]
             driver: Default::default(),
             guild_id,
             self_deaf: false,
@@ -116,7 +116,7 @@ impl Call {
         }
     }
 
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     fn new_raw_cfg(guild_id: GuildId, ws: Option<Shard>, user_id: UserId, config: Config) -> Self {
         Call {
             connection: None,
@@ -136,7 +136,7 @@ impl Call {
                 // It's okay if the receiver hung up.
                 let _ = tx.send(c.clone());
             },
-            #[cfg(feature = "driver")]
+            #[cfg(feature = "driver-core")]
             Some((_, ConnectionProgress::Complete(c), Return::Conn(tx))) => {
                 self.driver.raw_connect(c.clone(), tx.clone());
             },
@@ -171,7 +171,7 @@ impl Call {
         self.self_deaf
     }
 
-    #[cfg(feature = "driver")]
+    #[cfg(feature = "driver-core")]
     /// Connect or switch to the given voice channel by its Id.
     ///
     /// This function acts as a future in two stages:
@@ -245,7 +245,7 @@ impl Call {
         // Only send an update if we were in a voice channel.
         self.connection = None;
 
-        #[cfg(feature = "driver")]
+        #[cfg(feature = "driver-core")]
         self.driver.leave();
 
         self.update().await
@@ -264,7 +264,7 @@ impl Call {
     pub async fn mute(&mut self, mute: bool) -> JoinResult<()> {
         self.self_mute = mute;
 
-        #[cfg(feature = "driver")]
+        #[cfg(feature = "driver-core")]
         self.driver.mute(mute);
 
         self.update().await
@@ -339,7 +339,7 @@ impl Call {
     }
 }
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 impl Deref for Call {
     type Target = Driver;
 
@@ -348,7 +348,7 @@ impl Deref for Call {
     }
 }
 
-#[cfg(feature = "driver")]
+#[cfg(feature = "driver-core")]
 impl DerefMut for Call {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.driver
