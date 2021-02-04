@@ -136,11 +136,17 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">codec</span>::<span class="ident">OpusDecoderState</span>, <span class="ident">error</span>::<span class="ident">DcaError</span>, <span class="ident">Codec</span>, <span class="ident">Container</span>, <span class="ident">Input</span>, <span class="ident">Metadata</span>, <span class="ident">Reader</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi</span>::<span class="ident">OsStr</span>, <span class="ident">io</span>::<span class="ident">BufReader</span>, <span class="ident">mem</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">fs</span>::<span class="ident">File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io</span>::<span class="ident">AsyncReadExt</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">fs</span>::<span class="ident">File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io</span>::<span class="ident">AsyncReadExt</span>};
 
 <span class="doccomment">/// Creates a streamed audio source from a DCA file.</span>
 <span class="doccomment">/// Currently only accepts the [DCA1 format](https://github.com/bwmarrin/dca).</span>

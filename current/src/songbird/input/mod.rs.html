@@ -593,6 +593,9 @@
 <span id="592">592</span>
 <span id="593">593</span>
 <span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Raw audio input data streams and sources.</span>
 <span class="doccomment">//!</span>
@@ -654,7 +657,10 @@
 <span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>, <span class="ident">WriteBytesExt</span>};
 <span class="kw">use</span> <span class="ident">cached</span>::<span class="ident">OpusCompressor</span>;
 <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">convert</span>::<span class="ident">TryFrom</span>,

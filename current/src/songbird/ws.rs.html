@@ -207,6 +207,18 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// FIXME: this is copied from serenity/src/internal/ws_impl.rs</span>
 <span class="comment">// To prevent this duplication, we either need to expose this on serenity&#39;s API</span>
@@ -216,14 +228,26 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">model</span>::<span class="ident">Event</span>;
 
 <span class="kw">use</span> <span class="ident">async_trait</span>::<span class="ident">async_trait</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">async_tungstenite</span>::{
+    <span class="self">self</span> <span class="kw">as</span> <span class="ident">tungstenite</span>,
+    <span class="ident">tokio</span>::<span class="ident">ConnectStream</span>,
+    <span class="ident">tungstenite</span>::{<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">TungsteniteError</span>, <span class="ident">protocol</span>::<span class="ident">CloseFrame</span>, <span class="ident">Message</span>},
+    <span class="ident">WebSocketStream</span>,
+};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">async_tungstenite_compat</span>::{
+    <span class="self">self</span> <span class="kw">as</span> <span class="ident">tungstenite</span>,
     <span class="ident">tokio</span>::<span class="ident">ConnectStream</span>,
     <span class="ident">tungstenite</span>::{<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">TungsteniteError</span>, <span class="ident">protocol</span>::<span class="ident">CloseFrame</span>, <span class="ident">Message</span>},
     <span class="ident">WebSocketStream</span>,
 };
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">SinkExt</span>, <span class="ident">StreamExt</span>, <span class="ident">TryStreamExt</span>};
 <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>;
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">time</span>::<span class="ident">timeout</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">time</span>::{<span class="ident">timeout</span>, <span class="ident">Duration</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">time</span>::{<span class="ident">timeout</span>, <span class="ident">Duration</span>};
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">instrument</span>, <span class="ident">warn</span>};
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">WsStream</span> <span class="op">=</span> <span class="ident">WebSocketStream</span><span class="op">&lt;</span><span class="ident">ConnectStream</span><span class="op">&gt;</span>;
@@ -233,7 +257,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
     <span class="ident">Json</span>(<span class="ident">JsonError</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
     <span class="ident">Tls</span>(<span class="ident">RustlsError</span>),
 
     <span class="doccomment">/// The discord voice gateway does not support or offer zlib compression.</span>
@@ -251,7 +275,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RustlsError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">RustlsError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
         <span class="ident">Error</span>::<span class="ident">Tls</span>(<span class="ident">e</span>)
@@ -265,7 +289,7 @@
 }
 
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">stream</span>::<span class="ident">SplitSink</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">StdError</span>,
     <span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">FmtResult</span>},
@@ -287,7 +311,7 @@
 <span class="attribute">#[<span class="ident">async_trait</span>]</span>
 <span class="kw">impl</span> <span class="ident">ReceiverExt</span> <span class="kw">for</span> <span class="ident">WsStream</span> {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_json</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">TIMEOUT</span>: <span class="ident">tokio</span>::<span class="ident">time</span>::<span class="ident">Duration</span> <span class="op">=</span> <span class="ident">tokio</span>::<span class="ident">time</span>::<span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">500</span>);
+        <span class="kw">const</span> <span class="ident">TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">500</span>);
 
         <span class="kw">let</span> <span class="ident">ws_message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">timeout</span>(<span class="ident">TIMEOUT</span>, <span class="self">self</span>.<span class="ident">next</span>()).<span class="kw">await</span> {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">v</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
@@ -348,7 +372,7 @@
 <span class="doccomment">/// An error that occured while connecting over rustls</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RustlsError</span> {
     <span class="doccomment">/// An error with the handshake in tungstenite</span>
     <span class="ident">HandshakeError</span>,
@@ -356,14 +380,14 @@
     <span class="ident">Io</span>(<span class="ident">IoError</span>),
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">IoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RustlsError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">IoError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">RustlsError</span>::<span class="ident">Io</span>(<span class="ident">e</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">RustlsError</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FmtResult</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -374,7 +398,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
 <span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">RustlsError</span> {
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -384,12 +408,12 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
 <span class="attribute">#[<span class="ident">instrument</span>]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_rustls_client</span>(<span class="ident">url</span>: <span class="ident">Url</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WsStream</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">stream</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">async_tungstenite</span>::<span class="ident">tokio</span>::<span class="ident">connect_async_with_config</span>::<span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span>(
+    <span class="kw">let</span> (<span class="ident">stream</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tungstenite</span>::<span class="ident">tokio</span>::<span class="ident">connect_async_with_config</span>::<span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span>(
         <span class="ident">url</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">async_tungstenite</span>::<span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">WebSocketConfig</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">tungstenite</span>::<span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">WebSocketConfig</span> {
             <span class="ident">max_message_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_frame_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_send_queue</span>: <span class="prelude-val">None</span>,
@@ -401,12 +425,12 @@
     <span class="prelude-val">Ok</span>(<span class="ident">stream</span>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">instrument</span>]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_native_tls_client</span>(<span class="ident">url</span>: <span class="ident">Url</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WsStream</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">stream</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">async_tungstenite</span>::<span class="ident">tokio</span>::<span class="ident">connect_async_with_config</span>::<span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span>(
+    <span class="kw">let</span> (<span class="ident">stream</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tungstenite</span>::<span class="ident">tokio</span>::<span class="ident">connect_async_with_config</span>::<span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span>(
         <span class="ident">url</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">async_tungstenite</span>::<span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">WebSocketConfig</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">tungstenite</span>::<span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">WebSocketConfig</span> {
             <span class="ident">max_message_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_frame_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_send_queue</span>: <span class="prelude-val">None</span>,

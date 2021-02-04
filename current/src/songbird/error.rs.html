@@ -93,12 +93,12 @@
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">channel</span>::<span class="ident">mpsc</span>::<span class="ident">TrySendError</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serenity</span>::<span class="ident">gateway</span>::<span class="ident">InterMessage</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error</span>::<span class="ident">Error</span>, <span class="ident">fmt</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">twilight_gateway</span>::<span class="ident">shard</span>::<span class="ident">CommandError</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="doccomment">/// Error returned when a manager or call handler is</span>
 <span class="doccomment">/// unable to send messages over Discord&#39;s gateway.</span>
@@ -112,7 +112,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Call`]: crate::Call</span>
     <span class="ident">NoCall</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
     <span class="doccomment">/// The driver failed to establish a voice connection.</span>
     <span class="ident">Driver</span>(<span class="ident">ConnectionError</span>),
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
@@ -123,7 +123,7 @@
     <span class="ident">Twilight</span>(<span class="ident">CommandError</span>),
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Failed to Join Voice channel: &quot;</span>)<span class="question-mark">?</span>;
@@ -131,7 +131,7 @@
             <span class="ident">JoinError</span>::<span class="ident">Dropped</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;request was cancelled/dropped.&quot;</span>),
             <span class="ident">JoinError</span>::<span class="ident">NoSender</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;no gateway destination.&quot;</span>),
             <span class="ident">JoinError</span>::<span class="ident">NoCall</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;tried to leave a non-existent call.&quot;</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
             <span class="ident">JoinError</span>::<span class="ident">Driver</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;internal driver error {}.&quot;</span>, <span class="ident">t</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
             <span class="ident">JoinError</span>::<span class="ident">Serenity</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;serenity failure {}.&quot;</span>, <span class="ident">t</span>),
@@ -141,35 +141,35 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">JoinError</span> {}
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TrySendError</span><span class="op">&lt;</span><span class="ident">InterMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">TrySendError</span><span class="op">&lt;</span><span class="ident">InterMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">JoinError</span>::<span class="ident">Serenity</span>(<span class="ident">e</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CommandError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CommandError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">JoinError</span>::<span class="ident">Twilight</span>(<span class="ident">e</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ConnectionError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">ConnectionError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">JoinError</span>::<span class="ident">Driver</span>(<span class="ident">e</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="doccomment">/// Convenience type for Discord gateway error handling.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">JoinError</span><span class="op">&gt;</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">driver</span>::<span class="ident">connection</span>::<span class="ident">error</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">ConnectionError</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">ConnectionResult</span>},
     <span class="ident">tracks</span>::{<span class="ident">TrackError</span>, <span class="ident">TrackResult</span>},

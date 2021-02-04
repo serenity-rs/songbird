@@ -591,6 +591,9 @@
 <span id="590">590</span>
 <span id="591">591</span>
 <span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -612,7 +615,10 @@
 <span class="kw">use</span> <span class="ident">rand</span>::<span class="ident">random</span>;
 <span class="kw">use</span> <span class="ident">spin_sleep</span>::<span class="ident">SpinSleeper</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Instant</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">instrument</span>};
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::<span class="ident">TAG_SIZE</span>;
 

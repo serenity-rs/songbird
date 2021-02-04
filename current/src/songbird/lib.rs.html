@@ -129,41 +129,41 @@
 <span class="doccomment">//! [lavalink]: https://github.com/Frederikam/Lavalink</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">constants</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">driver</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">events</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">handler</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">id</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">info</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">input</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">manager</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">serenity</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">shards</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tracks</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">ws</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">opus</span>, <span class="ident">Bitrate</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">discortp</span> <span class="kw">as</span> <span class="ident">packet</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">serenity_voice_model</span> <span class="kw">as</span> <span class="ident">model</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">typemap_rev</span> <span class="kw">as</span> <span class="ident">typemap</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">use</span> <span class="ident">utils</span> <span class="kw">as</span> <span class="ident">test_utils</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">driver</span>::<span class="ident">Driver</span>,
     <span class="ident">events</span>::{<span class="ident">CoreEvent</span>, <span class="ident">Event</span>, <span class="ident">EventContext</span>, <span class="ident">EventHandler</span>, <span class="ident">TrackEvent</span>},
@@ -171,7 +171,7 @@
     <span class="ident">tracks</span>::<span class="ident">create_player</span>,
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">handler</span>::<span class="kw-2">*</span>, <span class="ident">manager</span>::<span class="kw-2">*</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>

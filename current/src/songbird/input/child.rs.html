@@ -78,6 +78,9 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -85,7 +88,10 @@
     <span class="ident">mem</span>,
     <span class="ident">process</span>::<span class="ident">Child</span>,
 };
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">debug</span>;
 
 <span class="doccomment">/// Handle for a child process which ensures that any subprocesses are properly closed</span>

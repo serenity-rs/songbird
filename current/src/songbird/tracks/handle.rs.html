@@ -252,6 +252,9 @@
 <span id="251">251</span>
 <span id="252">252</span>
 <span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -260,7 +263,10 @@
 };
 <span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::<span class="ident">RwLock</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">sync</span>::<span class="ident">RwLock</span>;
 <span class="kw">use</span> <span class="ident">typemap_rev</span>::<span class="ident">TypeMap</span>;
 <span class="kw">use</span> <span class="ident">uuid</span>::<span class="ident">Uuid</span>;
 

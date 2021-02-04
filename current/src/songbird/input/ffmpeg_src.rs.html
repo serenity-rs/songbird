@@ -158,6 +158,9 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">children_to_reader</span>,
@@ -172,7 +175,10 @@
     <span class="ident">ffi</span>::<span class="ident">OsStr</span>,
     <span class="ident">process</span>::{<span class="ident">Command</span>, <span class="ident">Stdio</span>},
 };
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">process</span>::<span class="ident">Command</span> <span class="kw">as</span> <span class="ident">TokioCommand</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">process</span>::<span class="ident">Command</span> <span class="kw">as</span> <span class="ident">TokioCommand</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">debug</span>;
 
 <span class="doccomment">/// Opens an audio file through `ffmpeg` and creates an audio source.</span>

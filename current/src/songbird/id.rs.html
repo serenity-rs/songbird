@@ -123,7 +123,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Newtypes around Discord IDs for library cross-compatibility.</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">model</span>::<span class="ident">id</span>::{<span class="ident">GuildId</span> <span class="kw">as</span> <span class="ident">DriverGuild</span>, <span class="ident">UserId</span> <span class="kw">as</span> <span class="ident">DriverUser</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serenity</span>::<span class="ident">model</span>::<span class="ident">id</span>::{
@@ -196,7 +196,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">GuildId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DriverGuild</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="ident">GuildId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">id</span>.<span class="number">0</span>)
@@ -229,7 +229,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DriverUser</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="ident">UserId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">id</span>.<span class="number">0</span>)

@@ -231,6 +231,18 @@
 <span id="230">230</span>
 <span id="231">231</span>
 <span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -244,11 +256,23 @@
     },
     <span class="ident">ws</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">WsError</span>, <span class="ident">ReceiverExt</span>, <span class="ident">SenderExt</span>, <span class="ident">WsStream</span>},
 };
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">async_tungstenite</span>::<span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">frame</span>::<span class="ident">coding</span>::<span class="ident">CloseCode</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">async_tungstenite_compat</span>::<span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">frame</span>::<span class="ident">coding</span>::<span class="ident">CloseCode</span>;
 <span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Receiver</span>;
 <span class="kw">use</span> <span class="ident">rand</span>::<span class="ident">random</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">time</span>::{<span class="self">self</span>, <span class="ident">Instant</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident">tokio</span>::{
+    <span class="ident">select</span>,
+    <span class="ident">time</span>::{<span class="ident">sleep_until</span>, <span class="ident">Instant</span>},
+};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::{
+    <span class="ident">select</span>,
+    <span class="ident">time</span>::{<span class="ident">delay_until</span> <span class="kw">as</span> <span class="ident">sleep_until</span>, <span class="ident">Instant</span>},
+};
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
 
 <span class="kw">struct</span> <span class="ident">AuxNetwork</span> {
@@ -291,9 +315,9 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ws_error</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">should_reconnect</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-            <span class="kw">let</span> <span class="ident">hb</span> <span class="op">=</span> <span class="ident">time</span>::<span class="ident">sleep_until</span>(<span class="ident">next_heartbeat</span>);
+            <span class="kw">let</span> <span class="ident">hb</span> <span class="op">=</span> <span class="ident">sleep_until</span>(<span class="ident">next_heartbeat</span>);
 
-            <span class="ident">tokio</span>::<span class="macro">select</span><span class="macro">!</span> {
+            <span class="macro">select</span><span class="macro">!</span> {
                 <span class="kw">_</span> <span class="op">=</span> <span class="ident">hb</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">ws_error</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">send_heartbeat</span>().<span class="kw">await</span> {
                         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {

@@ -321,6 +321,19 @@
 <span id="320">320</span>
 <span id="321">321</span>
 <span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 
@@ -343,15 +356,18 @@
 <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">net</span>::<span class="ident">IpAddr</span>, <span class="ident">str</span>::<span class="ident">FromStr</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>};
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">net</span>::<span class="ident">UdpSocket</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">net</span>::<span class="ident">UdpSocket</span>, <span class="ident">spawn</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">net</span>::<span class="ident">UdpSocket</span>, <span class="ident">spawn</span>};
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">info</span>, <span class="ident">instrument</span>};
 <span class="kw">use</span> <span class="ident">url</span>::<span class="ident">Url</span>;
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::{<span class="ident">aead</span>::<span class="ident">NewAead</span>, <span class="ident">XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
 <span class="kw">use</span> <span class="ident">ws</span>::<span class="ident">create_rustls_client</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">ws</span>::<span class="ident">create_native_tls_client</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Connection</span> {
@@ -367,10 +383,10 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">generate_url</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>.<span class="ident">endpoint</span>)<span class="question-mark">?</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">create_rustls_client</span>(<span class="ident">url</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)]</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">create_native_tls_client</span>(<span class="ident">url</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hello</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -421,7 +437,11 @@
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">CryptoModeUnavailable</span>);
         }
 
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
         <span class="kw">let</span> <span class="ident">udp</span> <span class="op">=</span> <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="string">&quot;0.0.0.0:0&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">udp</span> <span class="op">=</span> <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="string">&quot;0.0.0.0:0&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+
         <span class="ident">udp</span>.<span class="ident">connect</span>((<span class="ident">ready</span>.<span class="ident">ip</span>, <span class="ident">ready</span>.<span class="ident">port</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="comment">// Follow Discord&#39;s IP Discovery procedures, in case NAT tunnelling is needed.</span>
@@ -448,7 +468,7 @@
             }
 
             <span class="comment">// We could do something clever like binary search,</span>
-            <span class="comment">// but possibility of UDP spoofing preclueds us from</span>
+            <span class="comment">// but possibility of UDP spoofing precludes us from</span>
             <span class="comment">// making the assumption we can find a &quot;left edge&quot; of &#39;\0&#39;s.</span>
             <span class="kw">let</span> <span class="ident">nul_byte_index</span> <span class="op">=</span> <span class="ident">view</span>
                 .<span class="ident">get_address_raw</span>()
@@ -486,8 +506,14 @@
         <span class="kw">let</span> (<span class="ident">udp_sender_msg_tx</span>, <span class="ident">udp_sender_msg_rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
         <span class="kw">let</span> (<span class="ident">udp_receiver_msg_tx</span>, <span class="ident">udp_receiver_msg_rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
 
-        <span class="kw">let</span> <span class="ident">udp_rx</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">udp</span>);
-        <span class="kw">let</span> <span class="ident">udp_tx</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">udp_rx</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
+        <span class="kw">let</span> (<span class="ident">udp_rx</span>, <span class="ident">udp_tx</span>) <span class="op">=</span> {
+            <span class="kw">let</span> <span class="ident">udp_rx</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">udp</span>);
+            <span class="kw">let</span> <span class="ident">udp_tx</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">udp_rx</span>);
+            (<span class="ident">udp_rx</span>, <span class="ident">udp_tx</span>)
+        };
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
+        <span class="kw">let</span> (<span class="ident">udp_rx</span>, <span class="ident">udp_tx</span>) <span class="op">=</span> <span class="ident">udp</span>.<span class="ident">split</span>();
 
         <span class="kw">let</span> <span class="ident">ssrc</span> <span class="op">=</span> <span class="ident">ready</span>.<span class="ident">ssrc</span>;
 
@@ -506,7 +532,7 @@
             .<span class="ident">mixer</span>
             .<span class="ident">send</span>(<span class="ident">MixerMessage</span>::<span class="ident">SetConn</span>(<span class="ident">mix_conn</span>, <span class="ident">ready</span>.<span class="ident">ssrc</span>))<span class="question-mark">?</span>;
 
-        <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="ident">ws_task</span>::<span class="ident">runner</span>(
+        <span class="ident">spawn</span>(<span class="ident">ws_task</span>::<span class="ident">runner</span>(
             <span class="ident">interconnect</span>.<span class="ident">clone</span>(),
             <span class="ident">ws_msg_rx</span>,
             <span class="ident">client</span>,
@@ -514,14 +540,14 @@
             <span class="ident">hello</span>.<span class="ident">heartbeat_interval</span>,
         ));
 
-        <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="ident">udp_rx</span>::<span class="ident">runner</span>(
+        <span class="ident">spawn</span>(<span class="ident">udp_rx</span>::<span class="ident">runner</span>(
             <span class="ident">interconnect</span>.<span class="ident">clone</span>(),
             <span class="ident">udp_receiver_msg_rx</span>,
             <span class="ident">cipher</span>,
             <span class="ident">config</span>.<span class="ident">clone</span>(),
             <span class="ident">udp_rx</span>,
         ));
-        <span class="ident">tokio</span>::<span class="ident">spawn</span>(<span class="ident">udp_tx</span>::<span class="ident">runner</span>(<span class="ident">udp_sender_msg_rx</span>, <span class="ident">ssrc</span>, <span class="ident">udp_tx</span>));
+        <span class="ident">spawn</span>(<span class="ident">udp_tx</span>::<span class="ident">runner</span>(<span class="ident">udp_sender_msg_rx</span>, <span class="ident">ssrc</span>, <span class="ident">udp_tx</span>));
 
         <span class="prelude-val">Ok</span>(<span class="ident">Connection</span> {
             <span class="ident">info</span>,
@@ -536,10 +562,10 @@
         <span class="comment">// Thread may have died, we want to send to prompt a clean exit</span>
         <span class="comment">// (if at all possible) and then proceed as normal.</span>
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">create_rustls_client</span>(<span class="ident">url</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)]</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">create_native_tls_client</span>(<span class="ident">url</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="ident">client</span>

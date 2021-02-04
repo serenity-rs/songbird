@@ -356,7 +356,7 @@
 <span id="355">355</span>
 <span id="356">356</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">driver</span>::{<span class="ident">Config</span>, <span class="ident">Driver</span>},
     <span class="ident">error</span>::<span class="ident">ConnectionResult</span>,
@@ -371,13 +371,13 @@
 <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">json</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">instrument</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Return</span> {
     <span class="ident">Info</span>(<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">ConnectionInfo</span><span class="op">&gt;</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
     <span class="ident">Conn</span>(<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">ConnectionResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>),
 }
 
@@ -392,7 +392,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Call</span> {
     <span class="ident">connection</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ChannelId</span>, <span class="ident">ConnectionProgress</span>, <span class="ident">Return</span>)<span class="op">&gt;</span>,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
     <span class="doccomment">/// The internal controller of the voice connection monitor thread.</span>
     <span class="ident">driver</span>: <span class="ident">Driver</span>,
 
@@ -422,7 +422,7 @@
         <span class="self">Self</span>::<span class="ident">new_raw</span>(<span class="ident">guild_id</span>, <span class="prelude-val">Some</span>(<span class="ident">ws</span>), <span class="ident">user_id</span>)
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
     <span class="doccomment">/// Creates a new Call, configuring the driver as specified.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">instrument</span>]</span>
@@ -449,7 +449,7 @@
         <span class="self">Self</span>::<span class="ident">new_raw</span>(<span class="ident">guild_id</span>, <span class="prelude-val">None</span>, <span class="ident">user_id</span>)
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
     <span class="doccomment">/// Creates a new standalone Call, configuring the driver as specified.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">instrument</span>]</span>
@@ -464,7 +464,7 @@
     <span class="kw">fn</span> <span class="ident">new_raw</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shard</span><span class="op">&gt;</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Call</span> {
             <span class="ident">connection</span>: <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
             <span class="ident">driver</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
             <span class="ident">guild_id</span>,
             <span class="ident">self_deaf</span>: <span class="bool-val">false</span>,
@@ -474,7 +474,7 @@
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">new_raw_cfg</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shard</span><span class="op">&gt;</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>, <span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Call</span> {
             <span class="ident">connection</span>: <span class="prelude-val">None</span>,
@@ -494,7 +494,7 @@
                 <span class="comment">// It&#39;s okay if the receiver hung up.</span>
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">c</span>.<span class="ident">clone</span>());
             },
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
             <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ConnectionProgress</span>::<span class="ident">Complete</span>(<span class="ident">c</span>), <span class="ident">Return</span>::<span class="ident">Conn</span>(<span class="ident">tx</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">raw_connect</span>(<span class="ident">c</span>.<span class="ident">clone</span>(), <span class="ident">tx</span>.<span class="ident">clone</span>());
             },
@@ -529,7 +529,7 @@
         <span class="self">self</span>.<span class="ident">self_deaf</span>
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
     <span class="doccomment">/// Connect or switch to the given voice channel by its Id.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function acts as a future in two stages:</span>
@@ -603,7 +603,7 @@
         <span class="comment">// Only send an update if we were in a voice channel.</span>
         <span class="self">self</span>.<span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">leave</span>();
 
         <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>
@@ -622,7 +622,7 @@
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">mute</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mute</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">self_mute</span> <span class="op">=</span> <span class="ident">mute</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
         <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">mute</span>(<span class="ident">mute</span>);
 
         <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>
@@ -697,7 +697,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Call</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Driver</span>;
 
@@ -706,7 +706,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">Call</span> {
     <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">driver</span>
