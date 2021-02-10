@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.4] — 2021-02-10
+
+This patch release updates introduces a new event type, to expose a driver's SSRC externally on connect.
+
+Thanks to the following for their contributions:
+
+- [@FelixMcFelix]
+
+### Added
+
+- [events] Events: Add `SsrcKnown` event ([@FelixMcFelix]) [c:f3f5242]
+- [misc] Chore: Add missing changelog notes for 0.1.3 ([@FelixMcFelix]) [c:0e860dc]
+
+### Changed
+
+- [deps] Deps: Update async-tungstenite -> 0.12 ([@FelixMcFelix]) [c:a40fac3]
+
 ## [0.1.3] — 2021-02-04
 
 This patch release corrects the process drop logic to cleanup *all* chained child processes, and for `Input`s to be safe to drop in async contexts. Additionally, this adds backwards-compatibility for Tokio 0.2 in serenity-based bots.
@@ -144,6 +161,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.1.4]: https://github.com/serenity-rs/songbird/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/serenity-rs/songbird/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/serenity-rs/songbird/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/serenity-rs/songbird/compare/v0.1.0...v0.1.1
@@ -179,6 +197,9 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:f3f5242]: https://github.com/serenity-rs/songbird/commit/f3f52427eaab6fff9f1138eb0bb0185d8efb38b7
+[c:0e860dc]: https://github.com/serenity-rs/songbird/commit/0e860dc29d2c412c50aae306f9bf89cea9b507e4
+[c:a40fac3]: https://github.com/serenity-rs/songbird/commit/a40fac310951a0440e654781f9b148ee6c037b3d
 [c:1863d39]: https://github.com/serenity-rs/songbird/commit/1863d39356b2d2c21e0ce60907616b43c4041b67
 [c:aaab975]: https://github.com/serenity-rs/songbird/commit/aaab97511dcf581fb0360adce8f6dc9963341852
 [c:b245309]: https://github.com/serenity-rs/songbird/commit/b2453091e726772802b216a477841b816a137718
