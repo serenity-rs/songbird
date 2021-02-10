@@ -69,9 +69,9 @@ pub enum EventContext<'a> {
     ClientConnect(ClientConnect),
     /// Fired whenever a client disconnects.
     ClientDisconnect(ClientDisconnect),
-    /// Fires when this driver successully connects to a voice channel.
+    /// Fires when this driver successfully connects to a voice channel.
     DriverConnect,
-    /// Fires when this driver successful reconnects after a network error.
+    /// Fires when this driver successfully reconnects after a network error.
     DriverReconnect,
     /// Fires when this driver fails to connect to a voice channel.
     DriverConnectFailed,
@@ -79,6 +79,15 @@ pub enum EventContext<'a> {
     ///
     /// Users will need to manually reconnect on receipt of this error.
     DriverReconnectFailed,
+    /// Fires whenever the driver is assigned a new [RTP SSRC] by the voice server.
+    ///
+    /// This typically fires alongside a [DriverConnect], or a full [DriverReconnect].
+    ///
+    /// [RTP SSRC]: https://tools.ietf.org/html/rfc3550#section-3
+    /// [DriverConnect]: Self::DriverConnect
+    /// [DriverReconnect]: Self::DriverReconnect
+    // TODO: move assigned SSRC into payload of Driver(Re)Connect as part of next breaking, and deprecate this.
+    SsrcKnown(u32),
 }
 
 #[derive(Clone, Debug)]
@@ -105,6 +114,7 @@ pub enum CoreContext {
     DriverReconnect,
     DriverConnectFailed,
     DriverReconnectFailed,
+    SsrcKnown(u32),
 }
 
 impl<'a> CoreContext {
@@ -143,6 +153,7 @@ impl<'a> CoreContext {
             DriverReconnect => EventContext::DriverReconnect,
             DriverConnectFailed => EventContext::DriverConnectFailed,
             DriverReconnectFailed => EventContext::DriverReconnectFailed,
+            SsrcKnown(s) => EventContext::SsrcKnown(*s),
         }
     }
 }
@@ -164,6 +175,7 @@ impl EventContext<'_> {
             DriverReconnect => Some(CoreEvent::DriverReconnect),
             DriverConnectFailed => Some(CoreEvent::DriverConnectFailed),
             DriverReconnectFailed => Some(CoreEvent::DriverReconnectFailed),
+            SsrcKnown(_) => Some(CoreEvent::SsrcKnown),
             _ => None,
         }
     }

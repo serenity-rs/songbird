@@ -29,9 +29,9 @@ pub enum CoreEvent {
     ClientConnect,
     /// Fires whenever a user disconnects from the same stream as the bot.
     ClientDisconnect,
-    /// Fires when this driver successully connects to a voice channel.
+    /// Fires when this driver successfully connects to a voice channel.
     DriverConnect,
-    /// Fires when this driver successful reconnects after a network error.
+    /// Fires when this driver successfully reconnects after a network error.
     DriverReconnect,
     /// Fires when this driver fails to connect to a voice channel.
     DriverConnectFailed,
@@ -39,4 +39,13 @@ pub enum CoreEvent {
     ///
     /// Users will need to manually reconnect on receipt of this error.
     DriverReconnectFailed,
+    /// Fires whenever the driver is assigned a new [RTP SSRC] by the voice server.
+    ///
+    /// This typically fires alongside a [DriverConnect], or a full [DriverReconnect].
+    ///
+    /// [RTP SSRC]: https://tools.ietf.org/html/rfc3550#section-3
+    /// [DriverConnect]: Self::DriverConnect
+    /// [DriverReconnect]: Self::DriverReconnect
+    // TODO: deprecate in next breaking after fusing with Driver(Re)Connect.
+    SsrcKnown,
 }
