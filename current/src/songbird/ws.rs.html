@@ -219,6 +219,8 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// FIXME: this is copied from serenity/src/internal/ws_impl.rs</span>
 <span class="comment">// To prevent this duplication, we either need to expose this on serenity&#39;s API</span>
@@ -417,6 +419,7 @@
             <span class="ident">max_message_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_frame_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_send_queue</span>: <span class="prelude-val">None</span>,
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
         }),
     )
     .<span class="kw">await</span>
@@ -434,6 +437,7 @@
             <span class="ident">max_message_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_frame_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">max_send_queue</span>: <span class="prelude-val">None</span>,
+            ..<span class="ident">Default</span>::<span class="ident">default</span>()
         }),
     )
     .<span class="kw">await</span><span class="question-mark">?</span>;
