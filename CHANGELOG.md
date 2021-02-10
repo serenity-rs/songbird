@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.3] — 2021-02-04
+
+This patch release corrects the process drop logic to cleanup *all* chained child processes, and for `Input`s to be safe to drop in async contexts. Additionally, this adds backwards-compatibility for Tokio 0.2 in serenity-based bots.
+
+Thanks to the following for their contributions:
+
+- [@FelixMcFelix]
+
+### Added
+
+- [deps] Chore + Deps: Add the `log` feature to tracing ([@FelixMcFelix]) [c:1863d39]
+- [driver] Library: Add compatibility for legacy Tokio 0.2 (#40) ([@FelixMcFelix]) [c:aaab975]
+
+### Fixed
+
+- [input] Fix: hand off process killing to blocking thread, await all children. ([@FelixMcFelix]) [c:b245309]
+
 ## [0.1.2] — 2021-01-26
 
 This patch release fixes a PID/zombie process leak affecting bots running on Linux/Mac, and prevents youtube-dl warnings from being converted into fatal errors.
@@ -127,6 +144,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.1.3]: https://github.com/serenity-rs/songbird/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/serenity-rs/songbird/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/serenity-rs/songbird/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/serenity-rs/songbird/compare/v0.0.1...v0.1.0
@@ -161,6 +179,9 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:1863d39]: https://github.com/serenity-rs/songbird/commit/1863d39356b2d2c21e0ce60907616b43c4041b67
+[c:aaab975]: https://github.com/serenity-rs/songbird/commit/aaab97511dcf581fb0360adce8f6dc9963341852
+[c:b245309]: https://github.com/serenity-rs/songbird/commit/b2453091e726772802b216a477841b816a137718
 [c:a0e905a]: https://github.com/serenity-rs/songbird/commit/a0e905a83fc83b6eb0b8fa26340572cd15eefc35
 [c:196d5be]: https://github.com/serenity-rs/songbird/commit/196d5be3d24032e671a93ff1611fb0164b20f5da
 [c:fe2282c]: https://github.com/serenity-rs/songbird/commit/fe2282cfde6033a869b78fa4689926258bd6d180
