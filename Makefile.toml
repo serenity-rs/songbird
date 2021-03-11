@@ -1,0 +1,23 @@
+[tasks.format]
+toolchain = "nightly"
+install_crate = { crate_name = "rustfmt-nightly", rustup_component_name = "rustfmt-preview", binary = "rustfmt", test_arg = "--help" }
+command = "cargo"
+args = ["fmt", "--all"]
+
+[tasks.build]
+args = ["build", "--features", "full-doc"]
+dependencies = ["format"]
+
+[tasks.clippy]
+toolchain = "nightly"
+args = ["clippy", "--features", "full-doc"]
+dependencies = ["format"]
+
+[tasks.test]
+args = ["test", "--features", "full-doc"]
+
+[tasks.bench]
+description = "Runs performance benchmarks."
+category = "Test"
+command = "cargo"
+args = ["bench", "--features", "internals,full-doc"]
