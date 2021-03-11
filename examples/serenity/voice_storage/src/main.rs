@@ -9,7 +9,7 @@
 //! git = "https://github.com/serenity-rs/serenity.git"
 //! features = ["cache", "framework", "standard_framework", "voice"]
 //! ```
-use std::{collections::HashMap, convert::TryInto, env, sync::Arc};
+use std::{collections::HashMap, convert::TryInto, env, sync::{Arc, Weak}};
 
 use serenity::{
     async_trait,
@@ -206,7 +206,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
 
     let (handler_lock, success_reader) = manager.join(guild_id, connect_to).await;
 
-    let call_lock_for_evt = handler_lock.clone();
+    let call_lock_for_evt = Arc::downgrade(&handler_lock);
 
     if let Ok(_reader) = success_reader {
         let mut handler = handler_lock.lock().await;
@@ -237,21 +237,23 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 struct LoopPlaySound {
-    call_lock: Arc<Mutex<Call>>,
+    call_lock: Weak<Mutex<Call>>,
     sources: Arc<Mutex<HashMap<String, CachedSound>>>,
 }
 
 #[async_trait]
 impl VoiceEventHandler for LoopPlaySound {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
-        let src = {
-            let sources = self.sources.lock().await;
-            sources.get("loop").expect("Handle placed into cache at startup.").into()
-        };
+        if let Some(call_lock) = self.call_lock.upgrade() {
+            let src = {
+                let sources = self.sources.lock().await;
+                sources.get("loop").expect("Handle placed into cache at startup.").into()
+            };
 
-        let mut handler = self.call_lock.lock().await;
-        let sound = handler.play_source(src);
-        let _ = sound.set_volume(0.5);
+            let mut handler = call_lock.lock().await;
+            let sound = handler.play_source(src);
+            let _ = sound.set_volume(0.5);
+        }
 
         None
     }
