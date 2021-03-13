@@ -186,7 +186,7 @@ where
                 .unwrap_or_else(|_e| (false, Default::default()));
             let stereo_val = if is_stereo.0 { "2" } else { "1" };
 
-            let ts = format!("{}.{}", time.as_secs(), time.subsec_millis());
+            let ts = format!("{:.3}", time.as_secs_f64());
             _ffmpeg_optioned(
                 self.path.as_ref(),
                 &["-ss", &ts],
@@ -230,7 +230,7 @@ where
 {
     async fn call_restart(&mut self, time: Option<Duration>) -> Result<Input> {
         if let Some(time) = time {
-            let ts = format!("{}.{}", time.as_secs(), time.subsec_millis());
+            let ts = format!("{:.3}", time.as_secs_f64());
 
             _ytdl(self.uri.as_ref(), &["-ss", &ts]).await
         } else {
