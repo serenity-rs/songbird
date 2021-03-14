@@ -594,6 +594,45 @@
 <span id="593">593</span>
 <span id="594">594</span>
 <span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -706,129 +745,52 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conn_failure</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <span class="lifetime">&#39;runner</span>: <span class="kw">loop</span> {
-            <span class="kw">loop</span> {
-                <span class="kw">use</span> <span class="ident">MixerMessage</span>::<span class="kw-2">*</span>;
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn_active</span>.<span class="ident">is_some</span>() {
+                <span class="kw">loop</span> {
+                    <span class="kw">use</span> <span class="ident">MixerMessage</span>::<span class="kw-2">*</span>;
 
-                <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mix_rx</span>.<span class="ident">try_recv</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">AddTrack</span>(<span class="kw-2">mut</span> <span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">t</span>.<span class="ident">source</span>.<span class="ident">prep_with_handle</span>(<span class="self">self</span>.<span class="ident">async_handle</span>.<span class="ident">clone</span>());
-                        <span class="self">self</span>.<span class="ident">add_track</span>(<span class="ident">t</span>)
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">SetTrack</span>(<span class="ident">t</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">clear</span>();
+                    <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mix_rx</span>.<span class="ident">try_recv</span>() {
+                        <span class="prelude-val">Ok</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">let</span> (<span class="ident">events</span>, <span class="ident">conn</span>, <span class="ident">should_exit</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_message</span>(<span class="ident">m</span>);
+                            <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">events</span>;
+                            <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">conn</span>;
 
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage</span>::<span class="ident">RemoveAllTracks</span>);
-
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">t</span>) <span class="op">=</span> <span class="ident">t</span> {
-                            <span class="ident">t</span>.<span class="ident">source</span>.<span class="ident">prep_with_handle</span>(<span class="self">self</span>.<span class="ident">async_handle</span>.<span class="ident">clone</span>());
-
-                            <span class="comment">// Do this unconditionally: this affects local state infallibly,</span>
-                            <span class="comment">// with the event installation being the remote part.</span>
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_track</span>(<span class="ident">t</span>) {
-                                <span class="ident">out</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
+                            <span class="kw">if</span> <span class="ident">should_exit</span> {
+                                <span class="kw">break</span> <span class="lifetime">&#39;runner</span>;
                             }
-                        }
-
-                        <span class="ident">out</span>
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">SetBitrate</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">bitrate</span> <span class="op">=</span> <span class="ident">b</span>;
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">set_bitrate</span>(<span class="ident">b</span>) {
-                            <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to update bitrate {:?}&quot;</span>, <span class="ident">e</span>);
-                        }
-                        <span class="prelude-val">Ok</span>(())
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">SetMute</span>(<span class="ident">m</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">muted</span> <span class="op">=</span> <span class="ident">m</span>;
-                        <span class="prelude-val">Ok</span>(())
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">SetConn</span>(<span class="ident">conn</span>, <span class="ident">ssrc</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">conn_active</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>);
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
-                            <span class="string">&quot;Too few bytes in self.packet for RTP header.\
-                                (Blame: VOICE_PACKET_MAX?)&quot;</span>,
-                        );
-                        <span class="ident">rtp</span>.<span class="ident">set_ssrc</span>(<span class="ident">ssrc</span>);
-                        <span class="ident">rtp</span>.<span class="ident">set_sequence</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>().<span class="ident">into</span>());
-                        <span class="ident">rtp</span>.<span class="ident">set_timestamp</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">into</span>());
-                        <span class="self">self</span>.<span class="ident">deadline</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>();
-                        <span class="prelude-val">Ok</span>(())
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">DropConn</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">conn_active</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                        <span class="prelude-val">Ok</span>(())
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">prevent_events</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ws</span> {
-                            <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span>
-                                <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage</span>::<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>.<span class="ident">clone</span>())).<span class="ident">is_err</span>();
-                        }
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">conn_active</span> {
-                            <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">conn</span>
-                                .<span class="ident">udp_rx</span>
-                                .<span class="ident">send</span>(<span class="ident">UdpRxMessage</span>::<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>.<span class="ident">clone</span>()))
-                                .<span class="ident">is_err</span>();
-                        }
-                        <span class="self">self</span>.<span class="ident">interconnect</span> <span class="op">=</span> <span class="ident">i</span>;
-
-                        <span class="self">self</span>.<span class="ident">rebuild_tracks</span>()
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">SetConfig</span>(<span class="ident">new_config</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">config</span> <span class="op">=</span> <span class="ident">new_config</span>.<span class="ident">clone</span>();
-
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">capacity</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">preallocated_tracks</span> {
-                            <span class="self">self</span>.<span class="ident">tracks</span>
-                                .<span class="ident">reserve</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">preallocated_tracks</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">len</span>());
-                        }
-
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">conn_active</span> {
-                            <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">conn</span>
-                                .<span class="ident">udp_rx</span>
-                                .<span class="ident">send</span>(<span class="ident">UdpRxMessage</span>::<span class="ident">SetConfig</span>(<span class="ident">new_config</span>))
-                                .<span class="ident">is_err</span>();
-                        }
-
-                        <span class="prelude-val">Ok</span>(())
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">RebuildEncoder</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">new_encoder</span>(<span class="self">self</span>.<span class="ident">bitrate</span>) {
-                        <span class="prelude-val">Ok</span>(<span class="ident">encoder</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="self">self</span>.<span class="ident">encoder</span> <span class="op">=</span> <span class="ident">encoder</span>;
-                            <span class="prelude-val">Ok</span>(())
                         },
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to rebuild encoder. Resetting bitrate. {:?}&quot;</span>, <span class="ident">e</span>);
-                            <span class="self">self</span>.<span class="ident">bitrate</span> <span class="op">=</span> <span class="ident">DEFAULT_BITRATE</span>;
-                            <span class="self">self</span>.<span class="ident">encoder</span> <span class="op">=</span> <span class="ident">new_encoder</span>(<span class="self">self</span>.<span class="ident">bitrate</span>)
-                                .<span class="ident">expect</span>(<span class="string">&quot;Failed fallback rebuild of OpusEncoder with safe inputs.&quot;</span>);
-                            <span class="prelude-val">Ok</span>(())
+
+                        <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Disconnected</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">break</span> <span class="lifetime">&#39;runner</span>;
                         },
-                    },
-                    <span class="prelude-val">Ok</span>(<span class="ident">Ws</span>(<span class="ident">new_ws_handle</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">ws</span> <span class="op">=</span> <span class="ident">new_ws_handle</span>;
-                        <span class="prelude-val">Ok</span>(())
-                    },
 
-                    <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Disconnected</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Poison</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">break</span> <span class="lifetime">&#39;runner</span>;
-                    },
+                        <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">break</span>;
+                        },
+                    };
+                }
 
-                    <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">break</span>;
-                    },
-                };
-
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">error</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cycle</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">audio_commands_events</span>()) {
                     <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
                     <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
+
+                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
                 }
-            }
+            } <span class="kw">else</span> {
+                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mix_rx</span>.<span class="ident">recv</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">let</span> (<span class="ident">events</span>, <span class="ident">conn</span>, <span class="ident">should_exit</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_message</span>(<span class="ident">m</span>);
+                        <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">events</span>;
+                        <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">conn</span>;
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cycle</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">audio_commands_events</span>()) {
-                <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
-                <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
-
-                <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
+                        <span class="kw">if</span> <span class="ident">should_exit</span> {
+                            <span class="kw">break</span> <span class="lifetime">&#39;runner</span>;
+                        }
+                    },
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">break</span> <span class="lifetime">&#39;runner</span>;
+                    },
+                }
             }
 
             <span class="comment">// event failure? rebuild interconnect.</span>
@@ -861,6 +823,126 @@
                 }
             }
         }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">handle_message</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">MixerMessage</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">bool</span>, <span class="ident">bool</span>, <span class="ident">bool</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">events_failure</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conn_failure</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">should_exit</span> <span class="op">=</span> <span class="bool-val">false</span>;
+
+        <span class="kw">use</span> <span class="ident">MixerMessage</span>::<span class="kw-2">*</span>;
+
+        <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">msg</span> {
+            <span class="ident">AddTrack</span>(<span class="kw-2">mut</span> <span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">t</span>.<span class="ident">source</span>.<span class="ident">prep_with_handle</span>(<span class="self">self</span>.<span class="ident">async_handle</span>.<span class="ident">clone</span>());
+                <span class="self">self</span>.<span class="ident">add_track</span>(<span class="ident">t</span>)
+            },
+            <span class="ident">SetTrack</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">clear</span>();
+
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage</span>::<span class="ident">RemoveAllTracks</span>);
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">t</span>) <span class="op">=</span> <span class="ident">t</span> {
+                    <span class="ident">t</span>.<span class="ident">source</span>.<span class="ident">prep_with_handle</span>(<span class="self">self</span>.<span class="ident">async_handle</span>.<span class="ident">clone</span>());
+
+                    <span class="comment">// Do this unconditionally: this affects local state infallibly,</span>
+                    <span class="comment">// with the event installation being the remote part.</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_track</span>(<span class="ident">t</span>) {
+                        <span class="ident">out</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
+                    }
+                }
+
+                <span class="ident">out</span>
+            },
+            <span class="ident">SetBitrate</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">bitrate</span> <span class="op">=</span> <span class="ident">b</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">set_bitrate</span>(<span class="ident">b</span>) {
+                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to update bitrate {:?}&quot;</span>, <span class="ident">e</span>);
+                }
+                <span class="prelude-val">Ok</span>(())
+            },
+            <span class="ident">SetMute</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">muted</span> <span class="op">=</span> <span class="ident">m</span>;
+                <span class="prelude-val">Ok</span>(())
+            },
+            <span class="ident">SetConn</span>(<span class="ident">conn</span>, <span class="ident">ssrc</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">conn_active</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+                    <span class="string">&quot;Too few bytes in self.packet for RTP header.\
+                        (Blame: VOICE_PACKET_MAX?)&quot;</span>,
+                );
+                <span class="ident">rtp</span>.<span class="ident">set_ssrc</span>(<span class="ident">ssrc</span>);
+                <span class="ident">rtp</span>.<span class="ident">set_sequence</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>().<span class="ident">into</span>());
+                <span class="ident">rtp</span>.<span class="ident">set_timestamp</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">into</span>());
+                <span class="self">self</span>.<span class="ident">deadline</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>();
+                <span class="prelude-val">Ok</span>(())
+            },
+            <span class="ident">DropConn</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">conn_active</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <span class="prelude-val">Ok</span>(())
+            },
+            <span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">prevent_events</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ws</span> {
+                    <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage</span>::<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>.<span class="ident">clone</span>())).<span class="ident">is_err</span>();
+                }
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">conn_active</span> {
+                    <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">conn</span>
+                        .<span class="ident">udp_rx</span>
+                        .<span class="ident">send</span>(<span class="ident">UdpRxMessage</span>::<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>.<span class="ident">clone</span>()))
+                        .<span class="ident">is_err</span>();
+                }
+                <span class="self">self</span>.<span class="ident">interconnect</span> <span class="op">=</span> <span class="ident">i</span>;
+
+                <span class="self">self</span>.<span class="ident">rebuild_tracks</span>()
+            },
+            <span class="ident">SetConfig</span>(<span class="ident">new_config</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">config</span> <span class="op">=</span> <span class="ident">new_config</span>.<span class="ident">clone</span>();
+
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">capacity</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">preallocated_tracks</span> {
+                    <span class="self">self</span>.<span class="ident">tracks</span>
+                        .<span class="ident">reserve</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">preallocated_tracks</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">len</span>());
+                }
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">conn_active</span> {
+                    <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">conn</span>
+                        .<span class="ident">udp_rx</span>
+                        .<span class="ident">send</span>(<span class="ident">UdpRxMessage</span>::<span class="ident">SetConfig</span>(<span class="ident">new_config</span>))
+                        .<span class="ident">is_err</span>();
+                }
+
+                <span class="prelude-val">Ok</span>(())
+            },
+            <span class="ident">RebuildEncoder</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">new_encoder</span>(<span class="self">self</span>.<span class="ident">bitrate</span>) {
+                <span class="prelude-val">Ok</span>(<span class="ident">encoder</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="self">self</span>.<span class="ident">encoder</span> <span class="op">=</span> <span class="ident">encoder</span>;
+                    <span class="prelude-val">Ok</span>(())
+                },
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to rebuild encoder. Resetting bitrate. {:?}&quot;</span>, <span class="ident">e</span>);
+                    <span class="self">self</span>.<span class="ident">bitrate</span> <span class="op">=</span> <span class="ident">DEFAULT_BITRATE</span>;
+                    <span class="self">self</span>.<span class="ident">encoder</span> <span class="op">=</span> <span class="ident">new_encoder</span>(<span class="self">self</span>.<span class="ident">bitrate</span>)
+                        .<span class="ident">expect</span>(<span class="string">&quot;Failed fallback rebuild of OpusEncoder with safe inputs.&quot;</span>);
+                    <span class="prelude-val">Ok</span>(())
+                },
+            },
+            <span class="ident">Ws</span>(<span class="ident">new_ws_handle</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">ws</span> <span class="op">=</span> <span class="ident">new_ws_handle</span>;
+                <span class="prelude-val">Ok</span>(())
+            },
+            <span class="ident">Poison</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">should_exit</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <span class="prelude-val">Ok</span>(())
+            },
+        };
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">error</span> {
+            <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
+            <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
+        }
+
+        (<span class="ident">events_failure</span>, <span class="ident">conn_failure</span>, <span class="ident">should_exit</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -957,17 +1039,13 @@
             <span class="kw">return</span>;
         }
 
+        <span class="comment">// FIXME: make choice of spin-sleep/imprecise sleep optional in next breaking.</span>
         <span class="self">self</span>.<span class="ident">sleeper</span>
             .<span class="ident">sleep</span>(<span class="self">self</span>.<span class="ident">deadline</span>.<span class="ident">saturating_duration_since</span>(<span class="ident">Instant</span>::<span class="ident">now</span>()));
         <span class="self">self</span>.<span class="ident">deadline</span> <span class="op">+</span><span class="op">=</span> <span class="ident">TIMESTEP_LENGTH</span>;
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cycle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn_active</span>.<span class="ident">is_none</span>() {
-            <span class="self">self</span>.<span class="ident">march_deadline</span>();
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-        }
-
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mix_buffer</span> <span class="op">=</span> [<span class="number">0f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>];
 
         <span class="comment">// Walk over all the audio files, combining into one audio frame according</span>
