@@ -267,6 +267,9 @@ impl Songbird {
     /// associated voice channel, if connected.
     ///
     /// This will _not_ drop the handler, and will preserve it and its settings.
+    /// If you do not need to reuse event handlers, configuration, or active tracks
+    /// in the underlying driver *consider calling [`remove`]* to release tasks,
+    /// threads, and memory.
     ///
     /// This is a wrapper around [getting][`get`] a handler and calling
     /// [`leave`] on it.
@@ -274,6 +277,7 @@ impl Songbird {
     /// [`Call`]: Call
     /// [`get`]: Songbird::get
     /// [`leave`]: Call::leave
+    /// [`remove`]: Songbird::remove
     #[inline]
     pub async fn leave<G: Into<GuildId>>(&self, guild_id: G) -> JoinResult<()> {
         self._leave(guild_id.into()).await
