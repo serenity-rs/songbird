@@ -13,12 +13,12 @@ In many setups for instance, this comes through using a client-specific wrapper 
 Explain Songbird
 Explain Calls
 
-![](images/gateway.svg)
+![](images/gateway.png)
 
 # Driver
 
 ## Tasks
 
-![](images/driver.svg)
+![](images/driver.png)
 
 ## Input
