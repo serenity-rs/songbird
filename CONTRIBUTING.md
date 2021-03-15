@@ -57,7 +57,7 @@ Patches will be folded into more incremental patch updates (i.e., 1.3.2 -> 1.3.3
 
 ## Documentation and naming
 Doc-comments, comments, and item names should be written in British English where possible.
-All items (`structs`, `enums`, `fn`s, etc.) must be documented in full sentences; these are user-facing
+All items (`structs`, `enums`, `fn`s, etc.) must be documented in full sentences; these are user-facing, and other developers will naturally rely on them to write correct code and understand what the library can(not) do for them.
 Error conditions, reasons to prefer one method over another, and potential use risks should be explained to help library users write the best code they can.
 
 Code comments should be written similarly – this requirement is not as stringent, but focus on clarity and conciseness.
