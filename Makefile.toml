@@ -8,9 +8,31 @@ args = ["fmt", "--all"]
 args = ["build", "--features", "full-doc"]
 dependencies = ["format"]
 
+[tasks.build-examples]
+args = ["build", "--manifest-path", "./examples/Cargo.toml", "--workspace"]
+command = "cargo"
+dependencies = ["format"]
+
+[tasks.build-gateway]
+args = ["build", "--features", "serenity-rustls"]
+command = "cargo"
+dependencies = ["format"]
+
+[tasks.build-driver]
+args = ["build", "--features", "driver,rustls"]
+command = "cargo"
+dependencies = ["format"]
+
+[tasks.build-old-tokio]
+command = "cargo"
+args = ["build", "--features", "serenity-rustls-tokio-02,driver-tokio-02"]
+dependencies = ["format"]
+
+[tasks.build-variants]
+dependencies = ["build", "build-gateway", "build-driver", "build-old-tokio"]
+
 [tasks.clippy]
-toolchain = "nightly"
-args = ["clippy", "--features", "full-doc"]
+args = ["clippy", "--features", "full-doc", "--", "-D", "warnings"]
 dependencies = ["format"]
 
 [tasks.test]
@@ -21,3 +43,9 @@ description = "Runs performance benchmarks."
 category = "Test"
 command = "cargo"
 args = ["bench", "--features", "internals,full-doc"]
+
+[tasks.doc]
+args = ["doc", "--features", "full-doc"]
+
+[tasks.ready]
+dependencies = ["format", "test", "build-variants", "build-examples", "doc", "clippy"]

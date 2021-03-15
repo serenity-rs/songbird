@@ -20,7 +20,6 @@ The library offers:
 Songbird's gateway functionality requires you to specify the `GUILD_VOICE_STATES` intent.
 
 ## Dependencies
-
 Songbird needs a few system dependencies before you can use it.
 
 - Opus - Audio codec that Discord uses.
@@ -46,7 +45,6 @@ This is an optional dependency. It allows Songbird to download an audio source f
 Full examples showing various types of functionality and integrations can be found in [this crate's examples directory].
 
 ## Attribution
-
 Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"] by George Gorgas White.
 
 [serenity]: https://github.com/serenity-rs/serenity
