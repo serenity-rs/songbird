@@ -26,6 +26,7 @@ If you want to implement it yourself, please include a rough explanation of *how
 
 # Pull Requests
 Thanks for considering adding new features or fixing bugs in Songbird!
+You might find it helpful to look over [our architecture document] in this repository to understand roughly how components interact at a high level.
 Generally, we ask that PRs have a description that answers the following, under headers or in prose:
 
 * The type of change being made.
@@ -76,3 +77,4 @@ Your code must be formatted using `cargo +nightly fmt --all`, and must not add a
 These commands are included in `cargo make ready`.
 
 [cargo make]: https://github.com/sagiegurari/cargo-make
+[our architecture document]: ARCHITECTURE.md

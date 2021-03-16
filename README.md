@@ -44,6 +44,9 @@ This is an optional dependency. It allows Songbird to download an audio source f
 ## Examples
 Full examples showing various types of functionality and integrations can be found in [this crate's examples directory].
 
+## Contributing
+If you want to help out or file an issue, please look over [our contributor guidelines]!
+
 ## Attribution
 Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"] by George Gorgas White.
 
@@ -52,6 +55,7 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 ["Black-Capped Chickadee"]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
 [lavalink]: https://github.com/Frederikam/Lavalink
 [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
+[our contributor guidelines]: CONTRIBUTING.md
 
 [build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/CI?style=flat-square
 [build]: https://github.com/serenity-rs/songbird/actions
