@@ -231,13 +231,13 @@
 <span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">runtime</span>::<span class="ident">Handle</span>, <span class="ident">spawn</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">runtime</span>::<span class="ident">Handle</span>, <span class="ident">spawn</span>};
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">instrument</span>};
+<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start</span>(<span class="ident">config</span>: <span class="ident">Config</span>, <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>) {
     <span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Driver started.&quot;</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Driver started.&quot;</span>);
         <span class="ident">runner</span>(<span class="ident">config</span>, <span class="ident">rx</span>, <span class="ident">tx</span>).<span class="kw">await</span>;
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Driver finished.&quot;</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Driver finished.&quot;</span>);
     });
 }
 
@@ -253,17 +253,17 @@
 
     <span class="kw">let</span> <span class="ident">ic</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">clone</span>();
     <span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event processor started.&quot;</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Event processor started.&quot;</span>);
         <span class="ident">events</span>::<span class="ident">runner</span>(<span class="ident">ic</span>, <span class="ident">evt_rx</span>).<span class="kw">await</span>;
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
     });
 
     <span class="kw">let</span> <span class="ident">ic</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">clone</span>();
     <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">Handle</span>::<span class="ident">current</span>();
     <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Mixer started.&quot;</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Mixer started.&quot;</span>);
         <span class="ident">mixer</span>::<span class="ident">runner</span>(<span class="ident">ic</span>, <span class="ident">mix_rx</span>, <span class="ident">handle</span>, <span class="ident">config</span>);
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Mixer finished.&quot;</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Mixer finished.&quot;</span>);
     });
 
     <span class="ident">interconnect</span>
@@ -415,7 +415,7 @@
         }
     }
 
-    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Main thread exited&quot;</span>);
+    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Main thread exited&quot;</span>);
     <span class="ident">interconnect</span>.<span class="ident">poison_all</span>();
 }
 </pre></div>

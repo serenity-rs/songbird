@@ -73,7 +73,7 @@
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">spawn</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">spawn</span>;
-<span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">info</span>;
+<span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">trace</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interconnect</span> {
@@ -101,9 +101,9 @@
 
         <span class="kw">let</span> <span class="ident">ic</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event processor restarted.&quot;</span>);
+            <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Event processor restarted.&quot;</span>);
             <span class="kw">super</span>::<span class="ident">events</span>::<span class="ident">runner</span>(<span class="ident">ic</span>, <span class="ident">evt_rx</span>).<span class="kw">await</span>;
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
+            <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
         });
 
         <span class="comment">// Make mixer aware of new targets...</span>
