@@ -16,6 +16,14 @@ impl ConnectionProgress {
         })
     }
 
+    pub(crate) fn get_connection_info(&self) -> Option<&ConnectionInfo> {
+        use ConnectionProgress::*;
+        match self {
+            Complete(c) => Some(&c),
+            _ => None,
+        }
+    }
+
     pub(crate) fn apply_state_update(&mut self, session_id: String) -> bool {
         use ConnectionProgress::*;
         match self {
