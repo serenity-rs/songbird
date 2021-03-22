@@ -27,7 +27,7 @@ use tokio_compat::{
     select,
     time::{delay_until as sleep_until, Instant},
 };
-use tracing::{error, info, instrument, trace, warn};
+use tracing::{debug, info, instrument, trace, warn};
 
 struct AuxNetwork {
     rx: Receiver<WsMessage>,
@@ -85,7 +85,7 @@ impl AuxNetwork {
                 ws_msg = self.ws_client.recv_json_no_timeout(), if !self.dont_send => {
                     ws_error = match ws_msg {
                         Err(WsError::Json(e)) => {
-                            warn!("Unexpected JSON {:?}.", e);
+                            debug!("Unexpected JSON {:?}.", e);
                             false
                         },
                         Err(e) => {
@@ -218,11 +218,11 @@ pub(crate) async fn runner(
     ssrc: u32,
     heartbeat_interval: f64,
 ) {
-    info!("WS thread started.");
+    trace!("WS thread started.");
     let mut aux = AuxNetwork::new(evt_rx, ws_client, ssrc, heartbeat_interval);
 
     aux.run(&mut interconnect).await;
-    info!("WS thread finished.");
+    trace!("WS thread finished.");
 }
 
 fn ws_error_is_not_final(err: WsError) -> bool {
@@ -237,7 +237,7 @@ fn ws_error_is_not_final(err: WsError) -> bool {
             _ => true,
         },
         e => {
-            error!("Error sending/receiving ws {:?}.", e);
+            debug!("Error sending/receiving ws {:?}.", e);
             true
         },
     }
