@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.1.5] — 2021-03-23
+
+This patch release adds bugfixes for incorrect seeking in Restartable sources and resource usage of inactive `Driver`s, as well as some utility methods and reduced logging.
+
+Thanks to the following for their contributions:
+
+- [@DasEtwas]
+- [@FelixMcFelix]
+
+### Added
+
+- [gateway] Gateway: Allow connection info to be retrieved (#49) ([@FelixMcFelix]) [c:db79940]
+- [misc] Repo: Organise and document processes and architecture (#43) ([@FelixMcFelix]) [c:1fcc8c0]
+
+### Changed
+
+- [deps] Deps: Update async-tungstenite -> 0.13 (#50) ([@FelixMcFelix]) [c:f230b41]
+- [driver] Driver: Reduce logging level in general (#48) ([@FelixMcFelix]) [c:a3f86ad]
+
+### Fixed
+
+- [driver] Prevent mixer thread from waking while inactive (#46) ([@FelixMcFelix]) [c:a9b4cb7]
+- [input] Fix input source timestamp pre-input argument decimal formatting (#45) ([@DasEtwas]) [c:c488ce3]
+- [examples] Break reference cycle in voice storage example (#44) ([@FelixMcFelix]) [c:b9a926c]
+
 ## [0.1.4] — 2021-02-10
 
 This patch release updates introduces a new event type, to expose a driver's SSRC externally on connect.
@@ -161,6 +186,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.1.5]: https://github.com/serenity-rs/songbird/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/serenity-rs/songbird/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/serenity-rs/songbird/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/serenity-rs/songbird/compare/v0.1.1...v0.1.2
@@ -170,6 +196,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 <!-- AUTHORS -->
 [@acdenisSK]: https://github.com/acdenisSK
 [@Arcterus]: https://github.com/Arcterus
+[@DasEtwas]: https://github.com/DasEtwas
 [@Elinvynia]: https://github.com/Elinvynia
 [@Erk-]: https://github.com/Erk-
 [@FelixMcFelix]: https://github.com/FelixMcFelix
@@ -197,6 +224,13 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:db79940]: https://github.com/serenity-rs/songbird/commit/db7994087a23cf7210dc5ccd1e114618ce8c64ce
+[c:1fcc8c0]: https://github.com/serenity-rs/songbird/commit/1fcc8c0eb9d07e427fd057697a3dfa6b0f89ab6b
+[c:f230b41]: https://github.com/serenity-rs/songbird/commit/f230b41110e34dc8b46b19a118186f9e90e15dd2
+[c:a3f86ad]: https://github.com/serenity-rs/songbird/commit/a3f86ad34db174b9e0da9529fed1cca8c1dda85b
+[c:a9b4cb7]: https://github.com/serenity-rs/songbird/commit/a9b4cb7715f104dbc7aedb9859d6553914f32879
+[c:c488ce3]: https://github.com/serenity-rs/songbird/commit/c488ce3dc907dd0c8ee1dd20fd07a7e83ab3466b
+[c:b9a926c]: https://github.com/serenity-rs/songbird/commit/b9a926c1254b44d450f00eb161139fdd6f6bbbd1
 [c:f3f5242]: https://github.com/serenity-rs/songbird/commit/f3f52427eaab6fff9f1138eb0bb0185d8efb38b7
 [c:0e860dc]: https://github.com/serenity-rs/songbird/commit/0e860dc29d2c412c50aae306f9bf89cea9b507e4
 [c:a40fac3]: https://github.com/serenity-rs/songbird/commit/a40fac310951a0440e654781f9b148ee6c037b3d

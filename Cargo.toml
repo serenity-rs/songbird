@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-version = "0.1.4"
+version = "0.1.5"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
