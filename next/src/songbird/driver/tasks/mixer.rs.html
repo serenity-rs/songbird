@@ -631,8 +631,6 @@
 <span id="630">630</span>
 <span id="631">631</span>
 <span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -658,7 +656,7 @@
 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">instrument</span>};
+<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">error</span>, <span class="ident">instrument</span>};
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::<span class="ident">TAG_SIZE</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Mixer</span> {
@@ -747,8 +745,6 @@
         <span class="lifetime">&#39;runner</span>: <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn_active</span>.<span class="ident">is_some</span>() {
                 <span class="kw">loop</span> {
-                    <span class="kw">use</span> <span class="ident">MixerMessage</span>::<span class="kw-2">*</span>;
-
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mix_rx</span>.<span class="ident">try_recv</span>() {
                         <span class="prelude-val">Ok</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">let</span> (<span class="ident">events</span>, <span class="ident">conn</span>, <span class="ident">should_exit</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_message</span>(<span class="ident">m</span>);
@@ -774,7 +770,7 @@
                     <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
                     <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
 
-                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
+                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
                 }
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mix_rx</span>.<span class="ident">recv</span>() {
