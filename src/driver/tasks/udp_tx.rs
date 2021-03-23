@@ -13,7 +13,7 @@ use tokio_compat::{
     net::udp::SendHalf,
     time::{timeout_at, Instant},
 };
-use tracing::{error, info, instrument, trace};
+use tracing::{error, instrument, trace};
 
 struct UdpTx {
     ssrc: u32,
@@ -65,7 +65,7 @@ impl UdpTx {
 #[cfg(not(feature = "tokio-02-marker"))]
 #[instrument(skip(udp_msg_rx))]
 pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx: Arc<UdpSocket>) {
-    info!("UDP transmit handle started.");
+    trace!("UDP transmit handle started.");
 
     let mut txer = UdpTx {
         ssrc,
@@ -75,13 +75,13 @@ pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx
 
     txer.run().await;
 
-    info!("UDP transmit handle stopped.");
+    trace!("UDP transmit handle stopped.");
 }
 
 #[cfg(feature = "tokio-02-marker")]
 #[instrument(skip(udp_msg_rx))]
 pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx: SendHalf) {
-    info!("UDP transmit handle started.");
+    trace!("UDP transmit handle started.");
 
     let mut txer = UdpTx {
         ssrc,
@@ -91,5 +91,5 @@ pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx
 
     txer.run().await;
 
-    info!("UDP transmit handle stopped.");
+    trace!("UDP transmit handle stopped.");
 }

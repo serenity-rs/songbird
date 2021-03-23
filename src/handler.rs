@@ -273,6 +273,16 @@ impl Call {
         }
     }
 
+    /// Returns the current voice connection details for this Call,
+    /// if available.
+    #[instrument(skip(self))]
+    pub fn current_connection(&self) -> Option<&ConnectionInfo> {
+        match &self.connection {
+            Some((progress, _)) => progress.get_connection_info(),
+            _ => None,
+        }
+    }
+
     /// Leaves the current voice channel, disconnecting from it.
     ///
     /// This does _not_ forget settings, like whether to be self-deafened or

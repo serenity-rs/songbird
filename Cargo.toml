@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-version = "0.1.4"
+version = "0.1.5"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
@@ -26,7 +26,7 @@ version = "0.1"
 default-features = false
 features = ["tokio-runtime"]
 optional = true
-version = "0.12"
+version = "0.13"
 
 [dependencies.async-tungstenite-compat]
 package = "async-tungstenite"
@@ -69,13 +69,15 @@ version = "0.8"
 
 [dependencies.serenity]
 optional = true
-version = "^0.10.2"
 default-features = false
 features = ["voice", "gateway"]
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
 
 [dependencies.serenity-voice-model]
 optional = true
-version = "0.1"
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
 
 [dependencies.spin_sleep]
 optional = true

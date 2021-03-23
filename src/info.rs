@@ -17,6 +17,14 @@ impl ConnectionProgress {
         })
     }
 
+    pub(crate) fn get_connection_info(&self) -> Option<&ConnectionInfo> {
+        use ConnectionProgress::*;
+        match self {
+            Complete(c) => Some(&c),
+            _ => None,
+        }
+    }
+
     pub(crate) fn in_progress(&self) -> bool {
         matches!(self, ConnectionProgress::Incomplete(_))
     }

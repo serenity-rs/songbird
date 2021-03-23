@@ -26,7 +26,7 @@ use serde_json::Error as JsonError;
 use tokio::time::{timeout, Duration};
 #[cfg(feature = "tokio-02-marker")]
 use tokio_compat::time::{timeout, Duration};
-use tracing::{instrument, warn};
+use tracing::instrument;
 
 pub type WsStream = WebSocketStream<ConnectStream>;
 
@@ -130,12 +130,7 @@ impl SenderExt for WsStream {
 #[inline]
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     Ok(match message {
-        Some(Message::Text(payload)) =>
-            serde_json::from_str(&payload).map(Some).map_err(|why| {
-                warn!("Err deserializing text: {:?}; text: {}", why, payload,);
-
-                why
-            })?,
+        Some(Message::Text(payload)) => serde_json::from_str(&payload).map(Some)?,
         Some(Message::Binary(bytes)) => {
             return Err(Error::UnexpectedBinaryMessage(bytes));
         },

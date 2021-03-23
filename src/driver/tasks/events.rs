@@ -117,5 +117,5 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
         }
     }
 
-    info!("Event thread exited.");
+    trace!("Event thread exited.");
 }

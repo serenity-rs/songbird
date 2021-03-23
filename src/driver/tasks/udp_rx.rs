@@ -25,7 +25,7 @@ use std::{collections::HashMap, sync::Arc};
 use tokio::{net::UdpSocket, select};
 #[cfg(feature = "tokio-02-marker")]
 use tokio_compat::{net::udp::RecvHalf, select};
-use tracing::{error, info, instrument, warn};
+use tracing::{error, instrument, trace, warn};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 #[derive(Debug)]
@@ -401,7 +401,7 @@ pub(crate) async fn runner(
     config: Config,
     udp_socket: Arc<UdpSocket>,
 ) {
-    info!("UDP receive handle started.");
+    trace!("UDP receive handle started.");
 
     let mut state = UdpRx {
         cipher,
@@ -414,7 +414,7 @@ pub(crate) async fn runner(
 
     state.run(&mut interconnect).await;
 
-    info!("UDP receive handle stopped.");
+    trace!("UDP receive handle stopped.");
 }
 
 #[cfg(feature = "tokio-02-marker")]
@@ -426,7 +426,7 @@ pub(crate) async fn runner(
     config: Config,
     udp_socket: RecvHalf,
 ) {
-    info!("UDP receive handle started.");
+    trace!("UDP receive handle started.");
 
     let mut state = UdpRx {
         cipher,
@@ -439,7 +439,7 @@ pub(crate) async fn runner(
 
     state.run(&mut interconnect).await;
 
-    info!("UDP receive handle stopped.");
+    trace!("UDP receive handle stopped.");
 }
 
 #[inline]

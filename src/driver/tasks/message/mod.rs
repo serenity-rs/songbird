@@ -15,7 +15,7 @@ use flume::Sender;
 use tokio::spawn;
 #[cfg(feature = "tokio-02-marker")]
 use tokio_compat::spawn;
-use tracing::info;
+use tracing::trace;
 
 #[derive(Clone, Debug)]
 pub struct Interconnect {
@@ -43,9 +43,9 @@ impl Interconnect {
 
         let ic = self.clone();
         spawn(async move {
-            info!("Event processor restarted.");
+            trace!("Event processor restarted.");
             super::events::runner(ic, evt_rx).await;
-            info!("Event processor finished.");
+            trace!("Event processor finished.");
         });
 
         // Make mixer aware of new targets...

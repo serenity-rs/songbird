@@ -22,7 +22,7 @@ use std::time::Instant;
 use tokio::runtime::Handle;
 #[cfg(feature = "tokio-02-marker")]
 use tokio_compat::runtime::Handle;
-use tracing::{error, instrument};
+use tracing::{debug, error, instrument};
 use xsalsa20poly1305::TAG_SIZE;
 
 pub struct Mixer {
@@ -111,8 +111,6 @@ impl Mixer {
         'runner: loop {
             if self.conn_active.is_some() {
                 loop {
-                    use MixerMessage::*;
-
                     match self.mix_rx.try_recv() {
                         Ok(m) => {
                             let (events, conn, should_exit) = self.handle_message(m);
@@ -138,7 +136,7 @@ impl Mixer {
                     events_failure |= e.should_trigger_interconnect_rebuild();
                     conn_failure |= e.should_trigger_connect();
 
-                    error!("Mixer thread cycle: {:?}", e);
+                    debug!("Mixer thread cycle: {:?}", e);
                 }
             } else {
                 match self.mix_rx.recv() {

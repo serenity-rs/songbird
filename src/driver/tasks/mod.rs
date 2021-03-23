@@ -20,13 +20,13 @@ use message::*;
 use tokio::{runtime::Handle, spawn};
 #[cfg(feature = "tokio-02-marker")]
 use tokio_compat::{runtime::Handle, spawn};
-use tracing::{error, info, instrument};
+use tracing::{error, instrument, trace};
 
 pub(crate) fn start(config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMessage>) {
     spawn(async move {
-        info!("Driver started.");
+        trace!("Driver started.");
         runner(config, rx, tx).await;
-        info!("Driver finished.");
+        trace!("Driver finished.");
     });
 }
 
@@ -42,17 +42,17 @@ fn start_internals(core: Sender<CoreMessage>, config: Config) -> Interconnect {
 
     let ic = interconnect.clone();
     spawn(async move {
-        info!("Event processor started.");
+        trace!("Event processor started.");
         events::runner(ic, evt_rx).await;
-        info!("Event processor finished.");
+        trace!("Event processor finished.");
     });
 
     let ic = interconnect.clone();
     let handle = Handle::current();
     std::thread::spawn(move || {
-        info!("Mixer started.");
+        trace!("Mixer started.");
         mixer::runner(ic, mix_rx, handle, config);
-        info!("Mixer finished.");
+        trace!("Mixer finished.");
     });
 
     interconnect
@@ -204,6 +204,6 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
         }
     }
 
-    info!("Main thread exited");
+    trace!("Main thread exited");
     interconnect.poison_all();
 }
