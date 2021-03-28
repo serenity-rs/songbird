@@ -37,6 +37,7 @@
 //! [`ConnectionInfo`]: struct@ConnectionInfo
 //! [lavalink]: https://github.com/Frederikam/Lavalink
 
+mod config;
 pub mod constants;
 #[cfg(feature = "driver-core")]
 pub mod driver;
@@ -49,6 +50,8 @@ pub mod id;
 pub(crate) mod info;
 #[cfg(feature = "driver-core")]
 pub mod input;
+#[cfg(feature = "gateway-core")]
+mod join;
 #[cfg(feature = "gateway-core")]
 mod manager;
 #[cfg(feature = "serenity")]
@@ -81,9 +84,10 @@ pub use crate::{
 };
 
 #[cfg(feature = "gateway-core")]
-pub use crate::{handler::*, manager::*};
+pub use crate::{handler::*, join::*, manager::*};
 
 #[cfg(feature = "serenity")]
 pub use crate::serenity::*;
 
+pub use config::Config;
 pub use info::ConnectionInfo;

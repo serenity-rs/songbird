@@ -1,15 +1,15 @@
 #[cfg(feature = "driver-core")]
-use crate::{
-    driver::{Config, Driver},
-    error::ConnectionResult,
-};
+use crate::{driver::Driver, error::ConnectionResult};
 use crate::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
     info::{ConnectionInfo, ConnectionProgress},
     shards::Shard,
+    Config,
+    Join,
+    JoinGateway,
 };
-use flume::{r#async::RecvFut, Sender};
+use flume::Sender;
 use serde_json::json;
 use tracing::instrument;
 
@@ -32,6 +32,9 @@ enum Return {
 /// [`Driver`]: struct@Driver
 #[derive(Clone, Debug)]
 pub struct Call {
+    #[cfg(not(feature = "driver-core"))]
+    config: Config,
+
     connection: Option<(ConnectionProgress, Return)>,
 
     #[cfg(feature = "driver-core")]
@@ -61,19 +64,13 @@ impl Call {
     #[inline]
     #[instrument]
     pub fn new(guild_id: GuildId, ws: Shard, user_id: UserId) -> Self {
-        Self::new_raw(guild_id, Some(ws), user_id)
+        Self::new_raw_cfg(guild_id, Some(ws), user_id, Default::default())
     }
 
-    #[cfg(feature = "driver-core")]
     /// Creates a new Call, configuring the driver as specified.
     #[inline]
     #[instrument]
-    pub fn from_driver_config(
-        guild_id: GuildId,
-        ws: Shard,
-        user_id: UserId,
-        config: Config,
-    ) -> Self {
+    pub fn from_config(guild_id: GuildId, ws: Shard, user_id: UserId, config: Config) -> Self {
         Self::new_raw_cfg(guild_id, Some(ws), user_id, config)
     }
 
@@ -88,38 +85,22 @@ impl Call {
     #[inline]
     #[instrument]
     pub fn standalone(guild_id: GuildId, user_id: UserId) -> Self {
-        Self::new_raw(guild_id, None, user_id)
+        Self::new_raw_cfg(guild_id, None, user_id, Default::default())
     }
 
-    #[cfg(feature = "driver-core")]
-    /// Creates a new standalone Call, configuring the driver as specified.
+    /// Creates a new standalone Call from the given configuration file.
     #[inline]
     #[instrument]
-    pub fn standalone_from_driver_config(
-        guild_id: GuildId,
-        user_id: UserId,
-        config: Config,
-    ) -> Self {
+    pub fn standalone_from_config(guild_id: GuildId, user_id: UserId, config: Config) -> Self {
         Self::new_raw_cfg(guild_id, None, user_id, config)
     }
 
-    fn new_raw(guild_id: GuildId, ws: Option<Shard>, user_id: UserId) -> Self {
-        Call {
-            connection: None,
-            #[cfg(feature = "driver-core")]
-            driver: Default::default(),
-            guild_id,
-            self_deaf: false,
-            self_mute: false,
-            user_id,
-            ws,
-        }
-    }
-
-    #[cfg(feature = "driver-core")]
     fn new_raw_cfg(guild_id: GuildId, ws: Option<Shard>, user_id: UserId, config: Config) -> Self {
         Call {
+            #[cfg(not(feature = "driver-core"))]
+            config,
             connection: None,
+            #[cfg(feature = "driver-core")]
             driver: Driver::new(config),
             guild_id,
             self_deaf: false,
@@ -209,10 +190,7 @@ impl Call {
     ///
     /// [`Songbird::join`]: crate::Songbird::join
     #[instrument(skip(self))]
-    pub async fn join(
-        &mut self,
-        channel_id: ChannelId,
-    ) -> JoinResult<RecvFut<'static, ConnectionResult<()>>> {
+    pub async fn join(&mut self, channel_id: ChannelId) -> JoinResult<Join> {
         let (tx, rx) = flume::unbounded();
 
         let do_conn = self
@@ -225,9 +203,13 @@ impl Call {
                 Return::Conn(tx),
             ));
 
-            self.update().await.map(|_| rx.into_recv_async())
+            let timeout = self.config().gateway_timeout;
+
+            self.update()
+                .await
+                .map(|_| Join::new(rx.into_recv_async(), timeout))
         } else {
-            Ok(rx.into_recv_async())
+            Ok(Join::new(rx.into_recv_async(), None))
         }
     }
 
@@ -247,10 +229,7 @@ impl Call {
     ///
     /// [`Songbird::join_gateway`]: crate::Songbird::join_gateway
     #[instrument(skip(self))]
-    pub async fn join_gateway(
-        &mut self,
-        channel_id: ChannelId,
-    ) -> JoinResult<RecvFut<'static, ConnectionInfo>> {
+    pub async fn join_gateway(&mut self, channel_id: ChannelId) -> JoinResult<JoinGateway> {
         let (tx, rx) = flume::unbounded();
 
         let do_conn = self
@@ -267,9 +246,13 @@ impl Call {
                 Return::Info(tx),
             ));
 
-            self.update().await.map(|_| rx.into_recv_async())
+            let timeout = self.config().gateway_timeout;
+
+            self.update()
+                .await
+                .map(|_| JoinGateway::new(rx.into_recv_async(), timeout))
         } else {
-            Ok(rx.into_recv_async())
+            Ok(JoinGateway::new(rx.into_recv_async(), None))
         }
     }
 
@@ -398,6 +381,24 @@ impl Call {
         } else {
             Err(JoinError::NoSender)
         }
+    }
+}
+
+#[cfg(not(feature = "driver-core"))]
+impl Call {
+    /// Access this call handler's configuration.
+    pub fn config(&self) -> &Config {
+        &self.config
+    }
+
+    /// Mutably access this call handler's configuration.
+    pub fn config_mut(&mut self) -> &mut Config {
+        &mut self.config
+    }
+
+    /// Set this call handler's configuration.
+    pub fn set_config(&mut self, config: Config) {
+        self.config = config;
     }
 }
 
