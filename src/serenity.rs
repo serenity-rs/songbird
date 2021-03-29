@@ -3,7 +3,7 @@
 //!
 //! [serenity]: https://crates.io/crates/serenity/0.9.0-rc.2
 
-use crate::manager::Songbird;
+use crate::{Config, Songbird};
 use serenity::{
     client::{ClientBuilder, Context},
     prelude::TypeMapKey,
@@ -37,6 +37,14 @@ pub fn register_with(client_builder: ClientBuilder, voice: Arc<Songbird>) -> Cli
         .type_map_insert::<SongbirdKey>(voice)
 }
 
+/// Installs a given songbird instance into the serenity client.
+///
+/// This should be called after any uses of `ClientBuilder::type_map`.
+pub fn register_from_config(client_builder: ClientBuilder, config: Config) -> ClientBuilder {
+    let voice = Songbird::serenity_from_config(config);
+    register_with(client_builder, voice)
+}
+
 /// Retrieve the Songbird voice client from a serenity context's
 /// shared key-value store.
 pub async fn get(ctx: &Context) -> Option<Arc<Songbird>> {
@@ -58,6 +66,8 @@ pub trait SerenityInit {
     fn register_songbird(self) -> Self;
     /// Registers a given Songbird voice system with serenity, as above.
     fn register_songbird_with(self, voice: Arc<Songbird>) -> Self;
+    /// Registers a Songbird voice system serenity, based on the given configuration.
+    fn register_songbird_from_config(self, config: Config) -> Self;
 }
 
 impl SerenityInit for ClientBuilder<'_> {
@@ -67,5 +77,9 @@ impl SerenityInit for ClientBuilder<'_> {
 
     fn register_songbird_with(self, voice: Arc<Songbird>) -> Self {
         register_with(self, voice)
+    }
+
+    fn register_songbird_from_config(self, config: Config) -> Self {
+        register_from_config(self, config)
     }
 }

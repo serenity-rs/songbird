@@ -14,18 +14,18 @@ command = "cargo"
 dependencies = ["format"]
 
 [tasks.build-gateway]
-args = ["build", "--features", "serenity-rustls"]
+args = ["build", "--no-default-features", "--features", "serenity-rustls"]
 command = "cargo"
 dependencies = ["format"]
 
 [tasks.build-driver]
-args = ["build", "--features", "driver,rustls"]
+args = ["build", "--no-default-features", "--features", "driver,rustls"]
 command = "cargo"
 dependencies = ["format"]
 
 [tasks.build-old-tokio]
 command = "cargo"
-args = ["build", "--features", "serenity-rustls-tokio-02,driver-tokio-02"]
+args = ["build", "--no-default-features", "--features", "serenity-rustls-tokio-02,driver-tokio-02"]
 dependencies = ["format"]
 
 [tasks.build-variants]
@@ -45,7 +45,12 @@ command = "cargo"
 args = ["bench", "--features", "internals,full-doc"]
 
 [tasks.doc]
+command = "cargo"
 args = ["doc", "--features", "full-doc"]
+
+[tasks.doc-open]
+command = "cargo"
+args = ["doc", "--features", "full-doc", "--open"]
 
 [tasks.ready]
 dependencies = ["format", "test", "build-variants", "build-examples", "doc", "clippy"]

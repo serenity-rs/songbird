@@ -1,10 +1,9 @@
-#[cfg(feature = "driver-core")]
-use crate::driver::Config;
 use crate::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
     shards::Sharder,
     Call,
+    Config,
     ConnectionInfo,
 };
 #[cfg(feature = "serenity")]
@@ -50,9 +49,7 @@ pub struct Songbird {
     client_data: PRwLock<ClientData>,
     calls: DashMap<GuildId, Arc<Mutex<Call>>>,
     sharder: Sharder,
-
-    #[cfg(feature = "driver-core")]
-    driver_config: PRwLock<Option<Config>>,
+    config: PRwLock<Option<Config>>,
 }
 
 impl Songbird {
@@ -63,13 +60,21 @@ impl Songbird {
     ///
     /// [registered]: crate::serenity::register_with
     pub fn serenity() -> Arc<Self> {
+        Self::serenity_from_config(Default::default())
+    }
+
+    #[cfg(feature = "serenity")]
+    /// Create a new Songbird instance for serenity, using the given configuration.
+    ///
+    /// This must be [registered] after creation.
+    ///
+    /// [registered]: crate::serenity::register_with
+    pub fn serenity_from_config(config: Config) -> Arc<Self> {
         Arc::new(Self {
             client_data: Default::default(),
             calls: Default::default(),
             sharder: Sharder::Serenity(Default::default()),
-
-            #[cfg(feature = "driver-core")]
-            driver_config: Default::default(),
+            config: Some(config).into(),
         })
     }
 
@@ -85,6 +90,26 @@ impl Songbird {
     where
         U: Into<UserId>,
     {
+        Self::twilight_from_config(cluster, shard_count, user_id, Default::default())
+    }
+
+    #[cfg(feature = "twilight")]
+    /// Create a new Songbird instance for twilight.
+    ///
+    /// Twilight handlers do not need to be registered, but
+    /// users are responsible for passing in any events using
+    /// [`process`].
+    ///
+    /// [`process`]: Songbird::process
+    pub fn twilight_from_config<U>(
+        cluster: Cluster,
+        shard_count: u64,
+        user_id: U,
+        config: Config,
+    ) -> Arc<Self>
+    where
+        U: Into<UserId>,
+    {
         Arc::new(Self {
             client_data: PRwLock::new(ClientData {
                 shard_count,
@@ -93,9 +118,7 @@ impl Songbird {
             }),
             calls: Default::default(),
             sharder: Sharder::Twilight(cluster),
-
-            #[cfg(feature = "driver-core")]
-            driver_config: Default::default(),
+            config: Some(config).into(),
         })
     }
 
@@ -144,21 +167,28 @@ impl Songbird {
                         .get_shard(shard)
                         .expect("Failed to get shard handle: shard_count incorrect?");
 
-                    #[cfg(feature = "driver-core")]
-                    let call = Call::from_driver_config(
+                    let call = Call::from_config(
                         guild_id,
                         shard_handle,
                         info.user_id,
-                        self.driver_config.read().clone().unwrap_or_default(),
+                        self.config.read().clone().unwrap_or_default(),
                     );
-
-                    #[cfg(not(feature = "driver-core"))]
-                    let call = Call::new(guild_id, shard_handle, info.user_id);
 
                     Arc::new(Mutex::new(call))
                 })
                 .clone()
         })
+    }
+
+    /// Sets a shared configuration for all drivers created from this
+    /// manager.
+    ///
+    /// Changes made here will apply to new Call and Driver instances only.
+    ///
+    /// Requires the `"driver"` feature.
+    pub fn set_config(&self, new_config: Config) {
+        let mut config = self.config.write();
+        *config = Some(new_config);
     }
 
     fn manager_info(&self) -> ClientData {
@@ -213,10 +243,7 @@ impl Songbird {
         };
 
         let result = match stage_1 {
-            Ok(chan) => chan
-                .await
-                .map_err(|_| JoinError::Dropped)
-                .and_then(|x| x.map_err(JoinError::from)),
+            Ok(chan) => chan.await,
             Err(e) => Err(e),
         };
 
@@ -398,20 +425,6 @@ impl VoiceGatewayManager for Songbird {
                 voice_state.channel_id.clone().map(Into::into),
             );
         }
-    }
-}
-
-#[cfg(feature = "driver-core")]
-impl Songbird {
-    /// Sets a shared configuration for all drivers created from this
-    /// manager.
-    ///
-    /// Changes made here will apply to new Call and Driver instances only.
-    ///
-    /// Requires the `"driver"` feature.
-    pub fn set_config(&self, new_config: Config) {
-        let mut config = self.driver_config.write();
-        *config = Some(new_config);
     }
 }
 

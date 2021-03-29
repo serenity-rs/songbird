@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     constants::*,
-    input::{error::Error, ffmpeg, Codec, Container, Input, Reader},
+    input::{error::Error, Codec, Container, Input},
     test_utils::*,
 };
 use audiopus::{coder::Decoder, Bitrate, Channels, SampleRate};

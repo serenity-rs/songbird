@@ -37,6 +37,7 @@
 //! [`ConnectionInfo`]: struct@ConnectionInfo
 //! [lavalink]: https://github.com/Frederikam/Lavalink
 
+mod config;
 pub mod constants;
 #[cfg(feature = "driver-core")]
 pub mod driver;
@@ -50,6 +51,8 @@ pub(crate) mod info;
 #[cfg(feature = "driver-core")]
 pub mod input;
 #[cfg(feature = "gateway-core")]
+pub mod join;
+#[cfg(feature = "gateway-core")]
 mod manager;
 #[cfg(feature = "serenity")]
 pub mod serenity;
@@ -61,6 +64,7 @@ pub mod tracks;
 mod ws;
 
 #[cfg(feature = "driver-core")]
+/// Opus encoder bitrate settings.
 pub use audiopus::{self as opus, Bitrate};
 #[cfg(feature = "driver-core")]
 pub use discortp as packet;
@@ -86,4 +90,5 @@ pub use crate::{handler::*, manager::*};
 #[cfg(feature = "serenity")]
 pub use crate::serenity::*;
 
+pub use config::Config;
 pub use info::ConnectionInfo;

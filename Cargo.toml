@@ -63,6 +63,10 @@ version = "0.3"
 optional = true
 version = "0.11"
 
+[dependencies.pin-project]
+optional = true
+version = "1"
+
 [dependencies.rand]
 optional = true
 version = "0.8"
@@ -142,11 +146,13 @@ default = [
 gateway = [
     "gateway-core",
     "tokio/sync",
+    "tokio/time",
 ]
 gateway-core = [
     "dashmap",
     "flume",
     "parking_lot",
+    "pin-project",
     "spinning_top",
 ]
 driver = [
