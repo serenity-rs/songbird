@@ -205,9 +205,6 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 
@@ -220,11 +217,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">udp_tx</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">ws</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">connection</span>::{<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">ConnectionError</span>, <span class="ident">Connection</span>},
-    <span class="ident">Config</span>,
-};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">events</span>::<span class="ident">CoreContext</span>;
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">connection</span>::{<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">ConnectionError</span>, <span class="ident">Connection</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">events</span>::<span class="ident">CoreContext</span>, <span class="ident">Config</span>};
 <span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">RecvError</span>, <span class="ident">Sender</span>};
 <span class="kw">use</span> <span class="ident">message</span>::<span class="kw-2">*</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>

@@ -631,11 +631,13 @@
 <span id="630">630</span>
 <span id="631">631</span>
 <span id="632">632</span>
+<span id="633">633</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">constants</span>::<span class="kw-2">*</span>,
     <span class="ident">tracks</span>::{<span class="ident">PlayMode</span>, <span class="ident">Track</span>},
+    <span class="ident">Config</span>,
 };
 <span class="kw">use</span> <span class="ident">audiopus</span>::{
     <span class="ident">coder</span>::<span class="ident">Encoder</span> <span class="kw">as</span> <span class="ident">OpusEncoder</span>,

@@ -420,14 +420,26 @@
 <span id="419">419</span>
 <span id="420">420</span>
 <span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">driver</span>::<span class="ident">Config</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">JoinError</span>, <span class="ident">JoinResult</span>},
     <span class="ident">id</span>::{<span class="ident">ChannelId</span>, <span class="ident">GuildId</span>, <span class="ident">UserId</span>},
     <span class="ident">shards</span>::<span class="ident">Sharder</span>,
     <span class="ident">Call</span>,
+    <span class="ident">Config</span>,
     <span class="ident">ConnectionInfo</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
@@ -473,9 +485,7 @@
     <span class="ident">client_data</span>: <span class="ident">PRwLock</span><span class="op">&lt;</span><span class="ident">ClientData</span><span class="op">&gt;</span>,
     <span class="ident">calls</span>: <span class="ident">DashMap</span><span class="op">&lt;</span><span class="ident">GuildId</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">sharder</span>: <span class="ident">Sharder</span>,
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-    <span class="ident">driver_config</span>: <span class="ident">PRwLock</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">config</span>: <span class="ident">PRwLock</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Songbird</span> {
@@ -486,13 +496,21 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [registered]: crate::serenity::register_with</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serenity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="self">Self</span>::<span class="ident">serenity_from_config</span>(<span class="ident">Default</span>::<span class="ident">default</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
+    <span class="doccomment">/// Create a new Songbird instance for serenity, using the given configuration.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This must be [registered] after creation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [registered]: crate::serenity::register_with</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serenity_from_config</span>(<span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="self">Self</span> {
             <span class="ident">client_data</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
             <span class="ident">calls</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
             <span class="ident">sharder</span>: <span class="ident">Sharder</span>::<span class="ident">Serenity</span>(<span class="ident">Default</span>::<span class="ident">default</span>()),
-
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-            <span class="ident">driver_config</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">config</span>: <span class="prelude-val">Some</span>(<span class="ident">config</span>).<span class="ident">into</span>(),
         })
     }
 
@@ -508,6 +526,26 @@
     <span class="kw">where</span>
         <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span>,
     {
+        <span class="self">Self</span>::<span class="ident">twilight_from_config</span>(<span class="ident">cluster</span>, <span class="ident">shard_count</span>, <span class="ident">user_id</span>, <span class="ident">Default</span>::<span class="ident">default</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
+    <span class="doccomment">/// Create a new Songbird instance for twilight.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Twilight handlers do not need to be registered, but</span>
+    <span class="doccomment">/// users are responsible for passing in any events using</span>
+    <span class="doccomment">/// [`process`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`process`]: Songbird::process</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">twilight_from_config</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>(
+        <span class="ident">cluster</span>: <span class="ident">Cluster</span>,
+        <span class="ident">shard_count</span>: <span class="ident">u64</span>,
+        <span class="ident">user_id</span>: <span class="ident">U</span>,
+        <span class="ident">config</span>: <span class="ident">Config</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span>,
+    {
         <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="self">Self</span> {
             <span class="ident">client_data</span>: <span class="ident">PRwLock</span>::<span class="ident">new</span>(<span class="ident">ClientData</span> {
                 <span class="ident">shard_count</span>,
@@ -516,9 +554,7 @@
             }),
             <span class="ident">calls</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
             <span class="ident">sharder</span>: <span class="ident">Sharder</span>::<span class="ident">Twilight</span>(<span class="ident">cluster</span>),
-
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-            <span class="ident">driver_config</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">config</span>: <span class="prelude-val">Some</span>(<span class="ident">config</span>).<span class="ident">into</span>(),
         })
     }
 
@@ -567,21 +603,28 @@
                         .<span class="ident">get_shard</span>(<span class="ident">shard</span>)
                         .<span class="ident">expect</span>(<span class="string">&quot;Failed to get shard handle: shard_count incorrect?&quot;</span>);
 
-                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-                    <span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">Call</span>::<span class="ident">from_driver_config</span>(
+                    <span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">Call</span>::<span class="ident">from_config</span>(
                         <span class="ident">guild_id</span>,
                         <span class="ident">shard_handle</span>,
                         <span class="ident">info</span>.<span class="ident">user_id</span>,
-                        <span class="self">self</span>.<span class="ident">driver_config</span>.<span class="ident">read</span>().<span class="ident">clone</span>().<span class="ident">unwrap_or_default</span>(),
+                        <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">read</span>().<span class="ident">clone</span>().<span class="ident">unwrap_or_default</span>(),
                     );
-
-                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>))]</span>
-                    <span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">Call</span>::<span class="ident">new</span>(<span class="ident">guild_id</span>, <span class="ident">shard_handle</span>, <span class="ident">info</span>.<span class="ident">user_id</span>);
 
                     <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">call</span>))
                 })
                 .<span class="ident">clone</span>()
         })
+    }
+
+    <span class="doccomment">/// Sets a shared configuration for all drivers created from this</span>
+    <span class="doccomment">/// manager.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Changes made here will apply to new Call and Driver instances only.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires the `&quot;driver&quot;` feature.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_config</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">new_config</span>: <span class="ident">Config</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">write</span>();
+        <span class="kw-2">*</span><span class="ident">config</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_config</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">manager_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientData</span> {
@@ -636,10 +679,7 @@
         };
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">stage_1</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">chan</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">chan</span>
-                .<span class="kw">await</span>
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError</span>::<span class="ident">Dropped</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">map_err</span>(<span class="ident">JoinError</span>::<span class="ident">from</span>)),
+            <span class="prelude-val">Ok</span>(<span class="ident">chan</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">chan</span>.<span class="kw">await</span>,
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
         };
 
@@ -821,20 +861,6 @@
                 <span class="ident">voice_state</span>.<span class="ident">channel_id</span>.<span class="ident">clone</span>().<span class="ident">map</span>(<span class="ident">Into</span>::<span class="ident">into</span>),
             );
         }
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Songbird</span> {
-    <span class="doccomment">/// Sets a shared configuration for all drivers created from this</span>
-    <span class="doccomment">/// manager.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Changes made here will apply to new Call and Driver instances only.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires the `&quot;driver&quot;` feature.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_config</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">new_config</span>: <span class="ident">Config</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">driver_config</span>.<span class="ident">write</span>();
-        <span class="kw-2">*</span><span class="ident">config</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_config</span>);
     }
 }
 
