@@ -1,12 +1,9 @@
 use super::{
     error::{Error, Result},
     message::*,
+    Config,
 };
-use crate::{
-    constants::*,
-    driver::{Config, DecodeMode},
-    events::CoreContext,
-};
+use crate::{constants::*, driver::DecodeMode, events::CoreContext};
 use audiopus::{
     coder::Decoder as OpusDecoder,
     error::{Error as OpusError, ErrorCode},

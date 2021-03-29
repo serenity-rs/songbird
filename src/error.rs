@@ -11,6 +11,7 @@ use twilight_gateway::shard::CommandError;
 
 #[cfg(feature = "gateway-core")]
 #[derive(Debug)]
+#[non_exhaustive]
 /// Error returned when a manager or call handler is
 /// unable to send messages over Discord's gateway.
 pub enum JoinError {
@@ -23,8 +24,23 @@ pub enum JoinError {
     ///
     /// [`Call`]: crate::Call
     NoCall,
+    /// Connection details were not received from Discord in the
+    /// time given in [the `Call`'s configuration].
+    ///
+    /// This can occur if a message is lost by the Discord client
+    /// between restarts, or if Discord's gateway believes that
+    /// this bot is still in the channel it attempts to join.
+    ///
+    /// *Users should `leave` the server on the gateway before
+    /// re-attempting connection.*
+    ///
+    /// [the `Call`'s configuration]: crate::Config
+    TimedOut,
     #[cfg(feature = "driver-core")]
     /// The driver failed to establish a voice connection.
+    ///
+    /// *Users should `leave` the server on the gateway before
+    /// re-attempting connection.*
     Driver(ConnectionError),
     #[cfg(feature = "serenity")]
     /// Serenity-specific WebSocket send error.
@@ -35,6 +51,31 @@ pub enum JoinError {
 }
 
 #[cfg(feature = "gateway-core")]
+impl JoinError {
+    /// Indicates whether this failure may have left (or been
+    /// caused by) Discord's gateway state being in an
+    /// inconsistent state.
+    ///
+    /// Failure to `leave` before rejoining may cause further
+    /// timeouts.
+    pub fn should_leave_server(&self) -> bool {
+        matches!(self, JoinError::TimedOut)
+    }
+
+    #[cfg(feature = "driver-core")]
+    /// Indicates whether this failure can be reattempted via
+    /// [`Driver::connect`] with retreived connection info.
+    ///
+    /// Failure to `leave` before rejoining may cause further
+    /// timeouts.
+    ///
+    /// [`Driver::connect`]: crate::driver::Driver
+    pub fn should_reconnect_driver(&self) -> bool {
+        matches!(self, JoinError::Driver(_))
+    }
+}
+
+#[cfg(feature = "gateway-core")]
 impl fmt::Display for JoinError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Failed to Join Voice channel: ")?;
@@ -42,6 +83,7 @@ impl fmt::Display for JoinError {
             JoinError::Dropped => write!(f, "request was cancelled/dropped."),
             JoinError::NoSender => write!(f, "no gateway destination."),
             JoinError::NoCall => write!(f, "tried to leave a non-existent call."),
+            JoinError::TimedOut => write!(f, "gateway response from Discord timed out."),
             #[cfg(feature = "driver-core")]
             JoinError::Driver(t) => write!(f, "internal driver error {}.", t),
             #[cfg(feature = "serenity")]
