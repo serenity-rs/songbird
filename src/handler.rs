@@ -4,10 +4,9 @@ use crate::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
     info::{ConnectionInfo, ConnectionProgress},
+    join::*,
     shards::Shard,
     Config,
-    Join,
-    JoinGateway,
 };
 use flume::Sender;
 use serde_json::json;
@@ -18,9 +17,15 @@ use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug)]
 enum Return {
+    // Return the connection info as it is received.
     Info(Sender<ConnectionInfo>),
+
+    // Two channels: first indicates "gateway connection" was successful,
+    // second indicates that the driver successfully connected.
+    // The first is needed to cancel a timeout as the driver can/should
+    // have separate connection timing/retry config.
     #[cfg(feature = "driver-core")]
-    Conn(Sender<ConnectionResult<()>>),
+    Conn(Sender<()>, Sender<ConnectionResult<()>>),
 }
 
 /// The Call handler is responsible for a single voice connection, acting
@@ -118,8 +123,11 @@ impl Call {
                 let _ = tx.send(c.clone());
             },
             #[cfg(feature = "driver-core")]
-            Some((ConnectionProgress::Complete(c), Return::Conn(tx))) => {
-                self.driver.raw_connect(c.clone(), tx.clone());
+            Some((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) => {
+                // It's okay if the receiver hung up.
+                let _ = first_tx.send(());
+
+                self.driver.raw_connect(c.clone(), driver_tx.clone());
             },
             _ => {},
         }
@@ -192,6 +200,7 @@ impl Call {
     #[instrument(skip(self))]
     pub async fn join(&mut self, channel_id: ChannelId) -> JoinResult<Join> {
         let (tx, rx) = flume::unbounded();
+        let (gw_tx, gw_rx) = flume::unbounded();
 
         let do_conn = self
             .should_actually_join(|_| Ok(()), &tx, channel_id)
@@ -200,16 +209,20 @@ impl Call {
         if do_conn {
             self.connection = Some((
                 ConnectionProgress::new(self.guild_id, self.user_id, channel_id),
-                Return::Conn(tx),
+                Return::Conn(gw_tx, tx),
             ));
 
             let timeout = self.config().gateway_timeout;
 
             self.update()
                 .await
-                .map(|_| Join::new(rx.into_recv_async(), timeout))
+                .map(|_| Join::new(rx.into_recv_async(), gw_rx.into_recv_async(), timeout))
         } else {
-            Ok(Join::new(rx.into_recv_async(), None))
+            Ok(Join::new(
+                rx.into_recv_async(),
+                gw_rx.into_recv_async(),
+                None,
+            ))
         }
     }
 

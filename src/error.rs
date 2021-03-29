@@ -50,6 +50,7 @@ pub enum JoinError {
     Twilight(CommandError),
 }
 
+#[cfg(feature = "gateway-core")]
 impl JoinError {
     /// Indicates whether this failure may have left (or been
     /// caused by) Discord's gateway state being in an
@@ -58,13 +59,19 @@ impl JoinError {
     /// Failure to `leave` before rejoining may cause further
     /// timeouts.
     pub fn should_leave_server(&self) -> bool {
-        use JoinError::*;
-        match self {
-            TimedOut => true,
-            #[cfg(feature = "driver-core")]
-            Driver(_) => true,
-            _ => false,
-        }
+        matches!(self, JoinError::TimedOut)
+    }
+
+    #[cfg(feature = "driver-core")]
+    /// Indicates whether this failure can be reattempted via
+    /// [`Driver::connect`] with retreived connection info.
+    ///
+    /// Failure to `leave` before rejoining may cause further
+    /// timeouts.
+    ///
+    /// [`Driver::connect`]: crate::driver::Driver
+    pub fn should_reconnect_driver(&self) -> bool {
+        matches!(self, JoinError::Driver(_))
     }
 }
 

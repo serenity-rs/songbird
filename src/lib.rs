@@ -51,7 +51,7 @@ pub(crate) mod info;
 #[cfg(feature = "driver-core")]
 pub mod input;
 #[cfg(feature = "gateway-core")]
-mod join;
+pub mod join;
 #[cfg(feature = "gateway-core")]
 mod manager;
 #[cfg(feature = "serenity")]
@@ -64,6 +64,7 @@ pub mod tracks;
 mod ws;
 
 #[cfg(feature = "driver-core")]
+/// Opus encoder bitrate settings.
 pub use audiopus::{self as opus, Bitrate};
 #[cfg(feature = "driver-core")]
 pub use discortp as packet;
@@ -84,7 +85,7 @@ pub use crate::{
 };
 
 #[cfg(feature = "gateway-core")]
-pub use crate::{handler::*, join::*, manager::*};
+pub use crate::{handler::*, manager::*};
 
 #[cfg(feature = "serenity")]
 pub use crate::serenity::*;

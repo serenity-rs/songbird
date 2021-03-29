@@ -1,3 +1,5 @@
+//! Future types for gateway interactions.
+
 #[cfg(feature = "driver-core")]
 use crate::error::ConnectionResult;
 use crate::{
@@ -14,24 +16,44 @@ use core::{
 };
 use flume::r#async::RecvFut;
 use pin_project::pin_project;
+#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::time::{self, Timeout};
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::time::{self, Timeout};
 
 #[cfg(feature = "driver-core")]
-/// TODO
+/// Future for a call to [`Call::join`].
+///
+/// This future `await`s Discord's response *and*
+/// connection via the [`Driver`]. Both phases have
+/// separate timeouts and failure conditions.
+///
+/// This future ***must not*** be `await`ed while
+/// holding the lock around a [`Call`].
+///
+/// [`Call::join`]: crate::Call::join
+/// [`Call`]: crate::Call
+/// [`Driver`]: crate::driver::Driver
 #[pin_project]
 pub struct Join {
     #[pin]
-    inner: JoinClass<ConnectionResult<()>>,
+    gw: JoinClass<()>,
+    #[pin]
+    driver: JoinClass<ConnectionResult<()>>,
+    state: JoinState,
 }
 
 #[cfg(feature = "driver-core")]
 impl Join {
     pub(crate) fn new(
-        recv: RecvFut<'static, ConnectionResult<()>>,
+        driver: RecvFut<'static, ConnectionResult<()>>,
+        gw_recv: RecvFut<'static, ()>,
         timeout: Option<Duration>,
     ) -> Self {
         Self {
-            inner: JoinClass::new(recv, timeout),
+            gw: JoinClass::new(gw_recv, timeout),
+            driver: JoinClass::new(driver, None),
+            state: JoinState::BeforeGw,
         }
     }
 }
@@ -41,15 +63,61 @@ impl Future for Join {
     type Output = JoinResult<()>;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.project()
-            .inner
-            .poll(cx)
-            .map_ok(|inner_res| inner_res.map_err(JoinError::Driver))
-            .map(|m| m.and_then(convert::identity))
+        let this = self.project();
+
+        if *this.state == JoinState::BeforeGw {
+            let poll = this.gw.poll(cx);
+            match poll {
+                Poll::Ready(a) if a.is_ok() => {
+                    *this.state = JoinState::AfterGw;
+                },
+                Poll::Ready(a) => {
+                    *this.state = JoinState::Finalised;
+                    return Poll::Ready(a);
+                },
+                Poll::Pending => return Poll::Pending,
+            }
+        }
+
+        if *this.state == JoinState::AfterGw {
+            let poll = this
+                .driver
+                .poll(cx)
+                .map_ok(|res| res.map_err(JoinError::Driver))
+                .map(|res| res.and_then(convert::identity));
+
+            match poll {
+                Poll::Ready(a) => {
+                    *this.state = JoinState::Finalised;
+                    return Poll::Ready(a);
+                },
+                Poll::Pending => return Poll::Pending,
+            }
+        }
+
+        Poll::Pending
     }
 }
 
-/// TODO
+#[cfg(feature = "driver-core")]
+#[derive(Copy, Clone, Eq, PartialEq)]
+enum JoinState {
+    BeforeGw,
+    AfterGw,
+    Finalised,
+}
+
+/// Future for a call to [`Call::join_gateway`].
+///
+/// This future `await`s Discord's gateway response, subject
+/// to any timeouts.
+///
+/// This future ***must not*** be `await`ed while
+/// holding the lock around a [`Call`].
+///
+/// [`Call::join_gateway`]: crate::Call::join_gateway
+/// [`Call`]: crate::Call
+/// [`Driver`]: crate::driver::Driver
 #[pin_project]
 pub struct JoinGateway {
     #[pin]

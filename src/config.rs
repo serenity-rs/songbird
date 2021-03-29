@@ -36,9 +36,17 @@ pub struct Config {
     /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
     pub decode_mode: DecodeMode,
     #[cfg(feature = "gateway-core")]
-    /// TODO
+    /// Configures the amount of time to wait for Discord to reply with connection information
+    /// if [`Call::join`]/[`join_gateway`] are used.
+    ///
+    /// This is a useful fallback in the event that:
+    ///  * the underlying Discord client restarts and loses a join request, or
+    ///  * a channel join fails because the bot is already believed to be there.
     ///
     /// Defaults to 10 seconds. If set to `None`, connections will never time out.
+    ///
+    /// [`Call::join`]: crate::Call::join
+    /// [`join_gateway`]: crate::Call::join_gateway
     pub gateway_timeout: Option<Duration>,
     #[cfg(feature = "driver-core")]
     /// Number of concurrently active tracks to allocate memory for.
