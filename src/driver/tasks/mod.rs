@@ -9,11 +9,8 @@ pub(crate) mod udp_rx;
 pub(crate) mod udp_tx;
 pub(crate) mod ws;
 
-use super::{
-    connection::{error::Error as ConnectionError, Connection},
-    Config,
-};
-use crate::events::CoreContext;
+use super::connection::{error::Error as ConnectionError, Connection};
+use crate::{events::CoreContext, Config};
 use flume::{Receiver, RecvError, Sender};
 use message::*;
 #[cfg(not(feature = "tokio-02-marker"))]

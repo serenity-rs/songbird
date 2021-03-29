@@ -1,7 +1,8 @@
-use super::{disposal, error::Result, message::*, Config};
+use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
     tracks::{PlayMode, Track},
+    Config,
 };
 use audiopus::{
     coder::Encoder as OpusEncoder,

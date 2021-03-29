@@ -11,13 +11,11 @@
 #[cfg(feature = "internals")]
 pub mod bench_internals;
 
-mod config;
 pub(crate) mod connection;
 mod crypto;
 mod decode_mode;
 pub(crate) mod tasks;
 
-pub use config::Config;
 use connection::error::{Error, Result};
 pub use crypto::CryptoMode;
 pub(crate) use crypto::CryptoState;
@@ -29,6 +27,7 @@ use crate::{
     events::EventData,
     input::Input,
     tracks::{self, Track, TrackHandle},
+    Config,
     ConnectionInfo,
     Event,
     EventHandler,
@@ -212,11 +211,17 @@ impl Driver {
         self.send(CoreMessage::SetTrack(None))
     }
 
-    /// Sets the configuration for this driver.
+    /// Sets the configuration for this driver (and parent `Call`, if applicable).
     #[instrument(skip(self))]
     pub fn set_config(&mut self, config: Config) {
         self.config = config.clone();
         self.send(CoreMessage::SetConfig(config))
+    }
+
+    /// Returns a view of this driver's configuration.
+    #[instrument(skip(self))]
+    pub fn config(&self) -> &Config {
+        &self.config
     }
 
     /// Attach a global event handler to an audio context. Global events may receive
