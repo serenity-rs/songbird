@@ -17,6 +17,7 @@ pub enum Recipient {
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     Crypto(CryptoError),
     /// Received an illegal voice packet on the voice UDP socket.

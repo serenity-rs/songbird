@@ -21,6 +21,7 @@ If the driver feature is enabled, then every `Call` is/has an associated `Driver
 src/manager.rs
 src/handler.rs
 src/serenity.rs
+src/join.rs
 ```
 
 # Driver

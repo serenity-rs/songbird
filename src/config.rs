@@ -1,9 +1,14 @@
-use super::{CryptoMode, DecodeMode};
+#[cfg(feature = "driver-core")]
+use super::driver::{CryptoMode, DecodeMode};
 
-/// Configuration for the inner Driver.
-///
+#[cfg(feature = "gateway-core")]
+use std::time::Duration;
+
+/// Configuration for drivers and calls.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub struct Config {
+    #[cfg(feature = "driver-core")]
     /// Selected tagging mode for voice packet encryption.
     ///
     /// Defaults to [`CryptoMode::Normal`].
@@ -14,6 +19,7 @@ pub struct Config {
     ///
     /// [`CryptoMode::Normal`]: CryptoMode::Normal
     pub crypto_mode: CryptoMode,
+    #[cfg(feature = "driver-core")]
     /// Configures whether decoding and decryption occur for all received packets.
     ///
     /// If voice receiving voice packets, generally you should choose [`DecodeMode::Decode`].
@@ -29,6 +35,20 @@ pub struct Config {
     /// [`DecodeMode::Pass`]: DecodeMode::Pass
     /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
     pub decode_mode: DecodeMode,
+    #[cfg(feature = "gateway-core")]
+    /// Configures the amount of time to wait for Discord to reply with connection information
+    /// if [`Call::join`]/[`join_gateway`] are used.
+    ///
+    /// This is a useful fallback in the event that:
+    ///  * the underlying Discord client restarts and loses a join request, or
+    ///  * a channel join fails because the bot is already believed to be there.
+    ///
+    /// Defaults to 10 seconds. If set to `None`, connections will never time out.
+    ///
+    /// [`Call::join`]: crate::Call::join
+    /// [`join_gateway`]: crate::Call::join_gateway
+    pub gateway_timeout: Option<Duration>,
+    #[cfg(feature = "driver-core")]
     /// Number of concurrently active tracks to allocate memory for.
     ///
     /// This should be set at, or just above, the maximum number of tracks
@@ -46,13 +66,19 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            #[cfg(feature = "driver-core")]
             crypto_mode: CryptoMode::Normal,
+            #[cfg(feature = "driver-core")]
             decode_mode: DecodeMode::Decrypt,
+            #[cfg(feature = "gateway-core")]
+            gateway_timeout: Some(Duration::from_secs(10)),
+            #[cfg(feature = "driver-core")]
             preallocated_tracks: 1,
         }
     }
 }
 
+#[cfg(feature = "driver-core")]
 impl Config {
     /// Sets this `Config`'s chosen cryptographic tagging scheme.
     pub fn crypto_mode(mut self, crypto_mode: CryptoMode) -> Self {
@@ -77,5 +103,14 @@ impl Config {
         if connected {
             self.crypto_mode = previous.crypto_mode;
         }
+    }
+}
+
+#[cfg(feature = "gateway-core")]
+impl Config {
+    /// Sets this `Config`'s timeout for joining a voice channel.
+    pub fn gateway_timeout(mut self, gateway_timeout: Option<Duration>) -> Self {
+        self.gateway_timeout = gateway_timeout;
+        self
     }
 }
