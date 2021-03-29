@@ -559,7 +559,7 @@ mod tests {
         let mut input = Input::new(false, data.clone().into(), Codec::Pcm, Container::Raw, None);
 
         let mut out_vec = vec![];
-        let len = input.read_to_end(&mut out_vec).unwrap();
+        let _len = input.read_to_end(&mut out_vec).unwrap();
 
         let mut i16_window = &data[..];
         let mut float_window = &out_vec[..];
@@ -580,7 +580,7 @@ mod tests {
         let mut input = Input::new(true, data.clone().into(), Codec::Pcm, Container::Raw, None);
 
         let mut out_vec = vec![];
-        let len = input.read_to_end(&mut out_vec).unwrap();
+        let _len = input.read_to_end(&mut out_vec).unwrap();
 
         let mut i16_window = &data[..];
         let mut float_window = &out_vec[..];
