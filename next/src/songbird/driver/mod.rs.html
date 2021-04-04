@@ -332,6 +332,7 @@
 <span id="331">331</span>
 <span id="332">332</span>
 <span id="333">333</span>
+<span id="334">334</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Runner for a voice connection.</span>
 <span class="doccomment">//!</span>
@@ -367,7 +368,8 @@
     <span class="ident">Event</span>,
     <span class="ident">EventHandler</span>,
 };
-<span class="kw">use</span> <span class="ident">audiopus</span>::<span class="ident">Bitrate</span>;
+<span class="doccomment">/// Opus encoder bitrate settings.</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">opus</span>, <span class="ident">Bitrate</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">future</span>::<span class="ident">Future</span>,
     <span class="ident">pin</span>::<span class="ident">Pin</span>,
