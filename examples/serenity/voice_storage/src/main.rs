@@ -27,12 +27,12 @@ use serenity::{
 };
 
 use songbird::{
+    driver::Bitrate,
     input::{
         self,
         cached::{Compressed, Memory},
         Input,
     },
-    Bitrate,
     Call,
     Event,
     EventContext,

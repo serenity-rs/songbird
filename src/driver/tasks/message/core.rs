@@ -1,10 +1,9 @@
 #![allow(missing_docs)]
 
 use crate::{
-    driver::{connection::error::Error, Config},
+    driver::{connection::error::Error, Bitrate, Config},
     events::EventData,
     tracks::Track,
-    Bitrate,
     ConnectionInfo,
 };
 use flume::Sender;

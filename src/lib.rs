@@ -64,9 +64,6 @@ pub mod tracks;
 mod ws;
 
 #[cfg(feature = "driver-core")]
-/// Opus encoder bitrate settings.
-pub use audiopus::{self as opus, Bitrate};
-#[cfg(feature = "driver-core")]
 pub use discortp as packet;
 #[cfg(feature = "driver-core")]
 pub use serenity_voice_model as model;
