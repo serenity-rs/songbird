@@ -32,7 +32,8 @@ use crate::{
     Event,
     EventHandler,
 };
-use audiopus::Bitrate;
+/// Opus encoder bitrate settings.
+pub use audiopus::{self as opus, Bitrate};
 use core::{
     future::Future,
     pin::Pin,
