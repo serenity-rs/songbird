@@ -96,19 +96,19 @@
 <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TrackCommand</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">TrackCommand</span>::<span class="kw-2">*</span>;
-        <span class="macro">write</span><span class="macro">!</span>(
+        <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;TrackCommand::{}&quot;</span>,
             <span class="kw">match</span> <span class="self">self</span> {
                 <span class="ident">Play</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Play&quot;</span>.<span class="ident">to_string</span>(),
                 <span class="ident">Pause</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Pause&quot;</span>.<span class="ident">to_string</span>(),
                 <span class="ident">Stop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Stop&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident">Volume</span>(<span class="ident">vol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Volume({})&quot;</span>, <span class="ident">vol</span>),
-                <span class="ident">Seek</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Seek({:?})&quot;</span>, <span class="ident">d</span>),
-                <span class="ident">AddEvent</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;AddEvent({:?})&quot;</span>, <span class="ident">evt</span>),
+                <span class="ident">Volume</span>(<span class="ident">vol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;Volume({})&quot;</span>, <span class="ident">vol</span>),
+                <span class="ident">Seek</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;Seek({:?})&quot;</span>, <span class="ident">d</span>),
+                <span class="ident">AddEvent</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;AddEvent({:?})&quot;</span>, <span class="ident">evt</span>),
                 <span class="ident">Do</span>(<span class="ident">_f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Do([function])&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident">Request</span>(<span class="ident">tx</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Request({:?})&quot;</span>, <span class="ident">tx</span>),
-                <span class="ident">Loop</span>(<span class="ident">loops</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Loop({:?})&quot;</span>, <span class="ident">loops</span>),
+                <span class="ident">Request</span>(<span class="ident">tx</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;Request({:?})&quot;</span>, <span class="ident">tx</span>),
+                <span class="ident">Loop</span>(<span class="ident">loops</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;Loop({:?})&quot;</span>, <span class="ident">loops</span>),
                 <span class="ident">MakePlayable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;MakePlayable&quot;</span>.<span class="ident">to_string</span>(),
             }
         )

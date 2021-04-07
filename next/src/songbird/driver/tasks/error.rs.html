@@ -130,7 +130,7 @@
 
 <span class="kw">impl</span> <span class="ident">Error</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">should_trigger_connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(
+        <span class="macro">matches!</span>(
             <span class="self">self</span>,
             <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">AuxNetwork</span>)
                 <span class="op">|</span> <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">UdpRx</span>)
@@ -139,7 +139,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">should_trigger_interconnect_rebuild</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">Event</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">Event</span>))
     }
 }
 

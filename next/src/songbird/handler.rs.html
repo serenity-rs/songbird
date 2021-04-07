@@ -814,7 +814,7 @@
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ws</span>.<span class="ident">as_mut</span>() {
-            <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="macro">json</span><span class="macro">!</span>({
+            <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="macro">json!</span>({
                 <span class="string">&quot;op&quot;</span>: <span class="number">4</span>,
                 <span class="string">&quot;d&quot;</span>: {
                     <span class="string">&quot;channel_id&quot;</span>: <span class="self">self</span>.<span class="ident">connection</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="number">0</span>.<span class="ident">channel_id</span>().<span class="number">0</span>),

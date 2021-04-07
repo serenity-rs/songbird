@@ -465,8 +465,8 @@
 
         <span class="kw">let</span> <span class="ident">_old</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">pop_front</span>();
 
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Queued track ended: {:?}.&quot;</span>, <span class="ident">ctx</span>);
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;{} tracks remain.&quot;</span>, <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">len</span>());
+        <span class="macro">info!</span>(<span class="string">&quot;Queued track ended: {:?}.&quot;</span>, <span class="ident">ctx</span>);
+        <span class="macro">info!</span>(<span class="string">&quot;{} tracks remain.&quot;</span>, <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">len</span>());
 
         <span class="comment">// Keep going until we find one track which works, or we run out.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keep_looking</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -476,7 +476,7 @@
 
                 <span class="comment">// Discard files which cannot be used for whatever reason.</span>
                 <span class="kw">if</span> <span class="ident">keep_looking</span> {
-                    <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Track in Queue couldn&#39;t be played...&quot;</span>);
+                    <span class="macro">warn!</span>(<span class="string">&quot;Track in Queue couldn&#39;t be played...&quot;</span>);
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">pop_front</span>();
                 }
             }
@@ -533,7 +533,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">track</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Track</span>) {
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Track added to queue.&quot;</span>);
+        <span class="macro">info!</span>(<span class="string">&quot;Track added to queue.&quot;</span>);
         <span class="kw">let</span> <span class="ident">remote_lock</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
 

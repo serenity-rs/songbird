@@ -772,7 +772,7 @@
                     <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
                     <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
 
-                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
+                    <span class="macro">debug!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
                 }
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mix_rx</span>.<span class="ident">recv</span>() {
@@ -856,7 +856,7 @@
             <span class="ident">SetBitrate</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">bitrate</span> <span class="op">=</span> <span class="ident">b</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">set_bitrate</span>(<span class="ident">b</span>) {
-                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to update bitrate {:?}&quot;</span>, <span class="ident">e</span>);
+                    <span class="macro">error!</span>(<span class="string">&quot;Failed to update bitrate {:?}&quot;</span>, <span class="ident">e</span>);
                 }
                 <span class="prelude-val">Ok</span>(())
             },
@@ -918,7 +918,7 @@
                     <span class="prelude-val">Ok</span>(())
                 },
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to rebuild encoder. Resetting bitrate. {:?}&quot;</span>, <span class="ident">e</span>);
+                    <span class="macro">error!</span>(<span class="string">&quot;Failed to rebuild encoder. Resetting bitrate. {:?}&quot;</span>, <span class="ident">e</span>);
                     <span class="self">self</span>.<span class="ident">bitrate</span> <span class="op">=</span> <span class="ident">DEFAULT_BITRATE</span>;
                     <span class="self">self</span>.<span class="ident">encoder</span> <span class="op">=</span> <span class="ident">new_encoder</span>(<span class="self">self</span>.<span class="ident">bitrate</span>)
                         .<span class="ident">expect</span>(<span class="string">&quot;Failed fallback rebuild of OpusEncoder with safe inputs.&quot;</span>);

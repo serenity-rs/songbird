@@ -589,7 +589,7 @@
     <span class="doccomment">/// The cost of restarting and seeking will probably be *very* high:</span>
     <span class="doccomment">/// expect a pause if you seek backwards.</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">lazy</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">ytdl</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>), <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="self">Self</span>::<span class="ident">ytdl</span>(<span class="macro">format!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>), <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prep_with_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">handle</span>: <span class="ident">Handle</span>) {
@@ -597,7 +597,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_playable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">source</span>, <span class="ident">LazyProgress</span>::<span class="ident">Dead</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>)) {
+        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">source</span>, <span class="ident">LazyProgress</span>::<span class="ident">Dead</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>)) {
             <span class="comment">// This read triggers creation of a source, and is guaranteed not to modify any internals.</span>
             <span class="comment">// It will harmlessly write out zeroes into the target buffer.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">0</span>];
@@ -642,7 +642,7 @@
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> (<span class="bool-val">false</span>, <span class="ident">Default</span>::<span class="ident">default</span>()));
             <span class="kw">let</span> <span class="ident">stereo_val</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_stereo</span>.<span class="number">0</span> { <span class="string">&quot;2&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;1&quot;</span> };
 
-            <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:.3}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs_f64</span>());
+            <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.3}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs_f64</span>());
             <span class="ident">_ffmpeg_optioned</span>(
                 <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>(),
                 <span class="kw-2">&amp;</span>[<span class="string">&quot;-ss&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">ts</span>],
@@ -686,7 +686,7 @@
 {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">call_restart</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">time</span> {
-            <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:.3}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs_f64</span>());
+            <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.3}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs_f64</span>());
 
             <span class="ident">_ytdl</span>(<span class="self">self</span>.<span class="ident">uri</span>.<span class="ident">as_ref</span>(), <span class="kw-2">&amp;</span>[<span class="string">&quot;-ss&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">ts</span>]).<span class="kw">await</span>
         } <span class="kw">else</span> {
@@ -768,7 +768,7 @@
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">source_error</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
                             <span class="ident">IoErrorKind</span>::<span class="ident">UnexpectedEof</span>,
-                            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create new reader: {:?}.&quot;</span>, <span class="ident">source_error</span>),
+                            <span class="macro">format!</span>(<span class="string">&quot;Failed to create new reader: {:?}.&quot;</span>, <span class="ident">source_error</span>),
                         ));
                         (<span class="ident">e</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>)
                     },
@@ -876,7 +876,7 @@
                 <span class="ident">IoErrorKind</span>::<span class="ident">InvalidInput</span>,
                 <span class="string">&quot;End point for Restartables is not known.&quot;</span>,
             )),
-            <span class="ident">Current</span>(<span class="ident">_offset</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
+            <span class="ident">Current</span>(<span class="ident">_offset</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
         }
     }
 }

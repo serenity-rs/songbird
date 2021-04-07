@@ -194,7 +194,7 @@
 <span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">process</span>::<span class="ident">Command</span> <span class="kw">as</span> <span class="ident">TokioCommand</span>, <span class="ident">task</span>};
 <span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">trace</span>;
 
-<span class="kw">const</span> <span class="ident">YOUTUBE_DL_COMMAND</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;youtube-dlc&quot;</span>) {
+<span class="kw">const</span> <span class="ident">YOUTUBE_DL_COMMAND</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;youtube-dlc&quot;</span>) {
     <span class="string">&quot;youtube-dlc&quot;</span>
 } <span class="kw">else</span> {
     <span class="string">&quot;youtube-dl&quot;</span>
@@ -252,7 +252,7 @@
     <span class="kw">let</span> (<span class="ident">returned_stderr</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">task</span>::<span class="ident">spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">stderr</span>.<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">out</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o_vec</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o_vec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">serde_read</span> <span class="op">=</span> <span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">s</span>.<span class="ident">by_ref</span>());
             <span class="comment">// Newline...</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">len</span>) <span class="op">=</span> <span class="ident">serde_read</span>.<span class="ident">read_until</span>(<span class="number">0xA</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">o_vec</span>) {
@@ -286,11 +286,11 @@
 
     <span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">Metadata</span>::<span class="ident">from_ytdl_output</span>(<span class="ident">value</span><span class="question-mark">?</span>);
 
-    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;ytdl metadata {:?}&quot;</span>, <span class="ident">metadata</span>);
+    <span class="macro">trace!</span>(<span class="string">&quot;ytdl metadata {:?}&quot;</span>, <span class="ident">metadata</span>);
 
     <span class="prelude-val">Ok</span>(<span class="ident">Input</span>::<span class="ident">new</span>(
         <span class="bool-val">true</span>,
-        <span class="ident">children_to_reader</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">youtube_dl</span>, <span class="ident">ffmpeg</span>]),
+        <span class="ident">children_to_reader</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="macro">vec!</span>[<span class="ident">youtube_dl</span>, <span class="ident">ffmpeg</span>]),
         <span class="ident">Codec</span>::<span class="ident">FloatPcm</span>,
         <span class="ident">Container</span>::<span class="ident">Raw</span>,
         <span class="prelude-val">Some</span>(<span class="ident">metadata</span>),
@@ -348,7 +348,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Restartable::ytdl_search`]: crate::input::restartable::Restartable::ytdl_search</span>
 <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> {
-    <span class="ident">ytdl</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>)).<span class="kw">await</span>
+    <span class="ident">ytdl</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>)).<span class="kw">await</span>
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-search-js="../../../search-index.js"></div>

@@ -68,7 +68,7 @@
 <span class="kw">impl</span> <span class="ident">PlayMode</span> {
     <span class="doccomment">/// Returns whether the track has irreversibly stopped.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_done</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">PlayMode</span>::<span class="ident">Stop</span> <span class="op">|</span> <span class="ident">PlayMode</span>::<span class="ident">End</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">PlayMode</span>::<span class="ident">Stop</span> <span class="op">|</span> <span class="ident">PlayMode</span>::<span class="ident">End</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">change_to</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PlayMode</span> {

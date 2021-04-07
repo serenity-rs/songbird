@@ -133,19 +133,19 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(<span class="ident">_interconnect</span>: <span class="ident">Interconnect</span>, <span class="ident">evt_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">GlobalEvents</span>::<span class="ident">default</span>();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">events</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EventStore</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handles</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackHandle</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">events</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EventStore</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handles</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackHandle</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
     <span class="kw">loop</span> {
         <span class="kw">use</span> <span class="ident">EventMessage</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="ident">evt_rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">AddGlobalEvent</span>(<span class="ident">data</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Global event added.&quot;</span>);
+                <span class="macro">info!</span>(<span class="string">&quot;Global event added.&quot;</span>);
                 <span class="ident">global</span>.<span class="ident">add_event</span>(<span class="ident">data</span>);
             },
             <span class="prelude-val">Ok</span>(<span class="ident">AddTrackEvent</span>(<span class="ident">i</span>, <span class="ident">data</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding event to track {}.&quot;</span>, <span class="ident">i</span>);
+                <span class="macro">info!</span>(<span class="string">&quot;Adding event to track {}.&quot;</span>, <span class="ident">i</span>);
 
                 <span class="kw">let</span> <span class="ident">event_store</span> <span class="op">=</span> <span class="ident">events</span>
                     .<span class="ident">get_mut</span>(<span class="ident">i</span>)
@@ -162,7 +162,7 @@
                     .<span class="ident">to_core_event</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;Event thread was passed a non-core event in FireCoreEvent.&quot;</span>);
 
-                <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Firing core event {:?}.&quot;</span>, <span class="ident">evt</span>);
+                <span class="macro">trace!</span>(<span class="string">&quot;Firing core event {:?}.&quot;</span>, <span class="ident">evt</span>);
 
                 <span class="ident">global</span>.<span class="ident">fire_core_event</span>(<span class="ident">evt</span>, <span class="ident">ctx</span>).<span class="kw">await</span>;
             },
@@ -174,13 +174,13 @@
                 <span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">state</span>);
                 <span class="ident">handles</span>.<span class="ident">push</span>(<span class="ident">handle</span>);
 
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event state for track {} added&quot;</span>, <span class="ident">events</span>.<span class="ident">len</span>());
+                <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} added&quot;</span>, <span class="ident">events</span>.<span class="ident">len</span>());
             },
             <span class="prelude-val">Ok</span>(<span class="ident">ChangeState</span>(<span class="ident">i</span>, <span class="ident">change</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">use</span> <span class="ident">TrackStateChange</span>::<span class="kw-2">*</span>;
 
                 <span class="kw">let</span> <span class="ident">max_states</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">len</span>();
-                <span class="macro">debug</span><span class="macro">!</span>(
+                <span class="macro">debug!</span>(
                     <span class="string">&quot;Changing state for track {} of {}: {:?}&quot;</span>,
                     <span class="ident">i</span>, <span class="ident">max_states</span>, <span class="ident">change</span>
                 );
@@ -217,14 +217,14 @@
                 }
             },
             <span class="prelude-val">Ok</span>(<span class="ident">RemoveTrack</span>(<span class="ident">i</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event state for track {} of {} removed.&quot;</span>, <span class="ident">i</span>, <span class="ident">events</span>.<span class="ident">len</span>());
+                <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} of {} removed.&quot;</span>, <span class="ident">i</span>, <span class="ident">events</span>.<span class="ident">len</span>());
 
                 <span class="ident">events</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
                 <span class="ident">states</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
                 <span class="ident">handles</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
             },
             <span class="prelude-val">Ok</span>(<span class="ident">RemoveAllTracks</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event state for all tracks removed.&quot;</span>);
+                <span class="macro">info!</span>(<span class="string">&quot;Event state for all tracks removed.&quot;</span>);
 
                 <span class="ident">events</span>.<span class="ident">clear</span>();
                 <span class="ident">states</span>.<span class="ident">clear</span>();
@@ -240,7 +240,7 @@
         }
     }
 
-    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Event thread exited.&quot;</span>);
+    <span class="macro">trace!</span>(<span class="string">&quot;Event thread exited.&quot;</span>);
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-search-js="../../../../search-index.js"></div>

@@ -216,7 +216,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_shard_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">shard_id</span>: <span class="ident">u64</span>, <span class="ident">sender</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">InterMessage</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Sharder</span>::<span class="ident">Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">register_shard_handle</span>(<span class="ident">shard_id</span>, <span class="ident">sender</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">error!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>),
         }
     }
 
@@ -224,7 +224,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">deregister_shard_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">shard_id</span>: <span class="ident">u64</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Sharder</span>::<span class="ident">Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">deregister_shard_handle</span>(<span class="ident">shard_id</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">error!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>),
         }
     }
 }
@@ -313,7 +313,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sender</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">sender_lock</span> {
             <span class="kw">for</span> <span class="ident">msg</span> <span class="kw">in</span> <span class="ident">messages_lock</span>.<span class="ident">drain</span>(..) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sender</span>.<span class="ident">unbounded_send</span>(<span class="ident">msg</span>) {
-                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Error while clearing gateway message queue: {:?}&quot;</span>, <span class="ident">e</span>);
+                    <span class="macro">error!</span>(<span class="string">&quot;Error while clearing gateway message queue: {:?}&quot;</span>, <span class="ident">e</span>);
                     <span class="kw">break</span>;
                 }
             }

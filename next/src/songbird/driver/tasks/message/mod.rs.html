@@ -101,9 +101,9 @@
 
         <span class="kw">let</span> <span class="ident">ic</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-            <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Event processor restarted.&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">&quot;Event processor restarted.&quot;</span>);
             <span class="kw">super</span>::<span class="ident">events</span>::<span class="ident">runner</span>(<span class="ident">ic</span>, <span class="ident">evt_rx</span>).<span class="kw">await</span>;
-            <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
         });
 
         <span class="comment">// Make mixer aware of new targets...</span>
