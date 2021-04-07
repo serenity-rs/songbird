@@ -46,6 +46,9 @@ pub enum CoreEvent {
     /// [RTP SSRC]: https://tools.ietf.org/html/rfc3550#section-3
     /// [DriverConnect]: Self::DriverConnect
     /// [DriverReconnect]: Self::DriverReconnect
-    // TODO: deprecate in next breaking after fusing with Driver(Re)Connect.
+    #[deprecated(
+        since = "0.2.0",
+        note = "Please use the DriverConnect/Reconnect events instead."
+    )]
     SsrcKnown,
 }
