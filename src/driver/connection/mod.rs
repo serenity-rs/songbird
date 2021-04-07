@@ -36,6 +36,7 @@ use ws::create_native_tls_client;
 
 pub(crate) struct Connection {
     pub(crate) info: ConnectionInfo,
+    pub(crate) ssrc: u32,
     pub(crate) ws: Sender<WsMessage>,
 }
 
@@ -219,6 +220,7 @@ impl Connection {
 
         Ok(Connection {
             info,
+            ssrc,
             ws: ws_msg_tx,
         })
     }
