@@ -247,7 +247,7 @@ impl Input {
                     }
 
                     // read from frame which is present.
-                    let mut buffer = &mut buffer[..];
+                    let mut buffer = buffer;
 
                     let start = decoder_state.frame_pos;
                     let to_write = float_space.min(decoder_state.current_frame.len() - start);
@@ -261,7 +261,7 @@ impl Input {
                 }
             },
             Codec::Pcm => {
-                let mut buffer = &mut buffer[..];
+                let mut buffer = buffer;
                 while written_floats < float_space {
                     if let Ok(signal) = self.reader.read_i16::<LittleEndian>() {
                         buffer.write_f32::<LittleEndian>(f32::from(signal) / 32768.0)?;
