@@ -84,35 +84,35 @@ impl VoiceEventHandler for Receiver {
                     speaking,
                 );
             },
-            Ctx::SpeakingUpdate {ssrc, speaking} => {
+            Ctx::SpeakingUpdate(data) => {
                 // You can implement logic here which reacts to a user starting
                 // or stopping speaking.
                 println!(
                     "Source {} has {} speaking.",
-                    ssrc,
-                    if *speaking {"started"} else {"stopped"},
+                    data.ssrc,
+                    if data.speaking {"started"} else {"stopped"},
                 );
             },
-            Ctx::VoicePacket {audio, packet, payload_offset, payload_end_pad} => {
+            Ctx::VoicePacket(data) => {
                 // An event which fires for every received audio packet,
                 // containing the decoded data.
-                if let Some(audio) = audio {
+                if let Some(audio) = data.audio {
                     println!("Audio packet's first 5 samples: {:?}", audio.get(..5.min(audio.len())));
                     println!(
                         "Audio packet sequence {:05} has {:04} bytes (decompressed from {}), SSRC {}",
-                        packet.sequence.0,
+                        data.packet.sequence.0,
                         audio.len() * std::mem::size_of::<i16>(),
-                        packet.payload.len(),
-                        packet.ssrc,
+                        data.packet.payload.len(),
+                        data.packet.ssrc,
                     );
                 } else {
                     println!("RTP packet, but no audio. Driver may not be configured to decode.");
                 }
             },
-            Ctx::RtcpPacket {packet, payload_offset, payload_end_pad} => {
+            Ctx::RtcpPacket(data) => {
                 // An event which fires for every received rtcp packet,
                 // containing the call statistics and reporting information.
-                println!("RTCP packet received: {:?}", packet);
+                println!("RTCP packet received: {:?}", data.packet);
             },
             Ctx::ClientConnect(
                 ClientConnect {audio_ssrc, video_ssrc, user_id, ..}

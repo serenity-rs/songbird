@@ -10,7 +10,10 @@ pub(crate) mod udp_tx;
 pub(crate) mod ws;
 
 use super::connection::{error::Error as ConnectionError, Connection};
-use crate::{events::CoreContext, Config};
+use crate::{
+    events::{internal_data::InternalConnect, CoreContext},
+    Config,
+};
 use flume::{Receiver, RecvError, Sender};
 use message::*;
 #[cfg(not(feature = "tokio-02-marker"))]
@@ -78,9 +81,12 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                         // Other side may not be listening: this is fine.
                         let _ = tx.send(Ok(()));
 
-                        let _ = interconnect
-                            .events
-                            .send(EventMessage::FireCoreEvent(CoreContext::DriverConnect));
+                        let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                            CoreContext::DriverConnect(InternalConnect {
+                                server: connection.info.endpoint.clone(),
+                                ssrc: connection.ssrc,
+                            }),
+                        ));
 
                         Some(connection)
                     },
@@ -164,10 +170,13 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                             .ok();
                     }
 
-                    if connection.is_some() {
-                        let _ = interconnect
-                            .events
-                            .send(EventMessage::FireCoreEvent(CoreContext::DriverReconnect));
+                    if let Some(ref connection) = &connection {
+                        let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                            CoreContext::DriverReconnect(InternalConnect {
+                                server: connection.info.endpoint.clone(),
+                                ssrc: connection.ssrc,
+                            }),
+                        ));
                     }
                 }
             },
@@ -186,10 +195,13 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                         })
                         .ok();
 
-                    if connection.is_some() {
-                        let _ = interconnect
-                            .events
-                            .send(EventMessage::FireCoreEvent(CoreContext::DriverReconnect));
+                    if let Some(ref connection) = &connection {
+                        let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                            CoreContext::DriverReconnect(InternalConnect {
+                                server: connection.info.endpoint.clone(),
+                                ssrc: connection.ssrc,
+                            }),
+                        ));
                     }
                 },
             Ok(CoreMessage::RebuildInterconnect) => {
