@@ -846,7 +846,7 @@
                     }
 
                     <span class="comment">// read from frame which is present.</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>[..];
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer</span>;
 
                     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span>;
                     <span class="kw">let</span> <span class="ident">to_write</span> <span class="op">=</span> <span class="ident">float_space</span>.<span class="ident">min</span>(<span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">start</span>);
@@ -860,7 +860,7 @@
                 }
             },
             <span class="ident">Codec</span>::<span class="ident">Pcm</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>[..];
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer</span>;
                 <span class="kw">while</span> <span class="ident">written_floats</span> <span class="op">&lt;</span> <span class="ident">float_space</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">signal</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_i16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>() {
                         <span class="ident">buffer</span>.<span class="ident">write_f32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="ident">f32</span>::<span class="ident">from</span>(<span class="ident">signal</span>) <span class="op">/</span> <span class="number">32768.0</span>)<span class="question-mark">?</span>;

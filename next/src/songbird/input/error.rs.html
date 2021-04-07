@@ -129,13 +129,13 @@
     <span class="doccomment">/// An error occurred while processing the JSON output from `youtube-dl`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The JSON output is given.</span>
-    <span class="ident">YouTubeDLProcessing</span>(<span class="ident">Value</span>),
+    <span class="ident">YouTubeDlProcessing</span>(<span class="ident">Value</span>),
     <span class="doccomment">/// An error occurred while running `youtube-dl`.</span>
-    <span class="ident">YouTubeDLRun</span>(<span class="ident">Output</span>),
+    <span class="ident">YouTubeDlRun</span>(<span class="ident">Output</span>),
     <span class="doccomment">/// The `url` field of the `youtube-dl` JSON output was not present.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The JSON output is given.</span>
-    <span class="ident">YouTubeDLUrl</span>(<span class="ident">Value</span>),
+    <span class="ident">YouTubeDlUrl</span>(<span class="ident">Value</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CatcherError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
