@@ -35,13 +35,13 @@ pub enum Error {
     /// An error occurred while processing the JSON output from `youtube-dl`.
     ///
     /// The JSON output is given.
-    YouTubeDLProcessing(Value),
+    YouTubeDlProcessing(Value),
     /// An error occurred while running `youtube-dl`.
-    YouTubeDLRun(Output),
+    YouTubeDlRun(Output),
     /// The `url` field of the `youtube-dl` JSON output was not present.
     ///
     /// The JSON output is given.
-    YouTubeDLUrl(Value),
+    YouTubeDlUrl(Value),
 }
 
 impl From<CatcherError> for Error {
