@@ -103,6 +103,19 @@ impl EventStore {
         }
     }
 
+    /// Processes all events due up to and including `now`.
+    pub(crate) fn timed_event_ready(&self, now: Duration) -> bool {
+        self.timed
+            .peek()
+            .map(|evt| {
+                evt.fire_time
+                    .as_ref()
+                    .expect("Timed event must have a fire_time.")
+                    <= &now
+            })
+            .unwrap_or(false)
+    }
+
     /// Processes all events attached to the given track event.
     pub(crate) async fn process_untimed(
         &mut self,
@@ -176,9 +189,13 @@ impl GlobalEvents {
     ) {
         // Global timed events
         self.time += TIMESTEP_LENGTH;
-        self.store
-            .process_timed(self.time, EventContext::Track(&[]))
-            .await;
+        if self.store.timed_event_ready(self.time) {
+            let global_ctx: Vec<(&TrackState, &TrackHandle)> =
+                states.iter().zip(handles.iter()).collect();
+            self.store
+                .process_timed(self.time, EventContext::Track(&global_ctx[..]))
+                .await;
+        }
 
         // Local timed events
         for (i, state) in states.iter_mut().enumerate() {

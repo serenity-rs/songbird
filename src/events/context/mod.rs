@@ -1,9 +1,14 @@
+pub mod data;
+pub(crate) mod internal_data;
+
 use super::*;
 use crate::{
     model::payload::{ClientConnect, ClientDisconnect, Speaking},
     tracks::{TrackHandle, TrackState},
 };
-use discortp::{rtcp::Rtcp, rtp::Rtp};
+pub use data as context_data;
+use data::*;
+use internal_data::*;
 
 /// Information about which tracks or data fired an event.
 ///
@@ -28,90 +33,52 @@ pub enum EventContext<'a> {
     /// Speaking state transition, describing whether a given source has started/stopped
     /// transmitting. This fires in response to a silent burst, or the first packet
     /// breaking such a burst.
-    SpeakingUpdate {
-        /// Synchronisation Source of the user who has begun speaking.
-        ///
-        /// This must be combined with another event class to map this back to
-        /// its original UserId.
-        ssrc: u32,
-        /// Whether this user is currently speaking.
-        speaking: bool,
-    },
-    /// Opus audio packet, received from another stream (detailed in `packet`).
-    /// `payload_offset` contains the true payload location within the raw packet's `payload()`,
-    /// if extensions or raw packet data are required.
-    /// if `audio.len() == 0`, then this packet arrived out-of-order.
-    VoicePacket {
-        /// Decoded audio from this packet.
-        audio: &'a Option<Vec<i16>>,
-        /// Raw RTP packet data.
-        ///
-        /// Includes the SSRC (i.e., sender) of this packet.
-        packet: &'a Rtp,
-        /// Byte index into the packet body (after headers) for where the payload begins.
-        payload_offset: usize,
-        /// Number of bytes at the end of the packet to discard.
-        payload_end_pad: usize,
-    },
-    /// Telemetry/statistics packet, received from another stream (detailed in `packet`).
-    /// `payload_offset` contains the true payload location within the raw packet's `payload()`,
-    /// to allow manual decoding of `Rtcp` packet bodies.
-    RtcpPacket {
-        /// Raw RTCP packet data.
-        packet: &'a Rtcp,
-        /// Byte index into the packet body (after headers) for where the payload begins.
-        payload_offset: usize,
-        /// Number of bytes at the end of the packet to discard.
-        payload_end_pad: usize,
-    },
+    SpeakingUpdate(SpeakingUpdateData),
+    /// Opus audio packet, received from another stream.
+    VoicePacket(VoiceData<'a>),
+    /// Telemetry/statistics packet, received from another stream.
+    RtcpPacket(RtcpData<'a>),
     /// Fired whenever a client connects to a call for the first time, allowing SSRC/UserID
     /// matching.
     ClientConnect(ClientConnect),
     /// Fired whenever a client disconnects.
     ClientDisconnect(ClientDisconnect),
     /// Fires when this driver successfully connects to a voice channel.
-    DriverConnect,
+    DriverConnect(ConnectData<'a>),
     /// Fires when this driver successfully reconnects after a network error.
-    DriverReconnect,
+    DriverReconnect(ConnectData<'a>),
     /// Fires when this driver fails to connect to a voice channel.
     DriverConnectFailed,
     /// Fires when this driver fails to reconnect to a voice channel after a network error.
     ///
     /// Users will need to manually reconnect on receipt of this error.
     DriverReconnectFailed,
+    #[deprecated(
+        since = "0.2.0",
+        note = "Please use the DriverConnect/Reconnect events instead."
+    )]
     /// Fires whenever the driver is assigned a new [RTP SSRC] by the voice server.
     ///
     /// This typically fires alongside a [DriverConnect], or a full [DriverReconnect].
+    /// **This event is *deprecated* in favour of these alternatives**.
     ///
     /// [RTP SSRC]: https://tools.ietf.org/html/rfc3550#section-3
     /// [DriverConnect]: Self::DriverConnect
     /// [DriverReconnect]: Self::DriverReconnect
-    // TODO: move assigned SSRC into payload of Driver(Re)Connect as part of next breaking, and deprecate this.
+    // TODO: remove in 0.3.x
     SsrcKnown(u32),
 }
 
 #[derive(Clone, Debug)]
 pub enum CoreContext {
     SpeakingStateUpdate(Speaking),
-    SpeakingUpdate {
-        ssrc: u32,
-        speaking: bool,
-    },
-    VoicePacket {
-        audio: Option<Vec<i16>>,
-        packet: Rtp,
-        payload_offset: usize,
-        payload_end_pad: usize,
-    },
-    RtcpPacket {
-        packet: Rtcp,
-        payload_offset: usize,
-        payload_end_pad: usize,
-    },
+    SpeakingUpdate(InternalSpeakingUpdate),
+    VoicePacket(InternalVoicePacket),
+    RtcpPacket(InternalRtcpPacket),
     ClientConnect(ClientConnect),
     ClientDisconnect(ClientDisconnect),
-    DriverConnect,
-    DriverReconnect,
+    DriverConnect(InternalConnect),
+    DriverReconnect(InternalConnect),
     DriverConnectFailed,
     DriverReconnectFailed,
     SsrcKnown(u32),
@@ -123,36 +90,16 @@ impl<'a> CoreContext {
 
         match self {
             SpeakingStateUpdate(evt) => EventContext::SpeakingStateUpdate(*evt),
-            SpeakingUpdate { ssrc, speaking } => EventContext::SpeakingUpdate {
-                ssrc: *ssrc,
-                speaking: *speaking,
-            },
-            VoicePacket {
-                audio,
-                packet,
-                payload_offset,
-                payload_end_pad,
-            } => EventContext::VoicePacket {
-                audio,
-                packet,
-                payload_offset: *payload_offset,
-                payload_end_pad: *payload_end_pad,
-            },
-            RtcpPacket {
-                packet,
-                payload_offset,
-                payload_end_pad,
-            } => EventContext::RtcpPacket {
-                packet,
-                payload_offset: *payload_offset,
-                payload_end_pad: *payload_end_pad,
-            },
+            SpeakingUpdate(evt) => EventContext::SpeakingUpdate(SpeakingUpdateData::from(evt)),
+            VoicePacket(evt) => EventContext::VoicePacket(VoiceData::from(evt)),
+            RtcpPacket(evt) => EventContext::RtcpPacket(RtcpData::from(evt)),
             ClientConnect(evt) => EventContext::ClientConnect(*evt),
             ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),
-            DriverConnect => EventContext::DriverConnect,
-            DriverReconnect => EventContext::DriverReconnect,
+            DriverConnect(evt) => EventContext::DriverConnect(ConnectData::from(evt)),
+            DriverReconnect(evt) => EventContext::DriverReconnect(ConnectData::from(evt)),
             DriverConnectFailed => EventContext::DriverConnectFailed,
             DriverReconnectFailed => EventContext::DriverReconnectFailed,
+            #[allow(deprecated)]
             SsrcKnown(s) => EventContext::SsrcKnown(*s),
         }
     }
@@ -171,10 +118,11 @@ impl EventContext<'_> {
             RtcpPacket { .. } => Some(CoreEvent::RtcpPacket),
             ClientConnect { .. } => Some(CoreEvent::ClientConnect),
             ClientDisconnect { .. } => Some(CoreEvent::ClientDisconnect),
-            DriverConnect => Some(CoreEvent::DriverConnect),
-            DriverReconnect => Some(CoreEvent::DriverReconnect),
+            DriverConnect(_) => Some(CoreEvent::DriverConnect),
+            DriverReconnect(_) => Some(CoreEvent::DriverReconnect),
             DriverConnectFailed => Some(CoreEvent::DriverConnectFailed),
             DriverReconnectFailed => Some(CoreEvent::DriverReconnectFailed),
+            #[allow(deprecated)]
             SsrcKnown(_) => Some(CoreEvent::SsrcKnown),
             _ => None,
         }
