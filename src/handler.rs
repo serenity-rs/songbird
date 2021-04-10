@@ -240,6 +240,15 @@ impl Call {
         }
     }
 
+    /// Returns `id` of the channel, if connected to any.
+    #[instrument(skip(self))]
+    pub fn current_channel(&self) -> Option<ChannelId> {
+        match &self.connection {
+            Some((id, _, _)) => Some(*id),
+            _ => None,
+        }
+    }
+
     /// Leaves the current voice channel, disconnecting from it.
     ///
     /// This does _not_ forget settings, like whether to be self-deafened or
