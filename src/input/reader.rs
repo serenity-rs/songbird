@@ -1,6 +1,7 @@
 //! Raw handlers for input bytestreams.
 
 use super::*;
+use symphonia_core::io::{MediaSource, MediaSourceStream, MediaSourceStreamOptions};
 use std::{
     fmt::{Debug, Error as FormatError, Formatter},
     fs::File,
@@ -44,24 +45,16 @@ pub enum Reader {
     ///
     /// Supports seeking.
     Restartable(Restartable),
-    /// A source contained in a local file.
-    ///
-    /// Supports seeking.
-    File(BufReader<File>),
-    /// A source contained as an array in memory.
-    ///
-    /// Supports seeking.
-    Vec(Cursor<Vec<u8>>),
     /// A basic user-provided source.
     ///
     /// Does not support seeking.
-    Extension(Box<dyn Read + Send>),
+    Extension(MediaSourceStream),
     /// A user-provided source which also implements [`Seek`].
     ///
     /// Supports seeking.
     ///
     /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
-    ExtensionSeek(Box<dyn ReadSeek + Send>),
+    ExtensionSeek(MediaSourceStream),
 }
 
 impl Reader {
@@ -75,6 +68,29 @@ impl Reader {
             Extension(_) => false,
             ExtensionSeek(_) => true,
             _ => false,
+        }
+    }
+
+    /// A source contained in a local file.
+    pub fn from_file(file: File) -> Self {
+        Self::make_extension(file)
+    }
+
+    /// A source contained as an array in memory.
+    pub fn from_memory(buf: Vec<u8>) -> Self {
+        Self::make_extension(Cursor::new(buf))
+    }
+
+    /// Creates a reader from a `symphonia_core::io::MediaSource`.
+    pub fn make_extension<T: MediaSource + 'static>(source: T) -> Self {
+        let seekable = source.is_seekable();
+        let stream = MediaSourceStream::new(Box::new(source), MediaSourceStreamOptions {
+            buffer_len: 1 << 15, // 32kb
+        });
+        if seekable {
+            Self::ExtensionSeek(stream)
+        } else {
+            Self::Extension(stream)
         }
     }
 
@@ -105,8 +121,6 @@ impl Read for Reader {
             Memory(a) => Read::read(a, buffer),
             Compressed(a) => Read::read(a, buffer),
             Restartable(a) => Read::read(a, buffer),
-            File(a) => Read::read(a, buffer),
-            Vec(a) => Read::read(a, buffer),
             Extension(a) => a.read(buffer),
             ExtensionSeek(a) => a.read(buffer),
         }
@@ -123,9 +137,7 @@ impl Seek for Reader {
             )),
             Memory(a) => Seek::seek(a, pos),
             Compressed(a) => Seek::seek(a, pos),
-            File(a) => Seek::seek(a, pos),
             Restartable(a) => Seek::seek(a, pos),
-            Vec(a) => Seek::seek(a, pos),
             ExtensionSeek(a) => a.seek(pos),
         }
     }
@@ -139,8 +151,6 @@ impl Debug for Reader {
             Memory(a) => format!("{:?}", a),
             Compressed(a) => format!("{:?}", a),
             Restartable(a) => format!("{:?}", a),
-            File(a) => format!("{:?}", a),
-            Vec(a) => format!("{:?}", a),
             Extension(_) => "Extension".to_string(),
             ExtensionSeek(_) => "ExtensionSeek".to_string(),
         };
@@ -149,41 +159,7 @@ impl Debug for Reader {
 }
 
 impl From<Vec<u8>> for Reader {
-    fn from(val: Vec<u8>) -> Reader {
-        Reader::Vec(Cursor::new(val))
-    }
-}
-
-/// Fusion trait for custom input sources which allow seeking.
-pub trait ReadSeek {
-    /// See [`Read::read`].
-    ///
-    /// [`Read::read`]: https://doc.rust-lang.org/nightly/std/io/trait.Read.html#tymethod.read
-    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize>;
-    /// See [`Seek::seek`].
-    ///
-    /// [`Seek::seek`]: https://doc.rust-lang.org/nightly/std/io/trait.Seek.html#tymethod.seek
-    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64>;
-}
-
-impl Read for dyn ReadSeek {
-    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
-        ReadSeek::read(self, buf)
-    }
-}
-
-impl Seek for dyn ReadSeek {
-    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
-        ReadSeek::seek(self, pos)
-    }
-}
-
-impl<R: Read + Seek> ReadSeek for R {
-    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
-        Read::read(self, buf)
-    }
-
-    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
-        Seek::seek(self, pos)
+    fn from(val: Vec<u8>) -> Self {
+        Self::from_memory(val)
     }
 }
