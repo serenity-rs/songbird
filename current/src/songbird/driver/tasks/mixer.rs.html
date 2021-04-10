@@ -631,6 +631,9 @@
 <span id="630">630</span>
 <span id="631">631</span>
 <span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error::Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">Config</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -766,11 +769,14 @@
                     };
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cycle</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">audio_commands_events</span>()) {
-                    <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
-                    <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
+                <span class="comment">// The above action may have invalidated the connection; need to re-check!</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn_active</span>.<span class="ident">is_some</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cycle</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">audio_commands_events</span>()) {
+                        <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
+                        <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
 
-                    <span class="macro">debug!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
+                        <span class="macro">debug!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
+                    }
                 }
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mix_rx</span>.<span class="ident">recv</span>() {
