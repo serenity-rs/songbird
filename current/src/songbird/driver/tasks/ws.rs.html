@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/ws.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ws.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../songbird/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/ws.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ws.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../songbird/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -244,9 +244,9 @@
 <span id="243">243</span>
 <span id="244">244</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::message</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">events</span>::<span class="ident">CoreContext</span>,
+    <span class="ident">events::CoreContext</span>,
     <span class="ident">model</span>::{
         <span class="ident">payload</span>::{<span class="ident">Heartbeat</span>, <span class="ident">Speaking</span>},
         <span class="ident">CloseCode</span> <span class="kw">as</span> <span class="ident">VoiceCloseCode</span>,
@@ -257,12 +257,12 @@
     <span class="ident">ws</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">WsError</span>, <span class="ident">ReceiverExt</span>, <span class="ident">SenderExt</span>, <span class="ident">WsStream</span>},
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">async_tungstenite</span>::<span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">frame</span>::<span class="ident">coding</span>::<span class="ident">CloseCode</span>;
+<span class="kw">use</span> <span class="ident">async_tungstenite::tungstenite::protocol::frame::coding::CloseCode</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">async_tungstenite_compat</span>::<span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">frame</span>::<span class="ident">coding</span>::<span class="ident">CloseCode</span>;
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Receiver</span>;
-<span class="kw">use</span> <span class="ident">rand</span>::<span class="ident">random</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">async_tungstenite_compat::tungstenite::protocol::frame::coding::CloseCode</span>;
+<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
+<span class="kw">use</span> <span class="ident">rand::random</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::{
     <span class="ident">select</span>,
@@ -300,16 +300,16 @@
             <span class="ident">dont_send</span>: <span class="bool-val">false</span>,
 
             <span class="ident">ssrc</span>,
-            <span class="ident">heartbeat_interval</span>: <span class="ident">Duration</span>::<span class="ident">from_secs_f64</span>(<span class="ident">heartbeat_interval</span> <span class="op">/</span> <span class="number">1000.0</span>),
+            <span class="ident">heartbeat_interval</span>: <span class="ident">Duration::from_secs_f64</span>(<span class="ident">heartbeat_interval</span> <span class="op">/</span> <span class="number">1000.0</span>),
 
-            <span class="ident">speaking</span>: <span class="ident">SpeakingState</span>::<span class="ident">empty</span>(),
+            <span class="ident">speaking</span>: <span class="ident">SpeakingState::empty</span>(),
             <span class="ident">last_heartbeat_nonce</span>: <span class="prelude-val">None</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interconnect</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_heartbeat</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">heartbeat_interval</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_heartbeat</span> <span class="op">=</span> <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">heartbeat_interval</span>;
 
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ws_error</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -317,7 +317,7 @@
 
             <span class="kw">let</span> <span class="ident">hb</span> <span class="op">=</span> <span class="ident">sleep_until</span>(<span class="ident">next_heartbeat</span>);
 
-            <span class="macro">select</span><span class="macro">!</span> {
+            <span class="macro">select!</span> {
                 <span class="kw">_</span> <span class="op">=</span> <span class="ident">hb</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">ws_error</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">send_heartbeat</span>().<span class="kw">await</span> {
                         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -330,8 +330,8 @@
                 }
                 <span class="ident">ws_msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ws_client</span>.<span class="ident">recv_json_no_timeout</span>(), <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dont_send</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">ws_error</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ws_msg</span> {
-                        <span class="prelude-val">Err</span>(<span class="ident">WsError</span>::<span class="ident">Json</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Unexpected JSON {:?}.&quot;</span>, <span class="ident">e</span>);
+                        <span class="prelude-val">Err</span>(<span class="ident">WsError::Json</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="macro">debug!</span>(<span class="string">&quot;Unexpected JSON {:?}.&quot;</span>, <span class="ident">e</span>);
                             <span class="bool-val">false</span>
                         },
                         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -347,25 +347,25 @@
                 }
                 <span class="ident">inner_msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">recv_async</span>() <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">match</span> <span class="ident">inner_msg</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage</span>::<span class="ident">Ws</span>(<span class="ident">data</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::Ws</span>(<span class="ident">data</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="self">self</span>.<span class="ident">ws_client</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span>;
                             <span class="ident">next_heartbeat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_heartbeat</span>();
                             <span class="self">self</span>.<span class="ident">dont_send</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage</span>::<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::ReplaceInterconnect</span>(<span class="ident">i</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw-2">*</span><span class="ident">interconnect</span> <span class="op">=</span> <span class="ident">i</span>;
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage</span>::<span class="ident">SetKeepalive</span>(<span class="ident">keepalive</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="self">self</span>.<span class="ident">heartbeat_interval</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_secs_f64</span>(<span class="ident">keepalive</span> <span class="op">/</span> <span class="number">1000.0</span>);
+                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::SetKeepalive</span>(<span class="ident">keepalive</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="self">self</span>.<span class="ident">heartbeat_interval</span> <span class="op">=</span> <span class="ident">Duration::from_secs_f64</span>(<span class="ident">keepalive</span> <span class="op">/</span> <span class="number">1000.0</span>);
                             <span class="ident">next_heartbeat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_heartbeat</span>();
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage</span>::<span class="ident">Speaking</span>(<span class="ident">is_speaking</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">speaking</span>.<span class="ident">contains</span>(<span class="ident">SpeakingState</span>::<span class="ident">MICROPHONE</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">is_speaking</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dont_send</span> {
-                                <span class="self">self</span>.<span class="ident">speaking</span>.<span class="ident">set</span>(<span class="ident">SpeakingState</span>::<span class="ident">MICROPHONE</span>, <span class="ident">is_speaking</span>);
-                                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Changing to {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">speaking</span>);
+                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::Speaking</span>(<span class="ident">is_speaking</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">speaking</span>.<span class="ident">contains</span>(<span class="ident">SpeakingState::MICROPHONE</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">is_speaking</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dont_send</span> {
+                                <span class="self">self</span>.<span class="ident">speaking</span>.<span class="ident">set</span>(<span class="ident">SpeakingState::MICROPHONE</span>, <span class="ident">is_speaking</span>);
+                                <span class="macro">info!</span>(<span class="string">&quot;Changing to {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">speaking</span>);
 
                                 <span class="kw">let</span> <span class="ident">ssu_status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ws_client</span>
-                                    .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent</span>::<span class="ident">from</span>(<span class="ident">Speaking</span> {
+                                    .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent::from</span>(<span class="ident">Speaking</span> {
                                         <span class="ident">delay</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
                                         <span class="ident">speaking</span>: <span class="self">self</span>.<span class="ident">speaking</span>,
                                         <span class="ident">ssrc</span>: <span class="self">self</span>.<span class="ident">ssrc</span>,
@@ -382,7 +382,7 @@
                                 }
                             }
                         },
-                        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">WsMessage</span>::<span class="ident">Poison</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::Poison</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">break</span>;
                         },
                     }
@@ -393,7 +393,7 @@
                 <span class="self">self</span>.<span class="ident">dont_send</span> <span class="op">=</span> <span class="bool-val">true</span>;
 
                 <span class="kw">if</span> <span class="ident">should_reconnect</span> {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">Reconnect</span>);
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Reconnect</span>);
                 } <span class="kw">else</span> {
                     <span class="kw">break</span>;
                 }
@@ -402,18 +402,18 @@
     }
 
     <span class="kw">fn</span> <span class="ident">next_heartbeat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Instant</span> {
-        <span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">heartbeat_interval</span>
+        <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">heartbeat_interval</span>
     }
 
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_heartbeat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">WsError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>();
         <span class="self">self</span>.<span class="ident">last_heartbeat_nonce</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">nonce</span>);
 
-        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Sent heartbeat {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">speaking</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;Sent heartbeat {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">speaking</span>);
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dont_send</span> {
             <span class="self">self</span>.<span class="ident">ws_client</span>
-                .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent</span>::<span class="ident">from</span>(<span class="ident">Heartbeat</span> { <span class="ident">nonce</span> }))
+                .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent::from</span>(<span class="ident">Heartbeat</span> { <span class="ident">nonce</span> }))
                 .<span class="kw">await</span><span class="question-mark">?</span>;
         }
 
@@ -422,27 +422,27 @@
 
     <span class="kw">fn</span> <span class="ident">process_ws</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>, <span class="ident">value</span>: <span class="ident">GatewayEvent</span>) {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">GatewayEvent</span>::<span class="ident">Speaking</span>(<span class="ident">ev</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(
-                    <span class="ident">CoreContext</span>::<span class="ident">SpeakingStateUpdate</span>(<span class="ident">ev</span>),
+            <span class="ident">GatewayEvent::Speaking</span>(<span class="ident">ev</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                    <span class="ident">CoreContext::SpeakingStateUpdate</span>(<span class="ident">ev</span>),
                 ));
             },
-            <span class="ident">GatewayEvent</span>::<span class="ident">ClientConnect</span>(<span class="ident">ev</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GatewayEvent::ClientConnect</span>(<span class="ident">ev</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>
                     .<span class="ident">events</span>
-                    .<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(<span class="ident">CoreContext</span>::<span class="ident">ClientConnect</span>(<span class="ident">ev</span>)));
+                    .<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(<span class="ident">CoreContext::ClientConnect</span>(<span class="ident">ev</span>)));
             },
-            <span class="ident">GatewayEvent</span>::<span class="ident">ClientDisconnect</span>(<span class="ident">ev</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">FireCoreEvent</span>(
-                    <span class="ident">CoreContext</span>::<span class="ident">ClientDisconnect</span>(<span class="ident">ev</span>),
+            <span class="ident">GatewayEvent::ClientDisconnect</span>(<span class="ident">ev</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                    <span class="ident">CoreContext::ClientDisconnect</span>(<span class="ident">ev</span>),
                 ));
             },
-            <span class="ident">GatewayEvent</span>::<span class="ident">HeartbeatAck</span>(<span class="ident">ev</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">GatewayEvent::HeartbeatAck</span>(<span class="ident">ev</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">nonce</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">last_heartbeat_nonce</span>.<span class="ident">take</span>() {
                     <span class="kw">if</span> <span class="ident">ev</span>.<span class="ident">nonce</span> <span class="op">=</span><span class="op">=</span> <span class="ident">nonce</span> {
-                        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Heartbeat ACK received.&quot;</span>);
+                        <span class="macro">trace!</span>(<span class="string">&quot;Heartbeat ACK received.&quot;</span>);
                     } <span class="kw">else</span> {
-                        <span class="macro">warn</span><span class="macro">!</span>(
+                        <span class="macro">warn!</span>(
                             <span class="string">&quot;Heartbeat nonce mismatch! Expected {}, saw {}.&quot;</span>,
                             <span class="ident">nonce</span>, <span class="ident">ev</span>.<span class="ident">nonce</span>
                         );
@@ -450,7 +450,7 @@
                 }
             },
             <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Received other websocket data: {:?}&quot;</span>, <span class="ident">other</span>);
+                <span class="macro">trace!</span>(<span class="string">&quot;Received other websocket data: {:?}&quot;</span>, <span class="ident">other</span>);
             },
         }
     }
@@ -464,18 +464,18 @@
     <span class="ident">ssrc</span>: <span class="ident">u32</span>,
     <span class="ident">heartbeat_interval</span>: <span class="ident">f64</span>,
 ) {
-    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;WS thread started.&quot;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aux</span> <span class="op">=</span> <span class="ident">AuxNetwork</span>::<span class="ident">new</span>(<span class="ident">evt_rx</span>, <span class="ident">ws_client</span>, <span class="ident">ssrc</span>, <span class="ident">heartbeat_interval</span>);
+    <span class="macro">trace!</span>(<span class="string">&quot;WS thread started.&quot;</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aux</span> <span class="op">=</span> <span class="ident">AuxNetwork::new</span>(<span class="ident">evt_rx</span>, <span class="ident">ws_client</span>, <span class="ident">ssrc</span>, <span class="ident">heartbeat_interval</span>);
 
     <span class="ident">aux</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">interconnect</span>).<span class="kw">await</span>;
-    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;WS thread finished.&quot;</span>);
+    <span class="macro">trace!</span>(<span class="string">&quot;WS thread finished.&quot;</span>);
 }
 
 <span class="kw">fn</span> <span class="ident">ws_error_is_not_final</span>(<span class="ident">err</span>: <span class="ident">WsError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">err</span> {
-        <span class="ident">WsError</span>::<span class="ident">WsClosed</span>(<span class="prelude-val">Some</span>(<span class="ident">frame</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">frame</span>.<span class="ident">code</span> {
-            <span class="ident">CloseCode</span>::<span class="ident">Library</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">code</span>) <span class="op">=</span> <span class="ident">VoiceCloseCode</span>::<span class="ident">from_u16</span>(<span class="ident">l</span>) {
+        <span class="ident">WsError::WsClosed</span>(<span class="prelude-val">Some</span>(<span class="ident">frame</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">frame</span>.<span class="ident">code</span> {
+            <span class="ident">CloseCode::Library</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">code</span>) <span class="op">=</span> <span class="ident">VoiceCloseCode::from_u16</span>(<span class="ident">l</span>) {
                     <span class="ident">code</span>.<span class="ident">should_resume</span>()
                 } <span class="kw">else</span> {
                     <span class="bool-val">true</span>
@@ -483,7 +483,7 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
         },
         <span class="ident">e</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Error sending/receiving ws {:?}.&quot;</span>, <span class="ident">e</span>);
+            <span class="macro">debug!</span>(<span class="string">&quot;Error sending/receiving ws {:?}.&quot;</span>, <span class="ident">e</span>);
             <span class="bool-val">true</span>
         },
     }

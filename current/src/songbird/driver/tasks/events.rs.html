@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/events.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>events.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../songbird/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/events.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>events.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../songbird/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -121,31 +121,31 @@
 <span id="120">120</span>
 <span id="121">121</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::message</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events</span>::{<span class="ident">EventStore</span>, <span class="ident">GlobalEvents</span>, <span class="ident">TrackEvent</span>},
     <span class="ident">tracks</span>::{<span class="ident">TrackHandle</span>, <span class="ident">TrackState</span>},
 };
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Receiver</span>;
+<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">info</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>};
 
 <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">_interconnect</span>, <span class="ident">evt_rx</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(<span class="ident">_interconnect</span>: <span class="ident">Interconnect</span>, <span class="ident">evt_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">GlobalEvents</span>::<span class="ident">default</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">GlobalEvents::default</span>();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">events</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EventStore</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handles</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackHandle</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">events</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EventStore</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handles</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackHandle</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
     <span class="kw">loop</span> {
         <span class="kw">use</span> <span class="ident">EventMessage</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="ident">evt_rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">AddGlobalEvent</span>(<span class="ident">data</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Global event added.&quot;</span>);
+                <span class="macro">info!</span>(<span class="string">&quot;Global event added.&quot;</span>);
                 <span class="ident">global</span>.<span class="ident">add_event</span>(<span class="ident">data</span>);
             },
             <span class="prelude-val">Ok</span>(<span class="ident">AddTrackEvent</span>(<span class="ident">i</span>, <span class="ident">data</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding event to track {}.&quot;</span>, <span class="ident">i</span>);
+                <span class="macro">info!</span>(<span class="string">&quot;Adding event to track {}.&quot;</span>, <span class="ident">i</span>);
 
                 <span class="kw">let</span> <span class="ident">event_store</span> <span class="op">=</span> <span class="ident">events</span>
                     .<span class="ident">get_mut</span>(<span class="ident">i</span>)
@@ -162,7 +162,7 @@
                     .<span class="ident">to_core_event</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;Event thread was passed a non-core event in FireCoreEvent.&quot;</span>);
 
-                <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Firing core event {:?}.&quot;</span>, <span class="ident">evt</span>);
+                <span class="macro">trace!</span>(<span class="string">&quot;Firing core event {:?}.&quot;</span>, <span class="ident">evt</span>);
 
                 <span class="ident">global</span>.<span class="ident">fire_core_event</span>(<span class="ident">evt</span>, <span class="ident">ctx</span>).<span class="kw">await</span>;
             },
@@ -174,13 +174,13 @@
                 <span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">state</span>);
                 <span class="ident">handles</span>.<span class="ident">push</span>(<span class="ident">handle</span>);
 
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event state for track {} added&quot;</span>, <span class="ident">events</span>.<span class="ident">len</span>());
+                <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} added&quot;</span>, <span class="ident">events</span>.<span class="ident">len</span>());
             },
             <span class="prelude-val">Ok</span>(<span class="ident">ChangeState</span>(<span class="ident">i</span>, <span class="ident">change</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">use</span> <span class="ident">TrackStateChange</span>::<span class="kw-2">*</span>;
 
                 <span class="kw">let</span> <span class="ident">max_states</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">len</span>();
-                <span class="macro">debug</span><span class="macro">!</span>(
+                <span class="macro">debug!</span>(
                     <span class="string">&quot;Changing state for track {} of {}: {:?}&quot;</span>,
                     <span class="ident">i</span>, <span class="ident">max_states</span>, <span class="ident">change</span>
                 );
@@ -207,7 +207,7 @@
                     <span class="ident">Loops</span>(<span class="ident">loops</span>, <span class="ident">user_set</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">state</span>.<span class="ident">loops</span> <span class="op">=</span> <span class="ident">loops</span>;
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">user_set</span> {
-                            <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">TrackEvent</span>::<span class="ident">Loop</span>, <span class="ident">i</span>);
+                            <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">TrackEvent::Loop</span>, <span class="ident">i</span>);
                         }
                     },
                     <span class="ident">Total</span>(<span class="ident">new</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -217,14 +217,14 @@
                 }
             },
             <span class="prelude-val">Ok</span>(<span class="ident">RemoveTrack</span>(<span class="ident">i</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event state for track {} of {} removed.&quot;</span>, <span class="ident">i</span>, <span class="ident">events</span>.<span class="ident">len</span>());
+                <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} of {} removed.&quot;</span>, <span class="ident">i</span>, <span class="ident">events</span>.<span class="ident">len</span>());
 
                 <span class="ident">events</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
                 <span class="ident">states</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
                 <span class="ident">handles</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
             },
             <span class="prelude-val">Ok</span>(<span class="ident">RemoveAllTracks</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Event state for all tracks removed.&quot;</span>);
+                <span class="macro">info!</span>(<span class="string">&quot;Event state for all tracks removed.&quot;</span>);
 
                 <span class="ident">events</span>.<span class="ident">clear</span>();
                 <span class="ident">states</span>.<span class="ident">clear</span>();
@@ -240,7 +240,7 @@
         }
     }
 
-    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Event thread exited.&quot;</span>);
+    <span class="macro">trace!</span>(<span class="string">&quot;Event thread exited.&quot;</span>);
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-search-js="../../../../search-index.js"></div>
