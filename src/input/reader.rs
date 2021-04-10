@@ -85,7 +85,7 @@ impl Reader {
     pub fn make_extension<T: MediaSource + 'static>(source: T) -> Self {
         let seekable = source.is_seekable();
         let stream = MediaSourceStream::new(Box::new(source), MediaSourceStreamOptions {
-            buffer_len: 1 << 15, // 32kb
+            buffer_len: 1 << 16, // 64kb
         });
         if seekable {
             Self::ExtensionSeek(stream)

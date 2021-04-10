@@ -26,7 +26,7 @@ use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,
     input::Input,
-    tracks::{Track, TrackHandle},
+    tracks::{self, Track, TrackHandle},
     Config,
     ConnectionInfo,
     Event,
