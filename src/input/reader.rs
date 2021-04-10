@@ -1,23 +1,17 @@
 //! Raw handlers for input bytestreams.
 
 use super::*;
-use symphonia_core::io::{MediaSource, MediaSourceStream, MediaSourceStreamOptions};
 use std::{
     fmt::{Debug, Error as FormatError, Formatter},
     fs::File,
     io::{
-        BufReader,
-        Cursor,
-        Error as IoError,
-        ErrorKind as IoErrorKind,
-        Read,
-        Result as IoResult,
-        Seek,
-        SeekFrom,
+        BufReader, Cursor, Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult,
+        Seek, SeekFrom,
     },
     result::Result as StdResult,
 };
 use streamcatcher::{Catcher, TxCatcher};
+use symphonia_core::io::{MediaSource, MediaSourceStream, MediaSourceStreamOptions};
 
 /// Usable data/byte sources for an audio stream.
 ///
@@ -84,9 +78,12 @@ impl Reader {
     /// Creates a reader from a `symphonia_core::io::MediaSource`.
     pub fn make_extension<T: MediaSource + 'static>(source: T) -> Self {
         let seekable = source.is_seekable();
-        let stream = MediaSourceStream::new(Box::new(source), MediaSourceStreamOptions {
-            buffer_len: 1 << 16, // 64kb
-        });
+        let stream = MediaSourceStream::new(
+            Box::new(source),
+            MediaSourceStreamOptions {
+                buffer_len: 1 << 16, // 64kb
+            },
+        );
         if seekable {
             Self::ExtensionSeek(stream)
         } else {
@@ -99,7 +96,7 @@ impl Reader {
         use Reader::*;
         match self {
             Restartable(r) => r.prep_with_handle(handle),
-            _ => {},
+            _ => {}
         }
     }
 
@@ -108,7 +105,7 @@ impl Reader {
         use Reader::*;
         match self {
             Restartable(r) => r.make_playable(),
-            _ => {},
+            _ => {}
         }
     }
 }
