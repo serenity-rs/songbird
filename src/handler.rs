@@ -241,6 +241,10 @@ impl Call {
     }
 
     /// Returns `id` of the channel, if connected to any.
+    ///
+    /// **Note:**: Returned `id` is of the channel, to which bot performed connection.
+    /// It is possible that it is different from actual channel due to ability of server's admin to
+    /// move bot from channel to channel. This is to be fixed with next breaking change release.
     #[instrument(skip(self))]
     pub fn current_channel(&self) -> Option<ChannelId> {
         match &self.connection {
