@@ -279,15 +279,15 @@ impl Call {
         }
     }
 
-    /// Returns `id` of the channel, if connected to any.
+    /// Returns `id` of the channel, if connected or connecting to any.
     ///
-    /// **Note:**: Returned `id` is of the channel, to which bot performed connection.
-    /// It is possible that it is different from actual channel due to ability of server's admin to
-    /// move bot from channel to channel. This is to be fixed with next breaking change release.
+    /// This remains set after a connection failure, to allow for reconnection
+    /// as needed. This will change if moved into another voice channel by an
+    /// admin, and will be unset if kicked from a voice channel.
     #[instrument(skip(self))]
     pub fn current_channel(&self) -> Option<ChannelId> {
         match &self.connection {
-            Some((id, _, _)) => Some(*id),
+            Some((progress, _)) => Some(progress.channel_id()),
             _ => None,
         }
     }
