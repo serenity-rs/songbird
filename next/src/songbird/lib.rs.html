@@ -168,20 +168,20 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver</span>::<span class="ident">Driver</span>,
+    <span class="ident">driver::Driver</span>,
     <span class="ident">events</span>::{<span class="ident">CoreEvent</span>, <span class="ident">Event</span>, <span class="ident">EventContext</span>, <span class="ident">EventHandler</span>, <span class="ident">TrackEvent</span>},
     <span class="ident">input</span>::{<span class="ident">ffmpeg</span>, <span class="ident">ytdl</span>},
-    <span class="ident">tracks</span>::<span class="ident">create_player</span>,
+    <span class="ident">tracks::create_player</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">handler</span>::<span class="kw-2">*</span>, <span class="ident">manager</span>::<span class="kw-2">*</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serenity</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::serenity</span>::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config</span>::<span class="ident">Config</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">info</span>::<span class="ident">ConnectionInfo</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config::Config</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">info::ConnectionInfo</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-search-js="../../search-index.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

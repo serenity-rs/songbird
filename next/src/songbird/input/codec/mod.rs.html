@@ -103,10 +103,10 @@
 
 <span class="kw">mod</span> <span class="ident">opus</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">opus</span>::<span class="ident">OpusDecoderState</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::opus::OpusDecoderState</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>::<span class="ident">Debug</span>, <span class="ident">mem</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt::Debug</span>, <span class="ident">mem</span>};
 
 <span class="doccomment">/// State used to decode input bytes of an [`Input`].</span>
 <span class="doccomment">///</span>
@@ -140,9 +140,9 @@
         <span class="kw">use</span> <span class="ident">Codec</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="ident">f</span> {
-            <span class="ident">Opus</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Opus</span>,
-            <span class="ident">Pcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Pcm</span>,
-            <span class="ident">FloatPcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">FloatPcm</span>,
+            <span class="ident">Opus</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Opus</span>,
+            <span class="ident">Pcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Pcm</span>,
+            <span class="ident">FloatPcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::FloatPcm</span>,
         }
     }
 }
@@ -179,8 +179,8 @@
         <span class="kw">use</span> <span class="ident">CodecType</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Opus</span> <span class="op">|</span> <span class="ident">FloatPcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(),
-            <span class="ident">Pcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span>(),
+            <span class="ident">Opus</span> <span class="op">|</span> <span class="ident">FloatPcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(),
+            <span class="ident">Pcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span>(),
         }
     }
 }
@@ -192,9 +192,9 @@
         <span class="kw">use</span> <span class="ident">CodecType</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="ident">f</span> {
-            <span class="ident">Opus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Codec</span>::<span class="ident">Opus</span>(<span class="ident">OpusDecoderState</span>::<span class="ident">new</span>()<span class="question-mark">?</span>)),
-            <span class="ident">Pcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Codec</span>::<span class="ident">Pcm</span>),
-            <span class="ident">FloatPcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Codec</span>::<span class="ident">FloatPcm</span>),
+            <span class="ident">Opus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Codec::Opus</span>(<span class="ident">OpusDecoderState::new</span>()<span class="question-mark">?</span>)),
+            <span class="ident">Pcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Codec::Pcm</span>),
+            <span class="ident">FloatPcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Codec::FloatPcm</span>),
         }
     }
 }

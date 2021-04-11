@@ -204,8 +204,8 @@
 <span id="203">203</span>
 <span id="204">204</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">id</span>::{<span class="ident">ChannelId</span>, <span class="ident">GuildId</span>, <span class="ident">UserId</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::id</span>::{<span class="ident">ChannelId</span>, <span class="ident">GuildId</span>, <span class="ident">UserId</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ConnectionProgress</span> {
@@ -215,11 +215,11 @@
 
 <span class="kw">impl</span> <span class="ident">ConnectionProgress</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>, <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">ConnectionProgress</span>::<span class="ident">Incomplete</span>(<span class="ident">Partial</span> {
+        <span class="ident">ConnectionProgress::Incomplete</span>(<span class="ident">Partial</span> {
             <span class="ident">channel_id</span>,
             <span class="ident">guild_id</span>,
             <span class="ident">user_id</span>,
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            ..<span class="ident">Default::default</span>()
         })
     }
 
@@ -232,35 +232,35 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">in_progress</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ConnectionProgress</span>::<span class="ident">Incomplete</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ConnectionProgress::Incomplete</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">channel_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ChannelId</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ConnectionProgress</span>::<span class="ident">Complete</span>(<span class="ident">conn_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">conn_info</span>
+            <span class="ident">ConnectionProgress::Complete</span>(<span class="ident">conn_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">conn_info</span>
                 .<span class="ident">channel_id</span>
                 .<span class="ident">expect</span>(<span class="string">&quot;All code paths MUST set channel_id for local tracking.&quot;</span>),
-            <span class="ident">ConnectionProgress</span>::<span class="ident">Incomplete</span>(<span class="ident">part</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">part</span>.<span class="ident">channel_id</span>,
+            <span class="ident">ConnectionProgress::Incomplete</span>(<span class="ident">part</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">part</span>.<span class="ident">channel_id</span>,
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">guild_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GuildId</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ConnectionProgress</span>::<span class="ident">Complete</span>(<span class="ident">conn_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">conn_info</span>.<span class="ident">guild_id</span>,
-            <span class="ident">ConnectionProgress</span>::<span class="ident">Incomplete</span>(<span class="ident">part</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">part</span>.<span class="ident">guild_id</span>,
+            <span class="ident">ConnectionProgress::Complete</span>(<span class="ident">conn_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">conn_info</span>.<span class="ident">guild_id</span>,
+            <span class="ident">ConnectionProgress::Incomplete</span>(<span class="ident">part</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">part</span>.<span class="ident">guild_id</span>,
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">user_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UserId</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ConnectionProgress</span>::<span class="ident">Complete</span>(<span class="ident">conn_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">conn_info</span>.<span class="ident">user_id</span>,
-            <span class="ident">ConnectionProgress</span>::<span class="ident">Incomplete</span>(<span class="ident">part</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">part</span>.<span class="ident">user_id</span>,
+            <span class="ident">ConnectionProgress::Complete</span>(<span class="ident">conn_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">conn_info</span>.<span class="ident">user_id</span>,
+            <span class="ident">ConnectionProgress::Incomplete</span>(<span class="ident">part</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">part</span>.<span class="ident">user_id</span>,
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConnectionInfo</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ConnectionProgress</span>::<span class="ident">Complete</span>(<span class="ident">conn_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">conn_info</span>.<span class="ident">clone</span>()),
+            <span class="ident">ConnectionProgress::Complete</span>(<span class="ident">conn_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">conn_info</span>.<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -268,7 +268,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">apply_state_update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">session_id</span>: <span class="ident">String</span>, <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">channel_id</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">channel_id</span> {
             <span class="comment">// Likely that the bot was moved to a different channel by an admin.</span>
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">ConnectionProgress</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">guild_id</span>(), <span class="self">self</span>.<span class="ident">user_id</span>(), <span class="ident">channel_id</span>);
+            <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">ConnectionProgress::new</span>(<span class="self">self</span>.<span class="ident">guild_id</span>(), <span class="self">self</span>.<span class="ident">user_id</span>(), <span class="ident">channel_id</span>);
         }
 
         <span class="kw">use</span> <span class="ident">ConnectionProgress</span>::<span class="kw-2">*</span>;
@@ -331,8 +331,8 @@
     <span class="kw">pub</span> <span class="ident">user_id</span>: <span class="ident">UserId</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ConnectionInfo</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ConnectionInfo</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ConnectionInfo&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;channel_id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">channel_id</span>)
             .<span class="ident">field</span>(<span class="string">&quot;endpoint&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">endpoint</span>)
@@ -354,8 +354,8 @@
     <span class="kw">pub</span> <span class="ident">user_id</span>: <span class="ident">UserId</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Partial</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Partial</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Partial&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;channel_id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">channel_id</span>)
             .<span class="ident">field</span>(<span class="string">&quot;endpoint&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">endpoint</span>)

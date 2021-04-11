@@ -49,7 +49,7 @@
 <span id="48">48</span>
 <span id="49">49</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">events</span>::<span class="ident">TrackEvent</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::events::TrackEvent</span>;
 
 <span class="doccomment">/// Playback status of a track.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
@@ -68,7 +68,7 @@
 <span class="kw">impl</span> <span class="ident">PlayMode</span> {
     <span class="doccomment">/// Returns whether the track has irreversibly stopped.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_done</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">PlayMode</span>::<span class="ident">Stop</span> <span class="op">|</span> <span class="ident">PlayMode</span>::<span class="ident">End</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">PlayMode::Stop</span> <span class="op">|</span> <span class="ident">PlayMode::End</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">change_to</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PlayMode</span> {
@@ -86,16 +86,16 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_track_event</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackEvent</span> {
         <span class="kw">use</span> <span class="ident">PlayMode</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Play</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TrackEvent</span>::<span class="ident">Play</span>,
-            <span class="ident">Pause</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TrackEvent</span>::<span class="ident">Pause</span>,
-            <span class="ident">Stop</span> <span class="op">|</span> <span class="ident">End</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TrackEvent</span>::<span class="ident">End</span>,
+            <span class="ident">Play</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TrackEvent::Play</span>,
+            <span class="ident">Pause</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TrackEvent::Pause</span>,
+            <span class="ident">Stop</span> <span class="op">|</span> <span class="ident">End</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TrackEvent::End</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PlayMode</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">PlayMode</span>::<span class="ident">Play</span>
+        <span class="ident">PlayMode::Play</span>
     }
 }
 </pre></div>

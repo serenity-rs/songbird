@@ -61,7 +61,7 @@
 <span class="kw">impl</span> <span class="ident">DecodeMode</span> {
     <span class="doccomment">/// Returns whether this mode will decrypt received packets.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_decrypt</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DecodeMode</span>::<span class="ident">Pass</span>
+        <span class="self">self</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DecodeMode::Pass</span>
     }
 }
 </pre></div>

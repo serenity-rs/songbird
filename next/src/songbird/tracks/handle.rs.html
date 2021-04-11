@@ -259,16 +259,16 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events</span>::{<span class="ident">Event</span>, <span class="ident">EventData</span>, <span class="ident">EventHandler</span>},
-    <span class="ident">input</span>::<span class="ident">Metadata</span>,
+    <span class="ident">input::Metadata</span>,
 };
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
+<span class="kw">use</span> <span class="ident">flume::Sender</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">sync::Arc</span>, <span class="ident">time::Duration</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">sync</span>::<span class="ident">RwLock</span>;
+<span class="kw">use</span> <span class="ident">tokio::sync::RwLock</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">sync</span>::<span class="ident">RwLock</span>;
-<span class="kw">use</span> <span class="ident">typemap_rev</span>::<span class="ident">TypeMap</span>;
-<span class="kw">use</span> <span class="ident">uuid</span>::<span class="ident">Uuid</span>;
+<span class="kw">use</span> <span class="ident">tokio_compat::sync::RwLock</span>;
+<span class="kw">use</span> <span class="ident">typemap_rev::TypeMap</span>;
+<span class="kw">use</span> <span class="ident">uuid::Uuid</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="doccomment">/// Handle for safe control of a [`Track`] from other threads, outside</span>
@@ -294,8 +294,8 @@
     <span class="ident">typemap</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">TypeMap</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">InnerHandle</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">InnerHandle</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;InnerHandle&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;command_channel&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">command_channel</span>)
             .<span class="ident">field</span>(<span class="string">&quot;seekable&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">seekable</span>)
@@ -317,12 +317,12 @@
         <span class="ident">uuid</span>: <span class="ident">Uuid</span>,
         <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">InnerHandle</span> {
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">InnerHandle</span> {
             <span class="ident">command_channel</span>,
             <span class="ident">seekable</span>,
             <span class="ident">uuid</span>,
             <span class="ident">metadata</span>,
-            <span class="ident">typemap</span>: <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">TypeMap</span>::<span class="ident">new</span>()),
+            <span class="ident">typemap</span>: <span class="ident">RwLock::new</span>(<span class="ident">TypeMap::new</span>()),
         });
 
         <span class="self">Self</span> { <span class="ident">inner</span> }
@@ -330,12 +330,12 @@
 
     <span class="doccomment">/// Unpauses an audio track.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Play</span>)
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Play</span>)
     }
 
     <span class="doccomment">/// Pauses an audio track.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Pause</span>)
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Pause</span>)
     }
 
     <span class="doccomment">/// Stops an audio track.</span>
@@ -345,12 +345,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`TrackEvent::End`]: crate::events::TrackEvent::End</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Stop</span>)
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Stop</span>)
     }
 
     <span class="doccomment">/// Sets the volume of an audio track.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_volume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">volume</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Volume</span>(<span class="ident">volume</span>))
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Volume</span>(<span class="ident">volume</span>))
     }
 
     <span class="doccomment">/// Ready a track for playing if it is lazily initialised.</span>
@@ -360,7 +360,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Restartable`]: crate::input::restartable::Restartable</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_playable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">MakePlayable</span>)
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::MakePlayable</span>)
     }
 
     <span class="doccomment">/// Denotes whether the underlying [`Input`] stream is compatible with arbitrary seeking.</span>
@@ -383,9 +383,9 @@
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_seekable</span>() {
-            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Seek</span>(<span class="ident">position</span>))
+            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Seek</span>(<span class="ident">position</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError::SeekUnsupported</span>)
         }
     }
 
@@ -397,9 +397,9 @@
     <span class="doccomment">/// [`EventContext::Track`]: crate::events::EventContext::Track</span>
     <span class="doccomment">/// [`TrackError::InvalidTrackEvent`]: TrackError::InvalidTrackEvent</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_event</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">EventHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>, <span class="ident">action</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">TrackCommand</span>::<span class="ident">AddEvent</span>(<span class="ident">EventData</span>::<span class="ident">new</span>(<span class="ident">event</span>, <span class="ident">action</span>));
+        <span class="kw">let</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">TrackCommand::AddEvent</span>(<span class="ident">EventData::new</span>(<span class="ident">event</span>, <span class="ident">action</span>));
         <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">is_global_only</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">InvalidTrackEvent</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError::InvalidTrackEvent</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">cmd</span>)
         }
@@ -416,15 +416,15 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Track</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Do</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">action</span>)))
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Do</span>(<span class="ident">Box::new</span>(<span class="ident">action</span>)))
     }
 
     <span class="doccomment">/// Request playback information and state from the audio context.</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">bounded</span>(<span class="number">1</span>);
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Request</span>(<span class="ident">tx</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Request</span>(<span class="ident">tx</span>))<span class="question-mark">?</span>;
 
-        <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
+        <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TrackError::Finished</span>)
     }
 
     <span class="doccomment">/// Set an audio track to loop indefinitely.</span>
@@ -436,9 +436,9 @@
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_seekable</span>() {
-            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Infinite</span>))
+            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Loop</span>(<span class="ident">LoopState::Infinite</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError::SeekUnsupported</span>)
         }
     }
 
@@ -451,9 +451,9 @@
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_seekable</span>() {
-            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Finite</span>(<span class="number">0</span>)))
+            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Loop</span>(<span class="ident">LoopState::Finite</span>(<span class="number">0</span>)))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError::SeekUnsupported</span>)
         }
     }
 
@@ -466,9 +466,9 @@
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">loop_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">count</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_seekable</span>() {
-            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand</span>::<span class="ident">Loop</span>(<span class="ident">LoopState</span>::<span class="ident">Finite</span>(<span class="ident">count</span>)))
+            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Loop</span>(<span class="ident">LoopState::Finite</span>(<span class="ident">count</span>)))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">TrackError::SeekUnsupported</span>)
         }
     }
 
@@ -509,7 +509,7 @@
         <span class="self">self</span>.<span class="ident">inner</span>
             .<span class="ident">command_channel</span>
             .<span class="ident">send</span>(<span class="ident">cmd</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> <span class="ident">TrackError</span>::<span class="ident">Finished</span>)
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> <span class="ident">TrackError::Finished</span>)
     }
 }
 </pre></div>

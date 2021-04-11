@@ -632,16 +632,19 @@
 <span id="631">631</span>
 <span id="632">632</span>
 <span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error::Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">constants</span>::<span class="kw-2">*</span>,
     <span class="ident">tracks</span>::{<span class="ident">PlayMode</span>, <span class="ident">Track</span>},
     <span class="ident">Config</span>,
 };
 <span class="kw">use</span> <span class="ident">audiopus</span>::{
-    <span class="ident">coder</span>::<span class="ident">Encoder</span> <span class="kw">as</span> <span class="ident">OpusEncoder</span>,
-    <span class="ident">softclip</span>::<span class="ident">SoftClip</span>,
+    <span class="ident">coder::Encoder</span> <span class="kw">as</span> <span class="ident">OpusEncoder</span>,
+    <span class="ident">softclip::SoftClip</span>,
     <span class="ident">Application</span> <span class="kw">as</span> <span class="ident">CodingMode</span>,
     <span class="ident">Bitrate</span>,
     <span class="ident">Channels</span>,
@@ -651,15 +654,15 @@
     <span class="ident">MutablePacket</span>,
 };
 <span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>, <span class="ident">TryRecvError</span>};
-<span class="kw">use</span> <span class="ident">rand</span>::<span class="ident">random</span>;
-<span class="kw">use</span> <span class="ident">spin_sleep</span>::<span class="ident">SpinSleeper</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Instant</span>;
+<span class="kw">use</span> <span class="ident">rand::random</span>;
+<span class="kw">use</span> <span class="ident">spin_sleep::SpinSleeper</span>;
+<span class="kw">use</span> <span class="ident">std::time::Instant</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
+<span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
+<span class="kw">use</span> <span class="ident">tokio_compat::runtime::Handle</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">error</span>, <span class="ident">instrument</span>};
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::<span class="ident">TAG_SIZE</span>;
+<span class="kw">use</span> <span class="ident">xsalsa20poly1305::TAG_SIZE</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Mixer</span> {
     <span class="kw">pub</span> <span class="ident">async_handle</span>: <span class="ident">Handle</span>,
@@ -683,7 +686,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">new_encoder</span>(<span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OpusEncoder</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">OpusEncoder</span>::<span class="ident">new</span>(<span class="ident">SAMPLE_RATE</span>, <span class="ident">Channels</span>::<span class="ident">Stereo</span>, <span class="ident">CodingMode</span>::<span class="ident">Audio</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">OpusEncoder::new</span>(<span class="ident">SAMPLE_RATE</span>, <span class="ident">Channels::Stereo</span>, <span class="ident">CodingMode::Audio</span>)<span class="question-mark">?</span>;
     <span class="ident">encoder</span>.<span class="ident">set_bitrate</span>(<span class="ident">bitrate</span>)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="ident">encoder</span>)
@@ -699,11 +702,11 @@
         <span class="kw">let</span> <span class="ident">bitrate</span> <span class="op">=</span> <span class="ident">DEFAULT_BITRATE</span>;
         <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">new_encoder</span>(<span class="ident">bitrate</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to create encoder in mixing thread with known-good values.&quot;</span>);
-        <span class="kw">let</span> <span class="ident">soft_clip</span> <span class="op">=</span> <span class="ident">SoftClip</span>::<span class="ident">new</span>(<span class="ident">Channels</span>::<span class="ident">Stereo</span>);
+        <span class="kw">let</span> <span class="ident">soft_clip</span> <span class="op">=</span> <span class="ident">SoftClip::new</span>(<span class="ident">Channels::Stereo</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">VOICE_PACKET_MAX</span>];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">packet</span>[..]).<span class="ident">expect</span>(
             <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
                 (Blame: VOICE_PACKET_MAX?)&quot;</span>,
         );
@@ -712,18 +715,18 @@
         <span class="ident">rtp</span>.<span class="ident">set_sequence</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>().<span class="ident">into</span>());
         <span class="ident">rtp</span>.<span class="ident">set_timestamp</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">into</span>());
 
-        <span class="kw">let</span> <span class="ident">tracks</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">1</span>.<span class="ident">max</span>(<span class="ident">config</span>.<span class="ident">preallocated_tracks</span>));
+        <span class="kw">let</span> <span class="ident">tracks</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="number">1</span>.<span class="ident">max</span>(<span class="ident">config</span>.<span class="ident">preallocated_tracks</span>));
 
         <span class="comment">// Create an object disposal thread here.</span>
-        <span class="kw">let</span> (<span class="ident">disposer</span>, <span class="ident">disposal_rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
-        <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">disposal</span>::<span class="ident">runner</span>(<span class="ident">disposal_rx</span>));
+        <span class="kw">let</span> (<span class="ident">disposer</span>, <span class="ident">disposal_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+        <span class="ident">std::thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">disposal::runner</span>(<span class="ident">disposal_rx</span>));
 
         <span class="self">Self</span> {
             <span class="ident">async_handle</span>,
             <span class="ident">bitrate</span>,
             <span class="ident">config</span>,
             <span class="ident">conn_active</span>: <span class="prelude-val">None</span>,
-            <span class="ident">deadline</span>: <span class="ident">Instant</span>::<span class="ident">now</span>(),
+            <span class="ident">deadline</span>: <span class="ident">Instant::now</span>(),
             <span class="ident">disposer</span>,
             <span class="ident">encoder</span>,
             <span class="ident">interconnect</span>,
@@ -733,7 +736,7 @@
             <span class="ident">prevent_events</span>: <span class="bool-val">false</span>,
             <span class="ident">silence_frames</span>: <span class="number">0</span>,
             <span class="ident">skip_sleep</span>: <span class="bool-val">false</span>,
-            <span class="ident">sleeper</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">sleeper</span>: <span class="ident">Default::default</span>(),
             <span class="ident">soft_clip</span>,
             <span class="ident">tracks</span>,
             <span class="ident">ws</span>: <span class="prelude-val">None</span>,
@@ -758,21 +761,24 @@
                             }
                         },
 
-                        <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Disconnected</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Disconnected</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">break</span> <span class="lifetime">&#39;runner</span>;
                         },
 
-                        <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">break</span>;
                         },
                     };
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cycle</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">audio_commands_events</span>()) {
-                    <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
-                    <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
+                <span class="comment">// The above action may have invalidated the connection; need to re-check!</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">conn_active</span>.<span class="ident">is_some</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cycle</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">audio_commands_events</span>()) {
+                        <span class="ident">events_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_interconnect_rebuild</span>();
+                        <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">e</span>.<span class="ident">should_trigger_connect</span>();
 
-                    <span class="macro">debug!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
+                        <span class="macro">debug!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, <span class="ident">e</span>);
+                    }
                 }
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mix_rx</span>.<span class="ident">recv</span>() {
@@ -803,7 +809,7 @@
                 <span class="kw">let</span> <span class="ident">sent</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">interconnect</span>
                     .<span class="ident">core</span>
-                    .<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">RebuildInterconnect</span>);
+                    .<span class="ident">send</span>(<span class="ident">CoreMessage::RebuildInterconnect</span>);
                 <span class="ident">events_failure</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
                 <span class="kw">if</span> <span class="ident">sent</span>.<span class="ident">is_err</span>() {
@@ -813,7 +819,7 @@
 
             <span class="kw">if</span> <span class="ident">conn_failure</span> {
                 <span class="self">self</span>.<span class="ident">conn_active</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                <span class="kw">let</span> <span class="ident">sent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interconnect</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">FullReconnect</span>);
+                <span class="kw">let</span> <span class="ident">sent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interconnect</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::FullReconnect</span>);
                 <span class="ident">conn_failure</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
                 <span class="kw">if</span> <span class="ident">sent</span>.<span class="ident">is_err</span>() {
@@ -839,7 +845,7 @@
             <span class="ident">SetTrack</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">clear</span>();
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage</span>::<span class="ident">RemoveAllTracks</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage::RemoveAllTracks</span>);
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">t</span>) <span class="op">=</span> <span class="ident">t</span> {
                     <span class="ident">t</span>.<span class="ident">source</span>.<span class="ident">prep_with_handle</span>(<span class="self">self</span>.<span class="ident">async_handle</span>.<span class="ident">clone</span>());
@@ -866,14 +872,14 @@
             },
             <span class="ident">SetConn</span>(<span class="ident">conn</span>, <span class="ident">ssrc</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">conn_active</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
                     <span class="string">&quot;Too few bytes in self.packet for RTP header.\
                         (Blame: VOICE_PACKET_MAX?)&quot;</span>,
                 );
                 <span class="ident">rtp</span>.<span class="ident">set_ssrc</span>(<span class="ident">ssrc</span>);
                 <span class="ident">rtp</span>.<span class="ident">set_sequence</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>().<span class="ident">into</span>());
                 <span class="ident">rtp</span>.<span class="ident">set_timestamp</span>(<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">into</span>());
-                <span class="self">self</span>.<span class="ident">deadline</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>();
+                <span class="self">self</span>.<span class="ident">deadline</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
                 <span class="prelude-val">Ok</span>(())
             },
             <span class="ident">DropConn</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -883,12 +889,12 @@
             <span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">prevent_events</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ws</span> {
-                    <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage</span>::<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>.<span class="ident">clone</span>())).<span class="ident">is_err</span>();
+                    <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage::ReplaceInterconnect</span>(<span class="ident">i</span>.<span class="ident">clone</span>())).<span class="ident">is_err</span>();
                 }
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">conn_active</span> {
                     <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">conn</span>
                         .<span class="ident">udp_rx</span>
-                        .<span class="ident">send</span>(<span class="ident">UdpRxMessage</span>::<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>.<span class="ident">clone</span>()))
+                        .<span class="ident">send</span>(<span class="ident">UdpRxMessage::ReplaceInterconnect</span>(<span class="ident">i</span>.<span class="ident">clone</span>()))
                         .<span class="ident">is_err</span>();
                 }
                 <span class="self">self</span>.<span class="ident">interconnect</span> <span class="op">=</span> <span class="ident">i</span>;
@@ -906,7 +912,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">conn_active</span> {
                     <span class="ident">conn_failure</span> <span class="op">|</span><span class="op">=</span> <span class="ident">conn</span>
                         .<span class="ident">udp_rx</span>
-                        .<span class="ident">send</span>(<span class="ident">UdpRxMessage</span>::<span class="ident">SetConfig</span>(<span class="ident">new_config</span>))
+                        .<span class="ident">send</span>(<span class="ident">UdpRxMessage::SetConfig</span>(<span class="ident">new_config</span>))
                         .<span class="ident">is_err</span>();
                 }
 
@@ -965,7 +971,7 @@
 
         <span class="self">self</span>.<span class="ident">interconnect</span>
             .<span class="ident">events</span>
-            .<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">AddTrack</span>(<span class="ident">evts</span>, <span class="ident">state</span>, <span class="ident">handle</span>))<span class="question-mark">?</span>;
+            .<span class="ident">send</span>(<span class="ident">EventMessage::AddTrack</span>(<span class="ident">evts</span>, <span class="ident">state</span>, <span class="ident">handle</span>))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -980,7 +986,7 @@
 
             <span class="self">self</span>.<span class="ident">interconnect</span>
                 .<span class="ident">events</span>
-                .<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">AddTrack</span>(<span class="ident">evts</span>, <span class="ident">state</span>, <span class="ident">handle</span>))<span class="question-mark">?</span>;
+                .<span class="ident">send</span>(<span class="ident">EventMessage::AddTrack</span>(<span class="ident">evts</span>, <span class="ident">state</span>, <span class="ident">handle</span>))<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -999,7 +1005,7 @@
 
         <span class="comment">// TODO: do without vec?</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">to_remove</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">to_remove</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">len</span>());
         <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">tracks</span>
@@ -1010,22 +1016,22 @@
                 <span class="kw">let</span> <span class="ident">p_state</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">playing</span>();
                 <span class="kw">let</span> <span class="ident">to_drop</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
                 <span class="ident">to_remove</span>.<span class="ident">push</span>(<span class="ident">i</span>);
-                <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
+                <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage::ChangeState</span>(
                     <span class="ident">i</span>,
-                    <span class="ident">TrackStateChange</span>::<span class="ident">Mode</span>(<span class="ident">p_state</span>),
+                    <span class="ident">TrackStateChange::Mode</span>(<span class="ident">p_state</span>),
                 ))<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">disposer</span>.<span class="ident">send</span>(<span class="ident">DisposalMessage</span>::<span class="ident">Track</span>(<span class="ident">to_drop</span>));
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">disposer</span>.<span class="ident">send</span>(<span class="ident">DisposalMessage::Track</span>(<span class="ident">to_drop</span>));
             } <span class="kw">else</span> {
                 <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
         }
 
         <span class="comment">// Tick</span>
-        <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage</span>::<span class="ident">Tick</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage::Tick</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Then do removals.</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">to_remove</span>[..] {
-            <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage</span>::<span class="ident">RemoveTrack</span>(<span class="kw-2">*</span><span class="ident">i</span>))<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">fire_event</span>(<span class="ident">EventMessage::RemoveTrack</span>(<span class="kw-2">*</span><span class="ident">i</span>))<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -1039,7 +1045,7 @@
 
         <span class="comment">// FIXME: make choice of spin-sleep/imprecise sleep optional in next breaking.</span>
         <span class="self">self</span>.<span class="ident">sleeper</span>
-            .<span class="ident">sleep</span>(<span class="self">self</span>.<span class="ident">deadline</span>.<span class="ident">saturating_duration_since</span>(<span class="ident">Instant</span>::<span class="ident">now</span>()));
+            .<span class="ident">sleep</span>(<span class="self">self</span>.<span class="ident">deadline</span>.<span class="ident">saturating_duration_since</span>(<span class="ident">Instant::now</span>()));
         <span class="self">self</span>.<span class="ident">deadline</span> <span class="op">+</span><span class="op">=</span> <span class="ident">TIMESTEP_LENGTH</span>;
     }
 
@@ -1049,7 +1055,7 @@
         <span class="comment">// Walk over all the audio files, combining into one audio frame according</span>
         <span class="comment">// to volume, play state, etc.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mix_len</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
                 <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
                     (Blame: VOICE_PACKET_MAX?)&quot;</span>,
             );
@@ -1069,15 +1075,15 @@
         <span class="self">self</span>.<span class="ident">soft_clip</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mix_buffer</span>[..])<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">muted</span> {
-            <span class="ident">mix_len</span> <span class="op">=</span> <span class="ident">MixType</span>::<span class="ident">MixedPcm</span>(<span class="number">0</span>);
+            <span class="ident">mix_len</span> <span class="op">=</span> <span class="ident">MixType::MixedPcm</span>(<span class="number">0</span>);
         }
 
-        <span class="kw">if</span> <span class="ident">mix_len</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MixType</span>::<span class="ident">MixedPcm</span>(<span class="number">0</span>) {
+        <span class="kw">if</span> <span class="ident">mix_len</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MixType::MixedPcm</span>(<span class="number">0</span>) {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">silence_frames</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="self">self</span>.<span class="ident">silence_frames</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
 
                 <span class="comment">// Explicit &quot;Silence&quot; frame.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
                     <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
                         (Blame: VOICE_PACKET_MAX?)&quot;</span>,
                 );
@@ -1087,7 +1093,7 @@
                 (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">payload</span>[<span class="ident">TAG_SIZE</span>..<span class="ident">TAG_SIZE</span> <span class="op">+</span> <span class="ident">SILENT_FRAME</span>.<span class="ident">len</span>()])
                     .<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">SILENT_FRAME</span>[..]);
 
-                <span class="ident">mix_len</span> <span class="op">=</span> <span class="ident">MixType</span>::<span class="ident">Passthrough</span>(<span class="ident">SILENT_FRAME</span>.<span class="ident">len</span>());
+                <span class="ident">mix_len</span> <span class="op">=</span> <span class="ident">MixType::Passthrough</span>(<span class="ident">SILENT_FRAME</span>.<span class="ident">len</span>());
             } <span class="kw">else</span> {
                 <span class="comment">// Per official guidelines, send 5x silence BEFORE we stop speaking.</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ws</span> {
@@ -1095,7 +1101,7 @@
                     <span class="comment">// A full reconnect might cause an inner closed connection.</span>
                     <span class="comment">// It&#39;s safer to leave the central task to clean this up and</span>
                     <span class="comment">// pass the mixer a new channel.</span>
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage</span>::<span class="ident">Speaking</span>(<span class="bool-val">false</span>));
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage::Speaking</span>(<span class="bool-val">false</span>));
                 }
 
                 <span class="self">self</span>.<span class="ident">march_deadline</span>();
@@ -1107,7 +1113,7 @@
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ws</span> {
-            <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage</span>::<span class="ident">Speaking</span>(<span class="bool-val">true</span>))<span class="question-mark">?</span>;
+            <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage::Speaking</span>(<span class="bool-val">true</span>))<span class="question-mark">?</span>;
         }
 
         <span class="self">self</span>.<span class="ident">march_deadline</span>();
@@ -1117,7 +1123,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">set_bitrate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">set_bitrate</span>(<span class="ident">bitrate</span>).<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
+        <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">set_bitrate</span>(<span class="ident">bitrate</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1128,7 +1134,7 @@
             .<span class="ident">expect</span>(<span class="string">&quot;Shouldn&#39;t be mixing packets without access to a cipher + UDP dest.&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
                 <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
                     (Blame: VOICE_PACKET_MAX?)&quot;</span>,
             );
@@ -1137,8 +1143,8 @@
             <span class="kw">let</span> <span class="ident">crypto_mode</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">crypto_state</span>.<span class="ident">kind</span>();
 
             <span class="kw">let</span> <span class="ident">payload_len</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mix_len</span> {
-                <span class="ident">MixType</span>::<span class="ident">Passthrough</span>(<span class="ident">opus_len</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">opus_len</span>,
-                <span class="ident">MixType</span>::<span class="ident">MixedPcm</span>(<span class="ident">_samples</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MixType::Passthrough</span>(<span class="ident">opus_len</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">opus_len</span>,
+                <span class="ident">MixType::MixedPcm</span>(<span class="ident">_samples</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">total_payload_space</span> <span class="op">=</span> <span class="ident">payload</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">crypto_mode</span>.<span class="ident">payload_suffix_len</span>();
                     <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">encode_float</span>(
                         <span class="kw-2">&amp;</span><span class="ident">buffer</span>[..<span class="ident">STEREO_FRAME_SIZE</span>],
@@ -1157,16 +1163,16 @@
                 <span class="ident">final_payload_size</span>,
             )<span class="question-mark">?</span>;
 
-            <span class="ident">RtpPacket</span>::<span class="ident">minimum_packet_size</span>() <span class="op">+</span> <span class="ident">final_payload_size</span>
+            <span class="ident">RtpPacket::minimum_packet_size</span>() <span class="op">+</span> <span class="ident">final_payload_size</span>
         };
 
         <span class="comment">// TODO: This is dog slow, don&#39;t do this.</span>
         <span class="comment">// Can we replace this with a shared ring buffer + semaphore?</span>
         <span class="comment">// i.e., do something like double/triple buffering in graphics.</span>
         <span class="ident">conn</span>.<span class="ident">udp_tx</span>
-            .<span class="ident">send</span>(<span class="ident">UdpTxMessage</span>::<span class="ident">Packet</span>(<span class="self">self</span>.<span class="ident">packet</span>[..<span class="ident">index</span>].<span class="ident">to_vec</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">send</span>(<span class="ident">UdpTxMessage::Packet</span>(<span class="self">self</span>.<span class="ident">packet</span>[..<span class="ident">index</span>].<span class="ident">to_vec</span>()))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rtp</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet</span>[..]).<span class="ident">expect</span>(
             <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
                 (Blame: VOICE_PACKET_MAX?)&quot;</span>,
         );
@@ -1198,14 +1204,14 @@
     <span class="comment">// Opus codec type.</span>
     <span class="kw">let</span> <span class="ident">do_passthrough</span> <span class="op">=</span> <span class="ident">tracks</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> {
         <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tracks</span>[<span class="number">0</span>];
-        (<span class="ident">track</span>.<span class="ident">volume</span> <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">f32</span>::<span class="ident">EPSILON</span> <span class="op">&amp;&amp;</span> <span class="ident">track</span>.<span class="ident">source</span>.<span class="ident">supports_passthrough</span>()
+        (<span class="ident">track</span>.<span class="ident">volume</span> <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">f32::EPSILON</span> <span class="op">&amp;&amp;</span> <span class="ident">track</span>.<span class="ident">source</span>.<span class="ident">supports_passthrough</span>()
     };
 
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">track</span>) <span class="kw">in</span> <span class="ident">tracks</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
         <span class="kw">let</span> <span class="ident">vol</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">volume</span>;
         <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">track</span>.<span class="ident">source</span>;
 
-        <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">playing</span> <span class="op">!</span><span class="op">=</span> <span class="ident">PlayMode</span>::<span class="ident">Play</span> {
+        <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">playing</span> <span class="op">!</span><span class="op">=</span> <span class="ident">PlayMode::Play</span> {
             <span class="kw">continue</span>;
         }
 
@@ -1219,7 +1225,7 @@
         <span class="kw">if</span> <span class="ident">temp_len</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">opus_len</span>.<span class="ident">is_some</span>() {
             <span class="ident">track</span>.<span class="ident">step_frame</span>();
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">track</span>.<span class="ident">do_loop</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">seek_time</span>(<span class="ident">Default</span>::<span class="ident">default</span>()) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">seek_time</span>(<span class="ident">Default::default</span>()) {
                 <span class="comment">// have to reproduce self.fire_event here</span>
                 <span class="comment">// to circumvent the borrow checker&#39;s lack of knowledge.</span>
                 <span class="comment">//</span>
@@ -1227,13 +1233,13 @@
                 <span class="comment">// trigger the event thread rebuild: it is more prudent that</span>
                 <span class="comment">// the mixer works as normal right now.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">prevent_events</span> {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                         <span class="ident">i</span>,
-                        <span class="ident">TrackStateChange</span>::<span class="ident">Position</span>(<span class="ident">time</span>),
+                        <span class="ident">TrackStateChange::Position</span>(<span class="ident">time</span>),
                     ));
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage</span>::<span class="ident">ChangeState</span>(
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                         <span class="ident">i</span>,
-                        <span class="ident">TrackStateChange</span>::<span class="ident">Loops</span>(<span class="ident">track</span>.<span class="ident">loops</span>, <span class="bool-val">false</span>),
+                        <span class="ident">TrackStateChange::Loops</span>(<span class="ident">track</span>.<span class="ident">loops</span>, <span class="bool-val">false</span>),
                     ));
                 }
             }
@@ -1242,11 +1248,11 @@
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">opus_len</span>) <span class="op">=</span> <span class="ident">opus_len</span> {
-            <span class="kw">return</span> <span class="ident">MixType</span>::<span class="ident">Passthrough</span>(<span class="ident">opus_len</span>);
+            <span class="kw">return</span> <span class="ident">MixType::Passthrough</span>(<span class="ident">opus_len</span>);
         }
     }
 
-    <span class="ident">MixType</span>::<span class="ident">MixedPcm</span>(<span class="ident">len</span>)
+    <span class="ident">MixType::MixedPcm</span>(<span class="ident">len</span>)
 }
 
 <span class="doccomment">/// The mixing thread is a synchronous context due to its compute-bound nature.</span>
@@ -1260,11 +1266,11 @@
     <span class="ident">async_handle</span>: <span class="ident">Handle</span>,
     <span class="ident">config</span>: <span class="ident">Config</span>,
 ) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mixer</span> <span class="op">=</span> <span class="ident">Mixer</span>::<span class="ident">new</span>(<span class="ident">mix_rx</span>, <span class="ident">async_handle</span>, <span class="ident">interconnect</span>, <span class="ident">config</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mixer</span> <span class="op">=</span> <span class="ident">Mixer::new</span>(<span class="ident">mix_rx</span>, <span class="ident">async_handle</span>, <span class="ident">interconnect</span>, <span class="ident">config</span>);
 
     <span class="ident">mixer</span>.<span class="ident">run</span>();
 
-    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">mixer</span>.<span class="ident">disposer</span>.<span class="ident">send</span>(<span class="ident">DisposalMessage</span>::<span class="ident">Poison</span>);
+    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">mixer</span>.<span class="ident">disposer</span>.<span class="ident">send</span>(<span class="ident">DisposalMessage::Poison</span>);
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-search-js="../../../../search-index.js"></div>

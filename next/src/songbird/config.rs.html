@@ -117,10 +117,10 @@
 <span id="116">116</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">driver</span>::{<span class="ident">CryptoMode</span>, <span class="ident">DecodeMode</span>};
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::driver</span>::{<span class="ident">CryptoMode</span>, <span class="ident">DecodeMode</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
 <span class="doccomment">/// Configuration for drivers and calls.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -185,11 +185,11 @@
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-            <span class="ident">crypto_mode</span>: <span class="ident">CryptoMode</span>::<span class="ident">Normal</span>,
+            <span class="ident">crypto_mode</span>: <span class="ident">CryptoMode::Normal</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-            <span class="ident">decode_mode</span>: <span class="ident">DecodeMode</span>::<span class="ident">Decrypt</span>,
+            <span class="ident">decode_mode</span>: <span class="ident">DecodeMode::Decrypt</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
-            <span class="ident">gateway_timeout</span>: <span class="prelude-val">Some</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">10</span>)),
+            <span class="ident">gateway_timeout</span>: <span class="prelude-val">Some</span>(<span class="ident">Duration::from_secs</span>(<span class="number">10</span>)),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
             <span class="ident">preallocated_tracks</span>: <span class="number">1</span>,
         }

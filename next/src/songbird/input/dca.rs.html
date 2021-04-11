@@ -140,13 +140,13 @@
 <span id="139">139</span>
 <span id="140">140</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">codec</span>::<span class="ident">OpusDecoderState</span>, <span class="ident">error</span>::<span class="ident">DcaError</span>, <span class="ident">Codec</span>, <span class="ident">Container</span>, <span class="ident">Input</span>, <span class="ident">Metadata</span>, <span class="ident">Reader</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi</span>::<span class="ident">OsStr</span>, <span class="ident">io</span>::<span class="ident">BufReader</span>, <span class="ident">mem</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">codec::OpusDecoderState</span>, <span class="ident">error::DcaError</span>, <span class="ident">Codec</span>, <span class="ident">Container</span>, <span class="ident">Input</span>, <span class="ident">Metadata</span>, <span class="ident">Reader</span>};
+<span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi::OsStr</span>, <span class="ident">io::BufReader</span>, <span class="ident">mem</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">fs</span>::<span class="ident">File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io</span>::<span class="ident">AsyncReadExt</span>};
+<span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">fs::File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io::AsyncReadExt</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">fs</span>::<span class="ident">File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io</span>::<span class="ident">AsyncReadExt</span>};
+<span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">fs::File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io::AsyncReadExt</span>};
 
 <span class="doccomment">/// Creates a streamed audio source from a DCA file.</span>
 <span class="doccomment">/// Currently only accepts the [DCA1 format](https://github.com/bwmarrin/dca).</span>
@@ -155,7 +155,7 @@
 }
 
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">_dca</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">DcaError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">TokioFile</span>::<span class="ident">open</span>(<span class="ident">path</span>).<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">DcaError</span>::<span class="ident">IoError</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">TokioFile::open</span>(<span class="ident">path</span>).<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">DcaError::IoError</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
 
@@ -163,45 +163,45 @@
     <span class="ident">reader</span>
         .<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">header</span>)
         .<span class="kw">await</span>
-        .<span class="ident">map_err</span>(<span class="ident">DcaError</span>::<span class="ident">IoError</span>)<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="ident">DcaError::IoError</span>)<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="ident">header</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&quot;DCA1&quot;</span>[..] {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DcaError</span>::<span class="ident">InvalidHeader</span>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DcaError::InvalidHeader</span>);
     }
 
     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">reader</span>
         .<span class="ident">read_i32_le</span>()
         .<span class="kw">await</span>
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">DcaError</span>::<span class="ident">InvalidHeader</span>)<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">DcaError::InvalidHeader</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// Sanity check</span>
     <span class="kw">if</span> <span class="ident">size</span> <span class="op">&lt;</span> <span class="number">2</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DcaError</span>::<span class="ident">InvalidSize</span>(<span class="ident">size</span>));
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DcaError::InvalidSize</span>(<span class="ident">size</span>));
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_json</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_json</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">json_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">take</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">u64</span>);
 
     <span class="ident">json_reader</span>
         .<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw_json</span>)
         .<span class="kw">await</span>
-        .<span class="ident">map_err</span>(<span class="ident">DcaError</span>::<span class="ident">IoError</span>)<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="ident">DcaError::IoError</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">json_reader</span>.<span class="ident">into_inner</span>().<span class="ident">into_std</span>().<span class="kw">await</span>);
+    <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="ident">json_reader</span>.<span class="ident">into_inner</span>().<span class="ident">into_std</span>().<span class="kw">await</span>);
 
-    <span class="kw">let</span> <span class="ident">metadata</span>: <span class="ident">Metadata</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">from_slice</span>::<span class="op">&lt;</span><span class="ident">DcaMetadata</span><span class="op">&gt;</span>(<span class="ident">raw_json</span>.<span class="ident">as_slice</span>())
-        .<span class="ident">map_err</span>(<span class="ident">DcaError</span>::<span class="ident">InvalidMetadata</span>)<span class="question-mark">?</span>
+    <span class="kw">let</span> <span class="ident">metadata</span>: <span class="ident">Metadata</span> <span class="op">=</span> <span class="ident">serde_json::from_slice</span>::<span class="op">&lt;</span><span class="ident">DcaMetadata</span><span class="op">&gt;</span>(<span class="ident">raw_json</span>.<span class="ident">as_slice</span>())
+        .<span class="ident">map_err</span>(<span class="ident">DcaError::InvalidMetadata</span>)<span class="question-mark">?</span>
         .<span class="ident">into</span>();
 
     <span class="kw">let</span> <span class="ident">stereo</span> <span class="op">=</span> <span class="ident">metadata</span>.<span class="ident">channels</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="number">2</span>);
 
-    <span class="prelude-val">Ok</span>(<span class="ident">Input</span>::<span class="ident">new</span>(
+    <span class="prelude-val">Ok</span>(<span class="ident">Input::new</span>(
         <span class="ident">stereo</span>,
-        <span class="ident">Reader</span>::<span class="ident">File</span>(<span class="ident">reader</span>),
-        <span class="ident">Codec</span>::<span class="ident">Opus</span>(<span class="ident">OpusDecoderState</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="ident">DcaError</span>::<span class="ident">Opus</span>)<span class="question-mark">?</span>),
-        <span class="ident">Container</span>::<span class="ident">Dca</span> {
-            <span class="ident">first_frame</span>: (<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>() <span class="op">+</span> <span class="ident">header</span>.<span class="ident">len</span>(),
+        <span class="ident">Reader::File</span>(<span class="ident">reader</span>),
+        <span class="ident">Codec::Opus</span>(<span class="ident">OpusDecoderState::new</span>().<span class="ident">map_err</span>(<span class="ident">DcaError::Opus</span>)<span class="question-mark">?</span>),
+        <span class="ident">Container::Dca</span> {
+            <span class="ident">first_frame</span>: (<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">+</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>() <span class="op">+</span> <span class="ident">header</span>.<span class="ident">len</span>(),
         },
         <span class="prelude-val">Some</span>(<span class="ident">metadata</span>),
     ))
@@ -213,7 +213,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">opus</span>: <span class="ident">Opus</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Info</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">origin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Origin</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">serde_json</span>::<span class="ident">Value</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">serde_json::Value</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
@@ -276,7 +276,7 @@
             <span class="ident">channels</span>,
             <span class="ident">sample_rate</span>,
 
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            ..<span class="ident">Default::default</span>()
         }
     }
 }

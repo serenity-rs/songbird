@@ -466,14 +466,14 @@
 <span class="doccomment">//! success/failure is confirmed, the track produces silence.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">async_trait</span>::<span class="ident">async_trait</span>;
+<span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
 <span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">TryRecvError</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">ffi</span>::<span class="ident">OsStr</span>,
+    <span class="ident">ffi::OsStr</span>,
     <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">FormatError</span>, <span class="ident">Formatter</span>},
     <span class="ident">io</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>, <span class="ident">ErrorKind</span> <span class="kw">as</span> <span class="ident">IoErrorKind</span>, <span class="ident">Read</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>},
-    <span class="ident">result</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>,
-    <span class="ident">time</span>::<span class="ident">Duration</span>,
+    <span class="ident">result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>,
+    <span class="ident">time::Duration</span>,
 };
 
 <span class="kw">type</span> <span class="ident">Recreator</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Restart</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>;
@@ -489,16 +489,16 @@
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">LazyProgress</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StdResult</span><span class="op">&lt;</span>(), <span class="ident">FormatError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LazyProgress</span>::<span class="ident">Dead</span>(<span class="ident">meta</span>, <span class="kw">_</span>, <span class="ident">codec</span>, <span class="ident">container</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">LazyProgress::Dead</span>(<span class="ident">meta</span>, <span class="kw">_</span>, <span class="ident">codec</span>, <span class="ident">container</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_tuple</span>(<span class="string">&quot;Dead&quot;</span>)
                 .<span class="ident">field</span>(<span class="ident">meta</span>)
                 .<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="string">&quot;&lt;fn&gt;&quot;</span>)
                 .<span class="ident">field</span>(<span class="ident">codec</span>)
                 .<span class="ident">field</span>(<span class="ident">container</span>)
                 .<span class="ident">finish</span>(),
-            <span class="ident">LazyProgress</span>::<span class="ident">Live</span>(<span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span>
+            <span class="ident">LazyProgress::Live</span>(<span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span>
                 <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Live&quot;</span>).<span class="ident">field</span>(<span class="ident">input</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="string">&quot;&lt;fn&gt;&quot;</span>).<span class="ident">finish</span>(),
-            <span class="ident">LazyProgress</span>::<span class="ident">Working</span>(<span class="ident">codec</span>, <span class="ident">container</span>, <span class="ident">stereo</span>, <span class="ident">chan</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">LazyProgress::Working</span>(<span class="ident">codec</span>, <span class="ident">container</span>, <span class="ident">stereo</span>, <span class="ident">chan</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_tuple</span>(<span class="string">&quot;Working&quot;</span>)
                 .<span class="ident">field</span>(<span class="ident">codec</span>)
                 .<span class="ident">field</span>(<span class="ident">container</span>)
@@ -549,9 +549,9 @@
                 .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">meta</span>, <span class="ident">kind</span>, <span class="ident">codec</span>)<span class="op">|</span> <span class="self">Self</span> {
                     <span class="ident">async_handle</span>: <span class="prelude-val">None</span>,
                     <span class="ident">position</span>: <span class="number">0</span>,
-                    <span class="ident">source</span>: <span class="ident">LazyProgress</span>::<span class="ident">Dead</span>(
+                    <span class="ident">source</span>: <span class="ident">LazyProgress::Dead</span>(
                         <span class="ident">meta</span>.<span class="ident">unwrap_or_default</span>().<span class="ident">into</span>(),
-                        <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">recreator</span>)),
+                        <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">recreator</span>)),
                         <span class="ident">kind</span>,
                         <span class="ident">codec</span>,
                     ),
@@ -560,7 +560,7 @@
             <span class="ident">recreator</span>.<span class="ident">call_restart</span>(<span class="prelude-val">None</span>).<span class="kw">await</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">source</span><span class="op">|</span> <span class="self">Self</span> {
                 <span class="ident">async_handle</span>: <span class="prelude-val">None</span>,
                 <span class="ident">position</span>: <span class="number">0</span>,
-                <span class="ident">source</span>: <span class="ident">LazyProgress</span>::<span class="ident">Live</span>(<span class="ident">source</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">recreator</span>))),
+                <span class="ident">source</span>: <span class="ident">LazyProgress::Live</span>(<span class="ident">source</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">recreator</span>))),
             })
         }
     }
@@ -570,7 +570,7 @@
         <span class="ident">path</span>: <span class="ident">P</span>,
         <span class="ident">lazy</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">FfmpegRestarter</span> { <span class="ident">path</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">FfmpegRestarter</span> { <span class="ident">path</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Create a new restartable ytdl source.</span>
@@ -581,7 +581,7 @@
         <span class="ident">uri</span>: <span class="ident">P</span>,
         <span class="ident">lazy</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">YtdlRestarter</span> { <span class="ident">uri</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">YtdlRestarter</span> { <span class="ident">uri</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Create a new restartable ytdl source, using the first result of a youtube search.</span>
@@ -589,7 +589,7 @@
     <span class="doccomment">/// The cost of restarting and seeking will probably be *very* high:</span>
     <span class="doccomment">/// expect a pause if you seek backwards.</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">lazy</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">ytdl</span>(<span class="macro">format!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>), <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="self">Self</span><span class="ident">::ytdl</span>(<span class="macro">format!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>), <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prep_with_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">handle</span>: <span class="ident">Handle</span>) {
@@ -597,11 +597,11 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_playable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">source</span>, <span class="ident">LazyProgress</span>::<span class="ident">Dead</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>)) {
+        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">source</span>, <span class="ident">LazyProgress::Dead</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>)) {
             <span class="comment">// This read triggers creation of a source, and is guaranteed not to modify any internals.</span>
             <span class="comment">// It will harmlessly write out zeroes into the target buffer.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">0</span>];
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Read</span>::<span class="ident">read</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>[..]);
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Read::read</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>[..]);
         }
     }
 }
@@ -639,7 +639,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">time</span> {
             <span class="kw">let</span> <span class="ident">is_stereo</span> <span class="op">=</span> <span class="ident">is_stereo</span>(<span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>())
                 .<span class="kw">await</span>
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> (<span class="bool-val">false</span>, <span class="ident">Default</span>::<span class="ident">default</span>()));
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> (<span class="bool-val">false</span>, <span class="ident">Default::default</span>()));
             <span class="kw">let</span> <span class="ident">stereo_val</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_stereo</span>.<span class="number">0</span> { <span class="string">&quot;2&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;1&quot;</span> };
 
             <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.3}&quot;</span>, <span class="ident">time</span>.<span class="ident">as_secs_f64</span>());
@@ -668,7 +668,7 @@
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">lazy_init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>, <span class="ident">Codec</span>, <span class="ident">Container</span>)<span class="op">&gt;</span> {
         <span class="ident">is_stereo</span>(<span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>())
             .<span class="kw">await</span>
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">_stereo</span>, <span class="ident">metadata</span>)<span class="op">|</span> (<span class="prelude-val">Some</span>(<span class="ident">metadata</span>), <span class="ident">Codec</span>::<span class="ident">FloatPcm</span>, <span class="ident">Container</span>::<span class="ident">Raw</span>))
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">_stereo</span>, <span class="ident">metadata</span>)<span class="op">|</span> (<span class="prelude-val">Some</span>(<span class="ident">metadata</span>), <span class="ident">Codec::FloatPcm</span>, <span class="ident">Container::Raw</span>))
     }
 }
 
@@ -697,28 +697,28 @@
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">lazy_init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>, <span class="ident">Codec</span>, <span class="ident">Container</span>)<span class="op">&gt;</span> {
         <span class="ident">_ytdl_metadata</span>(<span class="self">self</span>.<span class="ident">uri</span>.<span class="ident">as_ref</span>())
             .<span class="kw">await</span>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> (<span class="prelude-val">Some</span>(<span class="ident">m</span>), <span class="ident">Codec</span>::<span class="ident">FloatPcm</span>, <span class="ident">Container</span>::<span class="ident">Raw</span>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> (<span class="prelude-val">Some</span>(<span class="ident">m</span>), <span class="ident">Codec::FloatPcm</span>, <span class="ident">Container::Raw</span>))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Restartable</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Input</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">Restartable</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> (<span class="ident">meta</span>, <span class="ident">stereo</span>, <span class="ident">kind</span>, <span class="ident">container</span>) <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>.<span class="ident">source</span> {
-            <span class="ident">LazyProgress</span>::<span class="ident">Dead</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">m</span>, <span class="ident">_rec</span>, <span class="ident">kind</span>, <span class="ident">container</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LazyProgress::Dead</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">m</span>, <span class="ident">_rec</span>, <span class="ident">kind</span>, <span class="ident">container</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">stereo</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">channels</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="number">2</span>);
                 (<span class="prelude-val">Some</span>(<span class="ident">m</span>.<span class="ident">take</span>()), <span class="ident">stereo</span>, <span class="ident">kind</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">container</span>)
             },
-            <span class="ident">LazyProgress</span>::<span class="ident">Live</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">_rec</span>) <span class="op">=</span><span class="op">&gt;</span> (
+            <span class="ident">LazyProgress::Live</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">_rec</span>) <span class="op">=</span><span class="op">&gt;</span> (
                 <span class="prelude-val">Some</span>(<span class="ident">input</span>.<span class="ident">metadata</span>.<span class="ident">take</span>()),
                 <span class="ident">input</span>.<span class="ident">stereo</span>,
                 <span class="ident">input</span>.<span class="ident">kind</span>.<span class="ident">clone</span>(),
                 <span class="ident">input</span>.<span class="ident">container</span>,
             ),
             <span class="comment">// This branch should never be taken: this is an emergency measure.</span>
-            <span class="ident">LazyProgress</span>::<span class="ident">Working</span>(<span class="ident">kind</span>, <span class="ident">container</span>, <span class="ident">stereo</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span>
+            <span class="ident">LazyProgress::Working</span>(<span class="ident">kind</span>, <span class="ident">container</span>, <span class="ident">stereo</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span>
                 (<span class="prelude-val">None</span>, <span class="kw-2">*</span><span class="ident">stereo</span>, <span class="ident">kind</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">container</span>),
         };
-        <span class="ident">Input</span>::<span class="ident">new</span>(<span class="ident">stereo</span>, <span class="ident">Reader</span>::<span class="ident">Restartable</span>(<span class="ident">src</span>), <span class="ident">kind</span>, <span class="ident">container</span>, <span class="ident">meta</span>)
+        <span class="ident">Input::new</span>(<span class="ident">stereo</span>, <span class="ident">Reader::Restartable</span>(<span class="ident">src</span>), <span class="ident">kind</span>, <span class="ident">container</span>, <span class="ident">meta</span>)
     }
 }
 
@@ -743,8 +743,8 @@
                         <span class="ident">handle</span>,
                     )<span class="question-mark">?</span>)
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
-                        <span class="ident">IoErrorKind</span>::<span class="ident">UnexpectedEof</span>,
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
+                        <span class="ident">IoErrorKind::UnexpectedEof</span>,
                         <span class="string">&quot;Illegal state: taken recreator was observed.&quot;</span>.<span class="ident">to_string</span>(),
                     ));
                 };
@@ -755,24 +755,24 @@
                 }
                 (<span class="prelude-val">Ok</span>(<span class="ident">buffer</span>.<span class="ident">len</span>()), <span class="bool-val">false</span>, <span class="ident">new_chan</span>)
             },
-            <span class="ident">Live</span>(<span class="ident">source</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Read</span>::<span class="ident">read</span>(<span class="ident">source</span>, <span class="ident">buffer</span>), <span class="bool-val">true</span>, <span class="prelude-val">None</span>),
+            <span class="ident">Live</span>(<span class="ident">source</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Read::read</span>(<span class="ident">source</span>, <span class="ident">buffer</span>), <span class="bool-val">true</span>, <span class="prelude-val">None</span>),
             <span class="ident">Working</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">chan</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">match</span> <span class="ident">chan</span>.<span class="ident">try_recv</span>() {
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>((<span class="kw-2">mut</span> <span class="ident">new_source</span>, <span class="ident">recreator</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// Completed!</span>
                         <span class="comment">// Do read, then replace inner progress.</span>
-                        <span class="kw">let</span> <span class="ident">bytes_read</span> <span class="op">=</span> <span class="ident">Read</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_source</span>, <span class="ident">buffer</span>);
+                        <span class="kw">let</span> <span class="ident">bytes_read</span> <span class="op">=</span> <span class="ident">Read::read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_source</span>, <span class="ident">buffer</span>);
 
                         (<span class="ident">bytes_read</span>, <span class="bool-val">true</span>, <span class="prelude-val">Some</span>(<span class="ident">Live</span>(<span class="ident">new_source</span>, <span class="prelude-val">Some</span>(<span class="ident">recreator</span>))))
                     },
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">source_error</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
-                            <span class="ident">IoErrorKind</span>::<span class="ident">UnexpectedEof</span>,
+                        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
+                            <span class="ident">IoErrorKind::UnexpectedEof</span>,
                             <span class="macro">format!</span>(<span class="string">&quot;Failed to create new reader: {:?}.&quot;</span>, <span class="ident">source_error</span>),
                         ));
                         (<span class="ident">e</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>)
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// Output all zeroes.</span>
                         <span class="kw">for</span> <span class="ident">el</span> <span class="kw">in</span> <span class="ident">buffer</span>.<span class="ident">iter_mut</span>() {
                             <span class="kw-2">*</span><span class="ident">el</span> <span class="op">=</span> <span class="number">0</span>;
@@ -780,8 +780,8 @@
                         (<span class="prelude-val">Ok</span>(<span class="ident">buffer</span>.<span class="ident">len</span>()), <span class="bool-val">false</span>, <span class="prelude-val">None</span>)
                     },
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
-                            <span class="ident">IoErrorKind</span>::<span class="ident">UnexpectedEof</span>,
+                        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
+                            <span class="ident">IoErrorKind::UnexpectedEof</span>,
                             <span class="string">&quot;Failed to create new reader: dropped.&quot;</span>,
                         ));
                         (<span class="ident">e</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>)
@@ -829,8 +829,8 @@
                                 <span class="ident">handle</span>,
                             )<span class="question-mark">?</span>
                         } <span class="kw">else</span> {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
-                                <span class="ident">IoErrorKind</span>::<span class="ident">UnexpectedEof</span>,
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
+                                <span class="ident">IoErrorKind::UnexpectedEof</span>,
                                 <span class="string">&quot;Illegal state: taken recreator was observed.&quot;</span>.<span class="ident">to_string</span>(),
                             ));
                         };
@@ -851,8 +851,8 @@
                                     <span class="ident">handle</span>,
                                 )<span class="question-mark">?</span>
                             } <span class="kw">else</span> {
-                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
-                                    <span class="ident">IoErrorKind</span>::<span class="ident">UnexpectedEof</span>,
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
+                                    <span class="ident">IoErrorKind::UnexpectedEof</span>,
                                     <span class="string">&quot;Illegal state: taken recreator was observed.&quot;</span>.<span class="ident">to_string</span>(),
                                 ));
                             };
@@ -863,8 +863,8 @@
                             <span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">input</span>.<span class="ident">consume</span>(<span class="ident">offset</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">position</span>);
                         },
                     <span class="ident">Working</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
-                            <span class="ident">IoErrorKind</span>::<span class="ident">Interrupted</span>,
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
+                            <span class="ident">IoErrorKind::Interrupted</span>,
                             <span class="string">&quot;Previous seek in progress.&quot;</span>,
                         ));
                     },
@@ -872,8 +872,8 @@
 
                 <span class="prelude-val">Ok</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>)
             },
-            <span class="ident">End</span>(<span class="ident">_offset</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
-                <span class="ident">IoErrorKind</span>::<span class="ident">InvalidInput</span>,
+            <span class="ident">End</span>(<span class="ident">_offset</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
+                <span class="ident">IoErrorKind::InvalidInput</span>,
                 <span class="string">&quot;End point for Restartables is not known.&quot;</span>,
             )),
             <span class="ident">Current</span>(<span class="ident">_offset</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
@@ -890,20 +890,20 @@
     <span class="ident">handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">LazyProgress</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">as_ref</span>() {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">bounded</span>(<span class="number">1</span>);
+        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
 
         <span class="ident">handle</span>.<span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
             <span class="kw">let</span> <span class="ident">ret_val</span> <span class="op">=</span> <span class="ident">rec</span>
-                .<span class="ident">call_restart</span>(<span class="prelude-val">Some</span>(<span class="ident">utils</span>::<span class="ident">byte_count_to_timestamp</span>(<span class="ident">offset</span>, <span class="ident">stereo</span>)))
+                .<span class="ident">call_restart</span>(<span class="prelude-val">Some</span>(<span class="ident">utils::byte_count_to_timestamp</span>(<span class="ident">offset</span>, <span class="ident">stereo</span>)))
                 .<span class="kw">await</span>;
 
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">ret_val</span>.<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">new</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">v</span>, <span class="ident">rec</span>)));
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">ret_val</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">v</span>, <span class="ident">rec</span>)));
         });
 
-        <span class="prelude-val">Ok</span>(<span class="ident">LazyProgress</span>::<span class="ident">Working</span>(<span class="ident">kind</span>, <span class="ident">container</span>, <span class="ident">stereo</span>, <span class="ident">rx</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">LazyProgress::Working</span>(<span class="ident">kind</span>, <span class="ident">container</span>, <span class="ident">stereo</span>, <span class="ident">rx</span>))
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(
-            <span class="ident">IoErrorKind</span>::<span class="ident">Interrupted</span>,
+        <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
+            <span class="ident">IoErrorKind::Interrupted</span>,
             <span class="string">&quot;Cannot safely call seek until provided an async context handle.&quot;</span>,
         ))
     }

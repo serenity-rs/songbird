@@ -170,17 +170,17 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Handlers for sending packets over sharded connections.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::{<span class="ident">JoinError</span>, <span class="ident">JoinResult</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error</span>::{<span class="ident">JoinError</span>, <span class="ident">JoinResult</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">channel</span>::<span class="ident">mpsc</span>::{<span class="ident">TrySendError</span>, <span class="ident">UnboundedSender</span> <span class="kw">as</span> <span class="ident">Sender</span>};
+<span class="kw">use</span> <span class="ident">futures::channel::mpsc</span>::{<span class="ident">TrySendError</span>, <span class="ident">UnboundedSender</span> <span class="kw">as</span> <span class="ident">Sender</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">parking_lot</span>::{<span class="ident">lock_api</span>::<span class="ident">RwLockWriteGuard</span>, <span class="ident">Mutex</span> <span class="kw">as</span> <span class="ident">PMutex</span>, <span class="ident">RwLock</span> <span class="kw">as</span> <span class="ident">PRwLock</span>};
-<span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">Value</span>;
+<span class="kw">use</span> <span class="ident">parking_lot</span>::{<span class="ident">lock_api::RwLockWriteGuard</span>, <span class="ident">Mutex</span> <span class="kw">as</span> <span class="ident">PMutex</span>, <span class="ident">RwLock</span> <span class="kw">as</span> <span class="ident">PRwLock</span>};
+<span class="kw">use</span> <span class="ident">serde_json::Value</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serenity</span>::<span class="ident">gateway</span>::<span class="ident">InterMessage</span>;
+<span class="kw">use</span> <span class="ident">serenity::gateway::InterMessage</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">result</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>};
-<span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">error</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>, <span class="ident">sync::Arc</span>};
+<span class="kw">use</span> <span class="ident">tracing::error</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">twilight_gateway</span>::{<span class="ident">Cluster</span>, <span class="ident">Shard</span> <span class="kw">as</span> <span class="ident">TwilightShard</span>};
 
@@ -202,9 +202,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_shard</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">shard_id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shard</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-            <span class="ident">Sharder</span>::<span class="ident">Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Shard</span>::<span class="ident">Serenity</span>(<span class="ident">s</span>.<span class="ident">get_or_insert_shard_handle</span>(<span class="ident">shard_id</span>))),
+            <span class="ident">Sharder::Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Shard::Serenity</span>(<span class="ident">s</span>.<span class="ident">get_or_insert_shard_handle</span>(<span class="ident">shard_id</span>))),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-            <span class="ident">Sharder</span>::<span class="ident">Twilight</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">shard</span>(<span class="ident">shard_id</span>).<span class="ident">map</span>(<span class="ident">Shard</span>::<span class="ident">Twilight</span>),
+            <span class="ident">Sharder::Twilight</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">shard</span>(<span class="ident">shard_id</span>).<span class="ident">map</span>(<span class="ident">Shard::Twilight</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -215,7 +215,7 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_shard_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">shard_id</span>: <span class="ident">u64</span>, <span class="ident">sender</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">InterMessage</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Sharder</span>::<span class="ident">Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">register_shard_handle</span>(<span class="ident">shard_id</span>, <span class="ident">sender</span>),
+            <span class="ident">Sharder::Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">register_shard_handle</span>(<span class="ident">shard_id</span>, <span class="ident">sender</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">error!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>),
         }
     }
@@ -223,7 +223,7 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">deregister_shard_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">shard_id</span>: <span class="ident">u64</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Sharder</span>::<span class="ident">Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">deregister_shard_handle</span>(<span class="ident">shard_id</span>),
+            <span class="ident">Sharder::Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">deregister_shard_handle</span>(<span class="ident">shard_id</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">error!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>),
         }
     }
@@ -283,10 +283,10 @@
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-            <span class="ident">Shard</span>::<span class="ident">Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">send</span>(<span class="ident">InterMessage</span>::<span class="ident">Json</span>(<span class="ident">msg</span>))<span class="question-mark">?</span>,
+            <span class="ident">Shard::Serenity</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">send</span>(<span class="ident">InterMessage::Json</span>(<span class="ident">msg</span>))<span class="question-mark">?</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-            <span class="ident">Shard</span>::<span class="ident">Twilight</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">command</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>).<span class="kw">await</span><span class="question-mark">?</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JoinError</span>::<span class="ident">NoSender</span>),
+            <span class="ident">Shard::Twilight</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">command</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>).<span class="kw">await</span><span class="question-mark">?</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JoinError::NoSender</span>),
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -307,7 +307,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sender_lock</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">write</span>();
         <span class="kw-2">*</span><span class="ident">sender_lock</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">sender</span>);
 
-        <span class="kw">let</span> <span class="ident">sender_lock</span> <span class="op">=</span> <span class="ident">RwLockWriteGuard</span>::<span class="ident">downgrade</span>(<span class="ident">sender_lock</span>);
+        <span class="kw">let</span> <span class="ident">sender_lock</span> <span class="op">=</span> <span class="ident">RwLockWriteGuard::downgrade</span>(<span class="ident">sender_lock</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">messages_lock</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">lock</span>();
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sender</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">sender_lock</span> {

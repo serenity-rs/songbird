@@ -213,8 +213,8 @@
 };
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">context</span>::{<span class="ident">internal_data</span>, <span class="ident">CoreContext</span>};
 
-<span class="kw">use</span> <span class="ident">async_trait</span>::<span class="ident">async_trait</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
 <span class="doccomment">/// Trait to handle an event which can be fired per-track, or globally.</span>
 <span class="doccomment">///</span>
@@ -279,19 +279,19 @@
 
 <span class="kw">impl</span> <span class="ident">Event</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_global_only</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::<span class="ident">Core</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Core</span>(<span class="kw">_</span>))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TrackEvent</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Event</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">evt</span>: <span class="ident">TrackEvent</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Event</span>::<span class="ident">Track</span>(<span class="ident">evt</span>)
+        <span class="ident">Event::Track</span>(<span class="ident">evt</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CoreEvent</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Event</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">evt</span>: <span class="ident">CoreEvent</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Event</span>::<span class="ident">Core</span>(<span class="ident">evt</span>)
+        <span class="ident">Event::Core</span>(<span class="ident">evt</span>)
     }
 }
 </pre></div>

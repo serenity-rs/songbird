@@ -48,10 +48,10 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">driver</span>::{<span class="ident">Bitrate</span>, <span class="ident">Config</span>, <span class="ident">CryptoState</span>},
-    <span class="ident">tracks</span>::<span class="ident">Track</span>,
+    <span class="ident">tracks::Track</span>,
 };
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::<span class="ident">XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>;
+<span class="kw">use</span> <span class="ident">flume::Sender</span>;
+<span class="kw">use</span> <span class="ident">xsalsa20poly1305::XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MixerConnection</span> {
     <span class="kw">pub</span> <span class="ident">cipher</span>: <span class="ident">Cipher</span>,
@@ -62,8 +62,8 @@
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">MixerConnection</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">udp_rx</span>.<span class="ident">send</span>(<span class="ident">UdpRxMessage</span>::<span class="ident">Poison</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">udp_tx</span>.<span class="ident">send</span>(<span class="ident">UdpTxMessage</span>::<span class="ident">Poison</span>);
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">udp_rx</span>.<span class="ident">send</span>(<span class="ident">UdpRxMessage::Poison</span>);
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">udp_tx</span>.<span class="ident">send</span>(<span class="ident">UdpTxMessage::Poison</span>);
     }
 }
 

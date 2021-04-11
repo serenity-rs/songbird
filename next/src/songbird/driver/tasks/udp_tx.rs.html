@@ -95,19 +95,19 @@
 <span id="94">94</span>
 <span id="95">95</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">discortp</span>::<span class="ident">discord</span>::<span class="ident">MutableKeepalivePacket</span>;
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Receiver</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::message</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::constants</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">discortp::discord::MutableKeepalivePacket</span>;
+<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::{
-    <span class="ident">net</span>::<span class="ident">UdpSocket</span>,
+    <span class="ident">net::UdpSocket</span>,
     <span class="ident">time</span>::{<span class="ident">timeout_at</span>, <span class="ident">Instant</span>},
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">tokio_compat</span>::{
-    <span class="ident">net</span>::<span class="ident">udp</span>::<span class="ident">SendHalf</span>,
+    <span class="ident">net::udp::SendHalf</span>,
     <span class="ident">time</span>::{<span class="ident">timeout_at</span>, <span class="ident">Instant</span>},
 };
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>};
@@ -124,12 +124,12 @@
 
 <span class="kw">impl</span> <span class="ident">UdpTx</span> {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keepalive_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">MutableKeepalivePacket</span>::<span class="ident">minimum_packet_size</span>()];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ka</span> <span class="op">=</span> <span class="ident">MutableKeepalivePacket</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">keepalive_bytes</span>[..])
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keepalive_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">MutableKeepalivePacket::minimum_packet_size</span>()];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ka</span> <span class="op">=</span> <span class="ident">MutableKeepalivePacket::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">keepalive_bytes</span>[..])
             .<span class="ident">expect</span>(<span class="string">&quot;FATAL: Insufficient bytes given to keepalive packet.&quot;</span>);
         <span class="ident">ka</span>.<span class="ident">set_ssrc</span>(<span class="self">self</span>.<span class="ident">ssrc</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ka_time</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">UDP_KEEPALIVE_GAP</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ka_time</span> <span class="op">=</span> <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">UDP_KEEPALIVE_GAP</span>;
 
         <span class="kw">loop</span> {
             <span class="kw">use</span> <span class="ident">UdpTxMessage</span>::<span class="kw-2">*</span>;

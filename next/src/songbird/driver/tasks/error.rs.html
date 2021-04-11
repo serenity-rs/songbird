@@ -98,12 +98,12 @@
 <span id="97">97</span>
 <span id="98">98</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ws</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">WsError</span>;
-<span class="kw">use</span> <span class="ident">audiopus</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>;
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">SendError</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>;
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::<span class="ident">aead</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">CryptoError</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::message</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ws::Error</span> <span class="kw">as</span> <span class="ident">WsError</span>;
+<span class="kw">use</span> <span class="ident">audiopus::Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>;
+<span class="kw">use</span> <span class="ident">flume::SendError</span>;
+<span class="kw">use</span> <span class="ident">std::io::Error</span> <span class="kw">as</span> <span class="ident">IoError</span>;
+<span class="kw">use</span> <span class="ident">xsalsa20poly1305::aead::Error</span> <span class="kw">as</span> <span class="ident">CryptoError</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Recipient</span> {
@@ -114,7 +114,7 @@
     <span class="ident">UdpTx</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
@@ -132,68 +132,68 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">should_trigger_connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
-            <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">AuxNetwork</span>)
-                <span class="op">|</span> <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">UdpRx</span>)
-                <span class="op">|</span> <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">UdpTx</span>)
+            <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::AuxNetwork</span>)
+                <span class="op">|</span> <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::UdpRx</span>)
+                <span class="op">|</span> <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::UdpTx</span>)
         )
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">should_trigger_interconnect_rebuild</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">Event</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::Event</span>))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CryptoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CryptoError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Error</span>::<span class="ident">Crypto</span>(<span class="ident">e</span>)
+        <span class="ident">Error::Crypto</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">IoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">IoError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">Io</span>(<span class="ident">e</span>)
+        <span class="ident">Error::Io</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">OpusError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">OpusError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">Opus</span>(<span class="ident">e</span>)
+        <span class="ident">Error::Opus</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">AuxNetwork</span>)
+        <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::AuxNetwork</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">Event</span>)
+        <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::Event</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">Mixer</span>)
+        <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::Mixer</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">UdpRx</span>)
+        <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::UdpRx</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">UdpTxMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">UdpTxMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>::<span class="ident">UdpTx</span>)
+        <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::UdpTx</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">WsError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">WsError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">Ws</span>(<span class="ident">e</span>)
+        <span class="ident">Error::Ws</span>(<span class="ident">e</span>)
     }
 }
 </pre></div>

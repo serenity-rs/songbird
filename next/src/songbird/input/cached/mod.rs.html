@@ -55,20 +55,20 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">compressed</span>::<span class="kw-2">*</span>, <span class="ident">hint</span>::<span class="kw-2">*</span>, <span class="ident">memory</span>::<span class="kw-2">*</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">input</span>::<span class="ident">utils</span>;
-<span class="kw">use</span> <span class="ident">audiopus</span>::<span class="ident">Bitrate</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::constants</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::input::utils</span>;
+<span class="kw">use</span> <span class="ident">audiopus::Bitrate</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">time::Duration</span>};
 <span class="kw">use</span> <span class="ident">streamcatcher</span>::{<span class="ident">Config</span>, <span class="ident">GrowthStrategy</span>};
 
 <span class="doccomment">/// Estimates the cost, in B/s, of audio data compressed at the given bitrate.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compressed_cost_per_sec</span>(<span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="kw">let</span> <span class="ident">framing_cost_per_sec</span> <span class="op">=</span> <span class="ident">AUDIO_FRAME_RATE</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="ident">framing_cost_per_sec</span> <span class="op">=</span> <span class="ident">AUDIO_FRAME_RATE</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>();
 
     <span class="kw">let</span> <span class="ident">bitrate_raw</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bitrate</span> {
-        <span class="ident">Bitrate</span>::<span class="ident">BitsPerSecond</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-        <span class="ident">Bitrate</span>::<span class="ident">Auto</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">64_000</span>,
-        <span class="ident">Bitrate</span>::<span class="ident">Max</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">512_000</span>,
+        <span class="ident">Bitrate::BitsPerSecond</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
+        <span class="ident">Bitrate::Auto</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">64_000</span>,
+        <span class="ident">Bitrate::Max</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">512_000</span>,
     } <span class="kw">as</span> <span class="ident">usize</span>;
 
     (<span class="ident">bitrate_raw</span> <span class="op">/</span> <span class="number">8</span>) <span class="op">+</span> <span class="ident">framing_cost_per_sec</span>
@@ -76,7 +76,7 @@
 
 <span class="doccomment">/// Calculates the cost, in B/s, of raw floating-point audio data.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_cost_per_sec</span>(<span class="ident">stereo</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="ident">utils</span>::<span class="ident">timestamp_to_byte_count</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">1</span>), <span class="ident">stereo</span>)
+    <span class="ident">utils::timestamp_to_byte_count</span>(<span class="ident">Duration::from_secs</span>(<span class="number">1</span>), <span class="ident">stereo</span>)
 }
 
 <span class="doccomment">/// Provides the default config used by a cached source.</span>
@@ -86,7 +86,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`streamcatcher`]: https://docs.rs/streamcatcher/0.1.0/streamcatcher/struct.Config.html</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_config</span>(<span class="ident">cost_per_sec</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
-    <span class="ident">Config</span>::<span class="ident">new</span>().<span class="ident">chunk_size</span>(<span class="ident">GrowthStrategy</span>::<span class="ident">Constant</span>(<span class="number">5</span> <span class="op">*</span> <span class="ident">cost_per_sec</span>))
+    <span class="ident">Config::new</span>().<span class="ident">chunk_size</span>(<span class="ident">GrowthStrategy::Constant</span>(<span class="number">5</span> <span class="op">*</span> <span class="ident">cost_per_sec</span>))
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-search-js="../../../../search-index.js"></div>

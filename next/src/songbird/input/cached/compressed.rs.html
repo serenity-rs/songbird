@@ -316,7 +316,7 @@
     },
 };
 <span class="kw">use</span> <span class="ident">audiopus</span>::{
-    <span class="ident">coder</span>::<span class="ident">Encoder</span> <span class="kw">as</span> <span class="ident">OpusEncoder</span>,
+    <span class="ident">coder::Encoder</span> <span class="kw">as</span> <span class="ident">OpusEncoder</span>,
     <span class="ident">Application</span>,
     <span class="ident">Bitrate</span>,
     <span class="ident">Channels</span>,
@@ -326,10 +326,10 @@
 };
 <span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>, <span class="ident">WriteBytesExt</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">convert</span>::<span class="ident">TryInto</span>,
+    <span class="ident">convert::TryInto</span>,
     <span class="ident">io</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>, <span class="ident">ErrorKind</span> <span class="kw">as</span> <span class="ident">IoErrorKind</span>, <span class="ident">Read</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>},
     <span class="ident">mem</span>,
-    <span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>},
+    <span class="ident">sync::atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>},
 };
 <span class="kw">use</span> <span class="ident">streamcatcher</span>::{<span class="ident">Config</span>, <span class="ident">NeedsBytes</span>, <span class="ident">Stateful</span>, <span class="ident">Transform</span>, <span class="ident">TransformPosition</span>, <span class="ident">TxCatcher</span>};
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
@@ -367,7 +367,7 @@
     <span class="doccomment">/// [`Input`]: Input</span>
     <span class="doccomment">/// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">with_config</span>(<span class="ident">source</span>, <span class="ident">bitrate</span>, <span class="prelude-val">None</span>)
+        <span class="self">Self</span><span class="ident">::with_config</span>(<span class="ident">source</span>, <span class="ident">bitrate</span>, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.</span>
@@ -380,15 +380,15 @@
     <span class="doccomment">/// [`Metadata::duration`]: crate::input::Metadata::duration</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_config</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>, <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">channels</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">stereo</span> {
-            <span class="ident">Channels</span>::<span class="ident">Stereo</span>
+            <span class="ident">Channels::Stereo</span>
         } <span class="kw">else</span> {
-            <span class="ident">Channels</span>::<span class="ident">Mono</span>
+            <span class="ident">Channels::Mono</span>
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">OpusEncoder</span>::<span class="ident">new</span>(<span class="ident">SampleRate</span>::<span class="ident">Hz48000</span>, <span class="ident">channels</span>, <span class="ident">Application</span>::<span class="ident">Audio</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">OpusEncoder::new</span>(<span class="ident">SampleRate::Hz48000</span>, <span class="ident">channels</span>, <span class="ident">Application::Audio</span>)<span class="question-mark">?</span>;
 
         <span class="ident">encoder</span>.<span class="ident">set_bitrate</span>(<span class="ident">bitrate</span>)<span class="question-mark">?</span>;
 
-        <span class="self">Self</span>::<span class="ident">with_encoder</span>(<span class="ident">source</span>, <span class="ident">encoder</span>, <span class="ident">config</span>)
+        <span class="self">Self</span><span class="ident">::with_encoder</span>(<span class="ident">source</span>, <span class="ident">encoder</span>, <span class="ident">config</span>)
     }
 
     <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, compressed using a user-defined</span>
@@ -419,8 +419,8 @@
         }
 
         <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">config</span>
-            .<span class="ident">build_tx</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">source</span>), <span class="ident">OpusCompressor</span>::<span class="ident">new</span>(<span class="ident">encoder</span>, <span class="ident">stereo</span>))
-            .<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">Streamcatcher</span>)<span class="question-mark">?</span>;
+            .<span class="ident">build_tx</span>(<span class="ident">Box::new</span>(<span class="ident">source</span>), <span class="ident">OpusCompressor::new</span>(<span class="ident">encoder</span>, <span class="ident">stereo</span>))
+            .<span class="ident">map_err</span>(<span class="ident">Error::Streamcatcher</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
             <span class="ident">raw</span>,
@@ -442,13 +442,13 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Compressed</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Input</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <span class="ident">Compressed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Input</span>::<span class="ident">new</span>(
+        <span class="ident">Input::new</span>(
             <span class="bool-val">true</span>,
-            <span class="ident">Reader</span>::<span class="ident">Compressed</span>(<span class="ident">src</span>.<span class="ident">raw</span>),
-            <span class="ident">CodecType</span>::<span class="ident">Opus</span>
+            <span class="ident">Reader::Compressed</span>(<span class="ident">src</span>.<span class="ident">raw</span>),
+            <span class="ident">CodecType::Opus</span>
                 .<span class="ident">try_into</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;Default decoder values are known to be valid.&quot;</span>),
-            <span class="ident">Container</span>::<span class="ident">Dca</span> { <span class="ident">first_frame</span>: <span class="number">0</span> },
+            <span class="ident">Container::Dca</span> { <span class="ident">first_frame</span>: <span class="number">0</span> },
             <span class="prelude-val">Some</span>(<span class="ident">src</span>.<span class="ident">metadata</span>),
         )
     }
@@ -473,10 +473,10 @@
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">encoder</span>: <span class="ident">OpusEncoder</span>, <span class="ident">stereo_input</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">encoder</span>,
-            <span class="ident">last_frame</span>: <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">4000</span>),
+            <span class="ident">last_frame</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">4000</span>),
             <span class="ident">stereo_input</span>,
             <span class="ident">frame_pos</span>: <span class="number">0</span>,
-            <span class="ident">audio_bytes</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">audio_bytes</span>: <span class="ident">Default::default</span>(),
         }
     }
 }
@@ -486,7 +486,7 @@
     <span class="ident">T</span>: <span class="ident">Read</span>,
 {
     <span class="kw">fn</span> <span class="ident">transform_read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">TransformPosition</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">output_start</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">output_start</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eof</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_len</span> <span class="op">=</span> <span class="number">0</span>;
@@ -509,7 +509,7 @@
                         <span class="kw-2">*</span><span class="ident">el</span> <span class="op">=</span> <span class="ident">sample</span>;
                         <span class="ident">raw_len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">IoErrorKind</span>::<span class="ident">UnexpectedEof</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">IoErrorKind::UnexpectedEof</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">eof</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="kw">break</span>;
                     },
@@ -534,14 +534,14 @@
                             <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">truncate</span>(<span class="ident">pkt_len</span>);
                             <span class="kw">break</span>;
                         },
-                        <span class="prelude-val">Err</span>(<span class="ident">OpusError</span>::<span class="ident">Opus</span>(<span class="ident">OpusErrorCode</span>::<span class="ident">BufferTooSmall</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Err</span>(<span class="ident">OpusError::Opus</span>(<span class="ident">OpusErrorCode::BufferTooSmall</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="comment">// If we need more capacity to encode this frame, then take it.</span>
                             <span class="macro">trace!</span>(<span class="string">&quot;Resizing inner buffer (+256).&quot;</span>);
                             <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">resize</span>(<span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">256</span>, <span class="number">0</span>);
                         },
                         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="macro">debug!</span>(<span class="string">&quot;Read error {:?} {:?} {:?}.&quot;</span>, <span class="ident">e</span>, <span class="ident">out</span>, <span class="ident">raw_len</span>);
-                            <span class="ident">out</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(<span class="ident">IoErrorKind</span>::<span class="ident">Other</span>, <span class="ident">e</span>)));
+                            <span class="ident">out</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(<span class="ident">IoErrorKind::Other</span>, <span class="ident">e</span>)));
                             <span class="kw">break</span>;
                         },
                     }
@@ -579,15 +579,15 @@
 
         <span class="comment">// NOTE: use of raw_len here preserves true sample length even if</span>
         <span class="comment">// stream is extended to 20ms boundary.</span>
-        <span class="ident">out</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">IoError</span>::<span class="ident">new</span>(<span class="ident">IoErrorKind</span>::<span class="ident">Other</span>, <span class="string">&quot;Unclear.&quot;</span>)))
+        <span class="ident">out</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(<span class="ident">IoErrorKind::Other</span>, <span class="string">&quot;Unclear.&quot;</span>)))
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">compressed_sz</span><span class="op">|</span> {
                 <span class="self">self</span>.<span class="ident">audio_bytes</span>
-                    .<span class="ident">fetch_add</span>(<span class="ident">raw_len</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(), <span class="ident">Ordering</span>::<span class="ident">Release</span>);
+                    .<span class="ident">fetch_add</span>(<span class="ident">raw_len</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(), <span class="ident">Ordering::Release</span>);
 
                 <span class="kw">if</span> <span class="ident">eof</span> {
-                    <span class="ident">TransformPosition</span>::<span class="ident">Finished</span>
+                    <span class="ident">TransformPosition::Finished</span>
                 } <span class="kw">else</span> {
-                    <span class="ident">TransformPosition</span>::<span class="ident">Read</span>(<span class="ident">compressed_sz</span>)
+                    <span class="ident">TransformPosition::Read</span>(<span class="ident">compressed_sz</span>)
                 }
             })
     }
@@ -602,8 +602,8 @@
 <span class="kw">impl</span> <span class="ident">Stateful</span> <span class="kw">for</span> <span class="ident">OpusCompressor</span> {
     <span class="kw">type</span> <span class="ident">State</span> <span class="op">=</span> <span class="ident">usize</span>;
 
-    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">State</span> {
-        <span class="self">self</span>.<span class="ident">audio_bytes</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>)
+    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::State</span> {
+        <span class="self">self</span>.<span class="ident">audio_bytes</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>)
     }
 }
 </pre></div>

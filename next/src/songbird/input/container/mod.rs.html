@@ -73,10 +73,10 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">frame</span>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">CodecType</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::CodecType</span>;
 <span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">fmt</span>::<span class="ident">Debug</span>,
+    <span class="ident">fmt::Debug</span>,
     <span class="ident">io</span>::{<span class="ident">Read</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>},
     <span class="ident">mem</span>,
 };
@@ -111,7 +111,7 @@
                 <span class="ident">frame_len</span>: <span class="ident">input</span>.<span class="ident">sample_len</span>(),
             }),
             <span class="ident">Dca</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">reader</span>.<span class="ident">read_i16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">frame_len</span><span class="op">|</span> <span class="ident">Frame</span> {
-                <span class="ident">header_len</span>: <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span>(),
+                <span class="ident">header_len</span>: <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span>(),
                 <span class="ident">frame_len</span>: <span class="ident">frame_len</span>.<span class="ident">max</span>(<span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>,
             }),
         }

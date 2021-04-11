@@ -39,7 +39,7 @@
 <span id="38">38</span>
 <span id="39">39</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error</span>::<span class="ident">Error</span>, <span class="ident">fmt</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span>, <span class="ident">fmt</span>};
 
 <span class="doccomment">/// Errors associated with control and manipulation of tracks.</span>
 <span class="doccomment">///</span>
@@ -60,14 +60,14 @@
     <span class="ident">SeekUnsupported</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TrackError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">TrackError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Failed to operate on track (handle): &quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TrackError</span>::<span class="ident">Finished</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;track ended.&quot;</span>),
-            <span class="ident">TrackError</span>::<span class="ident">InvalidTrackEvent</span> <span class="op">=</span><span class="op">&gt;</span>
+            <span class="ident">TrackError::Finished</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;track ended.&quot;</span>),
+            <span class="ident">TrackError::InvalidTrackEvent</span> <span class="op">=</span><span class="op">&gt;</span>
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;given event listener can&#39;t be fired on a track.&quot;</span>),
-            <span class="ident">TrackError</span>::<span class="ident">SeekUnsupported</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;track did not support seeking.&quot;</span>),
+            <span class="ident">TrackError::SeekUnsupported</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;track did not support seeking.&quot;</span>),
         }
     }
 }

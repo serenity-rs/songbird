@@ -94,10 +94,10 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Errors caused by input creation.</span>
 
-<span class="kw">use</span> <span class="ident">audiopus</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>;
+<span class="kw">use</span> <span class="ident">audiopus::Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>, <span class="ident">Value</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>, <span class="ident">process</span>::<span class="ident">Output</span>};
-<span class="kw">use</span> <span class="ident">streamcatcher</span>::<span class="ident">CatcherError</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io::Error</span> <span class="kw">as</span> <span class="ident">IoError</span>, <span class="ident">process::Output</span>};
+<span class="kw">use</span> <span class="ident">streamcatcher::CatcherError</span>;
 
 <span class="doccomment">/// An error returned when creating a new [`Input`].</span>
 <span class="doccomment">///</span>
@@ -140,25 +140,25 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CatcherError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CatcherError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Error</span>::<span class="ident">Streamcatcher</span>(<span class="ident">e</span>)
+        <span class="ident">Error::Streamcatcher</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DcaError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">DcaError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Error</span>::<span class="ident">Dca</span>(<span class="ident">e</span>)
+        <span class="ident">Error::Dca</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">IoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">IoError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">Io</span>(<span class="ident">e</span>)
+        <span class="ident">Error::Io</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">OpusError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">OpusError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error</span>::<span class="ident">Opus</span>(<span class="ident">e</span>)
+        <span class="ident">Error::Opus</span>(<span class="ident">e</span>)
     }
 }
 
@@ -183,7 +183,7 @@
 <span class="doccomment">/// Convenience type for fallible return of [`Input`]s.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Input`]: crate::input::Input</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-search-js="../../../search-index.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

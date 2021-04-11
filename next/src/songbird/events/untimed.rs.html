@@ -49,13 +49,13 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TrackEvent</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UntimedEvent</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">evt</span>: <span class="ident">TrackEvent</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">UntimedEvent</span>::<span class="ident">Track</span>(<span class="ident">evt</span>)
+        <span class="ident">UntimedEvent::Track</span>(<span class="ident">evt</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CoreEvent</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UntimedEvent</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">evt</span>: <span class="ident">CoreEvent</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">UntimedEvent</span>::<span class="ident">Core</span>(<span class="ident">evt</span>)
+        <span class="ident">UntimedEvent::Core</span>(<span class="ident">evt</span>)
     }
 }
 </pre></div>

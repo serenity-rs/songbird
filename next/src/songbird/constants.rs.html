@@ -80,16 +80,16 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="ident">Bitrate</span>, <span class="ident">SampleRate</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">discortp</span>::<span class="ident">rtp</span>::<span class="ident">RtpType</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">discortp::rtp::RtpType</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="doccomment">/// The voice gateway version used by the library.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VOICE_GATEWAY_VERSION</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">model</span>::<span class="ident">constants</span>::<span class="ident">GATEWAY_VERSION</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VOICE_GATEWAY_VERSION</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::model::constants::GATEWAY_VERSION</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="doccomment">/// Sample rate of audio to be sent to Discord.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SAMPLE_RATE</span>: <span class="ident">SampleRate</span> <span class="op">=</span> <span class="ident">SampleRate</span>::<span class="ident">Hz48000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SAMPLE_RATE</span>: <span class="ident">SampleRate</span> <span class="op">=</span> <span class="ident">SampleRate::Hz48000</span>;
 
 <span class="doccomment">/// Sample rate of audio to be sent to Discord.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SAMPLE_RATE_RAW</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">48_000</span>;
@@ -98,11 +98,11 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AUDIO_FRAME_RATE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">50</span>;
 
 <span class="doccomment">/// Length of time between any two audio frames.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIMESTEP_LENGTH</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">1000</span> <span class="op">/</span> <span class="ident">AUDIO_FRAME_RATE</span> <span class="kw">as</span> <span class="ident">u64</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIMESTEP_LENGTH</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">1000</span> <span class="op">/</span> <span class="ident">AUDIO_FRAME_RATE</span> <span class="kw">as</span> <span class="ident">u64</span>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="doccomment">/// Default bitrate for audio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_BITRATE</span>: <span class="ident">Bitrate</span> <span class="op">=</span> <span class="ident">Bitrate</span>::<span class="ident">BitsPerSecond</span>(<span class="number">128_000</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_BITRATE</span>: <span class="ident">Bitrate</span> <span class="op">=</span> <span class="ident">Bitrate::BitsPerSecond</span>(<span class="number">128_000</span>);
 
 <span class="doccomment">/// Number of samples in one complete frame of audio per channel.</span>
 <span class="doccomment">///</span>
@@ -113,10 +113,10 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STEREO_FRAME_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">MONO_FRAME_SIZE</span>;
 
 <span class="doccomment">/// Number of bytes in one complete frame of raw `f32`-encoded mono audio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MONO_FRAME_BYTE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">MONO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MONO_FRAME_BYTE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">MONO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
 
 <span class="doccomment">/// Number of bytes in one complete frame of raw `f32`-encoded stereo audio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STEREO_FRAME_BYTE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">STEREO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STEREO_FRAME_BYTE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">STEREO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
 
 <span class="doccomment">/// Length (in milliseconds) of any audio frame.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FRAME_LEN_MS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1000</span> <span class="op">/</span> <span class="ident">AUDIO_FRAME_RATE</span>;
@@ -139,7 +139,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Passive monitoring of Discord itself shows that these fire every 5 seconds</span>
 <span class="doccomment">/// irrespective of outgoing UDP traffic.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UDP_KEEPALIVE_GAP</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="ident">UDP_KEEPALIVE_GAP_MS</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UDP_KEEPALIVE_GAP</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="ident">UDP_KEEPALIVE_GAP_MS</span>);
 
 <span class="doccomment">/// Opus silent frame, used to signal speech start and end (and prevent audio glitching).</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SILENT_FRAME</span>: [<span class="ident">u8</span>; <span class="number">3</span>] <span class="op">=</span> [<span class="number">0xf8</span>, <span class="number">0xff</span>, <span class="number">0xfe</span>];
@@ -149,7 +149,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="doccomment">/// Profile type used by Discord&#39;s Opus audio traffic.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RTP_PROFILE_TYPE</span>: <span class="ident">RtpType</span> <span class="op">=</span> <span class="ident">RtpType</span>::<span class="ident">Dynamic</span>(<span class="number">120</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RTP_PROFILE_TYPE</span>: <span class="ident">RtpType</span> <span class="op">=</span> <span class="ident">RtpType::Dynamic</span>(<span class="number">120</span>);
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-search-js="../../search-index.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

@@ -431,23 +431,36 @@
 <span id="430">430</span>
 <span id="431">431</span>
 <span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">driver</span>::<span class="ident">Driver</span>, <span class="ident">error</span>::<span class="ident">ConnectionResult</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">driver::Driver</span>, <span class="ident">error::ConnectionResult</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">JoinError</span>, <span class="ident">JoinResult</span>},
     <span class="ident">id</span>::{<span class="ident">ChannelId</span>, <span class="ident">GuildId</span>, <span class="ident">UserId</span>},
     <span class="ident">info</span>::{<span class="ident">ConnectionInfo</span>, <span class="ident">ConnectionProgress</span>},
     <span class="ident">join</span>::<span class="kw-2">*</span>,
-    <span class="ident">shards</span>::<span class="ident">Shard</span>,
+    <span class="ident">shards::Shard</span>,
     <span class="ident">Config</span>,
 };
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
-<span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">json</span>;
-<span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">instrument</span>;
+<span class="kw">use</span> <span class="ident">flume::Sender</span>;
+<span class="kw">use</span> <span class="ident">serde_json::json</span>;
+<span class="kw">use</span> <span class="ident">tracing::instrument</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
+<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Return</span> {
@@ -503,14 +516,14 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">instrument</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">ws</span>: <span class="ident">Shard</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new_raw_cfg</span>(<span class="ident">guild_id</span>, <span class="prelude-val">Some</span>(<span class="ident">ws</span>), <span class="ident">user_id</span>, <span class="ident">Default</span>::<span class="ident">default</span>())
+        <span class="self">Self</span><span class="ident">::new_raw_cfg</span>(<span class="ident">guild_id</span>, <span class="prelude-val">Some</span>(<span class="ident">ws</span>), <span class="ident">user_id</span>, <span class="ident">Default::default</span>())
     }
 
     <span class="doccomment">/// Creates a new Call, configuring the driver as specified.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">instrument</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_config</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">ws</span>: <span class="ident">Shard</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>, <span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new_raw_cfg</span>(<span class="ident">guild_id</span>, <span class="prelude-val">Some</span>(<span class="ident">ws</span>), <span class="ident">user_id</span>, <span class="ident">config</span>)
+        <span class="self">Self</span><span class="ident">::new_raw_cfg</span>(<span class="ident">guild_id</span>, <span class="prelude-val">Some</span>(<span class="ident">ws</span>), <span class="ident">user_id</span>, <span class="ident">config</span>)
     }
 
     <span class="doccomment">/// Creates a new, standalone Call which is not connected via</span>
@@ -524,14 +537,14 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">instrument</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">standalone</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new_raw_cfg</span>(<span class="ident">guild_id</span>, <span class="prelude-val">None</span>, <span class="ident">user_id</span>, <span class="ident">Default</span>::<span class="ident">default</span>())
+        <span class="self">Self</span><span class="ident">::new_raw_cfg</span>(<span class="ident">guild_id</span>, <span class="prelude-val">None</span>, <span class="ident">user_id</span>, <span class="ident">Default::default</span>())
     }
 
     <span class="doccomment">/// Creates a new standalone Call from the given configuration file.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">instrument</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">standalone_from_config</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>, <span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new_raw_cfg</span>(<span class="ident">guild_id</span>, <span class="prelude-val">None</span>, <span class="ident">user_id</span>, <span class="ident">config</span>)
+        <span class="self">Self</span><span class="ident">::new_raw_cfg</span>(<span class="ident">guild_id</span>, <span class="prelude-val">None</span>, <span class="ident">user_id</span>, <span class="ident">config</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">new_raw_cfg</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shard</span><span class="op">&gt;</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>, <span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -540,7 +553,7 @@
             <span class="ident">config</span>,
             <span class="ident">connection</span>: <span class="prelude-val">None</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-            <span class="ident">driver</span>: <span class="ident">Driver</span>::<span class="ident">new</span>(<span class="ident">config</span>),
+            <span class="ident">driver</span>: <span class="ident">Driver::new</span>(<span class="ident">config</span>),
             <span class="ident">guild_id</span>,
             <span class="ident">self_deaf</span>: <span class="bool-val">false</span>,
             <span class="ident">self_mute</span>: <span class="bool-val">false</span>,
@@ -552,12 +565,12 @@
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">fn</span> <span class="ident">do_connect</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">connection</span> {
-            <span class="prelude-val">Some</span>((<span class="ident">ConnectionProgress</span>::<span class="ident">Complete</span>(<span class="ident">c</span>), <span class="ident">Return</span>::<span class="ident">Info</span>(<span class="ident">tx</span>))) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>((<span class="ident">ConnectionProgress::Complete</span>(<span class="ident">c</span>), <span class="ident">Return::Info</span>(<span class="ident">tx</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// It&#39;s okay if the receiver hung up.</span>
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">c</span>.<span class="ident">clone</span>());
             },
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-            <span class="prelude-val">Some</span>((<span class="ident">ConnectionProgress</span>::<span class="ident">Complete</span>(<span class="ident">c</span>), <span class="ident">Return</span>::<span class="ident">Conn</span>(<span class="ident">first_tx</span>, <span class="ident">driver_tx</span>))) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>((<span class="ident">ConnectionProgress::Complete</span>(<span class="ident">c</span>), <span class="ident">Return::Conn</span>(<span class="ident">first_tx</span>, <span class="ident">driver_tx</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// It&#39;s okay if the receiver hung up.</span>
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">first_tx</span>.<span class="ident">send</span>(());
 
@@ -633,8 +646,8 @@
     <span class="doccomment">/// [`Songbird::join`]: crate::Songbird::join</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">Join</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
-        <span class="kw">let</span> (<span class="ident">gw_tx</span>, <span class="ident">gw_rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
+        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+        <span class="kw">let</span> (<span class="ident">gw_tx</span>, <span class="ident">gw_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
 
         <span class="kw">let</span> <span class="ident">do_conn</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">should_actually_join</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(()), <span class="kw-2">&amp;</span><span class="ident">tx</span>, <span class="ident">channel_id</span>)
@@ -642,17 +655,17 @@
 
         <span class="kw">if</span> <span class="ident">do_conn</span> {
             <span class="self">self</span>.<span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">Some</span>((
-                <span class="ident">ConnectionProgress</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">guild_id</span>, <span class="self">self</span>.<span class="ident">user_id</span>, <span class="ident">channel_id</span>),
-                <span class="ident">Return</span>::<span class="ident">Conn</span>(<span class="ident">gw_tx</span>, <span class="ident">tx</span>),
+                <span class="ident">ConnectionProgress::new</span>(<span class="self">self</span>.<span class="ident">guild_id</span>, <span class="self">self</span>.<span class="ident">user_id</span>, <span class="ident">channel_id</span>),
+                <span class="ident">Return::Conn</span>(<span class="ident">gw_tx</span>, <span class="ident">tx</span>),
             ));
 
             <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>().<span class="ident">gateway_timeout</span>;
 
             <span class="self">self</span>.<span class="ident">update</span>()
                 .<span class="kw">await</span>
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Join</span>::<span class="ident">new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">gw_rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">timeout</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Join::new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">gw_rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">timeout</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Join</span>::<span class="ident">new</span>(
+            <span class="prelude-val">Ok</span>(<span class="ident">Join::new</span>(
                 <span class="ident">rx</span>.<span class="ident">into_recv_async</span>(),
                 <span class="ident">gw_rx</span>.<span class="ident">into_recv_async</span>(),
                 <span class="prelude-val">None</span>,
@@ -677,7 +690,7 @@
     <span class="doccomment">/// [`Songbird::join_gateway`]: crate::Songbird::join_gateway</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">join_gateway</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">JoinGateway</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
+        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
 
         <span class="kw">let</span> <span class="ident">do_conn</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">should_actually_join</span>(
@@ -689,17 +702,17 @@
 
         <span class="kw">if</span> <span class="ident">do_conn</span> {
             <span class="self">self</span>.<span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">Some</span>((
-                <span class="ident">ConnectionProgress</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">guild_id</span>, <span class="self">self</span>.<span class="ident">user_id</span>, <span class="ident">channel_id</span>),
-                <span class="ident">Return</span>::<span class="ident">Info</span>(<span class="ident">tx</span>),
+                <span class="ident">ConnectionProgress::new</span>(<span class="self">self</span>.<span class="ident">guild_id</span>, <span class="self">self</span>.<span class="ident">user_id</span>, <span class="ident">channel_id</span>),
+                <span class="ident">Return::Info</span>(<span class="ident">tx</span>),
             ));
 
             <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>().<span class="ident">gateway_timeout</span>;
 
             <span class="self">self</span>.<span class="ident">update</span>()
                 .<span class="kw">await</span>
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinGateway</span>::<span class="ident">new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">timeout</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinGateway::new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">timeout</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">JoinGateway</span>::<span class="ident">new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="prelude-val">None</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">JoinGateway::new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="prelude-val">None</span>))
         }
     }
 
@@ -709,6 +722,19 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_connection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ConnectionInfo</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">connection</span> {
             <span class="prelude-val">Some</span>((<span class="ident">progress</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">progress</span>.<span class="ident">get_connection_info</span>(),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Returns `id` of the channel, if connected or connecting to any.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This remains set after a connection failure, to allow for reconnection</span>
+    <span class="doccomment">/// as needed. This will change if moved into another voice channel by an</span>
+    <span class="doccomment">/// admin, and will be unset if kicked from a voice channel.</span>
+    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_channel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChannelId</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">connection</span> {
+            <span class="prelude-val">Some</span>((<span class="ident">progress</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">progress</span>.<span class="ident">channel_id</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -826,7 +852,7 @@
 
             <span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">map</span>).<span class="kw">await</span>
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JoinError</span>::<span class="ident">NoSender</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JoinError::NoSender</span>)
         }
     }
 }
@@ -853,14 +879,14 @@
 <span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Call</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Driver</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Target</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">driver</span>
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">Call</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="ident">::Target</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">driver</span>
     }
 }

@@ -18,9 +18,9 @@
 <span id="17">17</span>
 <span id="18">18</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Receiver</span>;
-<span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">instrument</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::message</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
+<span class="kw">use</span> <span class="ident">tracing::instrument</span>;
 
 <span class="doccomment">/// The mixer&#39;s disposal thread is also synchronous, due to tracks,</span>
 <span class="doccomment">/// inputs, etc. being based on synchronous I/O.</span>
@@ -31,7 +31,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">runner</span>(<span class="ident">mix_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">DisposalMessage</span><span class="op">&gt;</span>) {
     <span class="kw">loop</span> {
         <span class="kw">match</span> <span class="ident">mix_rx</span>.<span class="ident">recv</span>() {
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">DisposalMessage</span>::<span class="ident">Poison</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">DisposalMessage::Poison</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {},
         }
     }

@@ -86,13 +86,13 @@
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">io</span>::{<span class="ident">BufReader</span>, <span class="ident">Read</span>},
     <span class="ident">mem</span>,
-    <span class="ident">process</span>::<span class="ident">Child</span>,
+    <span class="ident">process::Child</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
+<span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">runtime</span>::<span class="ident">Handle</span>;
-<span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">debug</span>;
+<span class="kw">use</span> <span class="ident">tokio_compat::runtime::Handle</span>;
+<span class="kw">use</span> <span class="ident">tracing::debug</span>;
 
 <span class="doccomment">/// Handle for a child process which ensures that any subprocesses are properly closed</span>
 <span class="doccomment">/// on drop.</span>
@@ -105,8 +105,8 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChildContainer</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>);
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">children_to_reader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Reader</span> {
-    <span class="ident">Reader</span>::<span class="ident">Pipe</span>(<span class="ident">BufReader</span>::<span class="ident">with_capacity</span>(
-        <span class="ident">STEREO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">CHILD_BUFFER_LEN</span>,
+    <span class="ident">Reader::Pipe</span>(<span class="ident">BufReader::with_capacity</span>(
+        <span class="ident">STEREO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">CHILD_BUFFER_LEN</span>,
         <span class="ident">ChildContainer</span>(<span class="ident">children</span>),
     ))
 }
@@ -134,9 +134,9 @@
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ChildContainer</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="ident">Handle</span>::<span class="ident">try_current</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="ident">Handle::try_current</span>() {
             <span class="ident">handle</span>.<span class="ident">spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
                 <span class="ident">cleanup_child_processes</span>(<span class="ident">children</span>);
             });

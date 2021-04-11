@@ -135,7 +135,7 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">model</span>::<span class="ident">payload</span>::{<span class="ident">ClientConnect</span>, <span class="ident">ClientDisconnect</span>, <span class="ident">Speaking</span>},
+    <span class="ident">model::payload</span>::{<span class="ident">ClientConnect</span>, <span class="ident">ClientDisconnect</span>, <span class="ident">Speaking</span>},
     <span class="ident">tracks</span>::{<span class="ident">TrackHandle</span>, <span class="ident">TrackState</span>},
 };
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">data</span> <span class="kw">as</span> <span class="ident">context_data</span>;
@@ -221,18 +221,18 @@
         <span class="kw">use</span> <span class="ident">CoreContext</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SpeakingStateUpdate</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">SpeakingStateUpdate</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
-            <span class="ident">SpeakingUpdate</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">SpeakingUpdate</span>(<span class="ident">SpeakingUpdateData</span>::<span class="ident">from</span>(<span class="ident">evt</span>)),
-            <span class="ident">VoicePacket</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">VoicePacket</span>(<span class="ident">VoiceData</span>::<span class="ident">from</span>(<span class="ident">evt</span>)),
-            <span class="ident">RtcpPacket</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">RtcpPacket</span>(<span class="ident">RtcpData</span>::<span class="ident">from</span>(<span class="ident">evt</span>)),
-            <span class="ident">ClientConnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">ClientConnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
-            <span class="ident">ClientDisconnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">ClientDisconnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
-            <span class="ident">DriverConnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">DriverConnect</span>(<span class="ident">ConnectData</span>::<span class="ident">from</span>(<span class="ident">evt</span>)),
-            <span class="ident">DriverReconnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">DriverReconnect</span>(<span class="ident">ConnectData</span>::<span class="ident">from</span>(<span class="ident">evt</span>)),
-            <span class="ident">DriverConnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">DriverConnectFailed</span>,
-            <span class="ident">DriverReconnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">DriverReconnectFailed</span>,
+            <span class="ident">SpeakingStateUpdate</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::SpeakingStateUpdate</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
+            <span class="ident">SpeakingUpdate</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::SpeakingUpdate</span>(<span class="ident">SpeakingUpdateData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident">VoicePacket</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::VoicePacket</span>(<span class="ident">VoiceData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident">RtcpPacket</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::RtcpPacket</span>(<span class="ident">RtcpData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident">ClientConnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::ClientConnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
+            <span class="ident">ClientDisconnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::ClientDisconnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
+            <span class="ident">DriverConnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::DriverConnect</span>(<span class="ident">ConnectData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident">DriverReconnect</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::DriverReconnect</span>(<span class="ident">ConnectData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident">DriverConnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::DriverConnectFailed</span>,
+            <span class="ident">DriverReconnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::DriverReconnectFailed</span>,
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident">SsrcKnown</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext</span>::<span class="ident">SsrcKnown</span>(<span class="kw-2">*</span><span class="ident">s</span>),
+            <span class="ident">SsrcKnown</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">EventContext::SsrcKnown</span>(<span class="kw-2">*</span><span class="ident">s</span>),
         }
     }
 }
@@ -244,18 +244,18 @@
         <span class="kw">use</span> <span class="ident">EventContext</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SpeakingStateUpdate</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">SpeakingStateUpdate</span>),
-            <span class="ident">SpeakingUpdate</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">SpeakingUpdate</span>),
-            <span class="ident">VoicePacket</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">VoicePacket</span>),
-            <span class="ident">RtcpPacket</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">RtcpPacket</span>),
-            <span class="ident">ClientConnect</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">ClientConnect</span>),
-            <span class="ident">ClientDisconnect</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">ClientDisconnect</span>),
-            <span class="ident">DriverConnect</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">DriverConnect</span>),
-            <span class="ident">DriverReconnect</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">DriverReconnect</span>),
-            <span class="ident">DriverConnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">DriverConnectFailed</span>),
-            <span class="ident">DriverReconnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">DriverReconnectFailed</span>),
+            <span class="ident">SpeakingStateUpdate</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::SpeakingStateUpdate</span>),
+            <span class="ident">SpeakingUpdate</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::SpeakingUpdate</span>),
+            <span class="ident">VoicePacket</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::VoicePacket</span>),
+            <span class="ident">RtcpPacket</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::RtcpPacket</span>),
+            <span class="ident">ClientConnect</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::ClientConnect</span>),
+            <span class="ident">ClientDisconnect</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::ClientDisconnect</span>),
+            <span class="ident">DriverConnect</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverConnect</span>),
+            <span class="ident">DriverReconnect</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverReconnect</span>),
+            <span class="ident">DriverConnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverConnectFailed</span>),
+            <span class="ident">DriverReconnectFailed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverReconnectFailed</span>),
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident">SsrcKnown</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent</span>::<span class="ident">SsrcKnown</span>),
+            <span class="ident">SsrcKnown</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::SsrcKnown</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }

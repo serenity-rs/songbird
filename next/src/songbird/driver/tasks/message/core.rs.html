@@ -30,14 +30,14 @@
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver</span>::{<span class="ident">connection</span>::<span class="ident">error</span>::<span class="ident">Error</span>, <span class="ident">Bitrate</span>, <span class="ident">Config</span>},
-    <span class="ident">events</span>::<span class="ident">EventData</span>,
-    <span class="ident">tracks</span>::<span class="ident">Track</span>,
+    <span class="ident">driver</span>::{<span class="ident">connection::error::Error</span>, <span class="ident">Bitrate</span>, <span class="ident">Config</span>},
+    <span class="ident">events::EventData</span>,
+    <span class="ident">tracks::Track</span>,
     <span class="ident">ConnectionInfo</span>,
 };
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">Sender</span>;
+<span class="kw">use</span> <span class="ident">flume::Sender</span>;
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">large_enum_variant</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::large_enum_variant</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CoreMessage</span> {
     <span class="ident">ConnectWithResult</span>(<span class="ident">ConnectionInfo</span>, <span class="ident">Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span>),

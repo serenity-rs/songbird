@@ -177,25 +177,25 @@
 <span class="doccomment">//! Future types for gateway interactions.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">ConnectionResult</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::ConnectionResult</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">JoinError</span>, <span class="ident">JoinResult</span>},
     <span class="ident">ConnectionInfo</span>,
 };
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">convert</span>,
-    <span class="ident">future</span>::<span class="ident">Future</span>,
-    <span class="ident">marker</span>::<span class="ident">Unpin</span>,
-    <span class="ident">pin</span>::<span class="ident">Pin</span>,
+    <span class="ident">future::Future</span>,
+    <span class="ident">marker::Unpin</span>,
+    <span class="ident">pin::Pin</span>,
     <span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
-    <span class="ident">time</span>::<span class="ident">Duration</span>,
+    <span class="ident">time::Duration</span>,
 };
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">r#async</span>::<span class="ident">RecvFut</span>;
-<span class="kw">use</span> <span class="ident">pin_project</span>::<span class="ident">pin_project</span>;
+<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">r#async</span><span class="ident">::RecvFut</span>;
+<span class="kw">use</span> <span class="ident">pin_project::pin_project</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">time</span>::{<span class="self">self</span>, <span class="ident">Timeout</span>};
+<span class="kw">use</span> <span class="ident">tokio::time</span>::{<span class="self">self</span>, <span class="ident">Timeout</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat</span>::<span class="ident">time</span>::{<span class="self">self</span>, <span class="ident">Timeout</span>};
+<span class="kw">use</span> <span class="ident">tokio_compat::time</span>::{<span class="self">self</span>, <span class="ident">Timeout</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="doccomment">/// Future for a call to [`Call::join`].</span>
@@ -227,9 +227,9 @@
         <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">gw</span>: <span class="ident">JoinClass</span>::<span class="ident">new</span>(<span class="ident">gw_recv</span>, <span class="ident">timeout</span>),
-            <span class="ident">driver</span>: <span class="ident">JoinClass</span>::<span class="ident">new</span>(<span class="ident">driver</span>, <span class="prelude-val">None</span>),
-            <span class="ident">state</span>: <span class="ident">JoinState</span>::<span class="ident">BeforeGw</span>,
+            <span class="ident">gw</span>: <span class="ident">JoinClass::new</span>(<span class="ident">gw_recv</span>, <span class="ident">timeout</span>),
+            <span class="ident">driver</span>: <span class="ident">JoinClass::new</span>(<span class="ident">driver</span>, <span class="prelude-val">None</span>),
+            <span class="ident">state</span>: <span class="ident">JoinState::BeforeGw</span>,
         }
     }
 }
@@ -238,40 +238,40 @@
 <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Join</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
 
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">JoinState</span>::<span class="ident">BeforeGw</span> {
+        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">JoinState::BeforeGw</span> {
             <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">gw</span>.<span class="ident">poll</span>(<span class="ident">cx</span>);
             <span class="kw">match</span> <span class="ident">poll</span> {
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">a</span>) <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_ok</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState</span>::<span class="ident">AfterGw</span>;
+                <span class="ident">Poll::Ready</span>(<span class="ident">a</span>) <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_ok</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState::AfterGw</span>;
                 },
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState</span>::<span class="ident">Finalised</span>;
-                    <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">a</span>);
+                <span class="ident">Poll::Ready</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState::Finalised</span>;
+                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">a</span>);
                 },
-                <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+                <span class="ident">Poll::Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
             }
         }
 
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">JoinState</span>::<span class="ident">AfterGw</span> {
+        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">JoinState::AfterGw</span> {
             <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="ident">this</span>
                 .<span class="ident">driver</span>
                 .<span class="ident">poll</span>(<span class="ident">cx</span>)
-                .<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="ident">JoinError</span>::<span class="ident">Driver</span>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">and_then</span>(<span class="ident">convert</span>::<span class="ident">identity</span>));
+                .<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="ident">JoinError::Driver</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">and_then</span>(<span class="ident">convert::identity</span>));
 
             <span class="kw">match</span> <span class="ident">poll</span> {
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState</span>::<span class="ident">Finalised</span>;
-                    <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">a</span>);
+                <span class="ident">Poll::Ready</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState::Finalised</span>;
+                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">a</span>);
                 },
-                <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+                <span class="ident">Poll::Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
             }
         }
 
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
+        <span class="ident">Poll::Pending</span>
     }
 }
 
@@ -303,7 +303,7 @@
 <span class="kw">impl</span> <span class="ident">JoinGateway</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">recv</span>: <span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">ConnectionInfo</span><span class="op">&gt;</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">JoinClass</span>::<span class="ident">new</span>(<span class="ident">recv</span>, <span class="ident">timeout</span>),
+            <span class="ident">inner</span>: <span class="ident">JoinClass::new</span>(<span class="ident">recv</span>, <span class="ident">timeout</span>),
         }
     }
 }
@@ -311,7 +311,7 @@
 <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">JoinGateway</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">ConnectionInfo</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">project</span>().<span class="ident">inner</span>.<span class="ident">poll</span>(<span class="ident">cx</span>)
     }
 }
@@ -325,8 +325,8 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">JoinClass</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">recv</span>: <span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">timeout</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JoinClass</span>::<span class="ident">WithTimeout</span>(<span class="ident">time</span>::<span class="ident">timeout</span>(<span class="ident">t</span>, <span class="ident">recv</span>)),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JoinClass</span>::<span class="ident">Vanilla</span>(<span class="ident">recv</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JoinClass::WithTimeout</span>(<span class="ident">time::timeout</span>(<span class="ident">t</span>, <span class="ident">recv</span>)),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JoinClass::Vanilla</span>(<span class="ident">recv</span>),
         }
     }
 }
@@ -337,14 +337,14 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">project</span>() {
-            <span class="ident">JoinClassProj</span>::<span class="ident">WithTimeout</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>
+            <span class="ident">JoinClassProj::WithTimeout</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>
                 .<span class="ident">poll</span>(<span class="ident">cx</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError</span>::<span class="ident">TimedOut</span>)
-                .<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError</span>::<span class="ident">Dropped</span>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">and_then</span>(<span class="ident">convert</span>::<span class="ident">identity</span>)),
-            <span class="ident">JoinClassProj</span>::<span class="ident">Vanilla</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="ident">t</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError</span>::<span class="ident">Dropped</span>),
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError::TimedOut</span>)
+                .<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError::Dropped</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">and_then</span>(<span class="ident">convert::identity</span>)),
+            <span class="ident">JoinClassProj::Vanilla</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Pin::new</span>(<span class="ident">t</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError::Dropped</span>),
         }
     }
 }

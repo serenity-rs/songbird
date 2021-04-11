@@ -43,9 +43,9 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Utility methods for seeking or decoding.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="ident">coder</span>::<span class="ident">Decoder</span>, <span class="ident">Channels</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">OpusResult</span>, <span class="ident">SampleRate</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::constants</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="ident">coder::Decoder</span>, <span class="ident">Channels</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">OpusResult</span>, <span class="ident">SampleRate</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">time::Duration</span>};
 
 <span class="doccomment">/// Calculates the sample position in a FloatPCM stream from a timestamp.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timestamp_to_sample_count</span>(<span class="ident">timestamp</span>: <span class="ident">Duration</span>, <span class="ident">stereo</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
@@ -54,31 +54,31 @@
 
 <span class="doccomment">/// Calculates the time position in a FloatPCM stream from a sample index.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sample_count_to_timestamp</span>(<span class="ident">amt</span>: <span class="ident">usize</span>, <span class="ident">stereo</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
-    <span class="ident">Duration</span>::<span class="ident">from_millis</span>((((<span class="ident">amt</span> <span class="op">*</span> <span class="ident">FRAME_LEN_MS</span>) <span class="op">/</span> <span class="ident">MONO_FRAME_SIZE</span>) <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">stereo</span> <span class="kw">as</span> <span class="ident">u64</span>)
+    <span class="ident">Duration::from_millis</span>((((<span class="ident">amt</span> <span class="op">*</span> <span class="ident">FRAME_LEN_MS</span>) <span class="op">/</span> <span class="ident">MONO_FRAME_SIZE</span>) <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">stereo</span> <span class="kw">as</span> <span class="ident">u64</span>)
 }
 
 <span class="doccomment">/// Calculates the byte position in a FloatPCM stream from a timestamp.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Each sample is sized by `mem::size_of::&lt;f32&gt;() == 4usize`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timestamp_to_byte_count</span>(<span class="ident">timestamp</span>: <span class="ident">Duration</span>, <span class="ident">stereo</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="ident">timestamp_to_sample_count</span>(<span class="ident">timestamp</span>, <span class="ident">stereo</span>) <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>()
+    <span class="ident">timestamp_to_sample_count</span>(<span class="ident">timestamp</span>, <span class="ident">stereo</span>) <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>()
 }
 
 <span class="doccomment">/// Calculates the time position in a FloatPCM stream from a byte index.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Each sample is sized by `mem::size_of::&lt;f32&gt;() == 4usize`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_count_to_timestamp</span>(<span class="ident">amt</span>: <span class="ident">usize</span>, <span class="ident">stereo</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
-    <span class="ident">sample_count_to_timestamp</span>(<span class="ident">amt</span> <span class="op">/</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(), <span class="ident">stereo</span>)
+    <span class="ident">sample_count_to_timestamp</span>(<span class="ident">amt</span> <span class="op">/</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(), <span class="ident">stereo</span>)
 }
 
 <span class="doccomment">/// Create an Opus decoder outputting at a sample rate of 48kHz.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decoder</span>(<span class="ident">stereo</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OpusResult</span><span class="op">&lt;</span><span class="ident">Decoder</span><span class="op">&gt;</span> {
-    <span class="ident">Decoder</span>::<span class="ident">new</span>(
-        <span class="ident">SampleRate</span>::<span class="ident">Hz48000</span>,
+    <span class="ident">Decoder::new</span>(
+        <span class="ident">SampleRate::Hz48000</span>,
         <span class="kw">if</span> <span class="ident">stereo</span> {
-            <span class="ident">Channels</span>::<span class="ident">Stereo</span>
+            <span class="ident">Channels::Stereo</span>
         } <span class="kw">else</span> {
-            <span class="ident">Channels</span>::<span class="ident">Mono</span>
+            <span class="ident">Channels::Mono</span>
         },
     )
 }

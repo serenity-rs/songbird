@@ -352,16 +352,16 @@
 <span class="kw">mod</span> <span class="ident">decode_mode</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">tasks</span>;
 
-<span class="kw">use</span> <span class="ident">connection</span>::<span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crypto</span>::<span class="ident">CryptoMode</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">crypto</span>::<span class="ident">CryptoState</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">decode_mode</span>::<span class="ident">DecodeMode</span>;
+<span class="kw">use</span> <span class="ident">connection::error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crypto::CryptoMode</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">crypto::CryptoState</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">decode_mode::DecodeMode</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">tracks</span>::<span class="ident">TrackQueue</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tracks::TrackQueue</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">events</span>::<span class="ident">EventData</span>,
-    <span class="ident">input</span>::<span class="ident">Input</span>,
+    <span class="ident">events::EventData</span>,
+    <span class="ident">input::Input</span>,
     <span class="ident">tracks</span>::{<span class="self">self</span>, <span class="ident">Track</span>, <span class="ident">TrackHandle</span>},
     <span class="ident">Config</span>,
     <span class="ident">ConnectionInfo</span>,
@@ -371,13 +371,13 @@
 <span class="doccomment">/// Opus encoder bitrate settings.</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">opus</span>, <span class="ident">Bitrate</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{
-    <span class="ident">future</span>::<span class="ident">Future</span>,
-    <span class="ident">pin</span>::<span class="ident">Pin</span>,
+    <span class="ident">future::Future</span>,
+    <span class="ident">pin::Pin</span>,
     <span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
 };
-<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">r#async</span>::<span class="ident">RecvFut</span>, <span class="ident">SendError</span>, <span class="ident">Sender</span>};
-<span class="kw">use</span> <span class="ident">tasks</span>::<span class="ident">message</span>::<span class="ident">CoreMessage</span>;
-<span class="kw">use</span> <span class="ident">tracing</span>::<span class="ident">instrument</span>;
+<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">r#async</span><span class="ident">::RecvFut</span>, <span class="ident">SendError</span>, <span class="ident">Sender</span>};
+<span class="kw">use</span> <span class="ident">tasks::message::CoreMessage</span>;
+<span class="kw">use</span> <span class="ident">tracing::instrument</span>;
 
 <span class="doccomment">/// The control object for a Discord voice connection, handling connection,</span>
 <span class="doccomment">/// mixing, encoding, en/decryption, and event generation.</span>
@@ -399,27 +399,27 @@
     <span class="doccomment">/// This will create the core voice tasks in the background.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">start_inner</span>(<span class="ident">config</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::start_inner</span>(<span class="ident">config</span>.<span class="ident">clone</span>());
 
         <span class="ident">Driver</span> {
             <span class="ident">config</span>,
             <span class="ident">self_mute</span>: <span class="bool-val">false</span>,
             <span class="ident">sender</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-            <span class="ident">queue</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">queue</span>: <span class="ident">Default::default</span>(),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">start_inner</span>(<span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">unbounded</span>();
+        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
 
-        <span class="ident">tasks</span>::<span class="ident">start</span>(<span class="ident">config</span>, <span class="ident">rx</span>, <span class="ident">tx</span>.<span class="ident">clone</span>());
+        <span class="ident">tasks::start</span>(<span class="ident">config</span>, <span class="ident">rx</span>, <span class="ident">tx</span>.<span class="ident">clone</span>());
 
         <span class="ident">tx</span>
     }
 
     <span class="kw">fn</span> <span class="ident">restart_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">sender</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">start_inner</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>());
+        <span class="self">self</span>.<span class="ident">sender</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::start_inner</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>());
 
         <span class="self">self</span>.<span class="ident">mute</span>(<span class="self">self</span>.<span class="ident">self_mute</span>);
     }
@@ -430,7 +430,7 @@
     <span class="doccomment">/// does not need to be `await`ed to start the actual connection.</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connect</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume</span>::<span class="ident">bounded</span>(<span class="number">1</span>);
+        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
 
         <span class="self">self</span>.<span class="ident">raw_connect</span>(<span class="ident">info</span>, <span class="ident">tx</span>);
 
@@ -442,7 +442,7 @@
     <span class="doccomment">/// Connects to a voice channel using the specified server.</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">raw_connect</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">ConnectWithResult</span>(<span class="ident">info</span>, <span class="ident">tx</span>));
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::ConnectWithResult</span>(<span class="ident">info</span>, <span class="ident">tx</span>));
     }
 
     <span class="doccomment">/// Leaves the current voice channel, disconnecting from it.</span>
@@ -451,7 +451,7 @@
     <span class="doccomment">/// self-muted.</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">Disconnect</span>);
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Disconnect</span>);
     }
 
     <span class="doccomment">/// Sets whether the current connection is to be muted.</span>
@@ -461,7 +461,7 @@
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mute</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mute</span>: <span class="ident">bool</span>) {
         <span class="self">self</span>.<span class="ident">self_mute</span> <span class="op">=</span> <span class="ident">mute</span>;
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">Mute</span>(<span class="ident">mute</span>));
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Mute</span>(<span class="ident">mute</span>));
     }
 
     <span class="doccomment">/// Returns whether the driver is muted (i.e., processes audio internally</span>
@@ -479,8 +479,8 @@
     <span class="doccomment">/// [`ytdl`]: crate::input::ytdl</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_source</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="kw">super</span>::<span class="ident">create_player</span>(<span class="ident">source</span>);
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">AddTrack</span>(<span class="ident">player</span>));
+        <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="kw">super</span><span class="ident">::create_player</span>(<span class="ident">source</span>);
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::AddTrack</span>(<span class="ident">player</span>));
 
         <span class="ident">handle</span>
     }
@@ -493,8 +493,8 @@
     <span class="doccomment">/// [`play_source`]: Driver::play_source</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_only_source</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="kw">super</span>::<span class="ident">create_player</span>(<span class="ident">source</span>);
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">SetTrack</span>(<span class="prelude-val">Some</span>(<span class="ident">player</span>)));
+        <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="kw">super</span><span class="ident">::create_player</span>(<span class="ident">source</span>);
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="prelude-val">Some</span>(<span class="ident">player</span>)));
 
         <span class="ident">handle</span>
     }
@@ -511,7 +511,7 @@
     <span class="doccomment">/// [`play_source`]: Driver::play_source</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">track</span>: <span class="ident">Track</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">AddTrack</span>(<span class="ident">track</span>));
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::AddTrack</span>(<span class="ident">track</span>));
     }
 
     <span class="doccomment">/// Exclusively plays audio from a [`Track`] object.</span>
@@ -527,7 +527,7 @@
     <span class="doccomment">/// [`play`]: Driver::play</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">track</span>: <span class="ident">Track</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">SetTrack</span>(<span class="prelude-val">Some</span>(<span class="ident">track</span>)));
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="prelude-val">Some</span>(<span class="ident">track</span>)));
     }
 
     <span class="doccomment">/// Sets the bitrate for encoding Opus packets sent along</span>
@@ -539,20 +539,20 @@
     <span class="doccomment">/// Alternatively, `Auto` and `Max` remain available.</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bitrate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">SetBitrate</span>(<span class="ident">bitrate</span>))
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetBitrate</span>(<span class="ident">bitrate</span>))
     }
 
     <span class="doccomment">/// Stops playing audio from all sources, if any are set.</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">SetTrack</span>(<span class="prelude-val">None</span>))
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="prelude-val">None</span>))
     }
 
     <span class="doccomment">/// Sets the configuration for this driver (and parent `Call`, if applicable).</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_config</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>) {
         <span class="self">self</span>.<span class="ident">config</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">clone</span>();
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">SetConfig</span>(<span class="ident">config</span>))
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetConfig</span>(<span class="ident">config</span>))
     }
 
     <span class="doccomment">/// Returns a view of this driver&#39;s configuration.</span>
@@ -577,13 +577,13 @@
     <span class="doccomment">/// [`EventContext`]: crate::events::EventContext</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">action</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_global_event</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">EventHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>, <span class="ident">action</span>: <span class="ident">F</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">AddEvent</span>(<span class="ident">EventData</span>::<span class="ident">new</span>(<span class="ident">event</span>, <span class="ident">action</span>)));
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::AddEvent</span>(<span class="ident">EventData::new</span>(<span class="ident">event</span>, <span class="ident">action</span>)));
     }
 
     <span class="doccomment">/// Removes all global event handlers from an audio context.</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_all_global_events</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">RemoveGlobalEvents</span>);
+        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::RemoveGlobalEvents</span>);
     }
 
     <span class="doccomment">/// Sends a message to the inner tasks, restarting it if necessary.</span>
@@ -617,7 +617,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enqueue_source</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>) {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">track</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tracks</span>::<span class="ident">create_player</span>(<span class="ident">source</span>);
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">track</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tracks::create_player</span>(<span class="ident">source</span>);
         <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">add_raw</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">track</span>);
         <span class="self">self</span>.<span class="ident">play</span>(<span class="ident">track</span>);
     }
@@ -635,7 +635,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Driver</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">Default</span>::<span class="ident">default</span>())
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">Default::default</span>())
     }
 }
 
@@ -644,7 +644,7 @@
     <span class="doccomment">/// forgets all configurations relevant to this Handler.</span>
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">leave</span>();
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">CoreMessage</span>::<span class="ident">Poison</span>);
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Poison</span>);
     }
 }
 
@@ -661,10 +661,10 @@
 <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Connect</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll</span>(<span class="ident">cx</span>) {
-            <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">r</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="ident">AttemptDiscarded</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>)),
-            <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll</span>(<span class="ident">cx</span>) {
+            <span class="ident">Poll::Ready</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll::Ready</span>(<span class="ident">r</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error::AttemptDiscarded</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>)),
+            <span class="ident">Poll::Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll::Pending</span>,
         }
     }
 }

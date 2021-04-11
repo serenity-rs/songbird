@@ -13,8 +13,8 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Interconnect</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">driver</span>::<span class="ident">Config</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::Interconnect</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::driver::Config</span>;
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UdpRxMessage</span> {
     <span class="ident">SetConfig</span>(<span class="ident">Config</span>),

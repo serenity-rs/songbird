@@ -186,9 +186,9 @@
 <span id="185">185</span>
 <span id="186">186</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">Value</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::constants</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">serde_json::Value</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
 <span class="doccomment">/// Information about an [`Input`] source.</span>
 <span class="doccomment">///</span>
@@ -228,32 +228,32 @@
 
         <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">format</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;duration&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">ok</span>())
-            .<span class="ident">map</span>(<span class="ident">Duration</span>::<span class="ident">from_secs_f64</span>);
+            .<span class="ident">map</span>(<span class="ident">Duration::from_secs_f64</span>);
 
         <span class="kw">let</span> <span class="ident">start_time</span> <span class="op">=</span> <span class="ident">format</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;start_time&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">ok</span>())
-            .<span class="ident">map</span>(<span class="ident">Duration</span>::<span class="ident">from_secs_f64</span>);
+            .<span class="ident">map</span>(<span class="ident">Duration::from_secs_f64</span>);
 
         <span class="kw">let</span> <span class="ident">tags</span> <span class="op">=</span> <span class="ident">format</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;tags&quot;</span>));
 
         <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">tags</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-            .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="kw">let</span> <span class="ident">artist</span> <span class="op">=</span> <span class="ident">tags</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;artist&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-            .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">tags</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;date&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-            .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">value</span>
             .<span class="ident">as_object</span>()
@@ -261,17 +261,17 @@
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_array</span>())
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
                 <span class="ident">v</span>.<span class="ident">iter</span>()
-                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">line</span><span class="op">|</span> <span class="ident">line</span>.<span class="ident">get</span>(<span class="string">&quot;codec_type&quot;</span>).<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;audio&quot;</span>))
+                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">line</span><span class="op">|</span> <span class="ident">line</span>.<span class="ident">get</span>(<span class="string">&quot;codec_type&quot;</span>).<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;audio&quot;</span>))
             });
 
         <span class="kw">let</span> <span class="ident">channels</span> <span class="op">=</span> <span class="ident">stream</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;channels&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_u64</span>)
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_u64</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u8</span>);
 
         <span class="kw">let</span> <span class="ident">sample_rate</span> <span class="op">=</span> <span class="ident">stream</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;sample_rate&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>().<span class="ident">ok</span>())
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u32</span>);
 
@@ -285,7 +285,7 @@
             <span class="ident">duration</span>,
             <span class="ident">sample_rate</span>,
 
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            ..<span class="ident">Default::default</span>()
         }
     }
 
@@ -295,51 +295,51 @@
 
         <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;track&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-            .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">obj</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>))
-                .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-                .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>)
+                .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+                .<span class="ident">map</span>(<span class="ident">str::to_string</span>)
         });
 
         <span class="kw">let</span> <span class="ident">true_artist</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;artist&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-            .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="kw">let</span> <span class="ident">artist</span> <span class="op">=</span> <span class="ident">true_artist</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">obj</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;uploader&quot;</span>))
-                .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-                .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>)
+                .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+                .<span class="ident">map</span>(<span class="ident">str::to_string</span>)
         });
 
         <span class="kw">let</span> <span class="ident">r_date</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;release_date&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-            .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">r_date</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">obj</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;upload_date&quot;</span>))
-                .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-                .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>)
+                .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+                .<span class="ident">map</span>(<span class="ident">str::to_string</span>)
         });
 
         <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;duration&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_f64</span>)
-            .<span class="ident">map</span>(<span class="ident">Duration</span>::<span class="ident">from_secs_f64</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_f64</span>)
+            .<span class="ident">map</span>(<span class="ident">Duration::from_secs_f64</span>);
 
         <span class="kw">let</span> <span class="ident">source_url</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;webpage_url&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-            .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="kw">let</span> <span class="ident">thumbnail</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;thumbnail&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="ident">Value</span>::<span class="ident">as_str</span>)
-            .<span class="ident">map</span>(<span class="ident">str</span>::<span class="ident">to_string</span>);
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="self">Self</span> {
             <span class="ident">title</span>,
@@ -352,7 +352,7 @@
             <span class="ident">source_url</span>,
             <span class="ident">thumbnail</span>,
 
-            ..<span class="ident">Default</span>::<span class="ident">default</span>()
+            ..<span class="ident">Default::default</span>()
         }
     }
 

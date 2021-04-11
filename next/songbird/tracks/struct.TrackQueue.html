@@ -11,18 +11,18 @@ This code is trivial to extend if extra functionality is needed.</p>
 <h1 id="example" class="section-header"><a href="#example">Example</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">use</span> <span class="ident">songbird</span>::{
-    <span class="ident">driver</span>::<span class="ident">Driver</span>,
-    <span class="ident">id</span>::<span class="ident">GuildId</span>,
+    <span class="ident">driver::Driver</span>,
+    <span class="ident">id::GuildId</span>,
     <span class="ident">ffmpeg</span>,
     <span class="ident">tracks</span>::{<span class="ident">create_player</span>, <span class="ident">TrackQueue</span>},
 };
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="kw">let</span> <span class="ident">guild</span> <span class="op">=</span> <span class="ident">GuildId</span>(<span class="number">0</span>);
 <span class="comment">// A Call is also valid here!</span>
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">driver</span>: <span class="ident">Driver</span> <span class="op">=</span> <span class="ident">Default</span>::<span class="ident">default</span>();
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">driver</span>: <span class="ident">Driver</span> <span class="op">=</span> <span class="ident">Default::default</span>();
 
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queues</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">GuildId</span>, <span class="ident">TrackQueue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Default</span>::<span class="ident">default</span>();
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queues</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">GuildId</span>, <span class="ident">TrackQueue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Default::default</span>();
 
 <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">ffmpeg</span>(<span class="string">&quot;../audio/my-favourite-song.mp3&quot;</span>)
     .<span class="kw">await</span>

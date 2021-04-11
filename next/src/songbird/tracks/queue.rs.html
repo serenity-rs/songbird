@@ -340,14 +340,14 @@
 <span id="339">339</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver</span>::<span class="ident">Driver</span>,
+    <span class="ident">driver::Driver</span>,
     <span class="ident">events</span>::{<span class="ident">Event</span>, <span class="ident">EventContext</span>, <span class="ident">EventData</span>, <span class="ident">EventHandler</span>, <span class="ident">TrackEvent</span>},
-    <span class="ident">input</span>::<span class="ident">Input</span>,
+    <span class="ident">input::Input</span>,
     <span class="ident">tracks</span>::{<span class="self">self</span>, <span class="ident">Track</span>, <span class="ident">TrackHandle</span>, <span class="ident">TrackResult</span>},
 };
-<span class="kw">use</span> <span class="ident">async_trait</span>::<span class="ident">async_trait</span>;
-<span class="kw">use</span> <span class="ident">parking_lot</span>::<span class="ident">Mutex</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">VecDeque</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
+<span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
+<span class="kw">use</span> <span class="ident">parking_lot::Mutex</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::VecDeque</span>, <span class="ident">ops::Deref</span>, <span class="ident">sync::Arc</span>, <span class="ident">time::Duration</span>};
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">info</span>, <span class="ident">warn</span>};
 
 <span class="doccomment">/// A simple queue for several audio sources, designed to</span>
@@ -411,7 +411,7 @@
 <span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Queued</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">TrackHandle</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Target</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -447,7 +447,7 @@
         <span class="comment">// or dequeue+stop tracks, we need to verify that the FIRST</span>
         <span class="comment">// track is the one who has ended.</span>
         <span class="kw">let</span> <span class="ident">front_ended</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ctx</span> {
-            <span class="ident">EventContext</span>::<span class="ident">Track</span>(<span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">EventContext::Track</span>(<span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// This slice should have exactly one entry.</span>
                 <span class="comment">// If the ended track has same id as the queue head, then</span>
                 <span class="comment">// we can progress the queue.</span>
@@ -507,15 +507,15 @@
     <span class="doccomment">/// Create a new, empty, track queue.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">TrackQueueCore</span> {
-                <span class="ident">tracks</span>: <span class="ident">VecDeque</span>::<span class="ident">new</span>(),
+            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">TrackQueueCore</span> {
+                <span class="ident">tracks</span>: <span class="ident">VecDeque::new</span>(),
             })),
         }
     }
 
     <span class="doccomment">/// Adds an audio source to the queue, to be played in the channel managed by `handler`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Driver</span>) {
-        <span class="kw">let</span> (<span class="ident">audio</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tracks</span>::<span class="ident">create_player</span>(<span class="ident">source</span>);
+        <span class="kw">let</span> (<span class="ident">audio</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tracks::create_player</span>(<span class="ident">source</span>);
         <span class="self">self</span>.<span class="ident">add</span>(<span class="ident">audio</span>, <span class="ident">handler</span>);
     }
 
@@ -548,7 +548,7 @@
             .<span class="ident">as_mut</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;Queue inspecting EventStore on new Track: did not exist.&quot;</span>)
             .<span class="ident">add_event</span>(
-                <span class="ident">EventData</span>::<span class="ident">new</span>(<span class="ident">Event</span>::<span class="ident">Track</span>(<span class="ident">TrackEvent</span>::<span class="ident">End</span>), <span class="ident">QueueHandler</span> { <span class="ident">remote_lock</span> }),
+                <span class="ident">EventData::new</span>(<span class="ident">Event::Track</span>(<span class="ident">TrackEvent::End</span>), <span class="ident">QueueHandler</span> { <span class="ident">remote_lock</span> }),
                 <span class="ident">track</span>.<span class="ident">position</span>,
             );
 
@@ -556,7 +556,7 @@
         <span class="comment">// Idea is to provide as close to gapless playback as possible,</span>
         <span class="comment">// while minimising memory use.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">source</span>.<span class="ident">metadata</span>.<span class="ident">duration</span> {
-            <span class="kw">let</span> <span class="ident">preload_time</span> <span class="op">=</span> <span class="ident">time</span>.<span class="ident">checked_sub</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">5</span>)).<span class="ident">unwrap_or_default</span>();
+            <span class="kw">let</span> <span class="ident">preload_time</span> <span class="op">=</span> <span class="ident">time</span>.<span class="ident">checked_sub</span>(<span class="ident">Duration::from_secs</span>(<span class="number">5</span>)).<span class="ident">unwrap_or_default</span>();
             <span class="kw">let</span> <span class="ident">remote_lock</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>();
 
             <span class="ident">track</span>
@@ -564,7 +564,7 @@
                 .<span class="ident">as_mut</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;Queue inspecting EventStore on new Track: did not exist.&quot;</span>)
                 .<span class="ident">add_event</span>(
-                    <span class="ident">EventData</span>::<span class="ident">new</span>(<span class="ident">Event</span>::<span class="ident">Delayed</span>(<span class="ident">preload_time</span>), <span class="ident">SongPreloader</span> { <span class="ident">remote_lock</span> }),
+                    <span class="ident">EventData::new</span>(<span class="ident">Event::Delayed</span>(<span class="ident">preload_time</span>), <span class="ident">SongPreloader</span> { <span class="ident">remote_lock</span> }),
                     <span class="ident">track</span>.<span class="ident">position</span>,
                 );
         }
