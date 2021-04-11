@@ -87,11 +87,6 @@ branch = "next"
 optional = true
 version = "1"
 
-# TEMPORARY: remove on next breaking.
-[dependencies.spinning_top]
-optional = true
-version = "=0.2.2"
-
 [dependencies.streamcatcher]
 optional = true
 version = "0.1"
@@ -155,7 +150,6 @@ gateway-core = [
     "flume",
     "parking_lot",
     "pin-project",
-    "spinning_top",
 ]
 driver = [
     "async-tungstenite",
@@ -179,7 +173,6 @@ driver-core = [
     "rand",
     "serenity-voice-model",
     "spin_sleep",
-    "spinning_top",
     "streamcatcher",
     "typemap_rev",
     "url",
