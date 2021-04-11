@@ -11,7 +11,7 @@ use std::{
     result::Result as StdResult,
 };
 use streamcatcher::{Catcher, TxCatcher};
-use symphonia_core::io::{MediaSource, MediaSourceStream, MediaSourceStreamOptions};
+use symphonia_core::io::MediaSource;
 
 /// Usable data/byte sources for an audio stream.
 ///
@@ -41,54 +41,34 @@ pub enum Reader {
     Restartable(Restartable),
     /// A basic user-provided source.
     ///
-    /// Does not support seeking.
-    Extension(MediaSourceStream),
-    /// A user-provided source which also implements [`Seek`].
-    ///
-    /// Supports seeking.
-    ///
-    /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
-    ExtensionSeek(MediaSourceStream),
+    /// Seeking support depends on underlyuing `MediaSource` implementation.
+    Extension(Box<dyn MediaSource + Send>),
 }
 
 impl Reader {
     /// Returns whether the given source implements [`Seek`].
+    ///
+    /// This might be an expensive operation and might involve blocking IO. In such cases, it is
+    /// advised to cache the return value when possible.
     ///
     /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
     pub fn is_seekable(&self) -> bool {
         use Reader::*;
         match self {
             Restartable(_) | Compressed(_) | Memory(_) => true,
-            Extension(_) => false,
-            ExtensionSeek(_) => true,
+            Extension(source) => source.is_seekable(),
             _ => false,
         }
     }
 
     /// A source contained in a local file.
     pub fn from_file(file: File) -> Self {
-        Self::make_extension(file)
+        Self::Extension(Box::new(file))
     }
 
     /// A source contained as an array in memory.
     pub fn from_memory(buf: Vec<u8>) -> Self {
-        Self::make_extension(Cursor::new(buf))
-    }
-
-    /// Creates a reader from a `symphonia_core::io::MediaSource`.
-    pub fn make_extension<T: MediaSource + 'static>(source: T) -> Self {
-        let seekable = source.is_seekable();
-        let stream = MediaSourceStream::new(
-            Box::new(source),
-            MediaSourceStreamOptions {
-                buffer_len: 1 << 16, // 64kb
-            },
-        );
-        if seekable {
-            Self::ExtensionSeek(stream)
-        } else {
-            Self::Extension(stream)
-        }
+        Self::Extension(Box::new(Cursor::new(buf)))
     }
 
     #[allow(clippy::single_match)]
@@ -119,7 +99,6 @@ impl Read for Reader {
             Compressed(a) => Read::read(a, buffer),
             Restartable(a) => Read::read(a, buffer),
             Extension(a) => a.read(buffer),
-            ExtensionSeek(a) => a.read(buffer),
         }
     }
 }
@@ -128,14 +107,23 @@ impl Seek for Reader {
     fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
         use Reader::*;
         match self {
-            Pipe(_) | Extension(_) => Err(IoError::new(
+            Pipe(_) => Err(IoError::new(
                 IoErrorKind::InvalidInput,
                 "Seeking not supported on Reader of this type.",
             )),
             Memory(a) => Seek::seek(a, pos),
             Compressed(a) => Seek::seek(a, pos),
             Restartable(a) => Seek::seek(a, pos),
-            ExtensionSeek(a) => a.seek(pos),
+            Extension(a) => {
+                if a.is_seekable() {
+                    a.seek(pos)
+                } else {
+                    Err(IoError::new(
+                        IoErrorKind::InvalidInput,
+                        "Seeking not supported on Reader of this type.",
+                    ))
+                }
+            },
         }
     }
 }
@@ -149,7 +137,6 @@ impl Debug for Reader {
             Compressed(a) => format!("{:?}", a),
             Restartable(a) => format!("{:?}", a),
             Extension(_) => "Extension".to_string(),
-            ExtensionSeek(_) => "ExtensionSeek".to_string(),
         };
         f.debug_tuple("Reader").field(&field).finish()
     }
