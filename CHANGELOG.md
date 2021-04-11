@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.6] — 2021-04-11
+
+This patch release fixes a driver crash on leaving a channel, adds a utility method for requesting the current channel ID, and limits a sub-dependency to ensure compatibility with Rust v1.48.0.
+
+Thanks to the following for their contributions:
+
+- [@DoumanAsh]
+- [@FelixMcFelix]
+
+### Added
+
+- [gateway] Gateway: Introduce Call::current_channel (#60) ([@DoumanAsh]) [c:22214a0]
+
+### Fixed
+
+- [deps] Deps: Prevent MSRV breakage via `spinning_top` (#64) ([@FelixMcFelix]) [c:a88b185]
+- [driver] Driver: Fix crash on `.leave()` (#63) ([@FelixMcFelix]) [c:24d8da6]
+
 ## [0.1.5] — 2021-03-23
 
 This patch release adds bugfixes for incorrect seeking in Restartable sources and resource usage of inactive `Driver`s, as well as some utility methods and reduced logging.
@@ -186,6 +204,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.1.6]: https://github.com/serenity-rs/songbird/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/serenity-rs/songbird/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/serenity-rs/songbird/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/serenity-rs/songbird/compare/v0.1.2...v0.1.3
@@ -197,6 +216,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@acdenisSK]: https://github.com/acdenisSK
 [@Arcterus]: https://github.com/Arcterus
 [@DasEtwas]: https://github.com/DasEtwas
+[@DoumanAsh]: https://github.com/DoumanAsh
 [@Elinvynia]: https://github.com/Elinvynia
 [@Erk-]: https://github.com/Erk-
 [@FelixMcFelix]: https://github.com/FelixMcFelix
@@ -224,6 +244,9 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:22214a0]: https://github.com/serenity-rs/songbird/commit/22214a0f891946f42f7c23d7de3a1f380791e51d
+[c:a88b185]: https://github.com/serenity-rs/songbird/commit/a88b18567619e62c073560b5acd18aa4f1c30199
+[c:24d8da6]: https://github.com/serenity-rs/songbird/commit/24d8da69c0a38dc9ea9f679e1d40ffd3bc27f5b7
 [c:db79940]: https://github.com/serenity-rs/songbird/commit/db7994087a23cf7210dc5ccd1e114618ce8c64ce
 [c:1fcc8c0]: https://github.com/serenity-rs/songbird/commit/1fcc8c0eb9d07e427fd057697a3dfa6b0f89ab6b
 [c:f230b41]: https://github.com/serenity-rs/songbird/commit/f230b41110e34dc8b46b19a118186f9e90e15dd2
