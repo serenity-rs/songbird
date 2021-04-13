@@ -133,11 +133,14 @@ impl Mixer {
                     };
                 }
 
-                if let Err(e) = self.cycle().and_then(|_| self.audio_commands_events()) {
-                    events_failure |= e.should_trigger_interconnect_rebuild();
-                    conn_failure |= e.should_trigger_connect();
+                // The above action may have invalidated the connection; need to re-check!
+                if self.conn_active.is_some() {
+                    if let Err(e) = self.cycle().and_then(|_| self.audio_commands_events()) {
+                        events_failure |= e.should_trigger_interconnect_rebuild();
+                        conn_failure |= e.should_trigger_connect();
 
-                    debug!("Mixer thread cycle: {:?}", e);
+                        debug!("Mixer thread cycle: {:?}", e);
+                    }
                 }
             } else {
                 match self.mix_rx.recv() {

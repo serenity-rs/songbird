@@ -279,6 +279,19 @@ impl Call {
         }
     }
 
+    /// Returns `id` of the channel, if connected or connecting to any.
+    ///
+    /// This remains set after a connection failure, to allow for reconnection
+    /// as needed. This will change if moved into another voice channel by an
+    /// admin, and will be unset if kicked from a voice channel.
+    #[instrument(skip(self))]
+    pub fn current_channel(&self) -> Option<ChannelId> {
+        match &self.connection {
+            Some((progress, _)) => Some(progress.channel_id()),
+            _ => None,
+        }
+    }
+
     /// Leaves the current voice channel, disconnecting from it.
     ///
     /// This does _not_ forget settings, like whether to be self-deafened or
