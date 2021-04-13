@@ -11,7 +11,7 @@ use std::{
     result::Result as StdResult,
 };
 use streamcatcher::{Catcher, TxCatcher};
-use symphonia_core::io::MediaSource;
+pub use symphonia_core::io::MediaSource;
 
 /// Usable data/byte sources for an audio stream.
 ///
@@ -41,7 +41,7 @@ pub enum Reader {
     Restartable(Restartable),
     /// A basic user-provided source.
     ///
-    /// Seeking support depends on underlyuing `MediaSource` implementation.
+    /// Seeking support depends on underlying `MediaSource` implementation.
     Extension(Box<dyn MediaSource + Send>),
 }
 
@@ -76,7 +76,7 @@ impl Reader {
         use Reader::*;
         match self {
             Restartable(r) => r.prep_with_handle(handle),
-            _ => {}
+            _ => {},
         }
     }
 
@@ -85,7 +85,7 @@ impl Reader {
         use Reader::*;
         match self {
             Restartable(r) => r.make_playable(),
-            _ => {}
+            _ => {},
         }
     }
 }
