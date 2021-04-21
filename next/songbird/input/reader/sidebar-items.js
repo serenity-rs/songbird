@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Reader","Usable data/byte sources for an audio stream."]],"trait":[["ReadSeek","Fusion trait for custom input sources which allow seeking."]]});
+initSidebarItems({"enum":[["Reader","Usable data/byte sources for an audio stream."]],"trait":[["MediaSource","A `MediaSource` is a composite trait of `std::io::Read` and `std::io::Seek`. Despite requiring the `Seek` trait, seeking is an optional capability that can be queried at runtime."]]});
