@@ -5,8 +5,14 @@ use std::{
     fmt::{Debug, Error as FormatError, Formatter},
     fs::File,
     io::{
-        BufReader, Cursor, Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult,
-        Seek, SeekFrom,
+        BufReader,
+        Cursor,
+        Error as IoError,
+        ErrorKind as IoErrorKind,
+        Read,
+        Result as IoResult,
+        Seek,
+        SeekFrom,
     },
     result::Result as StdResult,
 };
@@ -114,7 +120,7 @@ impl Seek for Reader {
             Memory(a) => Seek::seek(a, pos),
             Compressed(a) => Seek::seek(a, pos),
             Restartable(a) => Seek::seek(a, pos),
-            Extension(a) => {
+            Extension(a) =>
                 if a.is_seekable() {
                     a.seek(pos)
                 } else {
@@ -122,8 +128,7 @@ impl Seek for Reader {
                         IoErrorKind::InvalidInput,
                         "Seeking not supported on Reader of this type.",
                     ))
-                }
-            },
+                },
         }
     }
 }
