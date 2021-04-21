@@ -21,11 +21,9 @@ pub use symphonia_core::io::MediaSource;
 
 /// Usable data/byte sources for an audio stream.
 ///
-/// Users may define their own data sources using [`Extension`]
-/// and [`ExtensionSeek`].
+/// Users may define their own data sources using [`Extension`].
 ///
 /// [`Extension`]: Reader::Extension
-/// [`ExtensionSeek`]: Reader::ExtensionSeek
 pub enum Reader {
     /// Piped output of another program (i.e., [`ffmpeg`]).
     ///
