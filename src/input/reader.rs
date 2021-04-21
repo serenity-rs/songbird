@@ -17,14 +17,13 @@ use std::{
     result::Result as StdResult,
 };
 use streamcatcher::{Catcher, TxCatcher};
+pub use symphonia_core::io::MediaSource;
 
 /// Usable data/byte sources for an audio stream.
 ///
-/// Users may define their own data sources using [`Extension`]
-/// and [`ExtensionSeek`].
+/// Users may define their own data sources using [`Extension`].
 ///
 /// [`Extension`]: Reader::Extension
-/// [`ExtensionSeek`]: Reader::ExtensionSeek
 pub enum Reader {
     /// Piped output of another program (i.e., [`ffmpeg`]).
     ///
@@ -44,38 +43,36 @@ pub enum Reader {
     ///
     /// Supports seeking.
     Restartable(Restartable),
-    /// A source contained in a local file.
-    ///
-    /// Supports seeking.
-    File(BufReader<File>),
-    /// A source contained as an array in memory.
-    ///
-    /// Supports seeking.
-    Vec(Cursor<Vec<u8>>),
     /// A basic user-provided source.
     ///
-    /// Does not support seeking.
-    Extension(Box<dyn Read + Send>),
-    /// A user-provided source which also implements [`Seek`].
-    ///
-    /// Supports seeking.
-    ///
-    /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
-    ExtensionSeek(Box<dyn ReadSeek + Send>),
+    /// Seeking support depends on underlying `MediaSource` implementation.
+    Extension(Box<dyn MediaSource + Send>),
 }
 
 impl Reader {
     /// Returns whether the given source implements [`Seek`].
+    ///
+    /// This might be an expensive operation and might involve blocking IO. In such cases, it is
+    /// advised to cache the return value when possible.
     ///
     /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
     pub fn is_seekable(&self) -> bool {
         use Reader::*;
         match self {
             Restartable(_) | Compressed(_) | Memory(_) => true,
-            Extension(_) => false,
-            ExtensionSeek(_) => true,
+            Extension(source) => source.is_seekable(),
             _ => false,
         }
+    }
+
+    /// A source contained in a local file.
+    pub fn from_file(file: File) -> Self {
+        Self::Extension(Box::new(file))
+    }
+
+    /// A source contained as an array in memory.
+    pub fn from_memory(buf: Vec<u8>) -> Self {
+        Self::Extension(Box::new(Cursor::new(buf)))
     }
 
     #[allow(clippy::single_match)]
@@ -105,10 +102,7 @@ impl Read for Reader {
             Memory(a) => Read::read(a, buffer),
             Compressed(a) => Read::read(a, buffer),
             Restartable(a) => Read::read(a, buffer),
-            File(a) => Read::read(a, buffer),
-            Vec(a) => Read::read(a, buffer),
             Extension(a) => a.read(buffer),
-            ExtensionSeek(a) => a.read(buffer),
         }
     }
 }
@@ -117,16 +111,22 @@ impl Seek for Reader {
     fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
         use Reader::*;
         match self {
-            Pipe(_) | Extension(_) => Err(IoError::new(
+            Pipe(_) => Err(IoError::new(
                 IoErrorKind::InvalidInput,
                 "Seeking not supported on Reader of this type.",
             )),
             Memory(a) => Seek::seek(a, pos),
             Compressed(a) => Seek::seek(a, pos),
-            File(a) => Seek::seek(a, pos),
             Restartable(a) => Seek::seek(a, pos),
-            Vec(a) => Seek::seek(a, pos),
-            ExtensionSeek(a) => a.seek(pos),
+            Extension(a) =>
+                if a.is_seekable() {
+                    a.seek(pos)
+                } else {
+                    Err(IoError::new(
+                        IoErrorKind::InvalidInput,
+                        "Seeking not supported on Reader of this type.",
+                    ))
+                },
         }
     }
 }
@@ -139,51 +139,14 @@ impl Debug for Reader {
             Memory(a) => format!("{:?}", a),
             Compressed(a) => format!("{:?}", a),
             Restartable(a) => format!("{:?}", a),
-            File(a) => format!("{:?}", a),
-            Vec(a) => format!("{:?}", a),
             Extension(_) => "Extension".to_string(),
-            ExtensionSeek(_) => "ExtensionSeek".to_string(),
         };
         f.debug_tuple("Reader").field(&field).finish()
     }
 }
 
 impl From<Vec<u8>> for Reader {
-    fn from(val: Vec<u8>) -> Reader {
-        Reader::Vec(Cursor::new(val))
-    }
-}
-
-/// Fusion trait for custom input sources which allow seeking.
-pub trait ReadSeek {
-    /// See [`Read::read`].
-    ///
-    /// [`Read::read`]: https://doc.rust-lang.org/nightly/std/io/trait.Read.html#tymethod.read
-    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize>;
-    /// See [`Seek::seek`].
-    ///
-    /// [`Seek::seek`]: https://doc.rust-lang.org/nightly/std/io/trait.Seek.html#tymethod.seek
-    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64>;
-}
-
-impl Read for dyn ReadSeek {
-    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
-        ReadSeek::read(self, buf)
-    }
-}
-
-impl Seek for dyn ReadSeek {
-    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
-        ReadSeek::seek(self, pos)
-    }
-}
-
-impl<R: Read + Seek> ReadSeek for R {
-    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
-        Read::read(self, buf)
-    }
-
-    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
-        Seek::seek(self, pos)
+    fn from(val: Vec<u8>) -> Self {
+        Self::from_memory(val)
     }
 }

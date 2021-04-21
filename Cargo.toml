@@ -17,6 +17,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
+symphonia-core = "0.2"
 
 [dependencies.async-trait]
 optional = true

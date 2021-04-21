@@ -1,6 +1,6 @@
 use super::{codec::OpusDecoderState, error::DcaError, Codec, Container, Input, Metadata, Reader};
 use serde::Deserialize;
-use std::{ffi::OsStr, io::BufReader, mem};
+use std::{ffi::OsStr, mem};
 #[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{fs::File as TokioFile, io::AsyncReadExt};
 #[cfg(feature = "tokio-02-marker")]
@@ -46,7 +46,7 @@ async fn _dca(path: &OsStr) -> Result<Input, DcaError> {
         .await
         .map_err(DcaError::IoError)?;
 
-    let reader = BufReader::new(json_reader.into_inner().into_std().await);
+    let reader = json_reader.into_inner().into_std().await;
 
     let metadata: Metadata = serde_json::from_slice::<DcaMetadata>(raw_json.as_slice())
         .map_err(DcaError::InvalidMetadata)?
@@ -56,7 +56,7 @@ async fn _dca(path: &OsStr) -> Result<Input, DcaError> {
 
     Ok(Input::new(
         stereo,
-        Reader::File(reader),
+        Reader::from_file(reader),
         Codec::Opus(OpusDecoderState::new().map_err(DcaError::Opus)?),
         Container::Dca {
             first_frame: (size as usize) + mem::size_of::<i32>() + header.len(),
