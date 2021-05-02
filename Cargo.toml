@@ -10,13 +10,14 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-version = "0.1.6"
+version = "0.1.5"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
+symphonia-core = "0.2"
 
 [dependencies.async-trait]
 optional = true
@@ -50,7 +51,7 @@ version = "4"
 [dependencies.discortp]
 features = ["discord-full"]
 optional = true
-version = "0.2"
+version = "0.3"
 
 [dependencies.flume]
 optional = true
@@ -63,28 +64,29 @@ version = "0.3"
 optional = true
 version = "0.11"
 
+[dependencies.pin-project]
+optional = true
+version = "1"
+
 [dependencies.rand]
 optional = true
 version = "0.8"
 
 [dependencies.serenity]
 optional = true
-version = "^0.10.2"
 default-features = false
 features = ["voice", "gateway"]
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
 
 [dependencies.serenity-voice-model]
 optional = true
-version = "0.1"
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
 
 [dependencies.spin_sleep]
 optional = true
 version = "1"
-
-# TEMPORARY: remove on next breaking.
-[dependencies.spinning_top]
-optional = true
-version = "=0.2.2"
 
 [dependencies.streamcatcher]
 optional = true
@@ -142,12 +144,13 @@ default = [
 gateway = [
     "gateway-core",
     "tokio/sync",
+    "tokio/time",
 ]
 gateway-core = [
     "dashmap",
     "flume",
     "parking_lot",
-    "spinning_top",
+    "pin-project",
 ]
 driver = [
     "async-tungstenite",
@@ -171,7 +174,6 @@ driver-core = [
     "rand",
     "serenity-voice-model",
     "spin_sleep",
-    "spinning_top",
     "streamcatcher",
     "typemap_rev",
     "url",
