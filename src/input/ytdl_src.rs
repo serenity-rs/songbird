@@ -32,7 +32,6 @@ const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
 /// Uses `youtube-dlc` if the `"youtube-dlc"` feature is enabled.
 ///
 /// [`Restartable::ytdl`]: crate::input::restartable::Restartable::ytdl
-
 pub async fn ytdl(uri: impl AsRef<str>) -> Result<Input> {
     _ytdl(uri.as_ref(), &[]).await
 }
