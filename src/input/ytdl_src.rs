@@ -32,8 +32,8 @@ const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
 /// Uses `youtube-dlc` if the `"youtube-dlc"` feature is enabled.
 ///
 /// [`Restartable::ytdl`]: crate::input::restartable::Restartable::ytdl
-pub async fn ytdl(uri: &str) -> Result<Input> {
-    _ytdl(uri, &[]).await
+pub async fn ytdl(uri: impl AsRef<str>) -> Result<Input> {
+    _ytdl(uri.as_ref(), &[]).await
 }
 
 pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
@@ -170,6 +170,6 @@ pub(crate) async fn _ytdl_metadata(uri: &str) -> Result<Metadata> {
 /// Uses `youtube-dlc` if the `"youtube-dlc"` feature is enabled.
 ///
 /// [`Restartable::ytdl_search`]: crate::input::restartable::Restartable::ytdl_search
-pub async fn ytdl_search(name: &str) -> Result<Input> {
-    ytdl(&format!("ytsearch1:{}", name)).await
+pub async fn ytdl_search(name: impl AsRef<str>) -> Result<Input> {
+    ytdl(&format!("ytsearch1:{}", name.as_ref())).await
 }
