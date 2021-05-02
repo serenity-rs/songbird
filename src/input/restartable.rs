@@ -132,8 +132,8 @@ impl Restartable {
     ///
     /// The cost of restarting and seeking will probably be *very* high:
     /// expect a pause if you seek backwards.
-    pub async fn ytdl_search(name: &str, lazy: bool) -> Result<Self> {
-        Self::ytdl(format!("ytsearch1:{}", name), lazy).await
+    pub async fn ytdl_search(name: impl AsRef<str>, lazy: bool) -> Result<Self> {
+        Self::ytdl(format!("ytsearch1:{}", name.as_ref()), lazy).await
     }
 
     pub(crate) fn prep_with_handle(&mut self, handle: Handle) {
@@ -381,7 +381,7 @@ impl Seek for Restartable {
 
                         self.position = offset;
                     },
-                    Live(input, rec) =>
+                    Live(input, rec) => {
                         if offset < self.position {
                             // regen at given start point
                             // We're going back in time.
@@ -405,7 +405,8 @@ impl Seek for Restartable {
                         } else {
                             // march on with live source.
                             self.position += input.consume(offset - self.position);
-                        },
+                        }
+                    },
                     Working(_, _, _, _) => {
                         return Err(IoError::new(
                             IoErrorKind::Interrupted,
