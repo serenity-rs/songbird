@@ -319,7 +319,7 @@ async fn init_cipher(client: &mut WsStream, mode: CryptoMode) -> Result<Cipher> 
                     return Err(Error::CryptoModeInvalid);
                 }
 
-                return Ok(Cipher::new_varkey(&desc.secret_key)?);
+                return Ok(Cipher::new_from_slice(&desc.secret_key)?);
             },
             other => {
                 debug!(
