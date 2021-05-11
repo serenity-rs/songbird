@@ -378,10 +378,7 @@ impl Songbird {
 
                 if let Some(call) = call {
                     let mut handler = call.lock().await;
-                    handler.update_state(
-                        v.0.session_id.clone(),
-                        v.0.channel_id.map(Into::into),
-                    );
+                    handler.update_state(v.0.session_id.clone(), v.0.channel_id.map(Into::into));
                 }
             },
             _ => {},
