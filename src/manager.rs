@@ -380,7 +380,7 @@ impl Songbird {
                     let mut handler = call.lock().await;
                     handler.update_state(
                         v.0.session_id.clone(),
-                        v.0.channel_id.clone().map(Into::into),
+                        v.0.channel_id.map(Into::into),
                     );
                 }
             },
@@ -422,7 +422,7 @@ impl VoiceGatewayManager for Songbird {
             let mut handler = call.lock().await;
             handler.update_state(
                 voice_state.session_id.clone(),
-                voice_state.channel_id.clone().map(Into::into),
+                voice_state.channel_id.map(Into::into),
             );
         }
     }
