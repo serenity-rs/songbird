@@ -103,12 +103,12 @@ default-features = false
 
 [dependencies.twilight-gateway]
 optional = true
-version = "0.3"
+version = "0.4"
 default-features = false
 
 [dependencies.twilight-model]
 optional = true
-version = "0.3"
+version = "0.4"
 default-features = false
 
 [dependencies.typemap_rev]
