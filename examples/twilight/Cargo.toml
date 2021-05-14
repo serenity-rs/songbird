@@ -10,10 +10,10 @@ tracing = "0.1"
 tracing-subscriber = "0.2"
 serde_json = { version = "1" }
 tokio = { features = ["macros", "rt-multi-thread", "sync"], version = "1" }
-twilight-gateway = "0.3"
-twilight-http = "0.3"
-twilight-model = "0.3"
-twilight-standby = "0.3"
+twilight-gateway = "0.4"
+twilight-http = "0.4"
+twilight-model = "0.4"
+twilight-standby = "0.4"
 
 [dependencies.songbird]
 path = "../.."
