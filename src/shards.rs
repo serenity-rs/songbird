@@ -10,7 +10,7 @@ use serde_json::Value;
 use serenity::gateway::InterMessage;
 #[cfg(feature = "serenity")]
 use std::{collections::HashMap, result::Result as StdResult, sync::Arc};
-use tracing::error;
+use tracing::{debug, error};
 #[cfg(feature = "twilight")]
 use twilight_gateway::{Cluster, Shard as TwilightShard};
 
@@ -134,25 +134,44 @@ pub struct SerenityShardHandle {
 #[cfg(feature = "serenity")]
 impl SerenityShardHandle {
     fn register(&self, sender: Sender<InterMessage>) {
+        debug!("Adding shard handle send channel...");
+
         let mut sender_lock = self.sender.write();
         *sender_lock = Some(sender);
+
+        debug!("Added shard handle send channel.");
 
         let sender_lock = RwLockWriteGuard::downgrade(sender_lock);
         let mut messages_lock = self.queue.lock();
 
+        debug!("Clearing queued messages...");
+
         if let Some(sender) = &*sender_lock {
+            let mut i = 0;
             for msg in messages_lock.drain(..) {
                 if let Err(e) = sender.unbounded_send(msg) {
                     error!("Error while clearing gateway message queue: {:?}", e);
                     break;
                 }
+
+                i += 1;
+            }
+
+            if i > 0 {
+                debug!("{} buffered messages sent to Serenity.", i);
             }
         }
+
+        debug!("Cleared queued messages.");
     }
 
     fn deregister(&self) {
+        debug!("Removing shard handle send channel...");
+
         let mut sender_lock = self.sender.write();
         *sender_lock = None;
+
+        debug!("Removed shard handle send channel.");
     }
 
     fn send(&self, message: InterMessage) -> StdResult<(), TrySendError<InterMessage>> {
@@ -160,8 +179,10 @@ impl SerenityShardHandle {
         if let Some(sender) = &*sender_lock {
             sender.unbounded_send(message)
         } else {
+            debug!("Serenity shard temporarily disconnected: buffering message...");
             let mut messages_lock = self.queue.lock();
             messages_lock.push(message);
+            debug!("Buffered message.");
             Ok(())
         }
     }
