@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0-beta.0 — 2021-05-11 — **Magpie**
+## 0.2.0-beta.1 — 2021-05-11 — **Magpie**
 
 *These notes will be adjusted between 0.2.0-beta.0 and the stable release.*
 
@@ -20,10 +20,12 @@ Thanks to the following for their contributions:
 
 ### Added
 
+- [gateway] Gateway: Add debug logging around shard handling ([@FelixMcFelix]) [c:b3caf05]
 - [gateway] Gateway: Add connection timeout, add `Config` to gateway. (#51) ([@FelixMcFelix]) [c:d303e0a]
 
 ### Changed
 
+- [deps] Deps: Bump twilight versions -> 0.4 ([@FelixMcFelix]) [c:fc94ddb]
 - [deps] Deps: Bump xsalsa20poly1305 version -> 0.7 ([@FelixMcFelix]) [c:eb22443]
 - [input] Input: Change all Youtube-dl functions to take `AsRef<str>` (#70) ([@clarity0]) [c:a1ba760]
 - [gateway] Chore: Adapt #60, #64 in line with other breaking changes. ([@FelixMcFelix]) [c:63d53b2]
@@ -286,6 +288,8 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:b3caf05]: https://github.com/serenity-rs/songbird/commit/b3caf05fd67d0b1e1a3c3275e7c14d853e81772e
+[c:fc94ddb]: https://github.com/serenity-rs/songbird/commit/fc94ddba9135ea1d3b50d929dd50ce09870b4cc1
 [c:d303e0a]: https://github.com/serenity-rs/songbird/commit/d303e0a3be9aa4f9ac782add06abb8cdc9c86fc3
 [c:eb22443]: https://github.com/serenity-rs/songbird/commit/eb2244327f1171dd6941f9ee977edae2ec3b2a5a
 [c:a1ba760]: https://github.com/serenity-rs/songbird/commit/a1ba760b6c773e37277da44e73e784dbb624003d
