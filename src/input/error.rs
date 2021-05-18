@@ -91,7 +91,7 @@ impl fmt::Display for Error {
 }
 
 impl StdError for Error {
-    fn cause(&self) -> Option<&dyn StdError> {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
             Error::Dca(e) => Some(e),
             Error::Io(e) => Some(e),
@@ -142,7 +142,7 @@ impl fmt::Display for DcaError {
 }
 
 impl StdError for DcaError {
-    fn cause(&self) -> Option<&dyn StdError> {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
             DcaError::IoError(e) => Some(e),
             DcaError::InvalidHeader => None,
