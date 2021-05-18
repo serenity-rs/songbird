@@ -69,6 +69,48 @@ impl From<OpusError> for Error {
     }
 }
 
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Dca(e) => write!(f, "{}", e),
+            Error::Io(e) => write!(f, "{}", e),
+            Error::Json {
+                error,
+                parsed_text: _,
+            } => write!(f, "{}", error),
+            Error::Opus(e) => write!(f, "{}", e),
+            Error::Metadata => write!(f, "Failed to extract metadata"),
+            Error::Stdout => write!(f, "Failed to create stdout"),
+            Error::Streams => write!(f, "Error while checking if path is stereo"),
+            Error::Streamcatcher(e) => write!(f, "{}", e),
+            Error::YouTubeDlProcessing(_) => write!(f, "Processing JSON from youtube-dl failed"),
+            Error::YouTubeDlRun(_) => write!(f, "youtube-dl encountered an error"),
+            Error::YouTubeDlUrl(_) => write!(f, "Missing url field in JSON"),
+        }
+    }
+}
+
+impl StdError for Error {
+    fn cause(&self) -> Option<&dyn StdError> {
+        match self {
+            Error::Dca(e) => Some(e),
+            Error::Io(e) => Some(e),
+            Error::Json {
+                error,
+                parsed_text: _,
+            } => Some(error),
+            Error::Opus(e) => Some(e),
+            Error::Metadata => None,
+            Error::Stdout => None,
+            Error::Streams => None,
+            Error::Streamcatcher(e) => Some(e),
+            Error::YouTubeDlProcessing(_) => None,
+            Error::YouTubeDlRun(_) => None,
+            Error::YouTubeDlUrl(_) => None,
+        }
+    }
+}
+
 /// An error returned from the [`dca`] method.
 ///
 /// [`dca`]: crate::input::dca
