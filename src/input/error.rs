@@ -1,8 +1,9 @@
 //! Errors caused by input creation.
 
 use audiopus::Error as OpusError;
+use core::fmt;
 use serde_json::{Error as JsonError, Value};
-use std::{io::Error as IoError, process::Output};
+use std::{error::Error as StdError, io::Error as IoError, process::Output};
 use streamcatcher::CatcherError;
 
 /// An error returned when creating a new [`Input`].
@@ -84,6 +85,30 @@ pub enum DcaError {
     InvalidSize(i32),
     /// An error was encountered while creating a new Opus decoder.
     Opus(OpusError),
+}
+
+impl fmt::Display for DcaError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DcaError::IoError(e) => write!(f, "{}", e),
+            DcaError::InvalidHeader => write!(f, "Invalid DCA JSON header"),
+            DcaError::InvalidMetadata(e) => write!(f, "{}", e),
+            DcaError::InvalidSize(e) => write!(f, "Invalid metadata block size: {}", e),
+            DcaError::Opus(e) => write!(f, "{}", e),
+        }
+    }
+}
+
+impl StdError for DcaError {
+    fn cause(&self) -> Option<&dyn StdError> {
+        match self {
+            DcaError::IoError(e) => Some(e),
+            DcaError::InvalidHeader => None,
+            DcaError::InvalidMetadata(e) => Some(e),
+            DcaError::InvalidSize(_) => None,
+            DcaError::Opus(e) => Some(e),
+        }
+    }
 }
 
 /// Convenience type for fallible return of [`Input`]s.
