@@ -16,7 +16,14 @@ Thanks to the following for their contributions:
 
 ### Upgrade Pathway
 * References to `songbird::{opus, Bitrate};` should now use `songbird::driver::{opus, Bitrate};`.
-* Custom `Inputs` (i.e., `Reader::Extension`)
+* Custom `Inputs` (i.e., `Reader::Extension`/`ExtensionSeek`) now need to implement `input::reader::MediaSource` rather than just `Read` and/or `Seek`.
+ * Sources which do not support seeking should have an `unreachable!()` function body or always return an error, as `MediaSource::is_seekable()` is used to gate support.
+* Many event handler types in `songbird::EventContext` have changed to unit `enum`s, rather than `struct` variants.
+ * New body types are included in `songbird::events::context_data::*`.
+* `Config` structs have been made non-exhaustive; they should be initialised via `Config::default()`.
+* Channel join operations may now timeout after a default 10s—which *should* be handled.
+* Errors returned when joining a channel will now inform you whether you should try to `leave` a channel before rejoining.
+* Youtube-dl variants of `songbird::input::error::Error` have had their case altered from `DL` -> `Dl`.
 
 ### Added
 
