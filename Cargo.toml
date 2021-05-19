@@ -51,7 +51,7 @@ version = "4"
 [dependencies.discortp]
 features = ["discord-full"]
 optional = true
-version = "0.3"
+version = "0.4"
 
 [dependencies.flume]
 optional = true
