@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0-beta.1 — 2021-05-11 — **Magpie**
+## 0.2.0-beta.2 — 2021-05-11 — **Magpie**
 
 *These notes will be adjusted between 0.2.0-beta.0 and the stable release.*
 
@@ -13,6 +13,7 @@ Thanks to the following for their contributions:
 - [@clarity0]
 - [@james7132]
 - [@FelixMcFelix]
+- [@vilgotf]
 
 ### Upgrade Pathway
 * References to `songbird::{opus, Bitrate};` should now use `songbird::driver::{opus, Bitrate};`.
@@ -27,11 +28,15 @@ Thanks to the following for their contributions:
 
 ### Added
 
+- [input] Input: Implement StdError for DcaError, input::Error (#73) ([@vilgotf]) [c:e1fc041]
 - [gateway] Gateway: Add debug logging around shard handling ([@FelixMcFelix]) [c:b3caf05]
 - [gateway] Gateway: Add connection timeout, add `Config` to gateway. (#51) ([@FelixMcFelix]) [c:d303e0a]
 
 ### Changed
 
+- [input] Input, Driver: Make error messages more idiomatic (#74) ([@vilgotf]) [c:a96f033]
+- [docs] Chore: Rewrite update pathway. ([@FelixMcFelix]) [c:8000da6]
+- [deps] Deps: Bump DiscoRTP version -> 0.4 ([@FelixMcFelix]) [c:7fc971a]
 - [deps] Deps: Bump twilight versions -> 0.4 ([@FelixMcFelix]) [c:fc94ddb]
 - [deps] Deps: Bump xsalsa20poly1305 version -> 0.7 ([@FelixMcFelix]) [c:eb22443]
 - [input] Input: Change all Youtube-dl functions to take `AsRef<str>` (#70) ([@clarity0]) [c:a1ba760]
@@ -292,9 +297,14 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@s0lst1ce]: https://github.com/s0lst1ce
 [@Sreyas-Sreelal]: https://github.com/Sreyas-Sreelal
 [@tarcieri]: https://github.com/tarcieri
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:e1fc041]: https://github.com/serenity-rs/songbird/commit/e1fc0415b87faca9a405dc4b61e8432733bfeab3
+[c:a96f033]: https://github.com/serenity-rs/songbird/commit/a96f03346d0b92cfee0344a934e13a41d83bc821
+[c:8000da6]: https://github.com/serenity-rs/songbird/commit/8000da6d9a9ed0fa1d09f313dfab14c6ce64aa34
+[c:7fc971a]: https://github.com/serenity-rs/songbird/commit/7fc971af24e166aa69ae5799988fc31062c5c8a2
 [c:b3caf05]: https://github.com/serenity-rs/songbird/commit/b3caf05fd67d0b1e1a3c3275e7c14d853e81772e
 [c:fc94ddb]: https://github.com/serenity-rs/songbird/commit/fc94ddba9135ea1d3b50d929dd50ce09870b4cc1
 [c:d303e0a]: https://github.com/serenity-rs/songbird/commit/d303e0a3be9aa4f9ac782add06abb8cdc9c86fc3
