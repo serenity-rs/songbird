@@ -78,24 +78,39 @@ impl JoinError {
 #[cfg(feature = "gateway-core")]
 impl fmt::Display for JoinError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Failed to Join Voice channel: ")?;
+        write!(f, "failed to join voice channel: ")?;
         match self {
-            JoinError::Dropped => write!(f, "request was cancelled/dropped."),
-            JoinError::NoSender => write!(f, "no gateway destination."),
-            JoinError::NoCall => write!(f, "tried to leave a non-existent call."),
-            JoinError::TimedOut => write!(f, "gateway response from Discord timed out."),
+            JoinError::Dropped => write!(f, "request was cancelled/dropped"),
+            JoinError::NoSender => write!(f, "no gateway destination"),
+            JoinError::NoCall => write!(f, "tried to leave a non-existent call"),
+            JoinError::TimedOut => write!(f, "gateway response from Discord timed out"),
             #[cfg(feature = "driver-core")]
-            JoinError::Driver(t) => write!(f, "internal driver error {}.", t),
+            JoinError::Driver(_) => write!(f, "establishing connection failed"),
             #[cfg(feature = "serenity")]
-            JoinError::Serenity(t) => write!(f, "serenity failure {}.", t),
+            JoinError::Serenity(e) => e.fmt(f),
             #[cfg(feature = "twilight")]
-            JoinError::Twilight(t) => write!(f, "twilight failure {}.", t),
+            JoinError::Twilight(e) => e.fmt(f),
         }
     }
 }
 
 #[cfg(feature = "gateway-core")]
-impl Error for JoinError {}
+impl Error for JoinError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            JoinError::Dropped => None,
+            JoinError::NoSender => None,
+            JoinError::NoCall => None,
+            JoinError::TimedOut => None,
+            #[cfg(feature = "driver-core")]
+            JoinError::Driver(e) => Some(e),
+            #[cfg(feature = "serenity")]
+            JoinError::Serenity(e) => e.source(),
+            #[cfg(feature = "twilight")]
+            JoinError::Twilight(e) => e.source(),
+        }
+    }
+}
 
 #[cfg(all(feature = "serenity", feature = "gateway-core"))]
 impl From<TrySendError<InterMessage>> for JoinError {

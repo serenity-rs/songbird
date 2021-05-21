@@ -21,12 +21,12 @@ pub enum TrackError {
 
 impl fmt::Display for TrackError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Failed to operate on track (handle): ")?;
+        write!(f, "failed to operate on track (handle): ")?;
         match self {
-            TrackError::Finished => write!(f, "track ended."),
+            TrackError::Finished => write!(f, "track ended"),
             TrackError::InvalidTrackEvent =>
-                write!(f, "given event listener can't be fired on a track."),
-            TrackError::SeekUnsupported => write!(f, "track did not support seeking."),
+                write!(f, "given event listener can't be fired on a track"),
+            TrackError::SeekUnsupported => write!(f, "track did not support seeking"),
         }
     }
 }

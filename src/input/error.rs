@@ -72,20 +72,20 @@ impl From<OpusError> for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::Dca(e) => write!(f, "{}", e),
-            Error::Io(e) => write!(f, "{}", e),
+            Error::Dca(_) => write!(f, "opening file DCA failed"),
+            Error::Io(e) => e.fmt(f),
             Error::Json {
-                error,
+                error: _,
                 parsed_text: _,
-            } => write!(f, "{}", error),
-            Error::Opus(e) => write!(f, "{}", e),
-            Error::Metadata => write!(f, "Failed to extract metadata"),
-            Error::Stdout => write!(f, "Failed to create stdout"),
-            Error::Streams => write!(f, "Error while checking if path is stereo"),
-            Error::Streamcatcher(e) => write!(f, "{}", e),
-            Error::YouTubeDlProcessing(_) => write!(f, "Processing JSON from youtube-dl failed"),
-            Error::YouTubeDlRun(_) => write!(f, "youtube-dl encountered an error"),
-            Error::YouTubeDlUrl(_) => write!(f, "Missing url field in JSON"),
+            } => write!(f, "parsing JSON failed"),
+            Error::Opus(e) => e.fmt(f),
+            Error::Metadata => write!(f, "extracting metadata failed"),
+            Error::Stdout => write!(f, "creating stdout failed"),
+            Error::Streams => write!(f, "checking if path is stereo failed"),
+            Error::Streamcatcher(_) => write!(f, "invalid config for cached input"),
+            Error::YouTubeDlProcessing(_) => write!(f, "youtube-dl returned invalid JSON"),
+            Error::YouTubeDlRun(o) => write!(f, "youtube-dl encontered an error: {:?}", o),
+            Error::YouTubeDlUrl(_) => write!(f, "missing youtube-dl url"),
         }
     }
 }
@@ -94,12 +94,12 @@ impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
             Error::Dca(e) => Some(e),
-            Error::Io(e) => Some(e),
+            Error::Io(e) => e.source(),
             Error::Json {
                 error,
                 parsed_text: _,
             } => Some(error),
-            Error::Opus(e) => Some(e),
+            Error::Opus(e) => e.source(),
             Error::Metadata => None,
             Error::Stdout => None,
             Error::Streams => None,
@@ -132,11 +132,11 @@ pub enum DcaError {
 impl fmt::Display for DcaError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DcaError::IoError(e) => write!(f, "{}", e),
-            DcaError::InvalidHeader => write!(f, "Invalid DCA JSON header"),
-            DcaError::InvalidMetadata(e) => write!(f, "{}", e),
-            DcaError::InvalidSize(e) => write!(f, "Invalid metadata block size: {}", e),
-            DcaError::Opus(e) => write!(f, "{}", e),
+            DcaError::IoError(e) => e.fmt(f),
+            DcaError::InvalidHeader => write!(f, "invalid header"),
+            DcaError::InvalidMetadata(_) => write!(f, "invalid metadata"),
+            DcaError::InvalidSize(e) => write!(f, "invalid metadata block size: {}", e),
+            DcaError::Opus(e) => e.fmt(f),
         }
     }
 }
@@ -144,11 +144,11 @@ impl fmt::Display for DcaError {
 impl StdError for DcaError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            DcaError::IoError(e) => Some(e),
+            DcaError::IoError(e) => e.source(),
             DcaError::InvalidHeader => None,
             DcaError::InvalidMetadata(e) => Some(e),
             DcaError::InvalidSize(_) => None,
-            DcaError::Opus(e) => Some(e),
+            DcaError::Opus(e) => e.source(),
         }
     }
 }
