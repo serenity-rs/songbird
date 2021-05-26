@@ -190,7 +190,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
             "Playing **{:?}** by **{:?}**",
             input
                 .metadata
-                .title
+                .track
                 .as_ref()
                 .unwrap_or(&"<UNKNOWN>".to_string()),
             input
