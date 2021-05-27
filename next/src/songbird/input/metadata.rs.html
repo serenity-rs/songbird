@@ -185,6 +185,18 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::constants</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">serde_json::Value</span>;
@@ -195,8 +207,8 @@
 <span class="doccomment">/// [`Input`]: crate::input::Input</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Metadata</span> {
-    <span class="doccomment">/// The title of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">title</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The track of this stream.</span>
+    <span class="kw">pub</span> <span class="ident">track</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The main artist of this stream.</span>
     <span class="kw">pub</span> <span class="ident">artist</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The date of creation of this stream.</span>
@@ -206,6 +218,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Any number `&gt;= 2` is treated as stereo.</span>
     <span class="kw">pub</span> <span class="ident">channels</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The YouTube channel of this stream.</span>
+    <span class="kw">pub</span> <span class="ident">channel</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The time at which the first true sample is played back.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This occurs as an artefact of coder delay.</span>
@@ -216,6 +230,8 @@
     <span class="kw">pub</span> <span class="ident">sample_rate</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The source url of this stream.</span>
     <span class="kw">pub</span> <span class="ident">source_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The YouTube title of this stream.</span>
+    <span class="kw">pub</span> <span class="ident">title</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The thumbnail url of this stream.</span>
     <span class="kw">pub</span> <span class="ident">thumbnail</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
@@ -240,7 +256,7 @@
 
         <span class="kw">let</span> <span class="ident">tags</span> <span class="op">=</span> <span class="ident">format</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;tags&quot;</span>));
 
-        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">tags</span>
+        <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="ident">tags</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>))
             .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
@@ -276,7 +292,7 @@
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u32</span>);
 
         <span class="self">Self</span> {
-            <span class="ident">title</span>,
+            <span class="ident">track</span>,
             <span class="ident">artist</span>,
             <span class="ident">date</span>,
 
@@ -297,12 +313,6 @@
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;track&quot;</span>))
             .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
-
-        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">obj</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>))
-                .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
-                .<span class="ident">map</span>(<span class="ident">str::to_string</span>)
-        });
 
         <span class="kw">let</span> <span class="ident">true_artist</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;artist&quot;</span>))
@@ -326,6 +336,11 @@
                 .<span class="ident">map</span>(<span class="ident">str::to_string</span>)
         });
 
+        <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">obj</span>
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;channel&quot;</span>))
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
+
         <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;duration&quot;</span>))
             .<span class="ident">and_then</span>(<span class="ident">Value::as_f64</span>)
@@ -336,20 +351,27 @@
             .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
+        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">obj</span>
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>))
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
+
         <span class="kw">let</span> <span class="ident">thumbnail</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;thumbnail&quot;</span>))
             .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="self">Self</span> {
-            <span class="ident">title</span>,
+            <span class="ident">track</span>,
             <span class="ident">artist</span>,
             <span class="ident">date</span>,
 
             <span class="ident">channels</span>: <span class="prelude-val">Some</span>(<span class="number">2</span>),
+            <span class="ident">channel</span>,
             <span class="ident">duration</span>,
             <span class="ident">sample_rate</span>: <span class="prelude-val">Some</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>),
             <span class="ident">source_url</span>,
+            <span class="ident">title</span>,
             <span class="ident">thumbnail</span>,
 
             ..<span class="ident">Default::default</span>()
@@ -359,15 +381,17 @@
     <span class="doccomment">/// Move all fields from a `Metadata` object into a new one.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">title</span>: <span class="self">self</span>.<span class="ident">title</span>.<span class="ident">take</span>(),
+            <span class="ident">track</span>: <span class="self">self</span>.<span class="ident">track</span>.<span class="ident">take</span>(),
             <span class="ident">artist</span>: <span class="self">self</span>.<span class="ident">artist</span>.<span class="ident">take</span>(),
             <span class="ident">date</span>: <span class="self">self</span>.<span class="ident">date</span>.<span class="ident">take</span>(),
 
             <span class="ident">channels</span>: <span class="self">self</span>.<span class="ident">channels</span>.<span class="ident">take</span>(),
+            <span class="ident">channel</span>: <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">take</span>(),
             <span class="ident">start_time</span>: <span class="self">self</span>.<span class="ident">start_time</span>.<span class="ident">take</span>(),
             <span class="ident">duration</span>: <span class="self">self</span>.<span class="ident">duration</span>.<span class="ident">take</span>(),
             <span class="ident">sample_rate</span>: <span class="self">self</span>.<span class="ident">sample_rate</span>.<span class="ident">take</span>(),
             <span class="ident">source_url</span>: <span class="self">self</span>.<span class="ident">source_url</span>.<span class="ident">take</span>(),
+            <span class="ident">title</span>: <span class="self">self</span>.<span class="ident">title</span>.<span class="ident">take</span>(),
             <span class="ident">thumbnail</span>: <span class="self">self</span>.<span class="ident">thumbnail</span>.<span class="ident">take</span>(),
         }
     }

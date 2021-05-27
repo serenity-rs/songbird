@@ -260,7 +260,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DcaMetadata</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Metadata</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw-2">mut</span> <span class="ident">d</span>: <span class="ident">DcaMetadata</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> (<span class="ident">title</span>, <span class="ident">artist</span>) <span class="op">=</span> <span class="ident">d</span>
+        <span class="kw">let</span> (<span class="ident">track</span>, <span class="ident">artist</span>) <span class="op">=</span> <span class="ident">d</span>
             .<span class="ident">info</span>
             .<span class="ident">take</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">m</span><span class="op">|</span> (<span class="ident">m</span>.<span class="ident">title</span>.<span class="ident">take</span>(), <span class="ident">m</span>.<span class="ident">artist</span>.<span class="ident">take</span>()))
@@ -270,7 +270,7 @@
         <span class="kw">let</span> <span class="ident">sample_rate</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">d</span>.<span class="ident">opus</span>.<span class="ident">sample_rate</span>);
 
         <span class="self">Self</span> {
-            <span class="ident">title</span>,
+            <span class="ident">track</span>,
             <span class="ident">artist</span>,
 
             <span class="ident">channels</span>,
