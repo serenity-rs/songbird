@@ -118,7 +118,7 @@ pub(crate) struct Origin {
 
 impl From<DcaMetadata> for Metadata {
     fn from(mut d: DcaMetadata) -> Self {
-        let (title, artist) = d
+        let (track, artist) = d
             .info
             .take()
             .map(|mut m| (m.title.take(), m.artist.take()))
@@ -128,7 +128,7 @@ impl From<DcaMetadata> for Metadata {
         let sample_rate = Some(d.opus.sample_rate);
 
         Self {
-            title,
+            track,
             artist,
 
             channels,
