@@ -223,6 +223,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.1.7]: https://github.com/serenity-rs/songbird/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/serenity-rs/songbird/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/serenity-rs/songbird/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/serenity-rs/songbird/compare/v0.1.3...v0.1.4
