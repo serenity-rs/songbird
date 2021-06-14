@@ -174,7 +174,7 @@ impl Call {
                 self.leave().await?;
                 true
             } else if conn.0.channel_id() == channel_id {
-                let _ = tx.send(completion_generator(&self));
+                let _ = tx.send(completion_generator(self));
                 false
             } else {
                 // not in progress, and/or a channel change.
