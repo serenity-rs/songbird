@@ -1,8 +1,3 @@
-// FIXME: this is copied from serenity/src/internal/ws_impl.rs
-// To prevent this duplication, we either need to expose this on serenity's API
-// (not desirable) or break the common WS elements into a subcrate.
-// I believe that decisions is outside of the scope of the voice subcrate PR.
-
 use crate::model::Event;
 
 use async_trait::async_trait;
@@ -101,7 +96,7 @@ impl ReceiverExt for WsStream {
     }
 
     async fn recv_json_no_timeout(&mut self) -> Result<Option<Event>> {
-        convert_ws_message(self.try_next().await.ok().flatten())
+        convert_ws_message(self.try_next().await?)
     }
 }
 
