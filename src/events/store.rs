@@ -210,7 +210,7 @@ impl GlobalEvents {
                     .expect("Missing handle index for Tick (local timed).");
 
                 event_store
-                    .process_timed(state.play_time, EventContext::Track(&[(&state, &handle)]))
+                    .process_timed(state.play_time, EventContext::Track(&[(state, handle)]))
                     .await;
             }
         }
@@ -238,7 +238,7 @@ impl GlobalEvents {
                     .process_untimed(
                         state.position,
                         untimed,
-                        EventContext::Track(&[(&state, &handle)]),
+                        EventContext::Track(&[(state, handle)]),
                     )
                     .await;
             }

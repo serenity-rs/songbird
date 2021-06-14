@@ -20,7 +20,7 @@ impl ConnectionProgress {
     pub(crate) fn get_connection_info(&self) -> Option<&ConnectionInfo> {
         use ConnectionProgress::*;
         match self {
-            Complete(c) => Some(&c),
+            Complete(c) => Some(c),
             _ => None,
         }
     }

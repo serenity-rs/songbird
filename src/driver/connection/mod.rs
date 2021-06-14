@@ -144,7 +144,7 @@ impl Connection {
             let address_str = std::str::from_utf8(&view.get_address_raw()[..nul_byte_index])
                 .map_err(|_| Error::IllegalIp)?;
 
-            let address = IpAddr::from_str(&address_str).map_err(|e| {
+            let address = IpAddr::from_str(address_str).map_err(|e| {
                 println!("{:?}", e);
                 Error::IllegalIp
             })?;

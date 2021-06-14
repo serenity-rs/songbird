@@ -66,7 +66,7 @@ impl Ord for EventData {
                 .as_ref()
                 .expect("T2 known to be well-defined by above.");
 
-            t1.cmp(&t2)
+            t1.cmp(t2)
         } else {
             Ordering::Equal
         }
