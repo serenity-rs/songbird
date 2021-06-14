@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.7] — 2021-06-14
+
+This release mainly patches an occasionally spinning task, due to a critical WebSocket read error.
+
+Thanks to the following for their code contributions:
+
+- [@FelixMcFelix]
+- [@vilgotf]
+
+And special thanks to [@jtscuba] and [@JellyWX] for their efforts in reproducing, debugging and diagnosing the above issue.
+
+### Changed
+
+- [tracks] Tracks: Simplify track end event handler (#77) ([@vilgotf]) [c:c97f23e]
+
+### Fixed
+
+- [driver] Driver: Fix for busy-wait in WS thread. (#78) ([@FelixMcFelix]) [c:b925309]
+
 ## [0.1.6] — 2021-04-11
 
 This patch release fixes a driver crash on leaving a channel, adds a utility method for requesting the current channel ID, and limits a sub-dependency to ensure compatibility with Rust v1.48.0.
@@ -226,6 +245,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@hiratara]: https://github.com/hiratara
 [@indiv0]: https://github.com/indiv0
 [@JellyWX]: https://github.com/JellyWX
+[@jtscuba]: https://github.com/jtscuba
 [@Lakelezz]: https://github.com/Lakelezz
 [@LikeLakers2]: https://github.com/LikeLakers2
 [@Maspenguin]: https://github.com/Maspenguin
@@ -241,9 +261,12 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@s0lst1ce]: https://github.com/s0lst1ce
 [@Sreyas-Sreelal]: https://github.com/Sreyas-Sreelal
 [@tarcieri]: https://github.com/tarcieri
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:c97f23e]: https://github.com/serenity-rs/songbird/commit/c97f23ee2707c8290cdc07a9553ea4a899336c37
+[c:b925309]: https://github.com/serenity-rs/songbird/commit/b9253097785a0b37fc104e879c05125fe6e88afb
 [c:22214a0]: https://github.com/serenity-rs/songbird/commit/22214a0f891946f42f7c23d7de3a1f380791e51d
 [c:a88b185]: https://github.com/serenity-rs/songbird/commit/a88b18567619e62c073560b5acd18aa4f1c30199
 [c:24d8da6]: https://github.com/serenity-rs/songbird/commit/24d8da69c0a38dc9ea9f679e1d40ffd3bc27f5b7
