@@ -484,7 +484,7 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;Missing handle index for Tick (local timed).&quot;</span>);
 
                 <span class="ident">event_store</span>
-                    .<span class="ident">process_timed</span>(<span class="ident">state</span>.<span class="ident">play_time</span>, <span class="ident">EventContext::Track</span>(<span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">state</span>, <span class="kw-2">&amp;</span><span class="ident">handle</span>)]))
+                    .<span class="ident">process_timed</span>(<span class="ident">state</span>.<span class="ident">play_time</span>, <span class="ident">EventContext::Track</span>(<span class="kw-2">&amp;</span>[(<span class="ident">state</span>, <span class="ident">handle</span>)]))
                     .<span class="kw">await</span>;
             }
         }
@@ -512,7 +512,7 @@
                     .<span class="ident">process_untimed</span>(
                         <span class="ident">state</span>.<span class="ident">position</span>,
                         <span class="ident">untimed</span>,
-                        <span class="ident">EventContext::Track</span>(<span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">state</span>, <span class="kw-2">&amp;</span><span class="ident">handle</span>)]),
+                        <span class="ident">EventContext::Track</span>(<span class="kw-2">&amp;</span>[(<span class="ident">state</span>, <span class="ident">handle</span>)]),
                     )
                     .<span class="kw">await</span>;
             }

@@ -620,7 +620,7 @@
                 <span class="self">self</span>.<span class="ident">leave</span>().<span class="kw">await</span><span class="question-mark">?</span>;
                 <span class="bool-val">true</span>
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">conn</span>.<span class="number">0</span>.<span class="ident">channel_id</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">channel_id</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">completion_generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>));
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">completion_generator</span>(<span class="self">self</span>));
                 <span class="bool-val">false</span>
             } <span class="kw">else</span> {
                 <span class="comment">// not in progress, and/or a channel change.</span>
