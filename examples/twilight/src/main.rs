@@ -57,14 +57,15 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
+    let token = env::var("DISCORD_TOKEN")?;
+
+    let http = HttpClient::new(&token);
+
+    let (cluster, mut events) =
+        Cluster::new(token, Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES).await?;
+
     let state = {
-        let token = env::var("DISCORD_TOKEN")?;
-
-        let http = HttpClient::new(&token);
         let user_id = http.current_user().await?.id;
-
-        let cluster =
-            Cluster::new(token, Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES).await?;
 
         let shard_count = cluster.shards().len();
         let songbird = Songbird::twilight(cluster.clone(), shard_count as u64, user_id);
@@ -79,8 +80,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
             standby: Standby::new(),
         }
     };
-
-    let mut events = state.cluster.events();
 
     while let Some(event) = events.next().await {
         state.standby.process(&event.1);
