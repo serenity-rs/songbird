@@ -105,21 +105,16 @@ impl EventHandler for QueueHandler {
         // Due to possibility that users might remove, reorder,
         // or dequeue+stop tracks, we need to verify that the FIRST
         // track is the one who has ended.
-        let front_ended = match ctx {
+        match ctx {
             EventContext::Track(ts) => {
                 // This slice should have exactly one entry.
                 // If the ended track has same id as the queue head, then
                 // we can progress the queue.
-                let queue_uuid = inner.tracks.front().map(|handle| handle.uuid());
-                let ended_uuid = ts.first().map(|handle| handle.1.uuid());
-
-                queue_uuid.is_some() && queue_uuid == ended_uuid
+                if inner.tracks.front()?.uuid() != ts.first()?.1.uuid() {
+                    return None;
+                }
             },
-            _ => false,
-        };
-
-        if !front_ended {
-            return None;
+            _ => return None,
         }
 
         let _old = inner.tracks.pop_front();
@@ -128,16 +123,13 @@ impl EventHandler for QueueHandler {
         info!("{} tracks remain.", inner.tracks.len());
 
         // Keep going until we find one track which works, or we run out.
-        let mut keep_looking = true;
-        while keep_looking && !inner.tracks.is_empty() {
-            if let Some(new) = inner.tracks.front() {
-                keep_looking = new.play().is_err();
-
+        while let Some(new) = inner.tracks.front() {
+            if new.play().is_err() {
                 // Discard files which cannot be used for whatever reason.
-                if keep_looking {
-                    warn!("Track in Queue couldn't be played...");
-                    let _ = inner.tracks.pop_front();
-                }
+                warn!("Track in Queue couldn't be played...");
+                inner.tracks.pop_front();
+            } else {
+                break;
             }
         }
 
