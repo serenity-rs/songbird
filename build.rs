@@ -14,13 +14,13 @@ compile_error!(
 
 #[cfg(all(
     feature = "twilight",
-    not(any(feature = "simd-zlib", feature = "stock-zlib"))
+    not(any(feature = "zlib-simd", feature = "zlib-stock"))
 ))]
 compile_error!(
     "Twilight requires you to specify a zlib backend: \
-    either the `simd-zlib` or `stock-zlib` feature must be
+    either the `zlib-simd` or `zlib-stock` feature must be
     selected.\n\
-    If you are unsure, go with `stock-zlib`."
+    If you are unsure, go with `zlib-stock`."
 );
 
 fn main() {}

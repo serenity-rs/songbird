@@ -103,12 +103,12 @@ default-features = false
 
 [dependencies.twilight-gateway]
 optional = true
-version = "0.4"
+version = "0.5"
 default-features = false
 
 [dependencies.twilight-model]
 optional = true
-version = "0.4"
+version = "0.5"
 default-features = false
 
 [dependencies.typemap_rev]
@@ -186,8 +186,8 @@ serenity-native = ["serenity/native_tls_backend", "native", "gateway", "serenity
 twilight-rustls = ["twilight", "twilight-gateway/rustls", "rustls", "gateway"]
 twilight-native = ["twilight", "twilight-gateway/native", "native", "gateway"]
 twilight = ["twilight-model"]
-simd-zlib = ["twilight-gateway/simd-zlib"]
-stock-zlib = ["twilight-gateway/stock-zlib"]
+zlib-simd = ["twilight-gateway/zlib-simd"]
+zlib-stock = ["twilight-gateway/zlib-stock"]
 serenity-deps = ["async-trait"]
 
 rustls-marker = []
@@ -224,7 +224,7 @@ youtube-dlc = []
 builtin-queue = []
 
 # Used for docgen/testing/benchmarking.
-full-doc = ["default", "twilight-rustls", "builtin-queue", "stock-zlib"]
+full-doc = ["default", "twilight-rustls", "builtin-queue", "zlib-stock"]
 internals = []
 
 [[bench]]
