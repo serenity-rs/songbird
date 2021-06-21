@@ -14,6 +14,7 @@ pub mod bench_internals;
 pub(crate) mod connection;
 mod crypto;
 mod decode_mode;
+pub mod retry;
 pub(crate) mod tasks;
 
 use connection::error::{Error, Result};
