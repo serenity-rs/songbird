@@ -121,6 +121,12 @@ impl Config {
         self
     }
 
+    /// Sets this `Config`'s voice connection retry configuration.
+    pub fn driver_retry(mut self, driver_retry: Retry) -> Self {
+        self.driver_retry = driver_retry;
+        self
+    }
+
     /// This is used to prevent changes which would invalidate the current session.
     pub(crate) fn make_safe(&mut self, previous: &Config, connected: bool) {
         if connected {
