@@ -26,7 +26,7 @@ use message::*;
 #[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{runtime::Handle, spawn, time::sleep as tsleep};
 #[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{runtime::Handle, spawn, time::delay as tsleep};
+use tokio_compat::{runtime::Handle, spawn, time::delay_for as tsleep};
 use tracing::{instrument, trace};
 
 pub(crate) fn start(config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMessage>) {
@@ -111,6 +111,27 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                         }),
                     ));
                 }
+            },
+            Ok(CoreMessage::SignalWsClosure(ws_idx, ws_info, mut reason)) => {
+                // if idx is not a match, quash reason
+                // (i.e., prevent users from mistakenly trying to reconnect for an *old* dead conn).
+                // if it *is* a match, the conn needs to die!
+                // (as the WS channel has truly given up the ghost).
+                if ws_idx != attempt_idx {
+                    reason = None;
+                } else {
+                    connection = None;
+                    let _ = interconnect.mixer.send(MixerMessage::DropConn);
+                    let _ = interconnect.mixer.send(MixerMessage::RebuildEncoder);
+                }
+
+                let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                    CoreContext::DriverDisconnect(InternalDisconnect {
+                        kind: DisconnectKind::Runtime,
+                        reason,
+                        info: ws_info,
+                    }),
+                ));
             },
             Ok(CoreMessage::SetTrack(s)) => {
                 let _ = interconnect.mixer.send(MixerMessage::SetTrack(s));
@@ -237,7 +258,7 @@ impl ConnectionRetryData {
         interconnect: &Interconnect,
         config: &Config,
     ) -> Option<Connection> {
-        match Connection::new(self.info.clone(), interconnect, config).await {
+        match Connection::new(self.info.clone(), interconnect, config, self.idx).await {
             Ok(connection) => {
                 match self.flavour {
                     ConnectionFlavour::Connect(tx) => {

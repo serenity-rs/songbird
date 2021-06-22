@@ -100,14 +100,20 @@ impl From<&ConnectionError> for DisconnectReason {
             | Json(_) => Self::ProtocolViolation,
             Io(_) => Self::Io,
             Crypto(_) | InterconnectFailure(_) => Self::Internal,
-            Ws(ws) => Self::WsClosed(match ws {
-                WsError::WsClosed(Some(frame)) => match frame.code {
-                    CloseCode::Library(l) => VoiceCloseCode::from_u16(l),
-                    _ => None,
-                },
-                _ => None,
-            }),
+            Ws(ws) => ws.into(),
             TimedOut => Self::TimedOut,
         }
+    }
+}
+
+impl From<&WsError> for DisconnectReason {
+    fn from(e: &WsError) -> Self {
+        Self::WsClosed(match e {
+            WsError::WsClosed(Some(frame)) => match frame.code {
+                CloseCode::Library(l) => VoiceCloseCode::from_u16(l),
+                _ => None,
+            },
+            _ => None,
+        })
     }
 }

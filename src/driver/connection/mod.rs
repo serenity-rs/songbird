@@ -45,11 +45,12 @@ impl Connection {
         info: ConnectionInfo,
         interconnect: &Interconnect,
         config: &Config,
+        idx: usize,
     ) -> Result<Connection> {
         if let Some(t) = config.driver_timeout {
-            timeout(t, Connection::new_inner(info, interconnect, config)).await?
+            timeout(t, Connection::new_inner(info, interconnect, config, idx)).await?
         } else {
-            Connection::new_inner(info, interconnect, config).await
+            Connection::new_inner(info, interconnect, config, idx).await
         }
     }
 
@@ -57,6 +58,7 @@ impl Connection {
         mut info: ConnectionInfo,
         interconnect: &Interconnect,
         config: &Config,
+        idx: usize,
     ) -> Result<Connection> {
         let url = generate_url(&mut info.endpoint)?;
 
@@ -219,6 +221,8 @@ impl Connection {
             client,
             ssrc,
             hello.heartbeat_interval,
+            idx,
+            info.clone(),
         ));
 
         spawn(udp_rx::runner(

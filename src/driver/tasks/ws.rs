@@ -9,6 +9,7 @@ use crate::{
         SpeakingState,
     },
     ws::{Error as WsError, ReceiverExt, SenderExt, WsStream},
+    ConnectionInfo,
 };
 #[cfg(not(feature = "tokio-02-marker"))]
 use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
@@ -39,6 +40,9 @@ struct AuxNetwork {
 
     speaking: SpeakingState,
     last_heartbeat_nonce: Option<u64>,
+
+    attempt_idx: usize,
+    info: ConnectionInfo,
 }
 
 impl AuxNetwork {
@@ -47,6 +51,8 @@ impl AuxNetwork {
         ws_client: WsStream,
         ssrc: u32,
         heartbeat_interval: f64,
+        attempt_idx: usize,
+        info: ConnectionInfo,
     ) -> Self {
         Self {
             rx: evt_rx,
@@ -58,6 +64,9 @@ impl AuxNetwork {
 
             speaking: SpeakingState::empty(),
             last_heartbeat_nonce: None,
+
+            attempt_idx,
+            info,
         }
     }
 
@@ -68,6 +77,7 @@ impl AuxNetwork {
         loop {
             let mut ws_error = false;
             let mut should_reconnect = false;
+            let mut ws_reason = None;
 
             let hb = sleep_until(next_heartbeat);
 
@@ -75,7 +85,8 @@ impl AuxNetwork {
                 _ = hb => {
                     ws_error = match self.send_heartbeat().await {
                         Err(e) => {
-                            should_reconnect = ws_error_is_not_final(e);
+                            should_reconnect = ws_error_is_not_final(&e);
+                            ws_reason = Some((&e).into());
                             true
                         },
                         _ => false,
@@ -89,7 +100,8 @@ impl AuxNetwork {
                             false
                         },
                         Err(e) => {
-                            should_reconnect = ws_error_is_not_final(e);
+                            should_reconnect = ws_error_is_not_final(&e);
+                            ws_reason = Some((&e).into());
                             true
                         },
                         Ok(Some(msg)) => {
@@ -129,7 +141,8 @@ impl AuxNetwork {
 
                                 ws_error |= match ssu_status {
                                     Err(e) => {
-                                        should_reconnect = ws_error_is_not_final(e);
+                                        should_reconnect = ws_error_is_not_final(&e);
+                                        ws_reason = Some((&e).into());
                                         true
                                     },
                                     _ => false,
@@ -149,6 +162,11 @@ impl AuxNetwork {
                 if should_reconnect {
                     let _ = interconnect.core.send(CoreMessage::Reconnect);
                 } else {
+                    let _ = interconnect.core.send(CoreMessage::SignalWsClosure(
+                        self.attempt_idx,
+                        self.info.clone(),
+                        ws_reason,
+                    ));
                     break;
                 }
             }
@@ -217,15 +235,24 @@ pub(crate) async fn runner(
     ws_client: WsStream,
     ssrc: u32,
     heartbeat_interval: f64,
+    attempt_idx: usize,
+    info: ConnectionInfo,
 ) {
     trace!("WS thread started.");
-    let mut aux = AuxNetwork::new(evt_rx, ws_client, ssrc, heartbeat_interval);
+    let mut aux = AuxNetwork::new(
+        evt_rx,
+        ws_client,
+        ssrc,
+        heartbeat_interval,
+        attempt_idx,
+        info,
+    );
 
     aux.run(&mut interconnect).await;
     trace!("WS thread finished.");
 }
 
-fn ws_error_is_not_final(err: WsError) -> bool {
+fn ws_error_is_not_final(err: &WsError) -> bool {
     match err {
         WsError::WsClosed(Some(frame)) => match frame.code {
             CloseCode::Library(l) =>
