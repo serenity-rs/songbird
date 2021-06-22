@@ -7,6 +7,10 @@ use crate::{
 use flume::SendError;
 use serde_json::Error as JsonError;
 use std::{error::Error as StdError, fmt, io::Error as IoError};
+#[cfg(not(feature = "tokio-02-marker"))]
+use tokio::time::error::Elapsed;
+#[cfg(feature = "tokio-02-marker")]
+use tokio_compat::time::Elapsed;
 use xsalsa20poly1305::aead::Error as CryptoError;
 
 /// Errors encountered while connecting to a Discord voice server over the driver.
@@ -38,6 +42,8 @@ pub enum Error {
     InterconnectFailure(Recipient),
     /// Error communicating with gateway server over WebSocket.
     Ws(WsError),
+    /// Connection attempt timed out.
+    TimedOut,
 }
 
 impl From<CryptoError> for Error {
@@ -82,6 +88,12 @@ impl From<WsError> for Error {
     }
 }
 
+impl From<Elapsed> for Error {
+    fn from(_e: Elapsed) -> Error {
+        Error::TimedOut
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "failed to connect to Discord RTP server: ")?;
@@ -99,6 +111,7 @@ impl fmt::Display for Error {
             Json(e) => e.fmt(f),
             InterconnectFailure(e) => write!(f, "failed to contact other task ({:?})", e),
             Ws(e) => write!(f, "websocket issue ({:?}).", e),
+            TimedOut => write!(f, "connection attempt timed out"),
         }
     }
 }
@@ -118,6 +131,7 @@ impl StdError for Error {
             Error::Json(e) => e.source(),
             Error::InterconnectFailure(_) => None,
             Error::Ws(_) => None,
+            Error::TimedOut => None,
         }
     }
 }

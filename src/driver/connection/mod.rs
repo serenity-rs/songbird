@@ -21,9 +21,9 @@ use error::{Error, Result};
 use flume::Sender;
 use std::{net::IpAddr, str::FromStr, sync::Arc};
 #[cfg(not(feature = "tokio-02-marker"))]
-use tokio::{net::UdpSocket, spawn};
+use tokio::{net::UdpSocket, spawn, time::timeout};
 #[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{net::UdpSocket, spawn};
+use tokio_compat::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
 use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher};
@@ -42,6 +42,18 @@ pub(crate) struct Connection {
 
 impl Connection {
     pub(crate) async fn new(
+        info: ConnectionInfo,
+        interconnect: &Interconnect,
+        config: &Config,
+    ) -> Result<Connection> {
+        if let Some(t) = config.driver_timeout {
+            timeout(t, Connection::new_inner(info, interconnect, config)).await?
+        } else {
+            Connection::new_inner(info, interconnect, config).await
+        }
+    }
+
+    pub(crate) async fn new_inner(
         mut info: ConnectionInfo,
         interconnect: &Interconnect,
         config: &Config,
@@ -226,7 +238,16 @@ impl Connection {
     }
 
     #[instrument(skip(self))]
-    pub async fn reconnect(&mut self) -> Result<()> {
+    pub async fn reconnect(&mut self, config: &Config) -> Result<()> {
+        if let Some(t) = config.driver_timeout {
+            timeout(t, self.reconnect_inner()).await?
+        } else {
+            self.reconnect_inner().await
+        }
+    }
+
+    #[instrument(skip(self))]
+    pub async fn reconnect_inner(&mut self) -> Result<()> {
         let url = generate_url(&mut self.info.endpoint)?;
 
         // Thread may have died, we want to send to prompt a clean exit

@@ -138,7 +138,7 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     // if still issue, full connect.
                     let info = conn.info.clone();
 
-                    let full_connect = match conn.reconnect().await {
+                    let full_connect = match conn.reconnect(&config).await {
                         Ok(()) => {
                             connection = Some(conn);
                             false
@@ -146,7 +146,7 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                         Err(ConnectionError::InterconnectFailure(_)) => {
                             interconnect.restart_volatile_internals();
 
-                            match conn.reconnect().await {
+                            match conn.reconnect(&config).await {
                                 Ok(()) => {
                                     connection = Some(conn);
                                     false
