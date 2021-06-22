@@ -4,6 +4,8 @@ mod strategy;
 
 pub use self::strategy::*;
 
+use std::time::Duration;
+
 /// Configuration to be used for retrying driver connection attempts.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Retry {
@@ -28,6 +30,20 @@ impl Default for Retry {
         Self {
             strategy: Strategy::Backoff(Default::default()),
             retry_limit: Some(5),
+        }
+    }
+}
+
+impl Retry {
+    pub(crate) fn retry_in(
+        &self,
+        last_wait: Option<Duration>,
+        attempts: usize,
+    ) -> Option<Duration> {
+        if self.retry_limit.map(|a| attempts < a).unwrap_or(true) {
+            Some(self.strategy.retry_in(last_wait))
+        } else {
+            None
         }
     }
 }

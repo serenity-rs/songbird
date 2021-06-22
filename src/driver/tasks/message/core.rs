@@ -12,6 +12,7 @@ use flume::Sender;
 #[derive(Debug)]
 pub enum CoreMessage {
     ConnectWithResult(ConnectionInfo, Sender<Result<(), Error>>),
+    RetryConnect(usize),
     Disconnect,
     SetTrack(Option<Track>),
     AddTrack(Track),

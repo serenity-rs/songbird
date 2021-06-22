@@ -1,7 +1,18 @@
+use crate::id::*;
+
 /// Voice connection details gathered at setup/reinstantiation.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub struct ConnectData<'a> {
+    /// ID of the voice channel being joined, if it is known.
+    ///
+    /// If this is available, then this can be used to reconnect/renew
+    /// a voice session via thew gateway.
+    pub channel_id: Option<ChannelId>,
+    /// ID of the target voice channel's parent guild.
+    pub guild_id: GuildId,
+    /// Unique string describing this session for validation/authentication purposes.
+    pub session_id: &'a str,
     /// The domain name of Discord's voice/TURN server.
     ///
     /// With the introduction of Discord's automatic voice server selection,

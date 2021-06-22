@@ -1,9 +1,10 @@
 use super::context_data::*;
+use crate::ConnectionInfo;
 use discortp::{rtcp::Rtcp, rtp::Rtp};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct InternalConnect {
-    pub server: String,
+    pub info: ConnectionInfo,
     pub ssrc: u32,
 }
 
@@ -31,7 +32,10 @@ pub struct InternalRtcpPacket {
 impl<'a> From<&'a InternalConnect> for ConnectData<'a> {
     fn from(val: &'a InternalConnect) -> Self {
         Self {
-            server: &val.server,
+            channel_id: val.info.channel_id,
+            guild_id: val.info.guild_id,
+            session_id: &val.info.session_id,
+            server: &val.info.endpoint,
             ssrc: val.ssrc,
         }
     }

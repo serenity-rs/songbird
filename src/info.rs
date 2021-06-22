@@ -104,7 +104,7 @@ impl ConnectionProgress {
 
 /// Parameters and information needed to start communicating with Discord's voice servers, either
 /// with the Songbird driver, lavalink, or other system.
-#[derive(Clone)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 pub struct ConnectionInfo {
     /// ID of the voice channel being joined, if it is known.
     ///
