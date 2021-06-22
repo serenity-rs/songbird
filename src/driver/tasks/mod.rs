@@ -13,7 +13,11 @@ use std::time::Duration;
 
 use super::connection::{error::Error as ConnectionError, Connection};
 use crate::{
-    events::{internal_data::InternalConnect, CoreContext},
+    events::{
+        context_data::{DisconnectKind, DisconnectReason},
+        internal_data::{InternalConnect, InternalDisconnect},
+        CoreContext,
+    },
     Config,
     ConnectionInfo,
 };
@@ -94,9 +98,19 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     }
                 },
             Ok(CoreMessage::Disconnect) => {
-                connection = None;
+                let last_conn = connection.take();
                 let _ = interconnect.mixer.send(MixerMessage::DropConn);
                 let _ = interconnect.mixer.send(MixerMessage::RebuildEncoder);
+
+                if let Some(conn) = last_conn {
+                    let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                        CoreContext::DriverDisconnect(InternalDisconnect {
+                            kind: DisconnectKind::Runtime,
+                            reason: None,
+                            info: conn.info.clone(),
+                        }),
+                    ));
+                }
             },
             Ok(CoreMessage::SetTrack(s)) => {
                 let _ = interconnect.mixer.send(MixerMessage::SetTrack(s));
@@ -192,7 +206,11 @@ struct ConnectionRetryData {
 }
 
 impl ConnectionRetryData {
-    fn connect(tx: Sender<Result<(), ConnectionError>>, info: ConnectionInfo, idx_src: &mut usize) -> Self {
+    fn connect(
+        tx: Sender<Result<(), ConnectionError>>,
+        info: ConnectionInfo,
+        idx_src: &mut usize,
+    ) -> Self {
         Self::base(ConnectionFlavour::Connect(tx), info, idx_src)
     }
 
@@ -258,6 +276,8 @@ impl ConnectionRetryData {
                     self.last_wait = Some(t);
                     *attempt_slot = Some(self);
                 } else {
+                    let reason = Some(DisconnectReason::from(&why));
+
                     match self.flavour {
                         ConnectionFlavour::Connect(tx) => {
                             // See above.
@@ -266,10 +286,26 @@ impl ConnectionRetryData {
                             let _ = interconnect.events.send(EventMessage::FireCoreEvent(
                                 CoreContext::DriverConnectFailed,
                             ));
+
+                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                                CoreContext::DriverDisconnect(InternalDisconnect {
+                                    kind: DisconnectKind::Connect,
+                                    reason,
+                                    info: self.info,
+                                }),
+                            ));
                         },
                         ConnectionFlavour::Reconnect => {
                             let _ = interconnect.events.send(EventMessage::FireCoreEvent(
                                 CoreContext::DriverReconnectFailed,
+                            ));
+
+                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                                CoreContext::DriverDisconnect(InternalDisconnect {
+                                    kind: DisconnectKind::Reconnect,
+                                    reason,
+                                    info: self.info,
+                                }),
                             ));
                         },
                     }

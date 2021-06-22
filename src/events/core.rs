@@ -33,12 +33,22 @@ pub enum CoreEvent {
     DriverConnect,
     /// Fires when this driver successfully reconnects after a network error.
     DriverReconnect,
+    #[deprecated(
+        since = "0.2.0",
+        note = "Please use the DriverDisconnect event instead."
+    )]
     /// Fires when this driver fails to connect to a voice channel.
     DriverConnectFailed,
+    #[deprecated(
+        since = "0.2.0",
+        note = "Please use the DriverDisconnect event instead."
+    )]
     /// Fires when this driver fails to reconnect to a voice channel after a network error.
     ///
     /// Users will need to manually reconnect on receipt of this error.
     DriverReconnectFailed,
+    /// Fires when this driver fails to connect to, or drops from, a voice channel.
+    DriverDisconnect,
     /// Fires whenever the driver is assigned a new [RTP SSRC] by the voice server.
     ///
     /// This typically fires alongside a [DriverConnect], or a full [DriverReconnect].

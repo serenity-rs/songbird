@@ -17,7 +17,7 @@ use internal_data::*;
 ///
 /// [`Track`]: crate::tracks::Track
 /// [`Driver::add_global_event`]: crate::driver::Driver::add_global_event
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum EventContext<'a> {
     /// Track event context, passed to events created via [`TrackHandle::add_event`],
@@ -47,12 +47,32 @@ pub enum EventContext<'a> {
     DriverConnect(ConnectData<'a>),
     /// Fires when this driver successfully reconnects after a network error.
     DriverReconnect(ConnectData<'a>),
+    #[deprecated(
+        since = "0.2.0",
+        note = "Please use the DriverDisconnect event instead."
+    )]
     /// Fires when this driver fails to connect to a voice channel.
+    ///
+    /// Users will need to manually reconnect on receipt of this error.
+    /// **This event is deprecated in favour of [`DriverDisconnect`].**
+    ///
+    /// [`DriverDisconnect`]: Self::DriverDisconnect
+    // TODO: remove in 0.3.x
     DriverConnectFailed,
+    #[deprecated(
+        since = "0.2.0",
+        note = "Please use the DriverDisconnect event instead."
+    )]
     /// Fires when this driver fails to reconnect to a voice channel after a network error.
     ///
     /// Users will need to manually reconnect on receipt of this error.
+    /// **This event is deprecated in favour of [`DriverDisconnect`].**
+    ///
+    /// [`DriverDisconnect`]: Self::DriverDisconnect
+    // TODO: remove in 0.3.x
     DriverReconnectFailed,
+    /// Fires when this driver fails to connect to, or drops from, a voice channel.
+    DriverDisconnect(DisconnectData<'a>),
     #[deprecated(
         since = "0.2.0",
         note = "Please use the DriverConnect/Reconnect events instead."
@@ -69,7 +89,7 @@ pub enum EventContext<'a> {
     SsrcKnown(u32),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum CoreContext {
     SpeakingStateUpdate(Speaking),
     SpeakingUpdate(InternalSpeakingUpdate),
@@ -79,6 +99,7 @@ pub enum CoreContext {
     ClientDisconnect(ClientDisconnect),
     DriverConnect(InternalConnect),
     DriverReconnect(InternalConnect),
+    DriverDisconnect(InternalDisconnect),
     DriverConnectFailed,
     DriverReconnectFailed,
     SsrcKnown(u32),
@@ -97,7 +118,10 @@ impl<'a> CoreContext {
             ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),
             DriverConnect(evt) => EventContext::DriverConnect(ConnectData::from(evt)),
             DriverReconnect(evt) => EventContext::DriverReconnect(ConnectData::from(evt)),
+            DriverDisconnect(evt) => EventContext::DriverDisconnect(DisconnectData::from(evt)),
+            #[allow(deprecated)]
             DriverConnectFailed => EventContext::DriverConnectFailed,
+            #[allow(deprecated)]
             DriverReconnectFailed => EventContext::DriverReconnectFailed,
             #[allow(deprecated)]
             SsrcKnown(s) => EventContext::SsrcKnown(*s),
@@ -112,15 +136,18 @@ impl EventContext<'_> {
         use EventContext::*;
 
         match self {
-            SpeakingStateUpdate { .. } => Some(CoreEvent::SpeakingStateUpdate),
-            SpeakingUpdate { .. } => Some(CoreEvent::SpeakingUpdate),
-            VoicePacket { .. } => Some(CoreEvent::VoicePacket),
-            RtcpPacket { .. } => Some(CoreEvent::RtcpPacket),
-            ClientConnect { .. } => Some(CoreEvent::ClientConnect),
-            ClientDisconnect { .. } => Some(CoreEvent::ClientDisconnect),
+            SpeakingStateUpdate(_) => Some(CoreEvent::SpeakingStateUpdate),
+            SpeakingUpdate(_) => Some(CoreEvent::SpeakingUpdate),
+            VoicePacket(_) => Some(CoreEvent::VoicePacket),
+            RtcpPacket(_) => Some(CoreEvent::RtcpPacket),
+            ClientConnect(_) => Some(CoreEvent::ClientConnect),
+            ClientDisconnect(_) => Some(CoreEvent::ClientDisconnect),
             DriverConnect(_) => Some(CoreEvent::DriverConnect),
             DriverReconnect(_) => Some(CoreEvent::DriverReconnect),
+            DriverDisconnect(_) => Some(CoreEvent::DriverDisconnect),
+            #[allow(deprecated)]
             DriverConnectFailed => Some(CoreEvent::DriverConnectFailed),
+            #[allow(deprecated)]
             DriverReconnectFailed => Some(CoreEvent::DriverReconnectFailed),
             #[allow(deprecated)]
             SsrcKnown(_) => Some(CoreEvent::SsrcKnown),
