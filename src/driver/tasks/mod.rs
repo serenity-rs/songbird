@@ -27,7 +27,7 @@ use message::*;
 use tokio::{runtime::Handle, spawn, time::sleep as tsleep};
 #[cfg(feature = "tokio-02-marker")]
 use tokio_compat::{runtime::Handle, spawn, time::delay_for as tsleep};
-use tracing::{instrument, trace};
+use tracing::{debug, instrument, trace};
 
 pub(crate) fn start(config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMessage>) {
     spawn(async move {
@@ -89,14 +89,15 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     .attempt(&mut retrying, &interconnect, &config)
                     .await;
             },
-            Ok(CoreMessage::RetryConnect(retry_idx)) =>
+            Ok(CoreMessage::RetryConnect(retry_idx)) => {
+                debug!("Retrying idx: {} (vs. {})", retry_idx, attempt_idx);
                 if retry_idx == attempt_idx {
                     if let Some(progress) = retrying.take() {
                         connection = progress
                             .attempt(&mut retrying, &interconnect, &config)
                             .await;
                     }
-                },
+                }},
             Ok(CoreMessage::Disconnect) => {
                 let last_conn = connection.take();
                 let _ = interconnect.mixer.send(MixerMessage::DropConn);
@@ -240,7 +241,6 @@ impl ConnectionRetryData {
     }
 
     fn base(flavour: ConnectionFlavour, info: ConnectionInfo, idx_src: &mut usize) -> Self {
-        let idx = *idx_src;
         *idx_src = idx_src.wrapping_add(1);
 
         Self {
@@ -248,7 +248,7 @@ impl ConnectionRetryData {
             attempts: 0,
             last_wait: None,
             info,
-            idx,
+            idx: *idx_src,
         }
     }
 
@@ -285,9 +285,11 @@ impl ConnectionRetryData {
                 Some(connection)
             },
             Err(why) => {
+                debug!("Failed to connect for {:?}: {}", self.info.guild_id, why);
                 if let Some(t) = config.driver_retry.retry_in(self.last_wait, self.attempts) {
                     let remote_ic = interconnect.clone();
                     let idx = self.idx;
+
                     spawn(async move {
                         tsleep(t).await;
                         let _ = remote_ic.core.send(CoreMessage::RetryConnect(idx));
@@ -295,6 +297,9 @@ impl ConnectionRetryData {
 
                     self.attempts += 1;
                     self.last_wait = Some(t);
+
+                    debug!("Retrying connection for {:?} in {}s ({}/{:?})", self.info.guild_id, t.as_secs_f32(), self.attempts, config.driver_retry.retry_limit);
+
                     *attempt_slot = Some(self);
                 } else {
                     let reason = Some(DisconnectReason::from(&why));
