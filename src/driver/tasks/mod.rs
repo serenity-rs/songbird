@@ -68,7 +68,7 @@ fn start_internals(core: Sender<CoreMessage>, config: Config) -> Interconnect {
 #[instrument(skip(rx, tx))]
 async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMessage>) {
     let mut next_config: Option<Config> = None;
-    let mut connection = None;
+    let mut connection: Option<Connection> = None;
     let mut interconnect = start_internals(tx, config.clone());
     let mut retrying = None;
     let mut attempt_idx = 0;
@@ -85,9 +85,23 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     config
                 };
 
-                connection = ConnectionRetryData::connect(tx, info, &mut attempt_idx)
-                    .attempt(&mut retrying, &interconnect, &config)
-                    .await;
+                if connection
+                    .as_ref()
+                    .map(|conn| conn.info != info)
+                    .unwrap_or(true)
+                {
+                    // Only *actually* reconnect if the conn info changed, or we don't have an
+                    // active connection.
+                    // This allows the gateway component to keep sending join requests independent
+                    // of driver failures.
+                    connection = ConnectionRetryData::connect(tx, info, &mut attempt_idx)
+                        .attempt(&mut retrying, &interconnect, &config)
+                        .await;
+                } else {
+                    // No reconnection was attempted as there's a valid, identical connection;
+                    // tell the outside listener that the operation was a success.
+                    let _ = tx.send(Ok(()));
+                }
             },
             Ok(CoreMessage::RetryConnect(retry_idx)) => {
                 debug!("Retrying idx: {} (vs. {})", retry_idx, attempt_idx);
