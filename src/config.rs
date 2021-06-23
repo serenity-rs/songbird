@@ -1,7 +1,6 @@
 #[cfg(feature = "driver-core")]
-use super::driver::{CryptoMode, DecodeMode};
+use super::driver::{retry::Retry, CryptoMode, DecodeMode};
 
-#[cfg(feature = "gateway-core")]
 use std::time::Duration;
 
 /// Configuration for drivers and calls.
@@ -61,6 +60,20 @@ pub struct Config {
     /// Changes to this field in a running driver will only ever increase
     /// the capacity of the track store.
     pub preallocated_tracks: usize,
+    #[cfg(feature = "driver-core")]
+    /// Connection retry logic for the [`Driver`].
+    ///
+    /// This controls how many times the [`Driver`] should retry any connections,
+    /// as well as how long to wait between attempts.
+    ///
+    /// [`Driver`]: crate::driver::Driver
+    pub driver_retry: Retry,
+    #[cfg(feature = "driver-core")]
+    /// Configures the maximum amount of time to wait for an attempted voice
+    /// connection to Discord.
+    ///
+    /// Defaults to 10 seconds. If set to `None`, connections will never time out.
+    pub driver_timeout: Option<Duration>,
 }
 
 impl Default for Config {
@@ -74,6 +87,10 @@ impl Default for Config {
             gateway_timeout: Some(Duration::from_secs(10)),
             #[cfg(feature = "driver-core")]
             preallocated_tracks: 1,
+            #[cfg(feature = "driver-core")]
+            driver_retry: Default::default(),
+            #[cfg(feature = "driver-core")]
+            driver_timeout: Some(Duration::from_secs(10)),
         }
     }
 }
@@ -95,6 +112,18 @@ impl Config {
     /// Sets this `Config`'s number of tracks to preallocate.
     pub fn preallocated_tracks(mut self, preallocated_tracks: usize) -> Self {
         self.preallocated_tracks = preallocated_tracks;
+        self
+    }
+
+    /// Sets this `Config`'s timeout for establishing a voice connection.
+    pub fn driver_timeout(mut self, driver_timeout: Option<Duration>) -> Self {
+        self.driver_timeout = driver_timeout;
+        self
+    }
+
+    /// Sets this `Config`'s voice connection retry configuration.
+    pub fn driver_retry(mut self, driver_retry: Retry) -> Self {
+        self.driver_retry = driver_retry;
         self
     }
 
