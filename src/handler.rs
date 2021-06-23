@@ -203,7 +203,7 @@ impl Call {
         let (gw_tx, gw_rx) = flume::unbounded();
 
         let do_conn = self
-            .should_actually_join(|_| Ok(()), &tx, channel_id)
+            .should_actually_join(|_| (), &gw_tx, channel_id)
             .await?;
 
         if do_conn {
@@ -218,6 +218,14 @@ impl Call {
                 .await
                 .map(|_| Join::new(rx.into_recv_async(), gw_rx.into_recv_async(), timeout))
         } else {
+            // Skipping the gateway connection implies that the current connection is complete
+            // AND the channel is a match.
+            //
+            // Send a polite request to the driver, which should only *actually* reconnect
+            // if it had a problem earlier.
+            let info = self.current_connection().unwrap().clone();
+            self.driver.raw_connect(info, tx.clone());
+
             Ok(Join::new(
                 rx.into_recv_async(),
                 gw_rx.into_recv_async(),
