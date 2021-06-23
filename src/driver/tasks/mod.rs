@@ -97,7 +97,8 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                             .attempt(&mut retrying, &interconnect, &config)
                             .await;
                     }
-                }},
+                }
+            },
             Ok(CoreMessage::Disconnect) => {
                 let last_conn = connection.take();
                 let _ = interconnect.mixer.send(MixerMessage::DropConn);
@@ -298,7 +299,13 @@ impl ConnectionRetryData {
                     self.attempts += 1;
                     self.last_wait = Some(t);
 
-                    debug!("Retrying connection for {:?} in {}s ({}/{:?})", self.info.guild_id, t.as_secs_f32(), self.attempts, config.driver_retry.retry_limit);
+                    debug!(
+                        "Retrying connection for {:?} in {}s ({}/{:?})",
+                        self.info.guild_id,
+                        t.as_secs_f32(),
+                        self.attempts,
+                        config.driver_retry.retry_limit
+                    );
 
                     *attempt_slot = Some(self);
                 } else {
