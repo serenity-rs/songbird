@@ -47,7 +47,7 @@ impl Metadata {
         let start_time = format
             .and_then(|m| m.get("start_time"))
             .and_then(Value::as_str)
-            .and_then(|v| v.parse::<f64>().ok())
+            .and_then(|v| v.parse::<f64>().ok().map(|t| t.max(0.0)))
             .map(Duration::from_secs_f64);
 
         let tags = format.and_then(|m| m.get("tags"));
