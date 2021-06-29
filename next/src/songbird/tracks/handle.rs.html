@@ -419,7 +419,7 @@
     }
 
     <span class="doccomment">/// Request playback information and state from the audio context.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Request</span>(<span class="ident">tx</span>))<span class="question-mark">?</span>;
 
