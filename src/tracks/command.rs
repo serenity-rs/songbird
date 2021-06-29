@@ -26,8 +26,8 @@ pub enum TrackCommand {
     AddEvent(EventData),
     /// Run some closure on this track, with direct access to the core object.
     Do(Box<dyn FnOnce(&mut Track) + Send + Sync + 'static>),
-    /// Request a read-only view of this track's state.
-    Request(Sender<Box<TrackState>>),
+    /// Request a copy of this track's state.
+    Request(Sender<TrackState>),
     /// Change the loop count/strategy of this track.
     Loop(LoopState),
     /// Prompts a track's input to become live and usable, if it is not already.

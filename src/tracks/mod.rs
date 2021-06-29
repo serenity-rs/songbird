@@ -294,7 +294,7 @@ impl Track {
                             ));
                         },
                         Request(tx) => {
-                            let _ = tx.send(Box::new(self.state()));
+                            let _ = tx.send(self.state());
                         },
                         Loop(loops) =>
                             if self.set_loops(loops).is_ok() {

@@ -162,7 +162,7 @@ impl TrackHandle {
     }
 
     /// Request playback information and state from the audio context.
-    pub async fn get_info(&self) -> TrackResult<Box<TrackState>> {
+    pub async fn get_info(&self) -> TrackResult<TrackState> {
         let (tx, rx) = flume::bounded(1);
         self.send(TrackCommand::Request(tx))?;
 
