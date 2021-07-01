@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0-beta.3 — 2021-06-14 — **Magpie**
+## 0.2.0-beta.4 — 2021-07-01 — **Magpie**
 
 *These notes will be adjusted between 0.2.0-beta.0 and the stable release.*
 
@@ -25,9 +25,12 @@ Thanks to the following for their contributions:
 * Channel join operations may now timeout after a default 10s—which *should* be handled.
 * Errors returned when joining a channel will now inform you whether you should try to `leave` a channel before rejoining.
 * Youtube-dl variants of `songbird::input::error::Error` have had their case altered from `DL` -> `Dl`.
+* `TrackState` sent from the driver are no longer boxed objects.
+* `DriverDisconnect` events have been introduced, which cover *all* disconnect events. As a result, `DriverConnectFailed` and `DriverReconnectFailed` are deprecated.
 
 ### Added
 
+- [driver] Driver: Automate (re)connection logic (#81) ([@FelixMcFelix]) [c:210e3ae]
 - [input] Input: Add separate YouTube title and channel to Metadata (#75) ([@vilgotf]) [c:edcd39a]
 - [input] Input: Implement StdError for DcaError, input::Error (#73) ([@vilgotf]) [c:e1fc041]
 - [gateway] Gateway: Add debug logging around shard handling ([@FelixMcFelix]) [c:b3caf05]
@@ -35,6 +38,7 @@ Thanks to the following for their contributions:
 
 ### Changed
 
+- [tracks] Tracks: Remove box around TrackState (#84) ([@vilgotf]) [c:91d7542]
 - [deps] Deps: Bump twilight versions -> 0.5 (#79) ([@vilgotf]) [c:d2bb277]
 - [input] Input, Driver: Make error messages more idiomatic (#74) ([@vilgotf]) [c:a96f033]
 - [docs] Chore: Rewrite update pathway. ([@FelixMcFelix]) [c:8000da6]
@@ -51,6 +55,7 @@ Thanks to the following for their contributions:
 
 ### Fixed
 
+- [benchmarks] Fix: Update Benchmark Imports ([@FelixMcFelix]) [c:338a042]
 - [lint] Chore: Clippy fixes for new lints ([@FelixMcFelix]) [c:a1c4f07]
 - [fmt] Chore: Repair formatting. ([@FelixMcFelix]) [c:cd2ade9]
 - [fmt] Chore: Fix clippy warnings (useless clones). ([@FelixMcFelix]) [c:21b8383]
@@ -338,6 +343,9 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:210e3ae]: https://github.com/serenity-rs/songbird/commit/210e3ae58499fa45edf9b65de6d9114292341d28
+[c:91d7542]: https://github.com/serenity-rs/songbird/commit/91d754259381e709e0768cbf089dbb67ef84680e
+[c:338a042]: https://github.com/serenity-rs/songbird/commit/338a04234375768d5f00d989b3ed519654b753ce
 [c:e58cadb]: https://github.com/serenity-rs/songbird/commit/e58cadb2a436804fd7af056878fe429770d060d4
 [c:c97f23e]: https://github.com/serenity-rs/songbird/commit/c97f23ee2707c8290cdc07a9553ea4a899336c37
 [c:b925309]: https://github.com/serenity-rs/songbird/commit/b9253097785a0b37fc104e879c05125fe6e88afb
