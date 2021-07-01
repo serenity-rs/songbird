@@ -7,27 +7,27 @@ context to control playback, register events, and execute synchronous closures.<
 <p>If you want a new track from an <a href="../input/struct.Input.html"><code>Input</code></a>, i.e., for direct control before
 playing your source on the driver, use <a href="fn.create_player.html"><code>create_player</code></a>.</p>
 </div></details><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<table><tr class="module-item"><td><a class="struct" href="struct.Queued.html" title="songbird::tracks::Queued struct">Queued</a></td><td class="docblock-short"><p>Reference to a track which is known to be part of a queue.</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.Track.html" title="songbird::tracks::Track struct">Track</a></td><td class="docblock-short"><p>Control object for audio playback.</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.TrackHandle.html" title="songbird::tracks::TrackHandle struct">TrackHandle</a></td><td class="docblock-short"><p>Handle for safe control of a <a href="struct.Track.html"><code>Track</code></a> from other threads, outside
+<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.Queued.html" title="songbird::tracks::Queued struct">Queued</a></div><div class="item-right docblock-short"><p>Reference to a track which is known to be part of a queue.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Track.html" title="songbird::tracks::Track struct">Track</a></div><div class="item-right docblock-short"><p>Control object for audio playback.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.TrackHandle.html" title="songbird::tracks::TrackHandle struct">TrackHandle</a></div><div class="item-right docblock-short"><p>Handle for safe control of a <a href="struct.Track.html"><code>Track</code></a> from other threads, outside
 of the audio mixing and voice handling context.</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.TrackQueue.html" title="songbird::tracks::TrackQueue struct">TrackQueue</a></td><td class="docblock-short"><p>A simple queue for several audio sources, designed to
+</div><div class="item-left module-item"><a class="struct" href="struct.TrackQueue.html" title="songbird::tracks::TrackQueue struct">TrackQueue</a></div><div class="item-right docblock-short"><p>A simple queue for several audio sources, designed to
 play in sequence.</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.TrackState.html" title="songbird::tracks::TrackState struct">TrackState</a></td><td class="docblock-short"><p>State of an <a href="struct.Track.html"><code>Track</code></a> object, designed to be passed to event handlers
+</div><div class="item-left module-item"><a class="struct" href="struct.TrackState.html" title="songbird::tracks::TrackState struct">TrackState</a></div><div class="item-right docblock-short"><p>State of an <a href="struct.Track.html"><code>Track</code></a> object, designed to be passed to event handlers
 and retrieved remotely via <a href="struct.TrackHandle.html#method.get_info"><code>TrackHandle::get_info</code></a>.</p>
-</td></tr></table><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<table><tr class="module-item"><td><a class="enum" href="enum.LoopState.html" title="songbird::tracks::LoopState enum">LoopState</a></td><td class="docblock-short"><p>Looping behaviour for a <a href="struct.Track.html"><code>Track</code></a>.</p>
-</td></tr><tr class="module-item"><td><a class="enum" href="enum.PlayMode.html" title="songbird::tracks::PlayMode enum">PlayMode</a></td><td class="docblock-short"><p>Playback status of a track.</p>
-</td></tr><tr class="module-item"><td><a class="enum" href="enum.TrackCommand.html" title="songbird::tracks::TrackCommand enum">TrackCommand</a></td><td class="docblock-short"><p>A request from external code using a <a href="struct.TrackHandle.html"><code>TrackHandle</code></a> to modify
+</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.LoopState.html" title="songbird::tracks::LoopState enum">LoopState</a></div><div class="item-right docblock-short"><p>Looping behaviour for a <a href="struct.Track.html"><code>Track</code></a>.</p>
+</div><div class="item-left module-item"><a class="enum" href="enum.PlayMode.html" title="songbird::tracks::PlayMode enum">PlayMode</a></div><div class="item-right docblock-short"><p>Playback status of a track.</p>
+</div><div class="item-left module-item"><a class="enum" href="enum.TrackCommand.html" title="songbird::tracks::TrackCommand enum">TrackCommand</a></div><div class="item-right docblock-short"><p>A request from external code using a <a href="struct.TrackHandle.html"><code>TrackHandle</code></a> to modify
 or act upon an <a href="struct.Track.html"><code>Track</code></a> object.</p>
-</td></tr><tr class="module-item"><td><a class="enum" href="enum.TrackError.html" title="songbird::tracks::TrackError enum">TrackError</a></td><td class="docblock-short"><p>Errors associated with control and manipulation of tracks.</p>
-</td></tr></table><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<table><tr class="module-item"><td><a class="fn" href="fn.create_player.html" title="songbird::tracks::create_player fn">create_player</a></td><td class="docblock-short"><p>Creates a <a href="struct.Track.html"><code>Track</code></a> object to pass into the audio context, and a <a href="struct.TrackHandle.html"><code>TrackHandle</code></a>
+</div><div class="item-left module-item"><a class="enum" href="enum.TrackError.html" title="songbird::tracks::TrackError enum">TrackError</a></div><div class="item-right docblock-short"><p>Errors associated with control and manipulation of tracks.</p>
+</div></div><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="fn" href="fn.create_player.html" title="songbird::tracks::create_player fn">create_player</a></div><div class="item-right docblock-short"><p>Creates a <a href="struct.Track.html"><code>Track</code></a> object to pass into the audio context, and a <a href="struct.TrackHandle.html"><code>TrackHandle</code></a>
 for safe, lock-free access in external code.</p>
-</td></tr><tr class="module-item"><td><a class="fn" href="fn.create_player_with_uuid.html" title="songbird::tracks::create_player_with_uuid fn">create_player_with_uuid</a></td><td class="docblock-short"><p>Creates a <a href="struct.Track.html"><code>Track</code></a> and <a href="struct.TrackHandle.html"><code>TrackHandle</code></a> as in <a href="fn.create_player.html"><code>create_player</code></a>, allowing
+</div><div class="item-left module-item"><a class="fn" href="fn.create_player_with_uuid.html" title="songbird::tracks::create_player_with_uuid fn">create_player_with_uuid</a></div><div class="item-right docblock-short"><p>Creates a <a href="struct.Track.html"><code>Track</code></a> and <a href="struct.TrackHandle.html"><code>TrackHandle</code></a> as in <a href="fn.create_player.html"><code>create_player</code></a>, allowing
 a custom UUID to be set.</p>
-</td></tr></table><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
-<table><tr class="module-item"><td><a class="type" href="type.TrackResult.html" title="songbird::tracks::TrackResult type">TrackResult</a></td><td class="docblock-short"><p>Alias for most calls to a <a href="struct.TrackHandle.html"><code>TrackHandle</code></a>.</p>
-</td></tr></table></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+</div></div><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="type" href="type.TrackResult.html" title="songbird::tracks::TrackResult type">TrackResult</a></div><div class="item-right docblock-short"><p>Alias for most calls to a <a href="struct.TrackHandle.html"><code>TrackHandle</code></a>.</p>
+</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script>
 </body></html>
