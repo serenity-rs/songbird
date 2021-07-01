@@ -10,10 +10,12 @@ use criterion::{
 use flume::{Receiver, Sender, TryRecvError};
 use songbird::{
     constants::*,
-    driver::bench_internals::{mixer::Mixer, task_message::*, CryptoState},
+    driver::{
+        bench_internals::{mixer::Mixer, task_message::*, CryptoState},
+        Bitrate,
+    },
     input::{cached::Compressed, Input},
     tracks,
-    Bitrate,
 };
 use tokio::runtime::{Handle, Runtime};
 use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher, KEY_SIZE};
@@ -48,7 +50,7 @@ fn dummied_mixer(
     let mut out = Mixer::new(mix_rx, handle, ic, Default::default());
 
     let fake_conn = MixerConnection {
-        cipher: Cipher::new_varkey(&vec![0u8; KEY_SIZE]).unwrap(),
+        cipher: Cipher::new_from_slice(&vec![0u8; KEY_SIZE]).unwrap(),
         crypto_state: CryptoState::Normal,
         udp_rx: udp_receiver_tx,
         udp_tx: udp_sender_tx,
