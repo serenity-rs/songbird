@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.8] — 2021-07-01
+
+This release patches a metadata parsing panic caused by Ogg files with negative start times.
+
+Thanks to the following for their contributions:
+
+- [@JellyWX]
+
+### Fixed
+
+- [input] Input: Fix Duration underflow on negative start time (#83) ([@JellyWX]) [c:e58cadb]
+
 ## [0.1.7] — 2021-06-14
 
 This release mainly patches an occasionally spinning task, due to a critical WebSocket read error.
@@ -223,6 +235,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.1.8]: https://github.com/serenity-rs/songbird/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/serenity-rs/songbird/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/serenity-rs/songbird/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/serenity-rs/songbird/compare/v0.1.4...v0.1.5
@@ -266,6 +279,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:e58cadb]: https://github.com/serenity-rs/songbird/commit/e58cadb2a436804fd7af056878fe429770d060d4
 [c:c97f23e]: https://github.com/serenity-rs/songbird/commit/c97f23ee2707c8290cdc07a9553ea4a899336c37
 [c:b925309]: https://github.com/serenity-rs/songbird/commit/b9253097785a0b37fc104e879c05125fe6e88afb
 [c:22214a0]: https://github.com/serenity-rs/songbird/commit/22214a0f891946f42f7c23d7de3a1f380791e51d
