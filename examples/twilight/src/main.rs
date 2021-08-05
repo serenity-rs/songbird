@@ -18,7 +18,7 @@
 //! THIS SOFTWARE.
 //!
 //!
-//! [basic lavalink bot]: https://github.com/twilight-rs/twilight/tree/trunk/lavalink/examples/basic-lavalink-bot
+//! [basic lavalink bot]: https://github.com/twilight-rs/twilight/tree/main/lavalink/examples/basic-lavalink-bot
 
 use futures::StreamExt;
 use songbird::{
@@ -57,35 +57,35 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let token = env::var("DISCORD_TOKEN")?;
+    let (mut events, state) = {
+        let token = env::var("DISCORD_TOKEN")?;
 
-    let http = HttpClient::new(&token);
+        let http = HttpClient::new(token.clone());
+        let user_id = http.current_user().exec().await?.model().await?.id;
 
-    let (cluster, mut events) =
-        Cluster::new(token, Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES).await?;
-
-    let state = {
-        let user_id = http.current_user().await?.id;
-
-        let shard_count = cluster.shards().len();
-        let songbird = Songbird::twilight(cluster.clone(), shard_count as u64, user_id);
-
+        let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
+        let (cluster, events) = Cluster::new(token, intents).await?;
         cluster.up().await;
 
-        State {
-            cluster,
-            http,
-            trackdata: Default::default(),
-            songbird,
-            standby: Standby::new(),
-        }
+        let songbird = Songbird::twilight(cluster.clone(), user_id);
+
+        (
+            events,
+            State {
+                cluster,
+                http,
+                trackdata: Default::default(),
+                songbird,
+                standby: Standby::new(),
+            },
+        )
     };
 
-    while let Some(event) = events.next().await {
-        state.standby.process(&event.1);
-        state.songbird.process(&event.1).await;
+    while let Some((_, event)) = events.next().await {
+        state.standby.process(&event);
+        state.songbird.process(&event).await;
 
-        if let Event::MessageCreate(msg) = event.1 {
+        if let Event::MessageCreate(msg) = event {
             if msg.guild_id.is_none() || !msg.content.starts_with('!') {
                 continue;
             }
@@ -111,6 +111,7 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content("What's the channel ID you want me to join?")?
+        .exec()
         .await?;
 
     let author_id = msg.author.id;
@@ -134,7 +135,8 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content(content)?
+        .content(&content)?
+        .exec()
         .await?;
 
     Ok(())
@@ -155,6 +157,7 @@ async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
         .http
         .create_message(msg.channel_id)
         .content("Left the channel")?
+        .exec()
         .await?;
 
     Ok(())
@@ -170,6 +173,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content("What's the URL of the audio to play?")?
+        .exec()
         .await?;
 
     let author_id = msg.author.id;
@@ -202,7 +206,8 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         state
             .http
             .create_message(msg.channel_id)
-            .content(content)?
+            .content(&content)?
+            .exec()
             .await?;
 
         if let Some(call_lock) = state.songbird.get(guild_id) {
@@ -217,6 +222,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
             .http
             .create_message(msg.channel_id)
             .content("Didn't find any results")?
+            .exec()
             .await?;
     }
 
@@ -241,11 +247,11 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
             PlayMode::Play => {
                 let _success = handle.pause();
                 false
-            },
+            }
             _ => {
                 let _success = handle.play();
                 true
-            },
+            }
         };
 
         let action = if paused { "Unpaused" } else { "Paused" };
@@ -258,7 +264,8 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
     state
         .http
         .create_message(msg.channel_id)
-        .content(content)?
+        .content(&content)?
+        .exec()
         .await?;
 
     Ok(())
@@ -274,6 +281,7 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content("Where in the track do you want to seek to (in seconds)?")?
+        .exec()
         .await?;
 
     let author_id = msg.author.id;
@@ -302,7 +310,8 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content(content)?
+        .content(&content)?
+        .exec()
         .await?;
 
     Ok(())
@@ -326,6 +335,7 @@ async fn stop(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content("Stopped the track")?
+        .exec()
         .await?;
 
     Ok(())
@@ -341,6 +351,7 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
         .http
         .create_message(msg.channel_id)
         .content("What's the volume you want to set (0.0-10.0, 1.0 being the default)?")?
+        .exec()
         .await?;
 
     let author_id = msg.author.id;
@@ -358,6 +369,7 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
             .http
             .create_message(msg.channel_id)
             .content("Invalid volume!")?
+            .exec()
             .await?;
 
         return Ok(());
@@ -375,7 +387,8 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
     state
         .http
         .create_message(msg.channel_id)
-        .content(content)?
+        .content(&content)?
+        .exec()
         .await?;
 
     Ok(())

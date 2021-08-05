@@ -87,11 +87,11 @@ impl Songbird {
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    pub fn twilight<U>(cluster: Cluster, shard_count: u64, user_id: U) -> Arc<Self>
+    pub fn twilight<U>(cluster: Cluster, user_id: U) -> Arc<Self>
     where
         U: Into<UserId>,
     {
-        Self::twilight_from_config(cluster, shard_count, user_id, Default::default())
+        Self::twilight_from_config(cluster, user_id, Default::default())
     }
 
     #[cfg(feature = "twilight")]
@@ -102,18 +102,17 @@ impl Songbird {
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    pub fn twilight_from_config<U>(
-        cluster: Cluster,
-        shard_count: u64,
-        user_id: U,
-        config: Config,
-    ) -> Arc<Self>
+    pub fn twilight_from_config<U>(cluster: Cluster, user_id: U, config: Config) -> Arc<Self>
     where
         U: Into<UserId>,
     {
         Arc::new(Self {
             client_data: PRwLock::new(ClientData {
-                shard_count,
+                shard_count: cluster
+                    .config()
+                    .shard_scheme()
+                    .total()
+                    .unwrap_or_else(|| cluster.shards().len() as u64),
                 initialised: true,
                 user_id: user_id.into(),
             }),

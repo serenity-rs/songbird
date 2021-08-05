@@ -8,14 +8,13 @@ edition = "2018"
 futures = "0.3"
 tracing = "0.1"
 tracing-subscriber = "0.2"
-serde_json = { version = "1" }
 tokio = { features = ["macros", "rt-multi-thread", "sync"], version = "1" }
-twilight-gateway = "0.5"
-twilight-http = "0.5"
-twilight-model = "0.5"
-twilight-standby = "0.5"
+twilight-gateway = "0.6"
+twilight-http = "0.6"
+twilight-model = "0.6"
+twilight-standby = "0.6"
 
 [dependencies.songbird]
-path = "../.."
 default-features = false
-features = ["twilight-rustls", "gateway", "driver", "zlib-stock"]
+path = "../.."
+features = ["driver", "twilight-rustls", "zlib-stock"]
