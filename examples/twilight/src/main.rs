@@ -33,12 +33,14 @@ use twilight_http::Client as HttpClient;
 use twilight_model::{channel::Message, gateway::payload::MessageCreate, id::GuildId};
 use twilight_standby::Standby;
 
-#[derive(Clone, Debug)]
-struct State {
+type State = Arc<StateRef>;
+
+#[derive(Debug)]
+struct StateRef {
     cluster: Cluster,
     http: HttpClient,
-    trackdata: Arc<RwLock<HashMap<GuildId, TrackHandle>>>,
-    songbird: Arc<Songbird>,
+    trackdata: RwLock<HashMap<GuildId, TrackHandle>>,
+    songbird: Songbird,
     standby: Standby,
 }
 
@@ -71,14 +73,14 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
         (
             events,
-            State {
+            Arc::new(StateRef {
                 cluster,
                 http,
                 trackdata: Default::default(),
                 songbird,
                 standby: Standby::new(),
             },
-        )
+        ))
     };
 
     while let Some((_, event)) = events.next().await {
@@ -91,13 +93,13 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
             }
 
             match msg.content.splitn(2, ' ').next() {
-                Some("!join") => spawn(join(msg.0, state.clone())),
-                Some("!leave") => spawn(leave(msg.0, state.clone())),
-                Some("!pause") => spawn(pause(msg.0, state.clone())),
-                Some("!play") => spawn(play(msg.0, state.clone())),
-                Some("!seek") => spawn(seek(msg.0, state.clone())),
-                Some("!stop") => spawn(stop(msg.0, state.clone())),
-                Some("!volume") => spawn(volume(msg.0, state.clone())),
+                Some("!join") => spawn(join(msg.0, Arc::clone(&state))),
+                Some("!leave") => spawn(leave(msg.0, Arc::clone(&state))),
+                Some("!pause") => spawn(pause(msg.0, Arc::clone(&state))),
+                Some("!play") => spawn(play(msg.0, Arc::clone(&state))),
+                Some("!seek") => spawn(seek(msg.0, Arc::clone(&state))),
+                Some("!stop") => spawn(stop(msg.0, Arc::clone(&state))),
+                Some("!volume") => spawn(volume(msg.0, Arc::clone(&state))),
                 _ => continue,
             }
         }

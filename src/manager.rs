@@ -87,7 +87,7 @@ impl Songbird {
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    pub fn twilight<U>(cluster: Cluster, user_id: U) -> Arc<Self>
+    pub fn twilight<U>(cluster: Cluster, user_id: U) -> Self
     where
         U: Into<UserId>,
     {
@@ -102,11 +102,11 @@ impl Songbird {
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    pub fn twilight_from_config<U>(cluster: Cluster, user_id: U, config: Config) -> Arc<Self>
+    pub fn twilight_from_config<U>(cluster: Cluster, user_id: U, config: Config) -> Self
     where
         U: Into<UserId>,
     {
-        Arc::new(Self {
+        Self {
             client_data: PRwLock::new(ClientData {
                 shard_count: cluster
                     .config()
@@ -119,7 +119,7 @@ impl Songbird {
             calls: Default::default(),
             sharder: Sharder::Twilight(cluster),
             config: Some(config).into(),
-        })
+        }
     }
 
     /// Set the bot's user, and the number of shards in use.
