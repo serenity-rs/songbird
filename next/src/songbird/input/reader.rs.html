@@ -220,12 +220,12 @@
 
     <span class="doccomment">/// A source contained in a local file.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file</span>(<span class="ident">file</span>: <span class="ident">File</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Extension</span>(<span class="ident">Box::new</span>(<span class="ident">file</span>))
+        <span class="ident"><span class="self">Self</span>::Extension</span>(<span class="ident">Box::new</span>(<span class="ident">file</span>))
     }
 
     <span class="doccomment">/// A source contained as an array in memory.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_memory</span>(<span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Extension</span>(<span class="ident">Box::new</span>(<span class="ident">Cursor::new</span>(<span class="ident">buf</span>)))
+        <span class="ident"><span class="self">Self</span>::Extension</span>(<span class="ident">Box::new</span>(<span class="ident">Cursor::new</span>(<span class="ident">buf</span>)))
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::single_match</span>)]</span>
@@ -300,7 +300,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Reader</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::from_memory</span>(<span class="ident">val</span>)
+        <span class="ident"><span class="self">Self</span>::from_memory</span>(<span class="ident">val</span>)
     }
 }
 </pre></div>

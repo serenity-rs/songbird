@@ -570,7 +570,7 @@
         <span class="ident">path</span>: <span class="ident">P</span>,
         <span class="ident">lazy</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">FfmpegRestarter</span> { <span class="ident">path</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">FfmpegRestarter</span> { <span class="ident">path</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Create a new restartable ytdl source.</span>
@@ -581,7 +581,7 @@
         <span class="ident">uri</span>: <span class="ident">P</span>,
         <span class="ident">lazy</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">YtdlRestarter</span> { <span class="ident">uri</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">YtdlRestarter</span> { <span class="ident">uri</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Create a new restartable ytdl source, using the first result of a youtube search.</span>
@@ -589,7 +589,7 @@
     <span class="doccomment">/// The cost of restarting and seeking will probably be *very* high:</span>
     <span class="doccomment">/// expect a pause if you seek backwards.</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">lazy</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::ytdl</span>(<span class="macro">format!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>.<span class="ident">as_ref</span>()), <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="ident"><span class="self">Self</span>::ytdl</span>(<span class="macro">format!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>.<span class="ident">as_ref</span>()), <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prep_with_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">handle</span>: <span class="ident">Handle</span>) {

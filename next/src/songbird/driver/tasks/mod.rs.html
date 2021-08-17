@@ -382,7 +382,7 @@
 
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
-<span class="kw">use</span> <span class="kw">super</span><span class="ident">::connection</span>::{<span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">ConnectionError</span>, <span class="ident">Connection</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::connection</span>::{<span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">ConnectionError</span>, <span class="ident">Connection</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events</span>::{
         <span class="ident">context_data</span>::{<span class="ident">DisconnectKind</span>, <span class="ident">DisconnectReason</span>},
@@ -619,11 +619,11 @@
         <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
         <span class="ident">idx_src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::base</span>(<span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>), <span class="ident">info</span>, <span class="ident">idx_src</span>)
+        <span class="ident"><span class="self">Self</span>::base</span>(<span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>), <span class="ident">info</span>, <span class="ident">idx_src</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">reconnect</span>(<span class="ident">info</span>: <span class="ident">ConnectionInfo</span>, <span class="ident">idx_src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::base</span>(<span class="ident">ConnectionFlavour::Reconnect</span>, <span class="ident">info</span>, <span class="ident">idx_src</span>)
+        <span class="ident"><span class="self">Self</span>::base</span>(<span class="ident">ConnectionFlavour::Reconnect</span>, <span class="ident">info</span>, <span class="ident">idx_src</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">base</span>(<span class="ident">flavour</span>: <span class="ident">ConnectionFlavour</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>, <span class="ident">idx_src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {

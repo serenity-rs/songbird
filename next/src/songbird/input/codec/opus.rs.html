@@ -42,7 +42,7 @@
 <span id="42">42</span>
 <span id="43">43</span>
 </pre><pre class="rust">
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::constants</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="ident">coder::Decoder</span> <span class="kw">as</span> <span class="ident">OpusDecoder</span>, <span class="ident">Channels</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>};
 <span class="kw">use</span> <span class="ident">parking_lot::Mutex</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
@@ -68,7 +68,7 @@
 <span class="kw">impl</span> <span class="ident">OpusDecoderState</span> {
     <span class="doccomment">/// Creates a new decoder, having stereo output at 48kHz.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">OpusError</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span><span class="ident">::from_decoder</span>(<span class="ident">OpusDecoder::new</span>(
+        <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from_decoder</span>(<span class="ident">OpusDecoder::new</span>(
             <span class="ident">SAMPLE_RATE</span>,
             <span class="ident">Channels::Stereo</span>,
         )<span class="question-mark">?</span>))

@@ -100,8 +100,8 @@
 <span class="kw">impl</span> <span class="ident">Strategy</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">retry_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Every</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">t</span>,
-            <span class="self">Self</span><span class="ident">::Backoff</span>(<span class="ident">exp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">exp</span>.<span class="ident">retry_in</span>(<span class="ident">last_wait</span>),
+            <span class="ident"><span class="self">Self</span>::Every</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">t</span>,
+            <span class="ident"><span class="self">Self</span>::Backoff</span>(<span class="ident">exp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">exp</span>.<span class="ident">retry_in</span>(<span class="ident">last_wait</span>),
         }
     }
 }

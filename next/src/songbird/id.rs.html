@@ -123,7 +123,7 @@
 <span class="doccomment">//! Newtypes around Discord IDs for library cross-compatibility.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::model::id</span>::{<span class="ident">GuildId</span> <span class="kw">as</span> <span class="ident">DriverGuild</span>, <span class="ident">UserId</span> <span class="kw">as</span> <span class="ident">DriverUser</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::model::id</span>::{<span class="ident">GuildId</span> <span class="kw">as</span> <span class="ident">DriverGuild</span>, <span class="ident">UserId</span> <span class="kw">as</span> <span class="ident">DriverUser</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serenity::model::id</span>::{
     <span class="ident">ChannelId</span> <span class="kw">as</span> <span class="ident">SerenityChannel</span>,

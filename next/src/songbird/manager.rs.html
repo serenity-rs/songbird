@@ -508,7 +508,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [registered]: crate::serenity::register_with</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serenity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::serenity_from_config</span>(<span class="ident">Default::default</span>())
+        <span class="ident"><span class="self">Self</span>::serenity_from_config</span>(<span class="ident">Default::default</span>())
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
@@ -538,7 +538,7 @@
     <span class="kw">where</span>
         <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span><span class="ident">::twilight_from_config</span>(<span class="ident">cluster</span>, <span class="ident">user_id</span>, <span class="ident">Default::default</span>())
+        <span class="ident"><span class="self">Self</span>::twilight_from_config</span>(<span class="ident">cluster</span>, <span class="ident">user_id</span>, <span class="ident">Default::default</span>())
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
