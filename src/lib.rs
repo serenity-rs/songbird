@@ -35,7 +35,7 @@
 //! [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
 //! ["Black-Capped Chickadee"]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
 //! [`ConnectionInfo`]: struct@ConnectionInfo
-//! [lavalink]: https://github.com/Frederikam/Lavalink
+//! [lavalink]: https://github.com/freyacodes/Lavalink
 
 mod config;
 pub mod constants;
