@@ -27,7 +27,7 @@ version = "0.1"
 default-features = false
 features = ["tokio-runtime"]
 optional = true
-version = "0.13"
+version = "0.14"
 
 [dependencies.async-tungstenite-compat]
 package = "async-tungstenite"
@@ -179,7 +179,7 @@ driver-core = [
     "uuid",
     "xsalsa20poly1305",
 ]
-rustls = ["async-tungstenite/tokio-rustls", "rustls-marker"]
+rustls = ["async-tungstenite/tokio-rustls-webpki-roots", "rustls-marker"]
 native = ["async-tungstenite/tokio-native-tls", "native-marker"]
 serenity-rustls = ["serenity/rustls_backend", "rustls", "gateway", "serenity-deps"]
 serenity-native = ["serenity/native_tls_backend", "native", "gateway", "serenity-deps"]
