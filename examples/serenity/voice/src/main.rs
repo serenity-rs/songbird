@@ -63,7 +63,12 @@ async fn main() {
         .await
         .expect("Err creating client");
 
-    let _ = client.start().await.map_err(|why| println!("Client ended: {:?}", why));
+    tokio::spawn(async move {
+        let _ = client.start().await.map_err(|why| println!("Client ended: {:?}", why));
+    });
+    
+    tokio::signal::ctrl_c().await;
+    println!("Received Ctrl-C, shutting down.");
 }
 
 #[command]

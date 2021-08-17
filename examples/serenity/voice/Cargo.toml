@@ -18,4 +18,4 @@ features = ["client", "standard_framework", "voice", "rustls_backend"]
 
 [dependencies.tokio]
 version = "1.0"
-features = ["macros", "rt-multi-thread"]
+features = ["macros", "rt-multi-thread", "signal"]
