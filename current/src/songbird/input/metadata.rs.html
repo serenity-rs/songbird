@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;input&#x2F;metadata.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>metadata.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../songbird/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;input&#x2F;metadata.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>metadata.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../songbird/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -184,8 +184,20 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
 </pre><pre class="rust">
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::constants</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">serde_json::Value</span>;
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
@@ -194,8 +206,8 @@
 <span class="doccomment">/// [`Input`]: crate::input::Input</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Metadata</span> {
-    <span class="doccomment">/// The title of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">title</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The track of this stream.</span>
+    <span class="kw">pub</span> <span class="ident">track</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The main artist of this stream.</span>
     <span class="kw">pub</span> <span class="ident">artist</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The date of creation of this stream.</span>
@@ -205,6 +217,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Any number `&gt;= 2` is treated as stereo.</span>
     <span class="kw">pub</span> <span class="ident">channels</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The YouTube channel of this stream.</span>
+    <span class="kw">pub</span> <span class="ident">channel</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The time at which the first true sample is played back.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This occurs as an artefact of coder delay.</span>
@@ -215,6 +229,8 @@
     <span class="kw">pub</span> <span class="ident">sample_rate</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The source url of this stream.</span>
     <span class="kw">pub</span> <span class="ident">source_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The YouTube title of this stream.</span>
+    <span class="kw">pub</span> <span class="ident">title</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The thumbnail url of this stream.</span>
     <span class="kw">pub</span> <span class="ident">thumbnail</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
@@ -239,7 +255,7 @@
 
         <span class="kw">let</span> <span class="ident">tags</span> <span class="op">=</span> <span class="ident">format</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;tags&quot;</span>));
 
-        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">tags</span>
+        <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="ident">tags</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>))
             .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
@@ -275,7 +291,7 @@
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u32</span>);
 
         <span class="self">Self</span> {
-            <span class="ident">title</span>,
+            <span class="ident">track</span>,
             <span class="ident">artist</span>,
             <span class="ident">date</span>,
 
@@ -296,12 +312,6 @@
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;track&quot;</span>))
             .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
-
-        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">obj</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>))
-                .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
-                .<span class="ident">map</span>(<span class="ident">str::to_string</span>)
-        });
 
         <span class="kw">let</span> <span class="ident">true_artist</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;artist&quot;</span>))
@@ -325,6 +335,11 @@
                 .<span class="ident">map</span>(<span class="ident">str::to_string</span>)
         });
 
+        <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">obj</span>
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;channel&quot;</span>))
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
+
         <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;duration&quot;</span>))
             .<span class="ident">and_then</span>(<span class="ident">Value::as_f64</span>)
@@ -335,20 +350,27 @@
             .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
+        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">obj</span>
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>))
+            .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
+            .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
+
         <span class="kw">let</span> <span class="ident">thumbnail</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">get</span>(<span class="string">&quot;thumbnail&quot;</span>))
             .<span class="ident">and_then</span>(<span class="ident">Value::as_str</span>)
             .<span class="ident">map</span>(<span class="ident">str::to_string</span>);
 
         <span class="self">Self</span> {
-            <span class="ident">title</span>,
+            <span class="ident">track</span>,
             <span class="ident">artist</span>,
             <span class="ident">date</span>,
 
             <span class="ident">channels</span>: <span class="prelude-val">Some</span>(<span class="number">2</span>),
+            <span class="ident">channel</span>,
             <span class="ident">duration</span>,
             <span class="ident">sample_rate</span>: <span class="prelude-val">Some</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>),
             <span class="ident">source_url</span>,
+            <span class="ident">title</span>,
             <span class="ident">thumbnail</span>,
 
             ..<span class="ident">Default::default</span>()
@@ -358,15 +380,17 @@
     <span class="doccomment">/// Move all fields from a `Metadata` object into a new one.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">title</span>: <span class="self">self</span>.<span class="ident">title</span>.<span class="ident">take</span>(),
+            <span class="ident">track</span>: <span class="self">self</span>.<span class="ident">track</span>.<span class="ident">take</span>(),
             <span class="ident">artist</span>: <span class="self">self</span>.<span class="ident">artist</span>.<span class="ident">take</span>(),
             <span class="ident">date</span>: <span class="self">self</span>.<span class="ident">date</span>.<span class="ident">take</span>(),
 
             <span class="ident">channels</span>: <span class="self">self</span>.<span class="ident">channels</span>.<span class="ident">take</span>(),
+            <span class="ident">channel</span>: <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">take</span>(),
             <span class="ident">start_time</span>: <span class="self">self</span>.<span class="ident">start_time</span>.<span class="ident">take</span>(),
             <span class="ident">duration</span>: <span class="self">self</span>.<span class="ident">duration</span>.<span class="ident">take</span>(),
             <span class="ident">sample_rate</span>: <span class="self">self</span>.<span class="ident">sample_rate</span>.<span class="ident">take</span>(),
             <span class="ident">source_url</span>: <span class="self">self</span>.<span class="ident">source_url</span>.<span class="ident">take</span>(),
+            <span class="ident">title</span>: <span class="self">self</span>.<span class="ident">title</span>.<span class="ident">take</span>(),
             <span class="ident">thumbnail</span>: <span class="self">self</span>.<span class="ident">thumbnail</span>.<span class="ident">take</span>(),
         }
     }

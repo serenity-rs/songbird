@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;input&#x2F;restartable.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>restartable.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../songbird/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;input&#x2F;restartable.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>restartable.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../songbird/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -452,6 +452,7 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
+<span id="455">455</span>
 </pre><pre class="rust">
 <span class="doccomment">//! A source which supports seeking by recreating its input stream.</span>
 <span class="doccomment">//!</span>
@@ -569,7 +570,7 @@
         <span class="ident">path</span>: <span class="ident">P</span>,
         <span class="ident">lazy</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">FfmpegRestarter</span> { <span class="ident">path</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">FfmpegRestarter</span> { <span class="ident">path</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Create a new restartable ytdl source.</span>
@@ -580,15 +581,15 @@
         <span class="ident">uri</span>: <span class="ident">P</span>,
         <span class="ident">lazy</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">YtdlRestarter</span> { <span class="ident">uri</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
+        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">YtdlRestarter</span> { <span class="ident">uri</span> }, <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Create a new restartable ytdl source, using the first result of a youtube search.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The cost of restarting and seeking will probably be *very* high:</span>
     <span class="doccomment">/// expect a pause if you seek backwards.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">lazy</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::ytdl</span>(<span class="macro">format!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>), <span class="ident">lazy</span>).<span class="kw">await</span>
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ytdl_search</span>(<span class="ident">name</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">lazy</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="ident"><span class="self">Self</span>::ytdl</span>(<span class="macro">format!</span>(<span class="string">&quot;ytsearch1:{}&quot;</span>, <span class="ident">name</span>.<span class="ident">as_ref</span>()), <span class="ident">lazy</span>).<span class="kw">await</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prep_with_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">handle</span>: <span class="ident">Handle</span>) {
@@ -836,7 +837,7 @@
 
                         <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">offset</span>;
                     },
-                    <span class="ident">Live</span>(<span class="ident">input</span>, <span class="ident">rec</span>) <span class="op">=</span><span class="op">&gt;</span>
+                    <span class="ident">Live</span>(<span class="ident">input</span>, <span class="ident">rec</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="ident">offset</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">position</span> {
                             <span class="comment">// regen at given start point</span>
                             <span class="comment">// We&#39;re going back in time.</span>
@@ -860,7 +861,8 @@
                         } <span class="kw">else</span> {
                             <span class="comment">// march on with live source.</span>
                             <span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">input</span>.<span class="ident">consume</span>(<span class="ident">offset</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">position</span>);
-                        },
+                        }
+                    },
                     <span class="ident">Working</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
                             <span class="ident">IoErrorKind::Interrupted</span>,

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;driver&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../songbird/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;driver&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird-ico.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../songbird/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;serenity-rs&#x2F;songbird&#x2F;current&#x2F;songbird.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -326,6 +326,12 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Runner for a voice connection.</span>
 <span class="doccomment">//!</span>
@@ -340,29 +346,30 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internals&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bench_internals</span>;
 
-<span class="kw">mod</span> <span class="ident">config</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">connection</span>;
 <span class="kw">mod</span> <span class="ident">crypto</span>;
 <span class="kw">mod</span> <span class="ident">decode_mode</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">retry</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">tasks</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config::Config</span>;
 <span class="kw">use</span> <span class="ident">connection::error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crypto::CryptoMode</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">crypto::CryptoState</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">decode_mode::DecodeMode</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tracks::TrackQueue</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tracks::TrackQueue</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events::EventData</span>,
     <span class="ident">input::Input</span>,
     <span class="ident">tracks</span>::{<span class="self">self</span>, <span class="ident">Track</span>, <span class="ident">TrackHandle</span>},
+    <span class="ident">Config</span>,
     <span class="ident">ConnectionInfo</span>,
     <span class="ident">Event</span>,
     <span class="ident">EventHandler</span>,
 };
-<span class="kw">use</span> <span class="ident">audiopus::Bitrate</span>;
+<span class="doccomment">/// Opus encoder bitrate settings.</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">opus</span>, <span class="ident">Bitrate</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">future::Future</span>,
     <span class="ident">pin::Pin</span>,
@@ -392,7 +399,7 @@
     <span class="doccomment">/// This will create the core voice tasks in the background.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::start_inner</span>(<span class="ident">config</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::start_inner</span>(<span class="ident">config</span>.<span class="ident">clone</span>());
 
         <span class="ident">Driver</span> {
             <span class="ident">config</span>,
@@ -412,7 +419,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">restart_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">sender</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::start_inner</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>());
+        <span class="self">self</span>.<span class="ident">sender</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::start_inner</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>());
 
         <span class="self">self</span>.<span class="ident">mute</span>(<span class="self">self</span>.<span class="ident">self_mute</span>);
     }
@@ -472,7 +479,7 @@
     <span class="doccomment">/// [`ytdl`]: crate::input::ytdl</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_source</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="kw">super</span><span class="ident">::create_player</span>(<span class="ident">source</span>);
+        <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident"><span class="kw">super</span>::create_player</span>(<span class="ident">source</span>);
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::AddTrack</span>(<span class="ident">player</span>));
 
         <span class="ident">handle</span>
@@ -486,7 +493,7 @@
     <span class="doccomment">/// [`play_source`]: Driver::play_source</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_only_source</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="kw">super</span><span class="ident">::create_player</span>(<span class="ident">source</span>);
+        <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident"><span class="kw">super</span>::create_player</span>(<span class="ident">source</span>);
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="prelude-val">Some</span>(<span class="ident">player</span>)));
 
         <span class="ident">handle</span>
@@ -541,11 +548,17 @@
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="prelude-val">None</span>))
     }
 
-    <span class="doccomment">/// Sets the configuration for this driver.</span>
+    <span class="doccomment">/// Sets the configuration for this driver (and parent `Call`, if applicable).</span>
     <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_config</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>) {
         <span class="self">self</span>.<span class="ident">config</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">clone</span>();
         <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetConfig</span>(<span class="ident">config</span>))
+    }
+
+    <span class="doccomment">/// Returns a view of this driver&#39;s configuration.</span>
+    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Config</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>
     }
 
     <span class="doccomment">/// Attach a global event handler to an audio context. Global events may receive</span>
@@ -622,7 +635,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Driver</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">Default::default</span>())
+        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">Default::default</span>())
     }
 }
 
@@ -630,7 +643,6 @@
     <span class="doccomment">/// Leaves the current connected voice channel, if connected to one, and</span>
     <span class="doccomment">/// forgets all configurations relevant to this Handler.</span>
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">leave</span>();
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Poison</span>);
     }
 }
@@ -648,7 +660,7 @@
 <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Connect</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll</span>(<span class="ident">cx</span>) {
             <span class="ident">Poll::Ready</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll::Ready</span>(<span class="ident">r</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error::AttemptDiscarded</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>)),
             <span class="ident">Poll::Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll::Pending</span>,
