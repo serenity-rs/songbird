@@ -17,7 +17,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
-symphonia-core = "0.2"
 
 [dependencies.async-trait]
 optional = true
@@ -89,6 +88,16 @@ version = "1"
 [dependencies.streamcatcher]
 optional = true
 version = "0.1"
+
+[dependencies.symphonia]
+optional = true
+# version = "0.3"
+git = "https://github.com/pdeljanov/Symphonia"
+
+[dependencies.symphonia-core]
+optional = true
+# version = "0.3"
+git = "https://github.com/pdeljanov/Symphonia"
 
 [dependencies.tokio]
 optional = true
@@ -174,6 +183,8 @@ driver-core = [
     "serenity-voice-model",
     "spin_sleep",
     "streamcatcher",
+    "symphonia",
+    "symphonia-core",
     "typemap_rev",
     "url",
     "uuid",

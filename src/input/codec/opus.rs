@@ -1,7 +1,9 @@
 use crate::constants::*;
-use audiopus::{coder::Decoder as OpusDecoder, Channels, Error as OpusError};
+use audiopus::{Channels, Error as OpusError, SampleRate, coder::Decoder as OpusDecoder, TryFrom as AudTry};
 use parking_lot::Mutex;
-use std::sync::Arc;
+use std::{convert::TryFrom, sync::Arc};
+
+use symphonia_core::{audio::{AsAudioBufferRef, AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec}, codecs::{CODEC_TYPE_OPUS, CodecParameters, CodecDescriptor, Decoder, DecoderOptions, FinalizeResult}, errors::{Result as SymphResult, decode_error}, formats::Packet};
 
 #[derive(Clone, Debug)]
 /// Inner state used to decode Opus input sources.
@@ -39,5 +41,75 @@ impl OpusDecoderState {
             frame_pos: 0,
             should_reset: false,
         }
+    }
+}
+
+/// Test wrapper around libopus for Symphonia
+pub struct SymphOpusDecoder {
+    inner: OpusDecoder,
+    params: CodecParameters,
+    buf: AudioBuffer<f32>,
+    rawbuf: Vec<f32>,
+}
+
+impl Decoder for SymphOpusDecoder {
+    fn try_new(
+        params: &CodecParameters,
+        _options: &DecoderOptions,
+    ) -> SymphResult<Self> {
+        // TODO: investigate how Symphonia wants me to specify the output format?
+        let inner = OpusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
+
+        Ok(Self {
+            inner,
+            params: params.clone(),
+            buf: AudioBuffer::new(
+                MONO_FRAME_SIZE as u64,
+                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo)
+            ),
+            rawbuf: vec![0.0f32; STEREO_FRAME_SIZE * 5],
+        })
+    }
+
+    fn supported_codecs() -> &'static [symphonia::core::codecs::CodecDescriptor] {
+        &[symphonia_core::support_codec!(CODEC_TYPE_OPUS, "opus", "libopus (1.3+, audiopus)")]
+    }
+
+    fn codec_params(&self) -> &symphonia::core::codecs::CodecParameters {
+        &self.params
+    }
+
+    fn decode(
+        &mut self,
+        packet: &Packet,
+    ) -> SymphResult<AudioBufferRef> {
+        // println!("OPUS: {}", packet.buf().len());
+        let s_ct = self.inner.decode_float(
+            Some(&packet.buf()[..]),
+            &mut self.rawbuf[..],
+            false,
+        ).unwrap();
+
+        self.buf.clear();
+        // self.buf.render_reserved(Some(self.rawbuf.len() / 2));
+        self.buf.render_reserved(Some(s_ct));
+
+        // Forcibly assuming stereo, for now.
+        for ch in 0..2 {
+            let iter = self.rawbuf.chunks_exact(2).map(|chunk| chunk[ch]);
+            for (tgt, src) in self.buf.chan_mut(ch).iter_mut().zip(iter) {
+                *tgt = src;
+            }
+        }
+
+        Ok(self.buf.as_audio_buffer_ref())
+    }
+
+    fn reset(&mut self) {
+        todo!()
+    }
+
+    fn finalize(&mut self) -> FinalizeResult {
+        unimplemented!()
     }
 }

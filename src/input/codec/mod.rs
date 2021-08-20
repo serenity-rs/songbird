@@ -2,7 +2,7 @@
 
 mod opus;
 
-pub use self::opus::OpusDecoderState;
+pub use self::opus::*;
 
 use super::*;
 use std::{fmt::Debug, mem};
