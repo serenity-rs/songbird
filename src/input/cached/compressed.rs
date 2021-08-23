@@ -2,7 +2,8 @@ use super::{apply_length_hint, compressed_cost_per_sec, default_config};
 use crate::{
     constants::*,
     input::{
-        error::{Error, Result},
+        dca::*,
+        error::{DcaError, Error, Result},
         CodecType,
         Container,
         Input,
@@ -22,7 +23,7 @@ use audiopus::{
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::{
     convert::TryInto,
-    io::{Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult},
+    io::{Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult, Write},
     mem,
     sync::atomic::{AtomicUsize, Ordering},
 };
@@ -132,6 +133,98 @@ impl Compressed {
             metadata: self.metadata.clone(),
             stereo: self.stereo,
         }
+    }
+
+    /// Reads this audio stream to the end...
+    ///
+    /// *If the stream is not finalised, this is a blocking operation.*
+    pub fn to_dca(&self) -> Result<Vec<u8>> {
+        let mut out = vec![];
+
+        self.write_dca(&mut out).map(|b_len| {
+            out.truncate(b_len);
+            out
+        })
+    }
+
+    /// Writes out...
+    ///
+    /// *If the stream is not finalised, this is a blocking operation.*
+    pub fn write_dca<W: Write>(&self, mut out: W) -> Result<usize> {
+        let mut out_len = 4;
+
+        out.write_all(b"DCA1")?;
+
+        // Metadata handling
+        let dca = DcaInfo {
+            version: 1,
+            tool: Tool {
+                name: env!("CARGO_PKG_NAME").into(),
+                version: env!("CARGO_PKG_VERSION").into(),
+                url: Some(env!("CARGO_PKG_HOMEPAGE").into()),
+                author: Some(env!("CARGO_PKG_AUTHORS").into()),
+            },
+        };
+        // TODO: query these from the encoder instance.
+        let opus = Opus {
+            mode: "audio".into(),
+            // TODO: read
+            sample_rate: 48000,
+            // I assume this means the input size? Says bytes, but could be samples?
+            frame_size: if self.stereo {
+                STEREO_FRAME_BYTE_SIZE as u64
+            } else {
+                MONO_FRAME_BYTE_SIZE as u64
+            },
+            // TODO: read
+            abr: Some(320_000),
+            // TODO: read
+            vbr: false,
+            channels: if self.stereo { 2 } else { 1 },
+        };
+        let origin = Some(Origin {
+            source: Some("generated".into()),
+            abr: None,
+            channels: Some(if self.stereo { 2 } else { 1 }),
+            encoding: None,
+            url: self.metadata.source_url.clone(),
+        });
+        let info = Some(Info {
+            title: self
+                .metadata
+                .track
+                .clone()
+                .or_else(|| self.metadata.title.clone()),
+            artist: self.metadata.artist.clone(),
+            album: None,
+            genre: None,
+            cover: None,
+        });
+        let out_meta = crate::input::dca::DcaMetadata {
+            dca,
+            opus,
+            info,
+            origin,
+            extra: None,
+        };
+        let meta = serde_json::to_vec(&out_meta).map_err(DcaError::InvalidMetadata)?;
+
+        out.write_i32::<LittleEndian>(meta.len() as i32)?;
+        out.write_all(&meta[..])?;
+
+        out_len += mem::size_of::<i32>() + meta.len();
+
+        let mut starter_gun = self.new_handle();
+        Ok(std::io::copy(&mut starter_gun.raw, &mut out)
+            .map(|dca0_len| (dca0_len as usize) + out_len)?)
+    }
+
+    /// Same but no headers. Seems to have some issue atm...
+    ///
+    /// *Please don't call from `async`. Thanks.*
+    pub fn write_dca0<W: Write>(&self, mut out: W) -> Result<usize> {
+        let mut starter_gun = self.new_handle();
+        Ok(std::io::copy(&mut starter_gun.raw, &mut out).map(|v| v as usize)?)
     }
 }
 

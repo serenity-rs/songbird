@@ -1,9 +1,27 @@
 use crate::constants::*;
-use audiopus::{Channels, Error as OpusError, SampleRate, coder::Decoder as OpusDecoder, TryFrom as AudTry};
+use audiopus::{
+    coder::Decoder as OpusDecoder,
+    Channels,
+    Error as OpusError,
+    SampleRate,
+    TryFrom as AudTry,
+};
 use parking_lot::Mutex;
 use std::{convert::TryFrom, sync::Arc};
 
-use symphonia_core::{audio::{AsAudioBufferRef, AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec}, codecs::{CODEC_TYPE_OPUS, CodecParameters, CodecDescriptor, Decoder, DecoderOptions, FinalizeResult}, errors::{Result as SymphResult, decode_error}, formats::Packet};
+use symphonia_core::{
+    audio::{AsAudioBufferRef, AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec},
+    codecs::{
+        CodecDescriptor,
+        CodecParameters,
+        Decoder,
+        DecoderOptions,
+        FinalizeResult,
+        CODEC_TYPE_OPUS,
+    },
+    errors::{decode_error, Result as SymphResult},
+    formats::Packet,
+};
 
 #[derive(Clone, Debug)]
 /// Inner state used to decode Opus input sources.
@@ -53,10 +71,7 @@ pub struct SymphOpusDecoder {
 }
 
 impl Decoder for SymphOpusDecoder {
-    fn try_new(
-        params: &CodecParameters,
-        _options: &DecoderOptions,
-    ) -> SymphResult<Self> {
+    fn try_new(params: &CodecParameters, _options: &DecoderOptions) -> SymphResult<Self> {
         // TODO: investigate how Symphonia wants me to specify the output format?
         let inner = OpusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
 
@@ -65,33 +80,51 @@ impl Decoder for SymphOpusDecoder {
             params: params.clone(),
             buf: AudioBuffer::new(
                 MONO_FRAME_SIZE as u64,
-                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo)
+                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
             ),
-            rawbuf: vec![0.0f32; STEREO_FRAME_SIZE * 5],
+            rawbuf: vec![0.0f32; STEREO_FRAME_SIZE],
         })
     }
 
     fn supported_codecs() -> &'static [symphonia::core::codecs::CodecDescriptor] {
-        &[symphonia_core::support_codec!(CODEC_TYPE_OPUS, "opus", "libopus (1.3+, audiopus)")]
+        &[symphonia_core::support_codec!(
+            CODEC_TYPE_OPUS,
+            "opus",
+            "libopus (1.3+, audiopus)"
+        )]
     }
 
     fn codec_params(&self) -> &symphonia::core::codecs::CodecParameters {
         &self.params
     }
 
-    fn decode(
-        &mut self,
-        packet: &Packet,
-    ) -> SymphResult<AudioBufferRef> {
-        // println!("OPUS: {}", packet.buf().len());
-        let s_ct = self.inner.decode_float(
-            Some(&packet.buf()[..]),
-            &mut self.rawbuf[..],
-            false,
-        ).unwrap();
+    fn decode(&mut self, packet: &Packet) -> SymphResult<AudioBufferRef> {
+        let pkt = if packet.buf().len() == 0 {
+            None
+        } else {
+            Some(&packet.buf()[..])
+        };
+
+        let s_ct = loop {
+            match self.inner.decode_float(pkt, &mut self.rawbuf[..], false) {
+                Ok(v) => break v,
+                Err(OpusError::Opus(audiopus::ErrorCode::BufferTooSmall)) => {
+                    // double the buffer size
+                    // correct behav would be to mirror the decoder logic in the udp_rx set.
+                    self.rawbuf.resize(self.rawbuf.len() * 2, 0.0);
+                    self.buf = AudioBuffer::new(
+                        self.rawbuf.len() as u64 / 2,
+                        SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
+                    );
+                },
+                Err(e) => {
+                    tracing::error!("Opus decode error: {:?}", e);
+                    return decode_error("desc");
+                },
+            }
+        };
 
         self.buf.clear();
-        // self.buf.render_reserved(Some(self.rawbuf.len() / 2));
         self.buf.render_reserved(Some(s_ct));
 
         // Forcibly assuming stereo, for now.

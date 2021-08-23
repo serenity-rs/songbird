@@ -45,7 +45,7 @@ pub use self::{
     child::*,
     codec::{Codec, CodecType},
     container::{Container, Frame},
-    dca::dca,
+    dca::{dca, SymphDcaReader},
     ffmpeg_src::*,
     metadata::Metadata,
     reader::Reader,
