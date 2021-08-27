@@ -221,6 +221,7 @@ tokio-02-marker = []
 
 # Behaviour altering features.
 youtube-dlc = []
+yt-dlp = []
 builtin-queue = []
 
 # Used for docgen/testing/benchmarking.

@@ -19,6 +19,8 @@ use tracing::trace;
 
 const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
     "youtube-dlc"
+} else if cfg!(feature = "yt-dlp") {
+    "yt-dlp"
 } else {
     "youtube-dl"
 };
