@@ -9,7 +9,7 @@ use crate::{
 use flume::Sender;
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug)]
+// #[derive(Debug)]
 pub enum CoreMessage {
     ConnectWithResult(ConnectionInfo, Sender<Result<(), Error>>),
     RetryConnect(usize),
@@ -26,4 +26,6 @@ pub enum CoreMessage {
     FullReconnect,
     RebuildInterconnect,
     Poison,
+
+    SymphTrack(crate::input::SymphInput),
 }

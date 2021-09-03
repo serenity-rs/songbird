@@ -18,7 +18,8 @@ use discortp::{
 use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
 use spin_sleep::SpinSleeper;
-use std::time::Instant;
+use std::{collections::HashMap, time::Instant};
+use symphonia_core::audio::{Layout, SampleBuffer, Signal};
 #[cfg(not(feature = "tokio-02-marker"))]
 use tokio::runtime::Handle;
 #[cfg(feature = "tokio-02-marker")]
@@ -45,6 +46,9 @@ pub struct Mixer {
     pub soft_clip: SoftClip,
     pub tracks: Vec<Track>,
     pub ws: Option<Sender<WsMessage>>,
+
+    pub symph_formats: Vec<Box<dyn symphonia_core::formats::FormatReader>>,
+    pub symph_decoders: Vec<HashMap<u32, Box<dyn symphonia_core::codecs::Decoder>>>,
 }
 
 fn new_encoder(bitrate: Bitrate) -> Result<OpusEncoder> {
@@ -102,6 +106,9 @@ impl Mixer {
             soft_clip,
             tracks,
             ws: None,
+
+            symph_formats: vec![],
+            symph_decoders: vec![],
         }
     }
 
@@ -301,6 +308,61 @@ impl Mixer {
                 should_exit = true;
                 Ok(())
             },
+
+            SymphTrack(s) => {
+                match s {
+                    crate::input::SymphInput::Lazy(_) => todo!(),
+                    crate::input::SymphInput::Raw(_) => todo!(),
+                    crate::input::SymphInput::Wrapped(wrapped) => {
+                        // FIXME: clean this up and let people config their own probes etc.
+                        // FIXME: offer reasonable default (lazy-static) which includes these already.
+                        let mut reg = symphonia::core::codecs::CodecRegistry::new();
+                        symphonia::default::register_enabled_codecs(&mut reg);
+                        reg.register_all::<crate::input::codec::SymphOpusDecoder>();
+
+                        let probe = symphonia::default::get_probe();
+
+                        let mut probe = symphonia::core::probe::Probe::default();
+                        probe.register_all::<crate::input::SymphDcaReader>();
+                        symphonia::default::register_enabled_formats(&mut probe);
+
+                        // TODO: figure out various methods to maybe pass a hint in, too.
+                        let mut hint = symphonia::core::probe::Hint::new();
+
+                        let f =
+                            probe.format(&hint, wrapped, &Default::default(), &Default::default());
+
+                        // TODO: find a way to pass init/track errors back out to calling code.
+                        match f {
+                            Ok(pr) => {
+                                let mut formatter = pr.format;
+
+                                let mut tracks = std::collections::HashMap::new();
+
+                                for track in formatter.tracks() {
+                                    match reg.make(&track.codec_params, &Default::default()) {
+                                        Ok(mut txer) => {
+                                            tracks.insert(track.id, txer);
+                                        },
+                                        Err(e) => {
+                                            println!("\t\tMake error: {:?}", e);
+                                        },
+                                    }
+                                }
+
+                                self.symph_formats.push(formatter);
+                                self.symph_decoders.push(tracks);
+                            },
+                            Err(e) => {
+                                println!("Symph error: {:?}", e);
+                            },
+                        }
+
+                        Ok(())
+                    },
+                    crate::input::SymphInput::Parsed(_) => todo!(),
+                }
+            },
         };
 
         if let Err(e) = error {
@@ -412,7 +474,24 @@ impl Mixer {
     }
 
     pub fn cycle(&mut self) -> Result<()> {
+        // TODO: allow mixer config to be either stereo or mono.
         let mut mix_buffer = [0f32; STEREO_FRAME_SIZE];
+        let mut symph_buffer = SampleBuffer::<f32>::new(
+            MONO_FRAME_SIZE as u64,
+            symphonia_core::audio::SignalSpec::new_with_layout(
+                SAMPLE_RATE_RAW as u32,
+                Layout::Stereo,
+            ),
+        );
+        let mut symph_mix = symphonia_core::audio::AudioBuffer::<f32>::new(
+            MONO_FRAME_SIZE as u64,
+            symphonia_core::audio::SignalSpec::new_with_layout(
+                SAMPLE_RATE_RAW as u32,
+                Layout::Stereo,
+            ),
+        );
+
+        symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
 
         // Walk over all the audio files, combining into one audio frame according
         // to volume, play state, etc.
@@ -425,13 +504,59 @@ impl Mixer {
             let payload = rtp.payload_mut();
 
             // self.mix_tracks(&mut payload[TAG_SIZE..], &mut mix_buffer)
-            mix_tracks(
-                &mut payload[TAG_SIZE..],
-                &mut mix_buffer,
-                &mut self.tracks,
-                &self.interconnect,
-                self.prevent_events,
-            )
+            // mix_tracks(
+            //     &mut payload[TAG_SIZE..],
+            //     &mut mix_buffer,
+            //     &mut self.tracks,
+            //     &self.interconnect,
+            //     self.prevent_events,
+            // )
+
+            let mut occup = 0;
+
+            for (format, dec_map) in self
+                .symph_formats
+                .iter_mut()
+                .zip(self.symph_decoders.iter_mut())
+            {
+                // FIXME: assumes only one track per input.
+                if let Ok(pkt) = format.next_packet() {
+                    if let Some(txer) = dec_map.get_mut(&pkt.track_id()) {
+                        match txer.decode(&pkt) {
+                            Ok(bytes) => {
+                                match bytes {
+                                    symphonia_core::audio::AudioBufferRef::F32(frame) => {
+                                        occup = occup.max(frame.frames() * 2);
+
+                                        let mut d_planes = symph_mix.planes_mut();
+                                        let s_planes = frame.planes();
+
+                                        // FIXME: downmix
+                                        for (d_plane, s_plane) in (&mut d_planes.planes()[..])
+                                            .iter_mut()
+                                            .zip(s_planes.planes()[..].iter())
+                                        {
+                                            for (d, s) in d_plane.iter_mut().zip(s_plane.iter()) {
+                                                *d += s;
+                                            }
+                                        }
+                                    },
+                                    _ => {
+                                        eprintln!("non float frame!");
+                                    },
+                                }
+                            },
+                            Err(e) => {
+                                eprintln!("SYMPH PKT ERROR: {:?}", e);
+                            },
+                        }
+                    }
+                }
+            }
+
+            symph_buffer.copy_interleaved_typed(&symph_mix);
+
+            MixType::MixedPcm(occup)
         };
 
         self.soft_clip.apply(&mut mix_buffer[..])?;
@@ -479,7 +604,8 @@ impl Mixer {
         }
 
         self.march_deadline();
-        self.prep_and_send_packet(mix_buffer, mix_len)?;
+        // self.prep_and_send_packet(mix_buffer, mix_len)?;
+        self.prep_and_send_packet(symph_buffer.samples(), mix_len)?;
 
         Ok(())
     }
@@ -489,7 +615,7 @@ impl Mixer {
     }
 
     #[inline]
-    fn prep_and_send_packet(&mut self, buffer: [f32; 1920], mix_len: MixType) -> Result<()> {
+    fn prep_and_send_packet(&mut self, buffer: &[f32], mix_len: MixType) -> Result<()> {
         let conn = self
             .conn_active
             .as_mut()

@@ -39,4 +39,6 @@ pub enum MixerMessage {
     RebuildEncoder,
 
     Poison,
+
+    SymphTrack(crate::input::SymphInput),
 }

@@ -227,6 +227,10 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
             Err(RecvError::Disconnected) | Ok(CoreMessage::Poison) => {
                 break;
             },
+
+            Ok(CoreMessage::SymphTrack(s)) => {
+                let _ = interconnect.mixer.send(MixerMessage::SymphTrack(s));
+            },
         }
     }
 

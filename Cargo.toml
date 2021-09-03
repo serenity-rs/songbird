@@ -93,11 +93,13 @@ version = "0.1"
 optional = true
 # version = "0.3"
 git = "https://github.com/pdeljanov/Symphonia"
+# path = "../Symphonia/symphonia"
 
 [dependencies.symphonia-core]
 optional = true
 # version = "0.3"
 git = "https://github.com/pdeljanov/Symphonia"
+# path = "../Symphonia/symphonia-core"
 
 [dependencies.tokio]
 optional = true

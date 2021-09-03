@@ -26,7 +26,7 @@ pub use decode_mode::DecodeMode;
 use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,
-    input::Input,
+    input::{Input, SymphInput},
     tracks::{self, Track, TrackHandle},
     Config,
     ConnectionInfo,
@@ -259,6 +259,11 @@ impl Driver {
 
             self.sender.send(status).unwrap();
         }
+    }
+
+    /// Testing stuff out ig.
+    pub fn play_symph(&mut self, track: SymphInput) {
+        self.send(CoreMessage::SymphTrack(track));
     }
 }
 

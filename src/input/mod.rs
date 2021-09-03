@@ -79,6 +79,23 @@ use std::{
 };
 use tracing::{debug, error};
 
+/// Test text hello.
+///
+/// questions: how to merge with track management? how to handle metadata user-side?
+pub enum SymphInput {
+    /// Probably want to define a trait so that people can spit out an
+    /// input, maybe having an async context? This way I can:
+    /// * permanantly sunset restartables: a great idea when people remember them,
+    ///   but it'll be better if I can make their lazy mode the default.
+    Lazy(Box<dyn std::fmt::Debug + Send>),
+    /// Literally just a ReadSeek.
+    Raw(Box<dyn symphonia_core::io::MediaSource>),
+    /// A parsed and buffered stream?
+    Wrapped(symphonia_core::io::MediaSourceStream),
+    /// Account for tyhe case that someone proceses their stream entirely locally?
+    Parsed(Box<dyn std::fmt::Debug + Send>),
+}
+
 /// Data and metadata needed to correctly parse a [`Reader`]'s audio bytestream.
 ///
 /// See the [module root] for more information.

@@ -9,6 +9,12 @@ tracing = "0.1"
 tracing-subscriber = "0.2"
 tracing-futures = "0.2"
 
+[dependencies.symphonia]
+# version = "0.3"
+git = "https://github.com/pdeljanov/Symphonia"
+# path = "../../../../Symphonia/symphonia"
+features = ["mp3", "isomp4"]
+
 [dependencies.songbird]
 path = "../../../"
 

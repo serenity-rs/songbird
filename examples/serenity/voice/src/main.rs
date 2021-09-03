@@ -66,6 +66,85 @@ async fn main() {
     tokio::spawn(async move {
         let _ = client.start().await.map_err(|why| println!("Client ended: {:?}", why));
     });
+
+    /*
+    // Symphonia testing.
+    // let reg = symphonia::default::get_codecs();
+    let mut reg = symphonia::core::codecs::CodecRegistry::new();
+    symphonia::default::register_enabled_codecs(&mut reg);
+    reg.register_all::<songbird::input::codec::SymphOpusDecoder>();
+
+    let probe = symphonia::default::get_probe();
+
+    let mut probe = symphonia::core::probe::Probe::default();
+    probe.register_all::<songbird::input::SymphDcaReader>();
+    symphonia::default::register_enabled_formats(&mut probe);
+
+    let formats = [
+        "02-gojira-amazonia.mp3",
+        "02-gojira-amazonia.ogg",
+        "02-gojira-amazonia.opus",
+        "02-gojira-amazonia.flac",
+        // "ckick-dca0.dca",
+        "ckick-dca1.dca",
+    ];
+    for target_file in formats {
+        let path = std::path::Path::new(target_file);
+        let file = std::fs::File::open(path).unwrap();
+        let mss = symphonia::core::io::MediaSourceStream::new(Box::new(file), Default::default());
+
+        let ext = path.extension().and_then(|v| v.to_str());
+        let ext = ext.as_ref().unwrap();
+
+        println!("Hint ext: {:?}", ext);
+
+        let mut hint = symphonia::core::probe::Hint::new();
+        hint.with_extension(ext);
+
+        let f = probe.format(
+            &hint,
+            mss,
+            &Default::default(),
+            &Default::default(),
+        );
+
+        match f {
+            Ok(pr) => {
+                let mut formatter = pr.format;
+                println!("Symph ({}):", target_file);//formatter.tracks());
+
+                let mut tracks = std::collections::HashMap::new();
+
+                for track in formatter.tracks() {
+                    println!("\tTrack {}: {:?} {}", track.id, track.language, track.codec_params.codec);
+                    match reg.make(&track.codec_params, &Default::default()) {
+                        Ok(mut txer) => {
+                            println!("\t\tMake success!");
+
+                            tracks.insert(track.id, txer);
+                        },
+                        Err(e) => {
+                            println!("\t\tMake error: {:?}", e);
+                        },
+                    }
+                }
+
+                while let Ok(pkt) = formatter.next_packet() {
+                    if let Some(txer) = tracks.get_mut(&pkt.track_id()) {
+                        if let Err(e) = txer.decode(&pkt) {
+                            println!("\t\t\tERROR: {:?}", e);
+                        }
+                    }
+                }
+            },
+            Err(e) => {
+                println!("Symph error ({}): {:?}", target_file, e);
+            },
+        }
+    }
+
+    println!("Done!");
+    */
     
     tokio::signal::ctrl_c().await;
     println!("Received Ctrl-C, shutting down.");
@@ -188,8 +267,37 @@ async fn mute(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-async fn ping(context: &Context, msg: &Message) -> CommandResult {
-    check_msg(msg.channel_id.say(&context.http, "Pong!").await);
+async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
+    check_msg(msg.channel_id.say(&ctx.http, "Pong!").await);
+
+    let songs = [
+        "02-gojira-amazonia.mp3",
+        "02-gojira-amazonia.ogg",
+        "02-gojira-amazonia.opus",
+        "02-gojira-amazonia.flac",
+        // "ckick-dca0.dca",
+        "ckick-dca1.dca",
+    ];
+
+    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild_id = guild.id;
+
+    let manager = songbird::get(ctx).await
+        .expect("Songbird Voice client placed in at initialisation.").clone();
+
+    if let Some(handler_lock) = manager.get(guild_id) {
+        let mut handler = handler_lock.lock().await;
+
+        let path = std::path::Path::new(songs[4]);
+        let file = std::fs::File::open(path).unwrap();
+        let mss = symphonia::core::io::MediaSourceStream::new(Box::new(file), Default::default());
+
+        handler.play_symph(songbird::input::SymphInput::Wrapped(mss));
+
+        check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
+    } else {
+        check_msg(msg.channel_id.say(&ctx.http, "Not in a voice channel to play in").await);
+    }
 
     Ok(())
 }
