@@ -145,4 +145,12 @@ impl Decoder for SymphOpusDecoder {
     fn finalize(&mut self) -> FinalizeResult {
         unimplemented!()
     }
+
+    fn last_decoded(&self) -> Option<AudioBufferRef> {
+        if self.buf.frames() != 0 {
+            Some(self.buf.as_audio_buffer_ref())
+        } else {
+            None
+        }
+    }
 }

@@ -71,6 +71,10 @@ version = "1"
 optional = true
 version = "0.8"
 
+[dependencies.rubato]
+optional = true
+version = "0.10"
+
 [dependencies.serenity]
 optional = true
 version = "^0.10.2"
@@ -92,13 +96,15 @@ version = "0.1"
 [dependencies.symphonia]
 optional = true
 # version = "0.3"
-git = "https://github.com/pdeljanov/Symphonia"
+git = "https://github.com/felixmcfelix/Symphonia"
+branch = "last-packet"
 # path = "../Symphonia/symphonia"
 
 [dependencies.symphonia-core]
 optional = true
 # version = "0.3"
-git = "https://github.com/pdeljanov/Symphonia"
+git = "https://github.com/felixmcfelix/Symphonia"
+branch = "last-packet"
 # path = "../Symphonia/symphonia-core"
 
 [dependencies.tokio]
@@ -182,6 +188,7 @@ driver-core = [
     "flume",
     "parking_lot",
     "rand",
+    "rubato",
     "serenity-voice-model",
     "spin_sleep",
     "streamcatcher",

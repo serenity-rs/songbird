@@ -140,6 +140,16 @@ async fn main() {
                 Bitrate::BitsPerSecond(128_000),
             ).expect("These parameters are well-defined.");
         let _ = song_src.raw.spawn_loader();
+
+        let mut creator = song_src.new_handle();
+        std::thread::spawn(move || {
+            let mut f1 = std::fs::File::create("ckick-dca0.dca").unwrap();
+            creator.write_dca0(f1).unwrap();
+
+            let mut f2 = std::fs::File::create("ckick-dca1.dca").unwrap();
+            creator.write_dca(f2).unwrap();
+        });
+
         audio_map.insert("song".into(), CachedSound::Compressed(song_src));
 
         data.insert::<SoundStore>(Arc::new(Mutex::new(audio_map)));

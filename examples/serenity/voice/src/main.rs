@@ -288,9 +288,17 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let path = std::path::Path::new(songs[4]);
+        let path = std::path::Path::new(songs[0]);
+
+        let t1 = std::time::Instant::now();
         let file = std::fs::File::open(path).unwrap();
+        let d1 = t1.elapsed();
+
+        let t2 = std::time::Instant::now();
         let mss = symphonia::core::io::MediaSourceStream::new(Box::new(file), Default::default());
+        let d2 = t2.elapsed();
+
+        println!("init times file {}, mss {}", d1.as_nanos(), d2.as_nanos());
 
         handler.play_symph(songbird::input::SymphInput::Wrapped(mss));
 

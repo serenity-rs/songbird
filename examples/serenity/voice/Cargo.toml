@@ -11,8 +11,10 @@ tracing-futures = "0.2"
 
 [dependencies.symphonia]
 # version = "0.3"
-git = "https://github.com/pdeljanov/Symphonia"
+# git = "https://github.com/pdeljanov/Symphonia"
 # path = "../../../../Symphonia/symphonia"
+git = "https://github.com/felixmcfelix/Symphonia"
+branch = "last-packet"
 features = ["mp3", "isomp4"]
 
 [dependencies.songbird]

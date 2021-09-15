@@ -27,6 +27,9 @@ pub const TIMESTEP_LENGTH: Duration = Duration::from_millis(1000 / AUDIO_FRAME_R
 /// Default bitrate for audio.
 pub const DEFAULT_BITRATE: Bitrate = Bitrate::BitsPerSecond(128_000);
 
+/// Number of output samples at 48kHZ to produced when resampling subframes.
+pub(crate) const RESAMPLE_OUTPUT_FRAME_SIZE: usize = MONO_FRAME_SIZE / 4;
+
 /// Number of samples in one complete frame of audio per channel.
 ///
 /// This is equally the number of stereo (joint) samples in an audio frame.

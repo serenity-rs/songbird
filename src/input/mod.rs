@@ -64,6 +64,7 @@ use tokio::runtime::Handle;
 use tokio_compat::runtime::Handle;
 
 use std::{
+    collections::HashMap,
     convert::TryFrom,
     io::{
         self,
@@ -79,6 +80,14 @@ use std::{
 };
 use tracing::{debug, error};
 
+use symphonia_core::{
+    audio::AudioBufferRef,
+    codecs::Decoder,
+    formats::FormatReader,
+    io::{MediaSource, MediaSourceStream},
+    probe::Hint,
+};
+
 /// Test text hello.
 ///
 /// questions: how to merge with track management? how to handle metadata user-side?
@@ -87,13 +96,51 @@ pub enum SymphInput {
     /// input, maybe having an async context? This way I can:
     /// * permanantly sunset restartables: a great idea when people remember them,
     ///   but it'll be better if I can make their lazy mode the default.
-    Lazy(Box<dyn std::fmt::Debug + Send>),
+    Lazy(Box<dyn Compose>),
     /// Literally just a ReadSeek.
-    Raw(Box<dyn symphonia_core::io::MediaSource>),
+    Raw(Box<dyn MediaSource>),
     /// A parsed and buffered stream?
     Wrapped(symphonia_core::io::MediaSourceStream),
     /// Account for tyhe case that someone proceses their stream entirely locally?
-    Parsed(Box<dyn std::fmt::Debug + Send>),
+    /// FIXME: Rename me to Live.
+    Parsed(LiveInput, Option<Box<dyn Compose>>),
+}
+
+#[allow(missing_docs)]
+pub enum LiveInput {
+    Raw(Blarga<Box<dyn MediaSource>>),
+    Wrapped(Blarga<MediaSourceStream>),
+    Parsed(Parsed),
+}
+
+#[allow(missing_docs)]
+#[async_trait::async_trait]
+pub trait Compose: Send {
+    /// Create a source synchronously.
+    fn create(&mut self) -> std::result::Result<Blarga<Box<dyn MediaSource>>, Bloopa>;
+    /// Create a source asynchronously.
+    async fn create_async(&mut self) -> std::result::Result<Blarga<Box<dyn MediaSource>>, Bloopa>;
+    /// Hmm.
+    fn should_create_async(&self) -> bool;
+}
+
+#[allow(missing_docs)]
+pub struct Blarga<T: Send> {
+    pub input: T,
+    pub hint: Option<Hint>,
+}
+
+#[allow(missing_docs)]
+#[non_exhaustive]
+pub enum Bloopa {
+    RetryIn(Duration),
+    Fail(Box<dyn std::error::Error>),
+}
+
+#[allow(missing_docs)]
+pub struct Parsed {
+    pub format: Box<dyn FormatReader>,
+    pub decoders: HashMap<u32, Box<dyn Decoder>>,
 }
 
 /// Data and metadata needed to correctly parse a [`Reader`]'s audio bytestream.

@@ -17,6 +17,7 @@ use discortp::{
 };
 use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
+use rubato::Resampler;
 use spin_sleep::SpinSleeper;
 use std::{collections::HashMap, time::Instant};
 use symphonia_core::audio::{Layout, SampleBuffer, Signal};
@@ -49,6 +50,10 @@ pub struct Mixer {
 
     pub symph_formats: Vec<Box<dyn symphonia_core::formats::FormatReader>>,
     pub symph_decoders: Vec<HashMap<u32, Box<dyn symphonia_core::codecs::Decoder>>>,
+    pub symph_resamplers: Vec<HashMap<u32, rubato::FftFixedOut<f32>>>,
+    pub symph_inner_frame_pos: Vec<HashMap<u32, Option<usize>>>,
+    // Should the above hashmaps be stuck together?
+    // Do we just make the simplifying assumption and use only the default track?
 }
 
 fn new_encoder(bitrate: Bitrate) -> Result<OpusEncoder> {
@@ -109,6 +114,8 @@ impl Mixer {
 
             symph_formats: vec![],
             symph_decoders: vec![],
+            symph_resamplers: vec![],
+            symph_inner_frame_pos: vec![],
         }
     }
 
@@ -329,15 +336,17 @@ impl Mixer {
                         // TODO: figure out various methods to maybe pass a hint in, too.
                         let mut hint = symphonia::core::probe::Hint::new();
 
+                        let p_ta = std::time::Instant::now();
                         let f =
                             probe.format(&hint, wrapped, &Default::default(), &Default::default());
+                        let d1 = p_ta.elapsed();
 
                         // TODO: find a way to pass init/track errors back out to calling code.
                         match f {
                             Ok(pr) => {
                                 let mut formatter = pr.format;
 
-                                let mut tracks = std::collections::HashMap::new();
+                                let mut tracks = HashMap::new();
 
                                 for track in formatter.tracks() {
                                     match reg.make(&track.codec_params, &Default::default()) {
@@ -352,15 +361,21 @@ impl Mixer {
 
                                 self.symph_formats.push(formatter);
                                 self.symph_decoders.push(tracks);
+                                self.symph_resamplers.push(HashMap::default());
                             },
                             Err(e) => {
                                 println!("Symph error: {:?}", e);
                             },
                         }
+                        println!(
+                            "init time probe format {}, make decoders {}",
+                            d1.as_nanos(),
+                            p_ta.elapsed().as_nanos()
+                        );
 
                         Ok(())
                     },
-                    crate::input::SymphInput::Parsed(_) => todo!(),
+                    crate::input::SymphInput::Parsed(_, _) => todo!(),
                 }
             },
         };
@@ -514,30 +529,74 @@ impl Mixer {
 
             let mut occup = 0;
 
-            for (format, dec_map) in self
+            for ((format, dec_map), resample_map) in self
                 .symph_formats
                 .iter_mut()
                 .zip(self.symph_decoders.iter_mut())
+                .zip(self.symph_resamplers.iter_mut())
             {
                 // FIXME: assumes only one track per input.
+                // FIXME: has a big issue with frame size: need to handle too big AND too small!
                 if let Ok(pkt) = format.next_packet() {
                     if let Some(txer) = dec_map.get_mut(&pkt.track_id()) {
                         match txer.decode(&pkt) {
                             Ok(bytes) => {
                                 match bytes {
                                     symphonia_core::audio::AudioBufferRef::F32(frame) => {
+                                        println!(
+                                            "pkt len {} samples @ {}Hz",
+                                            frame.frames(),
+                                            frame.spec().rate
+                                        );
+
                                         occup = occup.max(frame.frames() * 2);
 
                                         let mut d_planes = symph_mix.planes_mut();
                                         let s_planes = frame.planes();
 
-                                        // FIXME: downmix
-                                        for (d_plane, s_plane) in (&mut d_planes.planes()[..])
-                                            .iter_mut()
-                                            .zip(s_planes.planes()[..].iter())
-                                        {
-                                            for (d, s) in d_plane.iter_mut().zip(s_plane.iter()) {
-                                                *d += s;
+                                        // NOTE: this is garbage. just for understanding relative costs...
+                                        if frame.spec().rate != 48000 {
+                                            let chan_c = frame.spec().channels.count();
+
+                                            let rs = resample_map
+                                                .entry(pkt.track_id())
+                                                .or_insert_with(|| {
+                                                    rubato::FftFixedOut::new(
+                                                        frame.spec().rate as usize,
+                                                        SAMPLE_RATE_RAW,
+                                                        RESAMPLE_OUTPUT_FRAME_SIZE,
+                                                        1,
+                                                        chan_c,
+                                                    )
+                                                });
+
+                                            let t = Instant::now();
+                                            let rs_planes = rs.process(s_planes.planes()).unwrap();
+                                            println!(
+                                                "Resample cost: {}ns, {} samples",
+                                                t.elapsed().as_nanos(),
+                                                rs_planes[0].len()
+                                            );
+
+                                            for (d_plane, s_plane) in (&mut d_planes.planes()[..])
+                                                .iter_mut()
+                                                .zip(rs_planes.iter())
+                                            {
+                                                for (d, s) in d_plane.iter_mut().zip(s_plane.iter())
+                                                {
+                                                    *d += s;
+                                                }
+                                            }
+                                        } else {
+                                            // FIXME: downmix
+                                            for (d_plane, s_plane) in (&mut d_planes.planes()[..])
+                                                .iter_mut()
+                                                .zip(s_planes.planes()[..].iter())
+                                            {
+                                                for (d, s) in d_plane.iter_mut().zip(s_plane.iter())
+                                                {
+                                                    *d += s;
+                                                }
                                             }
                                         }
                                     },
