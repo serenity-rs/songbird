@@ -42,8 +42,7 @@
 <span id="42">42</span>
 <span id="43">43</span>
 <span id="44">44</span>
-</pre><pre class="rust">
-<span class="doccomment">//! In-memory, shared input sources for reuse between calls, fast seeking, and</span>
+</pre><pre class="rust"><code><span class="doccomment">//! In-memory, shared input sources for reuse between calls, fast seeking, and</span>
 <span class="doccomment">//! direct Opus frame passthrough.</span>
 
 <span class="kw">mod</span> <span class="ident">compressed</span>;
@@ -87,7 +86,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_config</span>(<span class="ident">cost_per_sec</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
     <span class="ident">Config::new</span>().<span class="ident">chunk_size</span>(<span class="ident">GrowthStrategy::Constant</span>(<span class="number">5</span> <span class="op">*</span> <span class="ident">cost_per_sec</span>))
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
 </body></html>

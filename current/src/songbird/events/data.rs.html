@@ -86,8 +86,7 @@
 <span id="86">86</span>
 <span id="87">87</span>
 <span id="88">88</span>
-</pre><pre class="rust">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp::Ordering</span>, <span class="ident">time::Duration</span>};
 
 <span class="doccomment">/// Internal representation of an event, as handled by the audio context.</span>
@@ -155,7 +154,7 @@
                 .<span class="ident">as_ref</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;T2 known to be well-defined by above.&quot;</span>);
 
-            <span class="ident">t1</span>.<span class="ident">cmp</span>(<span class="ident">t2</span>)
+            <span class="ident">t2</span>.<span class="ident">cmp</span>(<span class="ident">t1</span>)
         } <span class="kw">else</span> {
             <span class="ident">Ordering::Equal</span>
         }
@@ -175,7 +174,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">EventData</span> {}
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>
