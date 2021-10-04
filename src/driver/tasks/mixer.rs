@@ -50,8 +50,18 @@ pub struct Mixer {
     pub skip_sleep: bool,
     pub sleeper: SpinSleeper,
     pub soft_clip: SoftClip,
-    pub tracks: Vec<Track>,
     pub ws: Option<Sender<WsMessage>>,
+
+    // fn mix_symph_indiv(
+    //     symph_mix: &mut AudioBuffer<f32>,
+    //     resample_scratch: &mut AudioBuffer<f32>,
+    //     input: &mut Parsed,
+    //     local_state: &mut LocalInput,
+    //     volume: f32,
+    // )
+    pub tracks: Vec<Track>,
+    pub full_inputs: Vec<Parsed>,
+    input_states: Vec<LocalInput>,
 
     pub symph_formats: Vec<Box<dyn symphonia_core::formats::FormatReader>>,
     pub symph_decoders: Vec<HashMap<u32, Box<dyn symphonia_core::codecs::Decoder>>>,
@@ -92,6 +102,8 @@ impl Mixer {
         rtp.set_timestamp(random::<u32>().into());
 
         let tracks = Vec::with_capacity(1.max(config.preallocated_tracks));
+        let full_inputs = Vec::with_capacity(1.max(config.preallocated_tracks));
+        let input_states = Vec::with_capacity(1.max(config.preallocated_tracks));
 
         // Create an object disposal thread here.
         let (disposer, disposal_rx) = flume::unbounded();
@@ -114,8 +126,11 @@ impl Mixer {
             skip_sleep: false,
             sleeper: Default::default(),
             soft_clip,
-            tracks,
             ws: None,
+
+            tracks,
+            full_inputs,
+            input_states,
 
             symph_formats: vec![],
             symph_decoders: vec![],
@@ -510,6 +525,13 @@ impl Mixer {
                 Layout::Stereo,
             ),
         );
+        let mut symph_scratch = symphonia_core::audio::AudioBuffer::<f32>::new(
+            MONO_FRAME_SIZE as u64,
+            symphonia_core::audio::SignalSpec::new_with_layout(
+                SAMPLE_RATE_RAW as u32,
+                Layout::Stereo,
+            ),
+        );
 
         symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
 
@@ -523,104 +545,20 @@ impl Mixer {
 
             let payload = rtp.payload_mut();
 
-            // self.mix_tracks(&mut payload[TAG_SIZE..], &mut mix_buffer)
-            // mix_tracks(
-            //     &mut payload[TAG_SIZE..],
-            //     &mut mix_buffer,
-            //     &mut self.tracks,
-            //     &self.interconnect,
-            //     self.prevent_events,
-            // )
-
-            let mut occup = 0;
-
-            for ((format, dec_map), resample_map) in self
-                .symph_formats
-                .iter_mut()
-                .zip(self.symph_decoders.iter_mut())
-                .zip(self.symph_resamplers.iter_mut())
-            {
-                // FIXME: assumes only one track per input.
-                // FIXME: has a big issue with frame size: need to handle too big AND too small!
-                if let Ok(pkt) = format.next_packet() {
-                    if let Some(txer) = dec_map.get_mut(&pkt.track_id()) {
-                        match txer.decode(&pkt) {
-                            Ok(bytes) => {
-                                match bytes {
-                                    symphonia_core::audio::AudioBufferRef::F32(frame) => {
-                                        println!(
-                                            "pkt len {} samples @ {}Hz",
-                                            frame.frames(),
-                                            frame.spec().rate
-                                        );
-
-                                        occup = occup.max(frame.frames() * 2);
-
-                                        let mut d_planes = symph_mix.planes_mut();
-                                        let s_planes = frame.planes();
-
-                                        // NOTE: this is garbage. just for understanding relative costs...
-                                        if frame.spec().rate != 48000 {
-                                            let chan_c = frame.spec().channels.count();
-
-                                            let rs = resample_map
-                                                .entry(pkt.track_id())
-                                                .or_insert_with(|| {
-                                                    rubato::FftFixedOut::new(
-                                                        frame.spec().rate as usize,
-                                                        SAMPLE_RATE_RAW,
-                                                        RESAMPLE_OUTPUT_FRAME_SIZE,
-                                                        1,
-                                                        chan_c,
-                                                    )
-                                                });
-
-                                            let t = Instant::now();
-                                            let rs_planes = rs.process(s_planes.planes()).unwrap();
-                                            println!(
-                                                "Resample cost: {}ns, {} samples",
-                                                t.elapsed().as_nanos(),
-                                                rs_planes[0].len()
-                                            );
-
-                                            for (d_plane, s_plane) in (&mut d_planes.planes()[..])
-                                                .iter_mut()
-                                                .zip(rs_planes.iter())
-                                            {
-                                                for (d, s) in d_plane.iter_mut().zip(s_plane.iter())
-                                                {
-                                                    *d += s;
-                                                }
-                                            }
-                                        } else {
-                                            // FIXME: downmix
-                                            for (d_plane, s_plane) in (&mut d_planes.planes()[..])
-                                                .iter_mut()
-                                                .zip(s_planes.planes()[..].iter())
-                                            {
-                                                for (d, s) in d_plane.iter_mut().zip(s_plane.iter())
-                                                {
-                                                    *d += s;
-                                                }
-                                            }
-                                        }
-                                    },
-                                    _ => {
-                                        eprintln!("non float frame!");
-                                    },
-                                }
-                            },
-                            Err(e) => {
-                                eprintln!("SYMPH PKT ERROR: {:?}", e);
-                            },
-                        }
-                    }
-                }
-            }
+            let out = mix_tracks(
+                &mut payload[TAG_SIZE..],
+                &mut symph_mix,
+                &mut symph_scratch,
+                &mut self.tracks,
+                &mut self.full_inputs,
+                &mut self.input_states,
+                &self.interconnect,
+                self.prevent_events,
+            );
 
             symph_buffer.copy_interleaved_typed(&symph_mix);
 
-            MixType::MixedPcm(occup)
+            out
         };
 
         self.soft_clip.apply(&mut mix_buffer[..])?;
@@ -741,15 +679,20 @@ enum MixType {
     MixedPcm(usize),
 }
 
+impl MixType {
+    fn contains_audio(&self) -> bool {
+        use MixType::*;
+
+        match self {
+            Passthrough(a) | MixedPcm(a) => *a != 0,
+        }
+    }
+}
+
 struct LocalInput {
     inner_pos: usize,
     resampler: Option<FftFixedOut<f32>>,
     chosen_track: Option<u32>,
-}
-
-#[inline]
-fn mix_symph() -> MixType {
-    todo!()
 }
 
 enum MixStatus {
@@ -760,7 +703,6 @@ enum MixStatus {
 
 #[inline]
 fn mix_symph_indiv(
-    symph_buffer: &mut SampleBuffer<f32>,
     symph_mix: &mut AudioBuffer<f32>,
     resample_scratch: &mut AudioBuffer<f32>,
     input: &mut Parsed,
@@ -807,6 +749,7 @@ fn mix_symph_indiv(
             }
         };
 
+        // Cleanup: failed to get the next packet, but still have to convert and mix scratch.
         if source_packet.is_none() {
             if buf_in_progress {
                 // fill up buf with zeroes, resample, mix
@@ -823,27 +766,24 @@ fn mix_symph_indiv(
                     }
                 }
 
-                // refactor
-                // NOTE: if let needed as if-let && {bool} is nightly only.
-                if let AudioBufferRef::F32(s_pkt) = source_packet {
-                    let refs: Vec<&[f32]> = s_pkt
-                        .planes()
-                        .planes()
-                        .iter()
-                        .map(|s| &s[inner_pos..])
-                        .collect();
+                // Luckily, we make use of the WHOLE input buffer here.
+                let resampled = resampler
+                    .process(resample_scratch.planes().planes())
+                    .unwrap();
 
-                    local_state.inner_pos += needed_in_frames;
-                    local_state.inner_pos %= pkt_frames;
-
-                    resampler.process(&*refs).unwrap();
-                } else {
-                    unreachable!();
-                }
-
-                // FIXME: calc true end pos using sampel rate math?
+                // Calculate true end position using sample rate math
+                let ratio = (resampled[0].len() as f32) / (resample_scratch.frames() as f32);
+                let out_samples = (ratio * (in_len as f32)).round() as usize;
 
                 // FIXME: actually mix.
+                mix_resampled(
+                    &resampled,
+                    symph_mix,
+                    samples_written,
+                    volume,
+                );
+
+                samples_written += out_samples;
             }
 
             break;
@@ -872,7 +812,7 @@ fn mix_symph_indiv(
             let available_frames = pkt_frames - inner_pos;
 
             let force_copy = buf_in_progress || needed_in_frames > available_frames;
-            let bytes = if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
+            let resampled = if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
                 // This is the only case where we can pull off a straight resample...
                 // I would really like if this could be a slice of slices,
                 // but the technology just isn't there yet. And I don't feel like
@@ -906,8 +846,15 @@ fn mix_symph_indiv(
                 //   inner_pos = 0
                 //   continue (gets next packet).
 
-                // FIXME: RENDER_RESERVED ACCORDING TO SIZE.
-                // FIXME: DO THE COPY.
+                let old_scratch_len = resample_scratch.frames();
+                let missing_frames = needed_in_frames - old_scratch_len;
+                let frames_to_take = available_frames.min(missing_frames);
+
+                resample_scratch.render_reserved(Some(frames_to_take));
+                copy_into_resampler(&source_packet, resample_scratch, inner_pos, old_scratch_len, frames_to_take);
+
+                local_state.inner_pos += frames_to_take;
+                local_state.inner_pos %= pkt_frames;
 
                 if resample_scratch.frames() != needed_in_frames {
                     // Not enough data to fill the resampler: fetch more.
@@ -923,9 +870,14 @@ fn mix_symph_indiv(
                 }
             };
 
-            samples_written += bytes[0].len();
+            let samples_marched = mix_resampled(
+                &resampled,
+                symph_mix,
+                samples_written,
+                volume,
+            );
 
-            // FIXME: mix in from bytes.
+            samples_written += samples_marched;
         } else {
             // No need to resample: mix as standard.
             let samples_marched = mix_over_ref(
@@ -1005,25 +957,52 @@ where
 }
 
 #[inline]
+fn mix_resampled(
+    source: &Vec<Vec<f32>>,
+    target: &mut AudioBuffer<f32>,
+    dest_pos: usize,
+    volume: f32,
+) -> usize {
+    let mix_ct = source[0].len();
+
+    // FIXME: downmix if target is mono.
+    for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
+        .iter_mut()
+        .zip(source[..].iter())
+    {
+        for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
+            .iter_mut()
+            .zip(s_plane)
+        {
+            *d += volume * (*s);
+        }
+    }
+
+    mix_ct
+}
+
+
+#[inline]
 fn copy_into_resampler(
     source: &AudioBufferRef,
     target: &mut AudioBuffer<f32>,
     source_pos: usize,
     dest_pos: usize,
+    len: usize,
 ) -> usize {
     use AudioBufferRef::*;
 
     match source {
-        U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
-        F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos),
+        U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
     }
 }
 
@@ -1033,38 +1012,34 @@ fn copy_symph_buffer<S>(
     target: &mut AudioBuffer<f32>,
     source_pos: usize,
     dest_pos: usize,
+    len: usize,
 ) -> usize
 where
     S: Sample + IntoSample<f32>,
 {
-    // mix in source_packet[inner_pos..] til end of EITHER buffer.
-    // target.planes_mut()
-    let src_usable = source.frames() - source_pos;
-    let tgt_usable = target.frames() - dest_pos;
-
-    let mix_ct = src_usable.min(tgt_usable);
-
-    // FIXME: downmix if target is mono.
     for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
         .iter_mut()
         .zip(source.planes().planes()[..].iter())
     {
-        for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
+        for (d, s) in d_plane[dest_pos..dest_pos + len]
             .iter_mut()
-            .zip(s_plane[source_pos..source_pos + mix_ct].iter())
+            .zip(s_plane[source_pos..source_pos + len].iter())
         {
             *d = (*s).into_sample();
         }
     }
 
-    mix_ct
+    len
 }
 
 #[inline]
 fn mix_tracks<'a>(
     opus_frame: &'a mut [u8],
-    mix_buffer: &mut [f32; STEREO_FRAME_SIZE],
+    symph_mix: &mut AudioBuffer<f32>,
+    symph_scratch: &mut AudioBuffer<f32>,
     tracks: &mut Vec<Track>,
+    full_inputs: &mut Vec<Parsed>,
+    input_states: &mut Vec<LocalInput>,
     interconnect: &Interconnect,
     prevent_events: bool,
 ) -> MixType {
@@ -1078,7 +1053,7 @@ fn mix_tracks<'a>(
         (track.volume - 1.0).abs() < f32::EPSILON && track.source.supports_passthrough()
     };
 
-    for (i, track) in tracks.iter_mut().enumerate() {
+    for (((i, track), input), local_state) in tracks.iter_mut().enumerate().zip(full_inputs.iter_mut()).zip(input_states.iter_mut()) {
         let vol = track.volume;
         let stream = &mut track.source;
 
@@ -1086,14 +1061,17 @@ fn mix_tracks<'a>(
             continue;
         }
 
-        let (temp_len, opus_len) = if do_passthrough {
-            (0, track.source.read_opus_frame(opus_frame).ok())
-        } else {
-            (stream.mix(mix_buffer, vol), None)
-        };
+        // let (temp_len, opus_len) = if do_passthrough {
+        //     (0, track.source.read_opus_frame(opus_frame).ok())
+        // } else {
+        //     (stream.mix(mix_buffer, vol), None)
+        // };
 
-        len = len.max(temp_len);
-        if temp_len > 0 || opus_len.is_some() {
+        let (mix_type, status) = mix_symph_indiv(symph_mix, symph_scratch, input, local_state, vol);
+
+        // FIXME: allow Ended to trigger a seek/loop/revisit in the same mix cycle?
+        // This is a straight port of old logic, maybe we could combine with MixStatus::Ended.
+        if mix_type.contains_audio() {
             track.step_frame();
         } else if track.do_loop() {
             if let Ok(time) = track.seek_time(Default::default()) {
@@ -1118,8 +1096,11 @@ fn mix_tracks<'a>(
             track.end();
         }
 
-        if let Some(opus_len) = opus_len {
-            return MixType::Passthrough(opus_len);
+        match mix_type {
+            MixType::MixedPcm(pcm_len) => {
+                len = len.max(pcm_len);
+            },
+            a => return a,
         }
     }
 
