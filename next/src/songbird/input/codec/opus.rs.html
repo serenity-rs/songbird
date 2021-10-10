@@ -66,7 +66,7 @@
 
 <span class="kw">impl</span> <span class="ident">OpusDecoderState</span> {
     <span class="doccomment">/// Creates a new decoder, having stereo output at 48kHz.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">OpusError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">OpusError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from_decoder</span>(<span class="ident">OpusDecoder::new</span>(
             <span class="ident">SAMPLE_RATE</span>,
             <span class="ident">Channels::Stereo</span>,
@@ -74,7 +74,7 @@
     }
 
     <span class="doccomment">/// Creates a new decoder pre-configured by the user.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_decoder</span>(<span class="ident">decoder</span>: <span class="ident">OpusDecoder</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_decoder</span>(<span class="ident">decoder</span>: <span class="ident">OpusDecoder</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">decoder</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">decoder</span>)),
             <span class="ident">allow_passthrough</span>: <span class="bool-val">true</span>,

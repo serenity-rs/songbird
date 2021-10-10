@@ -108,7 +108,7 @@
 <span class="doccomment">/// Installs a new songbird instance into the serenity client.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This should be called after any uses of `ClientBuilder::type_map`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">client_builder</span>: <span class="ident">ClientBuilder</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">client_builder</span>: <span class="ident">ClientBuilder</span>) -&gt; <span class="ident">ClientBuilder</span> {
     <span class="kw">let</span> <span class="ident">voice</span> <span class="op">=</span> <span class="ident">Songbird::serenity</span>();
     <span class="ident">register_with</span>(<span class="ident">client_builder</span>, <span class="ident">voice</span>)
 }
@@ -116,7 +116,7 @@
 <span class="doccomment">/// Installs a given songbird instance into the serenity client.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This should be called after any uses of `ClientBuilder::type_map`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_with</span>(<span class="ident">client_builder</span>: <span class="ident">ClientBuilder</span>, <span class="ident">voice</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_with</span>(<span class="ident">client_builder</span>: <span class="ident">ClientBuilder</span>, <span class="ident">voice</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span>) -&gt; <span class="ident">ClientBuilder</span> {
     <span class="ident">client_builder</span>
         .<span class="ident">voice_manager_arc</span>(<span class="ident">voice</span>.<span class="ident">clone</span>())
         .<span class="ident">type_map_insert</span>::<span class="op">&lt;</span><span class="ident">SongbirdKey</span><span class="op">&gt;</span>(<span class="ident">voice</span>)
@@ -125,14 +125,14 @@
 <span class="doccomment">/// Installs a given songbird instance into the serenity client.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This should be called after any uses of `ClientBuilder::type_map`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_from_config</span>(<span class="ident">client_builder</span>: <span class="ident">ClientBuilder</span>, <span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_from_config</span>(<span class="ident">client_builder</span>: <span class="ident">ClientBuilder</span>, <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="ident">ClientBuilder</span> {
     <span class="kw">let</span> <span class="ident">voice</span> <span class="op">=</span> <span class="ident">Songbird::serenity_from_config</span>(<span class="ident">config</span>);
     <span class="ident">register_with</span>(<span class="ident">client_builder</span>, <span class="ident">voice</span>)
 }
 
 <span class="doccomment">/// Retrieve the Songbird voice client from a serenity context&#39;s</span>
 <span class="doccomment">/// shared key-value store.</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">data</span>.<span class="ident">read</span>().<span class="kw">await</span>;
 
     <span class="ident">data</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">SongbirdKey</span><span class="op">&gt;</span>().<span class="ident">cloned</span>()
@@ -148,23 +148,23 @@
     <span class="doccomment">/// access via [`get`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`get`]: get</span>
-    <span class="kw">fn</span> <span class="ident">register_songbird</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">register_songbird</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
     <span class="doccomment">/// Registers a given Songbird voice system with serenity, as above.</span>
-    <span class="kw">fn</span> <span class="ident">register_songbird_with</span>(<span class="self">self</span>, <span class="ident">voice</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">register_songbird_with</span>(<span class="self">self</span>, <span class="ident">voice</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span>;
     <span class="doccomment">/// Registers a Songbird voice system serenity, based on the given configuration.</span>
-    <span class="kw">fn</span> <span class="ident">register_songbird_from_config</span>(<span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">register_songbird_from_config</span>(<span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="self">Self</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">SerenityInit</span> <span class="kw">for</span> <span class="ident">ClientBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">register_songbird</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">register_songbird</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">register</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">register_songbird_with</span>(<span class="self">self</span>, <span class="ident">voice</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">register_songbird_with</span>(<span class="self">self</span>, <span class="ident">voice</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Songbird</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">register_with</span>(<span class="self">self</span>, <span class="ident">voice</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">register_songbird_from_config</span>(<span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">register_songbird_from_config</span>(<span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">register_from_config</span>(<span class="self">self</span>, <span class="ident">config</span>)
     }
 }

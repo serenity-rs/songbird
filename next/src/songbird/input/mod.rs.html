@@ -699,7 +699,7 @@
 
 <span class="kw">impl</span> <span class="ident">Input</span> {
     <span class="doccomment">/// Creates a floating-point PCM Input from a given reader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">float_pcm</span>(<span class="ident">is_stereo</span>: <span class="ident">bool</span>, <span class="ident">reader</span>: <span class="ident">Reader</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Input</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">float_pcm</span>(<span class="ident">is_stereo</span>: <span class="ident">bool</span>, <span class="ident">reader</span>: <span class="ident">Reader</span>) -&gt; <span class="ident">Input</span> {
         <span class="ident">Input</span> {
             <span class="ident">metadata</span>: <span class="ident">Default::default</span>(),
             <span class="ident">stereo</span>: <span class="ident">is_stereo</span>,
@@ -717,7 +717,7 @@
         <span class="ident">kind</span>: <span class="ident">Codec</span>,
         <span class="ident">container</span>: <span class="ident">Container</span>,
         <span class="ident">metadata</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    ) -&gt; <span class="self">Self</span> {
         <span class="ident">Input</span> {
             <span class="ident">metadata</span>: <span class="ident">metadata</span>.<span class="ident">unwrap_or_default</span>().<span class="ident">into</span>(),
             <span class="ident">stereo</span>,
@@ -732,25 +732,25 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Reader`]: reader::Reader</span>
     <span class="doccomment">/// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">is_seekable</span>()
     }
 
     <span class="doccomment">/// Returns whether the read audio signal is stereo (or mono).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_stereo</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_stereo</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">stereo</span>
     }
 
     <span class="doccomment">/// Returns the type of the inner [`Codec`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Codec`]: Codec</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CodecType</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CodecType</span> {
         (<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>).<span class="ident">into</span>()
     }
 
     <span class="doccomment">/// Mixes the output of this stream into a 20ms stereo audio buffer.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mix</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">float_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>], <span class="ident">volume</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mix</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">float_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>], <span class="ident">volume</span>: <span class="ident">f32</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">add_float_pcm_frame</span>(<span class="ident">float_buffer</span>, <span class="self">self</span>.<span class="ident">stereo</span>, <span class="ident">volume</span>)
             .<span class="ident">unwrap_or</span>(<span class="number">0</span>)
     }
@@ -758,14 +758,14 @@
     <span class="doccomment">/// Seeks the stream to the given time, if possible.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns the actual time reached.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="ident">Duration</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">future_pos</span> <span class="op">=</span> <span class="ident">utils::timestamp_to_byte_count</span>(<span class="ident">time</span>, <span class="self">self</span>.<span class="ident">stereo</span>);
         <span class="ident">Seek::seek</span>(<span class="self">self</span>, <span class="ident">SeekFrom::Start</span>(<span class="ident">future_pos</span> <span class="kw">as</span> <span class="ident">u64</span>))
             .<span class="ident">ok</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">utils::byte_count_to_timestamp</span>(<span class="ident">a</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="self">self</span>.<span class="ident">stereo</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">read_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">ignore_decode</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">ignore_decode</span>: <span class="ident">bool</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="comment">// This implementation of Read converts the input stream</span>
         <span class="comment">// to floating point output.</span>
         <span class="kw">let</span> <span class="ident">sample_len</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
@@ -775,7 +775,7 @@
         <span class="comment">// TODO: better decouple codec and container here.</span>
         <span class="comment">// this is a little bit backwards, and assumes the bottom cases are always raw...</span>
         <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Codec::Opus</span>(<span class="ident">decoder_state</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Codec::Opus</span>(<span class="ident">decoder_state</span>) =&gt; {
                 <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">container</span>, <span class="ident">Container::Raw</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
                         <span class="ident">IoErrorKind::InvalidInput</span>,
@@ -809,7 +809,7 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">aud_skipped</span>)
                 } <span class="kw">else</span> {
                     <span class="comment">// get new frame *if needed*</span>
-                    <span class="kw">if</span> <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span> <span class="op">=</span><span class="op">=</span> <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">len</span>() {
+                    <span class="kw">if</span> <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span> <span class="op">==</span> <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">len</span>() {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoder</span> <span class="op">=</span> <span class="ident">decoder_state</span>.<span class="ident">decoder</span>.<span class="ident">lock</span>();
 
                         <span class="kw">if</span> <span class="ident">decoder_state</span>.<span class="ident">should_reset</span> {
@@ -857,7 +857,7 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">written_floats</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>())
                 }
             },
-            <span class="ident">Codec::Pcm</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Codec::Pcm</span> =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer</span>;
                 <span class="kw">while</span> <span class="ident">written_floats</span> <span class="op">&lt;</span> <span class="ident">float_space</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">signal</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_i16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>() {
@@ -869,7 +869,7 @@
                 }
                 <span class="prelude-val">Ok</span>(<span class="ident">written_floats</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>())
             },
-            <span class="ident">Codec::FloatPcm</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Read::read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="ident">buffer</span>),
+            <span class="ident">Codec::FloatPcm</span> =&gt; <span class="ident">Read::read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="ident">buffer</span>),
         };
 
         <span class="ident">out</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
@@ -878,14 +878,14 @@
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">cheap_consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">count</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">cheap_consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">count</span>: <span class="ident">usize</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scratch</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">STEREO_FRAME_BYTE_SIZE</span> <span class="op">*</span> <span class="number">4</span>];
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">scratch</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">done</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">scratch</span>[..<span class="ident">len</span>.<span class="ident">min</span>(<span class="ident">count</span> <span class="op">-</span> <span class="ident">done</span>)], <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">read</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">read</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
             <span class="ident">done</span> <span class="op">+</span><span class="op">=</span> <span class="ident">read</span>;
@@ -894,14 +894,14 @@
         <span class="prelude-val">Ok</span>(<span class="ident">done</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">supports_passthrough</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">supports_passthrough</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Codec::Opus</span>(<span class="ident">state</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">state</span>.<span class="ident">allow_passthrough</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Codec::Opus</span>(<span class="ident">state</span>) =&gt; <span class="ident">state</span>.<span class="ident">allow_passthrough</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">read_opus_frame</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">read_opus_frame</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="comment">// Called in event of opus passthrough.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Codec::Opus</span>(<span class="ident">state</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">kind</span> {
             <span class="comment">// step 1: align to frame.</span>
@@ -936,27 +936,27 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">read_inner</span>(<span class="ident">buffer</span>, <span class="bool-val">false</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>;
         <span class="kw">match</span> <span class="ident">pos</span> {
-            <span class="ident">SeekFrom::Start</span>(<span class="ident">pos</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">SeekFrom::Start</span>(<span class="ident">pos</span>) =&gt; {
                 <span class="ident">target</span> <span class="op">=</span> <span class="ident">pos</span> <span class="kw">as</span> <span class="ident">usize</span>;
             },
-            <span class="ident">SeekFrom::Current</span>(<span class="ident">rel</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">SeekFrom::Current</span>(<span class="ident">rel</span>) =&gt; {
                 <span class="ident">target</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">wrapping_add</span>(<span class="ident">rel</span> <span class="kw">as</span> <span class="ident">usize</span>);
             },
-            <span class="ident">SeekFrom::End</span>(<span class="ident">_pos</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
+            <span class="ident">SeekFrom::End</span>(<span class="ident">_pos</span>) =&gt; <span class="macro">unimplemented!</span>(),
         }
 
         <span class="macro">debug!</span>(<span class="string">&quot;Seeking to {:?}&quot;</span>, <span class="ident">pos</span>);
 
-        (<span class="kw">if</span> <span class="ident">target</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span> {
+        (<span class="kw">if</span> <span class="ident">target</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">pos</span> {
             <span class="prelude-val">Ok</span>(<span class="number">0</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conversion</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">container</span>.<span class="ident">try_seek_trivial</span>(<span class="self">self</span>.<span class="ident">get_type</span>()) {
             <span class="kw">let</span> <span class="ident">inside_target</span> <span class="op">=</span> (<span class="ident">target</span> <span class="op">*</span> <span class="ident">conversion</span>) <span class="op">/</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
@@ -989,9 +989,9 @@
         <span class="ident">float_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>],
         <span class="ident">true_stereo</span>: <span class="ident">bool</span>,
         <span class="ident">volume</span>: <span class="ident">f32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>
+    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>;
 }
@@ -1002,7 +1002,7 @@
         <span class="ident">float_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>],
         <span class="ident">stereo</span>: <span class="ident">bool</span>,
         <span class="ident">volume</span>: <span class="ident">f32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="comment">// IDEA: Read in 8 floats at a time, then use iterator code</span>
         <span class="comment">// to gently nudge the compiler into vectorising for us.</span>
         <span class="comment">// Max SIMD float32 lanes is 8 on AVX, older archs use a divisor of this</span>
@@ -1040,16 +1040,16 @@
                     });
 
                 <span class="kw">match</span> <span class="ident">progress</span> {
-                    <span class="prelude-val">Ok</span>((<span class="ident">new_pos</span>, <span class="ident">delta</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>((<span class="ident">new_pos</span>, <span class="ident">delta</span>)) =&gt; {
                         <span class="ident">frame_pos</span> <span class="op">=</span> <span class="ident">new_pos</span>;
                         <span class="ident">max_bytes</span> <span class="op">-</span><span class="op">=</span> <span class="ident">delta</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>;
 
-                        <span class="kw">if</span> <span class="ident">delta</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="kw">if</span> <span class="ident">delta</span> <span class="op">==</span> <span class="number">0</span> {
                             <span class="kw">break</span>;
                         }
                     },
-                    <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span>
-                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">IoErrorKind::UnexpectedEof</span> {
+                    <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt;
+                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">IoErrorKind::UnexpectedEof</span> {
                             <span class="macro">error!</span>(<span class="string">&quot;EOF unexpectedly: {:?}&quot;</span>, <span class="ident">e</span>);
                             <span class="prelude-val">Some</span>(<span class="ident">frame_pos</span>)
                         } <span class="kw">else</span> {
@@ -1084,16 +1084,16 @@
                     });
 
                 <span class="kw">match</span> <span class="ident">progress</span> {
-                    <span class="prelude-val">Ok</span>((<span class="ident">new_pos</span>, <span class="ident">delta</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>((<span class="ident">new_pos</span>, <span class="ident">delta</span>)) =&gt; {
                         <span class="ident">frame_pos</span> <span class="op">=</span> <span class="ident">new_pos</span>;
                         <span class="ident">max_bytes</span> <span class="op">-</span><span class="op">=</span> <span class="ident">delta</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>;
 
-                        <span class="kw">if</span> <span class="ident">delta</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="kw">if</span> <span class="ident">delta</span> <span class="op">==</span> <span class="number">0</span> {
                             <span class="kw">break</span>;
                         }
                     },
-                    <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span>
-                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">IoErrorKind::UnexpectedEof</span> {
+                    <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt;
+                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">IoErrorKind::UnexpectedEof</span> {
                             <span class="prelude-val">Some</span>(<span class="ident">frame_pos</span>)
                         } <span class="kw">else</span> {
                             <span class="macro">error!</span>(<span class="string">&quot;Input died unexpectedly: {:?}&quot;</span>, <span class="ident">e</span>);
@@ -1106,7 +1106,7 @@
         <span class="prelude-val">Some</span>(<span class="ident">frame_pos</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">io::copy</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">by_ref</span>().<span class="ident">take</span>(<span class="ident">amt</span> <span class="kw">as</span> <span class="ident">u64</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">io::sink</span>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>
     }
 }
