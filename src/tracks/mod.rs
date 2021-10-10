@@ -24,7 +24,7 @@ mod state;
 
 pub use self::{command::*, error::*, handle::*, looping::*, mode::*, queue::*, state::*};
 
-use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::Input};
+use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::SymphInput};
 use flume::{Receiver, TryRecvError};
 use std::time::Duration;
 use uuid::Uuid;
@@ -61,7 +61,6 @@ use uuid::Uuid;
 /// [`Driver::play`]: crate::driver::Driver::play
 /// [`TrackHandle`]: TrackHandle
 /// [`create_player`]: create_player
-#[derive(Debug)]
 pub struct Track {
     /// Whether or not this sound is currently playing.
     ///
@@ -83,7 +82,7 @@ pub struct Track {
     /// Underlying data access object.
     ///
     /// *Calling code is not expected to use this.*
-    pub(crate) source: Input,
+    pub(crate) source: Option<SymphInput>,
 
     /// The current playback position in the track.
     pub(crate) position: Duration,
@@ -124,13 +123,17 @@ impl Track {
     /// In general, you should probably use [`create_player`].
     ///
     /// [`create_player`]: fn.create_player.html
-    pub fn new_raw(source: Input, commands: Receiver<TrackCommand>, handle: TrackHandle) -> Self {
+    pub fn new_raw(
+        source: SymphInput,
+        commands: Receiver<TrackCommand>,
+        handle: TrackHandle,
+    ) -> Self {
         let uuid = handle.uuid();
 
         Self {
             playing: Default::default(),
             volume: 1.0,
-            source,
+            source: Some(source),
             position: Default::default(),
             play_time: Default::default(),
             events: Some(EventStore::new_local()),
@@ -207,12 +210,13 @@ impl Track {
     /// [`Input`]: crate::input::Input
     /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
     pub fn set_loops(&mut self, loops: LoopState) -> TrackResult<()> {
-        if self.source.is_seekable() {
-            self.loops = loops;
-            Ok(())
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        // if self.source.is_seekable() {
+        //     self.loops = loops;
+        //     Ok(())
+        // } else {
+        //     Err(TrackError::SeekUnsupported)
+        // }
+        todo!()
     }
 
     pub(crate) fn do_loop(&mut self) -> bool {
@@ -324,7 +328,8 @@ impl Track {
     ///
     /// [`Restartable`]: crate::input::restartable::Restartable
     pub fn make_playable(&mut self) {
-        self.source.reader.make_playable();
+        // self.source.reader.make_playable();
+        todo!()
     }
 
     /// Creates a read-only copy of the audio track's state.
@@ -351,12 +356,13 @@ impl Track {
     /// [`Input`]: crate::input::Input
     /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
     pub fn seek_time(&mut self, pos: Duration) -> TrackResult<Duration> {
-        if let Some(t) = self.source.seek_time(pos) {
-            self.position = t;
-            Ok(t)
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        // if let Some(t) = self.source.seek_time(pos) {
+        //     self.position = t;
+        //     Ok(t)
+        // } else {
+        //     Err(TrackError::SeekUnsupported)
+        // }
+        todo!()
     }
 
     /// Returns this track's unique identifier.
@@ -374,7 +380,7 @@ impl Track {
 /// [`Track`]: Track
 /// [`TrackHandle`]: TrackHandle
 #[inline]
-pub fn create_player(source: Input) -> (Track, TrackHandle) {
+pub fn create_player(source: SymphInput) -> (Track, TrackHandle) {
     create_player_with_uuid(source, Uuid::new_v4())
 }
 
@@ -384,10 +390,11 @@ pub fn create_player(source: Input) -> (Track, TrackHandle) {
 /// [`create_player`]: create_player
 /// [`Track`]: Track
 /// [`TrackHandle`]: TrackHandle
-pub fn create_player_with_uuid(source: Input, uuid: Uuid) -> (Track, TrackHandle) {
+pub fn create_player_with_uuid(source: SymphInput, uuid: Uuid) -> (Track, TrackHandle) {
+    // FIXME: Unify this (and handles) with symphonia's metadata handling
     let (tx, rx) = flume::unbounded();
-    let can_seek = source.is_seekable();
-    let metadata = source.metadata.clone();
+    let can_seek = false; //source.is_seekable();
+    let metadata = Default::default(); //source.metadata.clone();
     let handle = TrackHandle::new(tx, can_seek, uuid, metadata);
 
     let player = Track::new_raw(source, rx, handle.clone());

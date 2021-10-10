@@ -235,7 +235,8 @@ impl Mixer {
 
         let error = match msg {
             AddTrack(mut t) => {
-                t.source.prep_with_handle(self.async_handle.clone());
+                todo!();
+                // t.source.prep_with_handle(self.async_handle.clone());
                 self.add_track(t)
             },
             SetTrack(t) => {
@@ -244,7 +245,8 @@ impl Mixer {
                 let mut out = self.fire_event(EventMessage::RemoveAllTracks);
 
                 if let Some(mut t) = t {
-                    t.source.prep_with_handle(self.async_handle.clone());
+                    todo!();
+                    // t.source.prep_with_handle(self.async_handle.clone());
 
                     // Do this unconditionally: this affects local state infallibly,
                     // with the event installation being the remote part.
@@ -776,12 +778,7 @@ fn mix_symph_indiv(
                 let out_samples = (ratio * (in_len as f32)).round() as usize;
 
                 // FIXME: actually mix.
-                mix_resampled(
-                    &resampled,
-                    symph_mix,
-                    samples_written,
-                    volume,
-                );
+                mix_resampled(&resampled, symph_mix, samples_written, volume);
 
                 samples_written += out_samples;
             }
@@ -851,7 +848,13 @@ fn mix_symph_indiv(
                 let frames_to_take = available_frames.min(missing_frames);
 
                 resample_scratch.render_reserved(Some(frames_to_take));
-                copy_into_resampler(&source_packet, resample_scratch, inner_pos, old_scratch_len, frames_to_take);
+                copy_into_resampler(
+                    &source_packet,
+                    resample_scratch,
+                    inner_pos,
+                    old_scratch_len,
+                    frames_to_take,
+                );
 
                 local_state.inner_pos += frames_to_take;
                 local_state.inner_pos %= pkt_frames;
@@ -870,12 +873,7 @@ fn mix_symph_indiv(
                 }
             };
 
-            let samples_marched = mix_resampled(
-                &resampled,
-                symph_mix,
-                samples_written,
-                volume,
-            );
+            let samples_marched = mix_resampled(&resampled, symph_mix, samples_written, volume);
 
             samples_written += samples_marched;
         } else {
@@ -970,17 +968,13 @@ fn mix_resampled(
         .iter_mut()
         .zip(source[..].iter())
     {
-        for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
-            .iter_mut()
-            .zip(s_plane)
-        {
+        for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
             *d += volume * (*s);
         }
     }
 
     mix_ct
 }
-
 
 #[inline]
 fn copy_into_resampler(
@@ -1050,10 +1044,15 @@ fn mix_tracks<'a>(
     // Opus codec type.
     let do_passthrough = tracks.len() == 1 && {
         let track = &tracks[0];
-        (track.volume - 1.0).abs() < f32::EPSILON && track.source.supports_passthrough()
+        (track.volume - 1.0).abs() < f32::EPSILON // && track.source.supports_passthrough()
     };
 
-    for (((i, track), input), local_state) in tracks.iter_mut().enumerate().zip(full_inputs.iter_mut()).zip(input_states.iter_mut()) {
+    for (((i, track), input), local_state) in tracks
+        .iter_mut()
+        .enumerate()
+        .zip(full_inputs.iter_mut())
+        .zip(input_states.iter_mut())
+    {
         let vol = track.volume;
         let stream = &mut track.source;
 

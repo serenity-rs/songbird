@@ -1,7 +1,7 @@
 use crate::{
     driver::Driver,
     events::{Event, EventContext, EventData, EventHandler, TrackEvent},
-    input::Input,
+    input::{Input, SymphInput},
     tracks::{self, Track, TrackHandle, TrackResult},
 };
 use async_trait::async_trait;
@@ -165,7 +165,7 @@ impl TrackQueue {
     }
 
     /// Adds an audio source to the queue, to be played in the channel managed by `handler`.
-    pub fn add_source(&self, source: Input, handler: &mut Driver) {
+    pub fn add_source(&self, source: SymphInput, handler: &mut Driver) {
         let (audio, _) = tracks::create_player(source);
         self.add(audio, handler);
     }
@@ -206,8 +206,11 @@ impl TrackQueue {
         // Attempts to start loading the next track before this one ends.
         // Idea is to provide as close to gapless playback as possible,
         // while minimising memory use.
-        if let Some(time) = track.source.metadata.duration {
-            let preload_time = time.checked_sub(Duration::from_secs(5)).unwrap_or_default();
+        let time: Option<Duration> = todo!();
+        if let Some(time) = time {
+            // track.source.metadata.duration {
+            let preload_time: Duration =
+                time.checked_sub(Duration::from_secs(5)).unwrap_or_default();
             let remote_lock = self.inner.clone();
 
             track

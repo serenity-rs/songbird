@@ -142,8 +142,8 @@ impl Driver {
     ///
     /// [`ffmpeg`]: crate::input::ffmpeg
     /// [`ytdl`]: crate::input::ytdl
-    #[instrument(skip(self))]
-    pub fn play_source(&mut self, source: Input) -> TrackHandle {
+    #[instrument(skip(self, source))]
+    pub fn play_source(&mut self, source: SymphInput) -> TrackHandle {
         let (player, handle) = super::create_player(source);
         self.send(CoreMessage::AddTrack(player));
 
@@ -156,8 +156,8 @@ impl Driver {
     /// to the channel.
     ///
     /// [`play_source`]: Driver::play_source
-    #[instrument(skip(self))]
-    pub fn play_only_source(&mut self, source: Input) -> TrackHandle {
+    #[instrument(skip(self, source))]
+    pub fn play_only_source(&mut self, source: SymphInput) -> TrackHandle {
         let (player, handle) = super::create_player(source);
         self.send(CoreMessage::SetTrack(Some(player)));
 
@@ -174,7 +174,7 @@ impl Driver {
     /// [`create_player`]: crate::tracks::create_player
     /// [`create_player`]: crate::tracks::Track
     /// [`play_source`]: Driver::play_source
-    #[instrument(skip(self))]
+    #[instrument(skip(self, track))]
     pub fn play(&mut self, track: Track) {
         self.send(CoreMessage::AddTrack(track));
     }
@@ -190,7 +190,7 @@ impl Driver {
     /// [`Track`]: crate::tracks::Track
     /// [`play_only_source`]: Driver::play_only_source
     /// [`play`]: Driver::play
-    #[instrument(skip(self))]
+    #[instrument(skip(self, track))]
     pub fn play_only(&mut self, track: Track) {
         self.send(CoreMessage::SetTrack(Some(track)));
     }
@@ -260,11 +260,6 @@ impl Driver {
             self.sender.send(status).unwrap();
         }
     }
-
-    /// Testing stuff out ig.
-    pub fn play_symph(&mut self, track: SymphInput) {
-        self.send(CoreMessage::SymphTrack(track));
-    }
 }
 
 #[cfg(feature = "builtin-queue")]
@@ -286,7 +281,7 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn enqueue_source(&mut self, source: Input) {
+    pub fn enqueue_source(&mut self, source: SymphInput) {
         let (mut track, _) = tracks::create_player(source);
         self.queue.add_raw(&mut track);
         self.play(track);

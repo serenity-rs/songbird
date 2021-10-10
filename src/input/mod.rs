@@ -100,7 +100,7 @@ pub enum SymphInput {
     /// Literally just a ReadSeek.
     Raw(Box<dyn MediaSource>),
     /// A parsed and buffered stream?
-    Wrapped(symphonia_core::io::MediaSourceStream),
+    Wrapped(MediaSourceStream),
     /// Account for tyhe case that someone proceses their stream entirely locally?
     /// FIXME: Rename me to Live.
     Parsed(LiveInput, Option<Box<dyn Compose>>),
