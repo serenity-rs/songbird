@@ -202,7 +202,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Failure to `leave` before rejoining may cause further</span>
     <span class="doccomment">/// timeouts.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_leave_server</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_leave_server</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">JoinError::TimedOut</span>)
     }
 
@@ -214,65 +214,65 @@
     <span class="doccomment">/// timeouts.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Driver::connect`]: crate::driver::Driver</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_reconnect_driver</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_reconnect_driver</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">JoinError::Driver</span>(<span class="kw">_</span>))
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to join voice channel: &quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">JoinError::Dropped</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;request was cancelled/dropped&quot;</span>),
-            <span class="ident">JoinError::NoSender</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;no gateway destination&quot;</span>),
-            <span class="ident">JoinError::NoCall</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;tried to leave a non-existent call&quot;</span>),
-            <span class="ident">JoinError::TimedOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;gateway response from Discord timed out&quot;</span>),
+            <span class="ident">JoinError::Dropped</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;request was cancelled/dropped&quot;</span>),
+            <span class="ident">JoinError::NoSender</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;no gateway destination&quot;</span>),
+            <span class="ident">JoinError::NoCall</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;tried to leave a non-existent call&quot;</span>),
+            <span class="ident">JoinError::TimedOut</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;gateway response from Discord timed out&quot;</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-            <span class="ident">JoinError::Driver</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;establishing connection failed&quot;</span>),
+            <span class="ident">JoinError::Driver</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;establishing connection failed&quot;</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-            <span class="ident">JoinError::Serenity</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">JoinError::Serenity</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-            <span class="ident">JoinError::Twilight</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">JoinError::Twilight</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">JoinError::Dropped</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">JoinError::NoSender</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">JoinError::NoCall</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">JoinError::TimedOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">JoinError::Dropped</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">JoinError::NoSender</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">JoinError::NoCall</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">JoinError::TimedOut</span> =&gt; <span class="prelude-val">None</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
-            <span class="ident">JoinError::Driver</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>),
+            <span class="ident">JoinError::Driver</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-            <span class="ident">JoinError::Serenity</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">source</span>(),
+            <span class="ident">JoinError::Serenity</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-            <span class="ident">JoinError::Twilight</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">source</span>(),
+            <span class="ident">JoinError::Twilight</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TrySendError</span><span class="op">&lt;</span><span class="ident">InterMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">TrySendError</span><span class="op">&lt;</span><span class="ident">InterMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">TrySendError</span><span class="op">&lt;</span><span class="ident">InterMessage</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">JoinError::Serenity</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CommandError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CommandError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CommandError</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">JoinError::Twilight</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ConnectionError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">ConnectionError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">ConnectionError</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">JoinError::Driver</span>(<span class="ident">e</span>)
     }
 }

@@ -187,91 +187,91 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CryptoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CryptoError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CryptoError</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Error::Crypto</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">IoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">IoError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">IoError</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::Io</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsonError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">JsonError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">JsonError</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::Json</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::AuxNetwork</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::Event</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::Mixer</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">WsError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">WsError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">WsError</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::Ws</span>(<span class="ident">e</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Elapsed</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">Elapsed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">Elapsed</span>) -&gt; <span class="ident">Error</span> {
         <span class="ident">Error::TimedOut</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to connect to Discord RTP server: &quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">use</span> <span class="ident">Error</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AttemptDiscarded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
-            <span class="ident">Crypto</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">CryptoModeInvalid</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
-            <span class="ident">CryptoModeUnavailable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
-            <span class="ident">EndpointUrl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
-            <span class="ident">ExpectedHandshake</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;voice initialisation protocol was violated&quot;</span>),
-            <span class="ident">IllegalDiscoveryResponse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response was invalid&quot;</span>),
-            <span class="ident">IllegalIp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
-            <span class="ident">Io</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">Json</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">InterconnectFailure</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to contact other task ({:?})&quot;</span>, <span class="ident">e</span>),
-            <span class="ident">Ws</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;websocket issue ({:?}).&quot;</span>, <span class="ident">e</span>),
-            <span class="ident">TimedOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt timed out&quot;</span>),
+            <span class="ident">AttemptDiscarded</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
+            <span class="ident">Crypto</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">CryptoModeInvalid</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
+            <span class="ident">CryptoModeUnavailable</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
+            <span class="ident">EndpointUrl</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
+            <span class="ident">ExpectedHandshake</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;voice initialisation protocol was violated&quot;</span>),
+            <span class="ident">IllegalDiscoveryResponse</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response was invalid&quot;</span>),
+            <span class="ident">IllegalIp</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
+            <span class="ident">Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">Json</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">InterconnectFailure</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to contact other task ({:?})&quot;</span>, <span class="ident">e</span>),
+            <span class="ident">Ws</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;websocket issue ({:?}).&quot;</span>, <span class="ident">e</span>),
+            <span class="ident">TimedOut</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt timed out&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::AttemptDiscarded</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::Crypto</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::CryptoModeInvalid</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::CryptoModeUnavailable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::EndpointUrl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::ExpectedHandshake</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::IllegalDiscoveryResponse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::IllegalIp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::Io</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::Json</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::InterconnectFailure</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::Ws</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Error::TimedOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Error::AttemptDiscarded</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::Crypto</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
+            <span class="ident">Error::CryptoModeInvalid</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::CryptoModeUnavailable</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::EndpointUrl</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::ExpectedHandshake</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::IllegalDiscoveryResponse</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::IllegalIp</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
+            <span class="ident">Error::Json</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
+            <span class="ident">Error::InterconnectFailure</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::Ws</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::TimedOut</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }

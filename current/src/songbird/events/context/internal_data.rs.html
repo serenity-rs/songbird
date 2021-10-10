@@ -128,7 +128,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalConnect</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ConnectData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalConnect</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalConnect</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">channel_id</span>: <span class="ident">val</span>.<span class="ident">info</span>.<span class="ident">channel_id</span>,
             <span class="ident">guild_id</span>: <span class="ident">val</span>.<span class="ident">info</span>.<span class="ident">guild_id</span>,
@@ -140,7 +140,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalDisconnect</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DisconnectData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalDisconnect</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalDisconnect</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">val</span>.<span class="ident">kind</span>,
             <span class="ident">reason</span>: <span class="ident">val</span>.<span class="ident">reason</span>,
@@ -152,7 +152,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalSpeakingUpdate</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SpeakingUpdateData</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalSpeakingUpdate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalSpeakingUpdate</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">speaking</span>: <span class="ident">val</span>.<span class="ident">speaking</span>,
             <span class="ident">ssrc</span>: <span class="ident">val</span>.<span class="ident">ssrc</span>,
@@ -161,7 +161,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalVoicePacket</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VoiceData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalVoicePacket</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalVoicePacket</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">audio</span>: <span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">audio</span>,
             <span class="ident">packet</span>: <span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">packet</span>,
@@ -172,7 +172,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalRtcpPacket</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RtcpData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalRtcpPacket</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InternalRtcpPacket</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">packet</span>: <span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">packet</span>,
             <span class="ident">payload_offset</span>: <span class="ident">val</span>.<span class="ident">payload_offset</span>,

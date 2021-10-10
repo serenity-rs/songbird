@@ -506,28 +506,28 @@
 }
 
 <span class="kw">impl</span> <span class="ident">PacketDecodeSize</span> {
-    <span class="kw">fn</span> <span class="ident">bump_up</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">bump_up</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">use</span> <span class="ident">PacketDecodeSize</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TwentyMillis</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ThirtyMillis</span>,
-            <span class="ident">ThirtyMillis</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FortyMillis</span>,
-            <span class="ident">FortyMillis</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SixtyMillis</span>,
-            <span class="ident">SixtyMillis</span> <span class="op">|</span> <span class="ident">Max</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Max</span>,
+            <span class="ident">TwentyMillis</span> =&gt; <span class="ident">ThirtyMillis</span>,
+            <span class="ident">ThirtyMillis</span> =&gt; <span class="ident">FortyMillis</span>,
+            <span class="ident">FortyMillis</span> =&gt; <span class="ident">SixtyMillis</span>,
+            <span class="ident">SixtyMillis</span> <span class="op">|</span> <span class="ident">Max</span> =&gt; <span class="ident">Max</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">can_bump_up</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">can_bump_up</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span> <span class="op">!</span><span class="op">=</span> <span class="ident">PacketDecodeSize::Max</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">use</span> <span class="ident">PacketDecodeSize</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TwentyMillis</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">STEREO_FRAME_SIZE</span>,
-            <span class="ident">ThirtyMillis</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">STEREO_FRAME_SIZE</span> <span class="op">/</span> <span class="number">2</span>) <span class="op">*</span> <span class="number">3</span>,
-            <span class="ident">FortyMillis</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
-            <span class="ident">SixtyMillis</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
-            <span class="ident">Max</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
+            <span class="ident">TwentyMillis</span> =&gt; <span class="ident">STEREO_FRAME_SIZE</span>,
+            <span class="ident">ThirtyMillis</span> =&gt; (<span class="ident">STEREO_FRAME_SIZE</span> <span class="op">/</span> <span class="number">2</span>) <span class="op">*</span> <span class="number">3</span>,
+            <span class="ident">FortyMillis</span> =&gt; <span class="number">2</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
+            <span class="ident">SixtyMillis</span> =&gt; <span class="number">3</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
+            <span class="ident">Max</span> =&gt; <span class="number">6</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
         }
     }
 }
@@ -540,7 +540,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">SsrcState</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pkt</span>: <span class="ident">RtpPacket</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pkt</span>: <span class="ident">RtpPacket</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">silent_frame_count</span>: <span class="number">5</span>, <span class="comment">// We do this to make the first speech packet fire an event.</span>
             <span class="ident">decoder</span>: <span class="ident">OpusDecoder::new</span>(<span class="ident">SAMPLE_RATE</span>, <span class="ident">Channels::Stereo</span>)
@@ -557,7 +557,7 @@
         <span class="ident">data_trailer</span>: <span class="ident">usize</span>,
         <span class="ident">decode_mode</span>: <span class="ident">DecodeMode</span>,
         <span class="ident">decrypted</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SpeakingDelta</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SpeakingDelta</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">new_seq</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">get_sequence</span>().<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">payload_len</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">payload</span>().<span class="ident">len</span>();
 
@@ -578,7 +578,7 @@
                     <span class="kw-2">&amp;</span><span class="ident">pkt</span>.<span class="ident">payload</span>()[<span class="ident">data_offset</span>..<span class="ident">payload_len</span> <span class="op">-</span> <span class="ident">data_trailer</span>],
                     <span class="ident">extensions</span>,
                     <span class="ident">missed_packets</span>,
-                    <span class="ident">decode_mode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DecodeMode::Decode</span>,
+                    <span class="ident">decode_mode</span> <span class="op">==</span> <span class="ident">DecodeMode::Decode</span>,
                 )<span class="question-mark">?</span>
             } <span class="kw">else</span> {
                 <span class="comment">// The latter part is an upper bound, as we cannot determine</span>
@@ -587,7 +587,7 @@
                 (<span class="prelude-val">None</span>, <span class="ident">payload_len</span> <span class="op">-</span> <span class="ident">data_offset</span> <span class="op">-</span> <span class="ident">data_trailer</span>)
             };
 
-            <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">pkt_size</span> <span class="op">=</span><span class="op">=</span> <span class="ident">SILENT_FRAME</span>.<span class="ident">len</span>() {
+            <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">pkt_size</span> <span class="op">==</span> <span class="ident">SILENT_FRAME</span>.<span class="ident">len</span>() {
                 <span class="comment">// Frame is silent.</span>
                 <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">silent_frame_count</span>;
                 <span class="self">self</span>.<span class="ident">silent_frame_count</span> <span class="op">=</span>
@@ -619,7 +619,7 @@
         <span class="ident">extension</span>: <span class="ident">bool</span>,
         <span class="ident">missed_packets</span>: <span class="ident">u16</span>,
         <span class="ident">decode</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">extension</span> {
             <span class="ident">RtpExtensionPacket::new</span>(<span class="ident">data</span>)
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pkt</span><span class="op">|</span> <span class="ident">pkt</span>.<span class="ident">packet_size</span>())
@@ -653,14 +653,14 @@
                         .<span class="ident">decode</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="ident">start</span>..]), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>[..], <span class="bool-val">false</span>);
 
                 <span class="kw">match</span> <span class="ident">tried_audio_len</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">audio_len</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">audio_len</span>) =&gt; {
                         <span class="comment">// Decoding to stereo: audio_len refers to sample count irrespective of channel count.</span>
                         <span class="comment">// =&gt; multiply by number of channels.</span>
                         <span class="ident">out</span>.<span class="ident">truncate</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">audio_len</span>);
 
                         <span class="kw">break</span>;
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">OpusError::Opus</span>(<span class="ident">ErrorCode::BufferTooSmall</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">OpusError::Opus</span>(<span class="ident">ErrorCode::BufferTooSmall</span>)) =&gt; {
                         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">decode_size</span>.<span class="ident">can_bump_up</span>() {
                             <span class="self">self</span>.<span class="ident">decode_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_size</span>.<span class="ident">bump_up</span>();
                             <span class="ident">out</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">decode_size</span>.<span class="ident">len</span>()];
@@ -669,7 +669,7 @@
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::IllegalVoicePacket</span>);
                         }
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="macro">error!</span>(<span class="string">&quot;Failed to decode received packet: {:?}.&quot;</span>, <span class="ident">e</span>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>());
                     },
@@ -704,19 +704,19 @@
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Interconnect</span>) {
         <span class="kw">loop</span> {
             <span class="macro">select!</span> {
-                <span class="prelude-val">Ok</span>((<span class="ident">len</span>, <span class="ident">_addr</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">udp_socket</span>.<span class="ident">recv_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet_buffer</span>[..]) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">len</span>, <span class="ident">_addr</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">udp_socket</span>.<span class="ident">recv_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet_buffer</span>[..]) =&gt; {
                     <span class="self">self</span>.<span class="ident">process_udp_message</span>(<span class="ident">interconnect</span>, <span class="ident">len</span>);
                 }
-                <span class="ident">msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">recv_async</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">recv_async</span>() =&gt; {
                     <span class="kw">use</span> <span class="ident">UdpRxMessage</span>::<span class="kw-2">*</span>;
                     <span class="kw">match</span> <span class="ident">msg</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>)) =&gt; {
                             <span class="kw-2">*</span><span class="ident">interconnect</span> <span class="op">=</span> <span class="ident">i</span>;
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">SetConfig</span>(<span class="ident">c</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(<span class="ident">SetConfig</span>(<span class="ident">c</span>)) =&gt; {
                             <span class="self">self</span>.<span class="ident">config</span> <span class="op">=</span> <span class="ident">c</span>;
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">Poison</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                        <span class="prelude-val">Ok</span>(<span class="ident">Poison</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
                     }
                 }
             }
@@ -735,7 +735,7 @@
         <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">packet_buffer</span>[..<span class="ident">len</span>];
 
         <span class="kw">match</span> <span class="ident">demux::demux_mut</span>(<span class="ident">packet</span>) {
-            <span class="ident">DemuxedMut::Rtp</span>(<span class="kw-2">mut</span> <span class="ident">rtp</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">DemuxedMut::Rtp</span>(<span class="kw-2">mut</span> <span class="ident">rtp</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">rtp_valid</span>(<span class="ident">rtp</span>.<span class="ident">to_immutable</span>()) {
                     <span class="macro">error!</span>(<span class="string">&quot;Illegal RTP message received.&quot;</span>);
                     <span class="kw">return</span>;
@@ -776,7 +776,7 @@
                     <span class="ident">decrypted</span>,
                 ) {
                     <span class="kw">match</span> <span class="ident">delta</span> {
-                        <span class="ident">SpeakingDelta::Start</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">SpeakingDelta::Start</span> =&gt; {
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                                 <span class="ident">CoreContext::SpeakingUpdate</span>(<span class="ident">InternalSpeakingUpdate</span> {
                                     <span class="ident">ssrc</span>: <span class="ident">rtp</span>.<span class="ident">get_ssrc</span>(),
@@ -784,7 +784,7 @@
                                 }),
                             ));
                         },
-                        <span class="ident">SpeakingDelta::Stop</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">SpeakingDelta::Stop</span> =&gt; {
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                                 <span class="ident">CoreContext::SpeakingUpdate</span>(<span class="ident">InternalSpeakingUpdate</span> {
                                     <span class="ident">ssrc</span>: <span class="ident">rtp</span>.<span class="ident">get_ssrc</span>(),
@@ -792,7 +792,7 @@
                                 }),
                             ));
                         },
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {},
+                        <span class="kw">_</span> =&gt; {},
                     }
 
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
@@ -807,7 +807,7 @@
                     <span class="macro">warn!</span>(<span class="string">&quot;RTP decoding/processing failed.&quot;</span>);
                 }
             },
-            <span class="ident">DemuxedMut::Rtcp</span>(<span class="kw-2">mut</span> <span class="ident">rtcp</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">DemuxedMut::Rtcp</span>(<span class="kw-2">mut</span> <span class="ident">rtcp</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">packet_data</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">decode_mode</span>.<span class="ident">should_decrypt</span>() {
                     <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">crypto_mode</span>.<span class="ident">decrypt_in_place</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rtcp</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cipher</span>);
 
@@ -838,10 +838,10 @@
                             },
                         )));
             },
-            <span class="ident">DemuxedMut::FailedParse</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">DemuxedMut::FailedParse</span>(<span class="ident">t</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;Failed to parse message of type {:?}.&quot;</span>, <span class="ident">t</span>);
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;Illegal UDP packet from voice server.&quot;</span>);
             },
         }
@@ -899,8 +899,8 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">rtp_valid</span>(<span class="ident">packet</span>: <span class="ident">RtpPacket</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">packet</span>.<span class="ident">get_version</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">RTP_VERSION</span> <span class="op">&amp;&amp;</span> <span class="ident">packet</span>.<span class="ident">get_payload_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">RTP_PROFILE_TYPE</span>
+<span class="kw">fn</span> <span class="ident">rtp_valid</span>(<span class="ident">packet</span>: <span class="ident">RtpPacket</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
+    <span class="ident">packet</span>.<span class="ident">get_version</span>() <span class="op">==</span> <span class="ident">RTP_VERSION</span> <span class="op">&amp;&amp;</span> <span class="ident">packet</span>.<span class="ident">get_payload_type</span>() <span class="op">==</span> <span class="ident">RTP_PROFILE_TYPE</span>
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>

@@ -97,10 +97,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Strategy</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">retry_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">retry_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="ident">Duration</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Every</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">t</span>,
-            <span class="ident"><span class="self">Self</span>::Backoff</span>(<span class="ident">exp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">exp</span>.<span class="ident">retry_in</span>(<span class="ident">last_wait</span>),
+            <span class="ident"><span class="self">Self</span>::Every</span>(<span class="ident">t</span>) =&gt; <span class="kw-2">*</span><span class="ident">t</span>,
+            <span class="ident"><span class="self">Self</span>::Backoff</span>(<span class="ident">exp</span>) =&gt; <span class="ident">exp</span>.<span class="ident">retry_in</span>(<span class="ident">last_wait</span>),
         }
     }
 }
@@ -131,7 +131,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ExponentialBackoff</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">min</span>: <span class="ident">Duration::from_millis</span>(<span class="number">250</span>),
             <span class="ident">max</span>: <span class="ident">Duration::from_secs</span>(<span class="number">10</span>),
@@ -141,7 +141,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ExponentialBackoff</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">retry_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">retry_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="ident">Duration</span> {
         <span class="kw">let</span> <span class="ident">attempt</span> <span class="op">=</span> <span class="ident">last_wait</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">t</span>).<span class="ident">unwrap_or</span>(<span class="self">self</span>.<span class="ident">min</span>);
         <span class="kw">let</span> <span class="ident">perturb</span> <span class="op">=</span> (<span class="number">1.0</span> <span class="op">-</span> (<span class="self">self</span>.<span class="ident">jitter</span> <span class="op">*</span> <span class="number">2.0</span> <span class="op">*</span> (<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>() <span class="op">-</span> <span class="number">1.0</span>)))
             .<span class="ident">max</span>(<span class="number">0.0</span>)

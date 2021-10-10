@@ -520,7 +520,7 @@
     <span class="doccomment">/// In general, you should probably use [`create_player`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`create_player`]: fn.create_player.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_raw</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">commands</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>, <span class="ident">handle</span>: <span class="ident">TrackHandle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_raw</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">commands</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>, <span class="ident">handle</span>: <span class="ident">TrackHandle</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">uuid</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">uuid</span>();
 
         <span class="self">Self</span> {
@@ -538,12 +538,12 @@
     }
 
     <span class="doccomment">/// Sets a track to playing if it is paused.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">set_playing</span>(<span class="ident">PlayMode::Play</span>)
     }
 
     <span class="doccomment">/// Pauses a track if it is playing.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">set_playing</span>(<span class="ident">PlayMode::Pause</span>)
     }
 
@@ -551,47 +551,47 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will cause the audio track to be removed, with any relevant events triggered.</span>
     <span class="doccomment">/// Stopped/ended tracks cannot be restarted.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">set_playing</span>(<span class="ident">PlayMode::Stop</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">set_playing</span>(<span class="ident">PlayMode::End</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">set_playing</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new_state</span>: <span class="ident">PlayMode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">set_playing</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new_state</span>: <span class="ident">PlayMode</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">playing</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">change_to</span>(<span class="ident">new_state</span>);
 
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Returns the current play status of this track.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">playing</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PlayMode</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">playing</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PlayMode</span> {
         <span class="self">self</span>.<span class="ident">playing</span>
     }
 
     <span class="doccomment">/// Sets [`volume`] in a manner that allows method chaining.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`volume`]: Track::volume</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_volume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">volume</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_volume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">volume</span>: <span class="ident">f32</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">volume</span> <span class="op">=</span> <span class="ident">volume</span>;
 
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Returns the current playback position.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">volume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">volume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f32</span> {
         <span class="self">self</span>.<span class="ident">volume</span>
     }
 
     <span class="doccomment">/// Returns the current playback position.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Duration</span> {
         <span class="self">self</span>.<span class="ident">position</span>
     }
 
     <span class="doccomment">/// Returns the total length of time this track has been active.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Duration</span> {
         <span class="self">self</span>.<span class="ident">play_time</span>
     }
 
@@ -602,7 +602,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_loops</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">loops</span>: <span class="ident">LoopState</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_loops</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">loops</span>: <span class="ident">LoopState</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">is_seekable</span>() {
             <span class="self">self</span>.<span class="ident">loops</span> <span class="op">=</span> <span class="ident">loops</span>;
             <span class="prelude-val">Ok</span>(())
@@ -611,11 +611,11 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">do_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">do_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">loops</span> {
-            <span class="ident">LoopState::Infinite</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">LoopState::Finite</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">LoopState::Finite</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LoopState::Infinite</span> =&gt; <span class="bool-val">true</span>,
+            <span class="ident">LoopState::Finite</span>(<span class="number">0</span>) =&gt; <span class="bool-val">false</span>,
+            <span class="ident">LoopState::Finite</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">n</span>) =&gt; {
                 <span class="kw-2">*</span><span class="ident">n</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="bool-val">true</span>
             },
@@ -641,72 +641,72 @@
         <span class="comment">// doing the work.</span>
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">try_recv</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">cmd</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">cmd</span>) =&gt; {
                     <span class="kw">use</span> <span class="ident">TrackCommand</span>::<span class="kw-2">*</span>;
                     <span class="kw">match</span> <span class="ident">cmd</span> {
-                        <span class="ident">Play</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Play</span> =&gt; {
                             <span class="self">self</span>.<span class="ident">play</span>();
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                                 <span class="ident">index</span>,
                                 <span class="ident">TrackStateChange::Mode</span>(<span class="self">self</span>.<span class="ident">playing</span>),
                             ));
                         },
-                        <span class="ident">Pause</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Pause</span> =&gt; {
                             <span class="self">self</span>.<span class="ident">pause</span>();
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                                 <span class="ident">index</span>,
                                 <span class="ident">TrackStateChange::Mode</span>(<span class="self">self</span>.<span class="ident">playing</span>),
                             ));
                         },
-                        <span class="ident">Stop</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Stop</span> =&gt; {
                             <span class="self">self</span>.<span class="ident">stop</span>();
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                                 <span class="ident">index</span>,
                                 <span class="ident">TrackStateChange::Mode</span>(<span class="self">self</span>.<span class="ident">playing</span>),
                             ));
                         },
-                        <span class="ident">Volume</span>(<span class="ident">vol</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Volume</span>(<span class="ident">vol</span>) =&gt; {
                             <span class="self">self</span>.<span class="ident">set_volume</span>(<span class="ident">vol</span>);
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                                 <span class="ident">index</span>,
                                 <span class="ident">TrackStateChange::Volume</span>(<span class="self">self</span>.<span class="ident">volume</span>),
                             ));
                         },
-                        <span class="ident">Seek</span>(<span class="ident">time</span>) <span class="op">=</span><span class="op">&gt;</span>
+                        <span class="ident">Seek</span>(<span class="ident">time</span>) =&gt;
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">new_time</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">seek_time</span>(<span class="ident">time</span>) {
                                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                                     <span class="ident">index</span>,
                                     <span class="ident">TrackStateChange::Position</span>(<span class="ident">new_time</span>),
                                 ));
                             },
-                        <span class="ident">AddEvent</span>(<span class="ident">evt</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">AddEvent</span>(<span class="ident">evt</span>) =&gt; {
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::AddTrackEvent</span>(<span class="ident">index</span>, <span class="ident">evt</span>));
                         },
-                        <span class="ident">Do</span>(<span class="ident">action</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Do</span>(<span class="ident">action</span>) =&gt; {
                             <span class="ident">action</span>(<span class="self">self</span>);
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                                 <span class="ident">index</span>,
                                 <span class="ident">TrackStateChange::Total</span>(<span class="self">self</span>.<span class="ident">state</span>()),
                             ));
                         },
-                        <span class="ident">Request</span>(<span class="ident">tx</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Request</span>(<span class="ident">tx</span>) =&gt; {
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="self">self</span>.<span class="ident">state</span>());
                         },
-                        <span class="ident">Loop</span>(<span class="ident">loops</span>) <span class="op">=</span><span class="op">&gt;</span>
+                        <span class="ident">Loop</span>(<span class="ident">loops</span>) =&gt;
                             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">set_loops</span>(<span class="ident">loops</span>).<span class="ident">is_ok</span>() {
                                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
                                     <span class="ident">index</span>,
                                     <span class="ident">TrackStateChange::Loops</span>(<span class="self">self</span>.<span class="ident">loops</span>, <span class="bool-val">true</span>),
                                 ));
                             },
-                        <span class="ident">MakePlayable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">make_playable</span>(),
+                        <span class="ident">MakePlayable</span> =&gt; <span class="self">self</span>.<span class="ident">make_playable</span>(),
                     }
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Disconnected</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Disconnected</span>) =&gt; {
                     <span class="comment">// this branch will never be visited.</span>
                     <span class="kw">break</span>;
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>) =&gt; {
                     <span class="kw">break</span>;
                 },
             }
@@ -729,7 +729,7 @@
     <span class="doccomment">/// threads in response to a [`TrackHandle`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`TrackHandle`]: TrackHandle</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackState</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackState</span> {
         <span class="ident">TrackState</span> {
             <span class="ident">playing</span>: <span class="self">self</span>.<span class="ident">playing</span>,
             <span class="ident">volume</span>: <span class="self">self</span>.<span class="ident">volume</span>,
@@ -746,7 +746,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
     <span class="doccomment">/// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">Duration</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">seek_time</span>(<span class="ident">pos</span>) {
             <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">t</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">t</span>)
@@ -756,7 +756,7 @@
     }
 
     <span class="doccomment">/// Returns this track&#39;s unique identifier.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uuid</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Uuid</span> {
         <span class="self">self</span>.<span class="ident">uuid</span>
     }
 }
@@ -770,7 +770,7 @@
 <span class="doccomment">/// [`Track`]: Track</span>
 <span class="doccomment">/// [`TrackHandle`]: TrackHandle</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_player</span>(<span class="ident">source</span>: <span class="ident">Input</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Track</span>, <span class="ident">TrackHandle</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_player</span>(<span class="ident">source</span>: <span class="ident">Input</span>) -&gt; (<span class="ident">Track</span>, <span class="ident">TrackHandle</span>) {
     <span class="ident">create_player_with_uuid</span>(<span class="ident">source</span>, <span class="ident">Uuid::new_v4</span>())
 }
 
@@ -780,7 +780,7 @@
 <span class="doccomment">/// [`create_player`]: create_player</span>
 <span class="doccomment">/// [`Track`]: Track</span>
 <span class="doccomment">/// [`TrackHandle`]: TrackHandle</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_player_with_uuid</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">uuid</span>: <span class="ident">Uuid</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Track</span>, <span class="ident">TrackHandle</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_player_with_uuid</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">uuid</span>: <span class="ident">Uuid</span>) -&gt; (<span class="ident">Track</span>, <span class="ident">TrackHandle</span>) {
     <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
     <span class="kw">let</span> <span class="ident">can_seek</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">is_seekable</span>();
     <span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">metadata</span>.<span class="ident">clone</span>();

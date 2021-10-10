@@ -102,7 +102,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChildContainer</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>);
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">children_to_reader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Reader</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">children_to_reader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) -&gt; <span class="ident">Reader</span> {
     <span class="ident">Reader::Pipe</span>(<span class="ident">BufReader::with_capacity</span>(
         <span class="ident">STEREO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">CHILD_BUFFER_LEN</span>,
         <span class="ident">ChildContainer</span>(<span class="ident">children</span>),
@@ -110,22 +110,22 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Reader</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">container</span>: <span class="ident">Child</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">container</span>: <span class="ident">Child</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">children_to_reader</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="macro">vec!</span>[<span class="ident">container</span>])
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Reader</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">container</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">container</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">children_to_reader</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="ident">container</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">ChildContainer</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">last_mut</span>() {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">child</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">child</span>.<span class="ident">stdout</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">read</span>(<span class="ident">buffer</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">child</span>) =&gt; <span class="ident">child</span>.<span class="ident">stdout</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">read</span>(<span class="ident">buffer</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
         }
     }
 }

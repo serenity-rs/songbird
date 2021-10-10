@@ -53,13 +53,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LengthHint</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">LengthHint::Bytes</span>(<span class="ident">size</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LengthHint</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">size</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">size</span>: <span class="ident">Duration</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">LengthHint::Time</span>(<span class="ident">size</span>)
     }
 }
@@ -71,8 +71,8 @@
     <span class="ident">H</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">LengthHint</span><span class="op">&gt;</span>,
 {
     <span class="ident">config</span>.<span class="ident">length_hint</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">hint</span>.<span class="ident">into</span>() {
-        <span class="ident">LengthHint::Bytes</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>,
-        <span class="ident">LengthHint::Time</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">LengthHint::Bytes</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
+        <span class="ident">LengthHint::Time</span>(<span class="ident">t</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">as_secs</span>() <span class="op">+</span> <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">subsec_millis</span>() <span class="op">&gt;</span> <span class="number">0</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
             (<span class="ident">s</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">*</span> <span class="ident">cost_per_sec</span>
         },

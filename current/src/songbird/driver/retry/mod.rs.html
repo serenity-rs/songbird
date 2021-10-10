@@ -75,7 +75,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Retry</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">strategy</span>: <span class="ident">Strategy::Backoff</span>(<span class="ident">Default::default</span>()),
             <span class="ident">retry_limit</span>: <span class="prelude-val">Some</span>(<span class="number">5</span>),
@@ -88,7 +88,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
         <span class="ident">attempts</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">retry_limit</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">attempts</span> <span class="op">&lt;</span> <span class="ident">a</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>) {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">strategy</span>.<span class="ident">retry_in</span>(<span class="ident">last_wait</span>))
         } <span class="kw">else</span> {

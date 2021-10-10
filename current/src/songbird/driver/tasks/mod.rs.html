@@ -407,7 +407,7 @@
     });
 }
 
-<span class="kw">fn</span> <span class="ident">start_internals</span>(<span class="ident">core</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>, <span class="ident">config</span>: <span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interconnect</span> {
+<span class="kw">fn</span> <span class="ident">start_internals</span>(<span class="ident">core</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>, <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="ident">Interconnect</span> {
     <span class="kw">let</span> (<span class="ident">evt_tx</span>, <span class="ident">evt_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
     <span class="kw">let</span> (<span class="ident">mix_tx</span>, <span class="ident">mix_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
 
@@ -445,7 +445,7 @@
 
     <span class="kw">loop</span> {
         <span class="kw">match</span> <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::ConnectWithResult</span>(<span class="ident">info</span>, <span class="ident">tx</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::ConnectWithResult</span>(<span class="ident">info</span>, <span class="ident">tx</span>)) =&gt; {
                 <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_config</span>) <span class="op">=</span> <span class="ident">next_config</span>.<span class="ident">take</span>() {
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>
                         .<span class="ident">mixer</span>
@@ -473,9 +473,9 @@
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(()));
                 }
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RetryConnect</span>(<span class="ident">retry_idx</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RetryConnect</span>(<span class="ident">retry_idx</span>)) =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot;Retrying idx: {} (vs. {})&quot;</span>, <span class="ident">retry_idx</span>, <span class="ident">attempt_idx</span>);
-                <span class="kw">if</span> <span class="ident">retry_idx</span> <span class="op">=</span><span class="op">=</span> <span class="ident">attempt_idx</span> {
+                <span class="kw">if</span> <span class="ident">retry_idx</span> <span class="op">==</span> <span class="ident">attempt_idx</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress</span>) <span class="op">=</span> <span class="ident">retrying</span>.<span class="ident">take</span>() {
                         <span class="ident">connection</span> <span class="op">=</span> <span class="ident">progress</span>
                             .<span class="ident">attempt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">retrying</span>, <span class="kw-2">&amp;</span><span class="ident">interconnect</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>)
@@ -483,7 +483,7 @@
                     }
                 }
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Disconnect</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Disconnect</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">last_conn</span> <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">take</span>();
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::DropConn</span>);
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::RebuildEncoder</span>);
@@ -498,7 +498,7 @@
                     ));
                 }
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SignalWsClosure</span>(<span class="ident">ws_idx</span>, <span class="ident">ws_info</span>, <span class="kw-2">mut</span> <span class="ident">reason</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SignalWsClosure</span>(<span class="ident">ws_idx</span>, <span class="ident">ws_info</span>, <span class="kw-2">mut</span> <span class="ident">reason</span>)) =&gt; {
                 <span class="comment">// if idx is not a match, quash reason</span>
                 <span class="comment">// (i.e., prevent users from mistakenly trying to reconnect for an *old* dead conn).</span>
                 <span class="comment">// if it *is* a match, the conn needs to die!</span>
@@ -519,54 +519,54 @@
                     }),
                 ));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="ident">s</span>)) =&gt; {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetTrack</span>(<span class="ident">s</span>));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::AddTrack</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::AddTrack</span>(<span class="ident">s</span>)) =&gt; {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::AddTrack</span>(<span class="ident">s</span>));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetBitrate</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetBitrate</span>(<span class="ident">b</span>)) =&gt; {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetBitrate</span>(<span class="ident">b</span>));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetConfig</span>(<span class="kw-2">mut</span> <span class="ident">new_config</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetConfig</span>(<span class="kw-2">mut</span> <span class="ident">new_config</span>)) =&gt; {
                 <span class="ident">next_config</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_config</span>.<span class="ident">clone</span>());
 
                 <span class="ident">new_config</span>.<span class="ident">make_safe</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="ident">connection</span>.<span class="ident">is_some</span>());
 
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetConfig</span>(<span class="ident">new_config</span>));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::AddEvent</span>(<span class="ident">evt</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::AddEvent</span>(<span class="ident">evt</span>)) =&gt; {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::AddGlobalEvent</span>(<span class="ident">evt</span>));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RemoveGlobalEvents</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RemoveGlobalEvents</span>) =&gt; {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::RemoveGlobalEvents</span>);
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Mute</span>(<span class="ident">m</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Mute</span>(<span class="ident">m</span>)) =&gt; {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetMute</span>(<span class="ident">m</span>));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Reconnect</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Reconnect</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">conn</span>) <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">take</span>() {
                     <span class="comment">// try once: if interconnect, try again.</span>
                     <span class="comment">// if still issue, full connect.</span>
                     <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">info</span>.<span class="ident">clone</span>();
 
                     <span class="kw">let</span> <span class="ident">full_connect</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">conn</span>.<span class="ident">reconnect</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>).<span class="kw">await</span> {
-                        <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Ok</span>(()) =&gt; {
                             <span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>);
                             <span class="bool-val">false</span>
                         },
-                        <span class="prelude-val">Err</span>(<span class="ident">ConnectionError::InterconnectFailure</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Err</span>(<span class="ident">ConnectionError::InterconnectFailure</span>(<span class="kw">_</span>)) =&gt; {
                             <span class="ident">interconnect</span>.<span class="ident">restart_volatile_internals</span>();
 
                             <span class="kw">match</span> <span class="ident">conn</span>.<span class="ident">reconnect</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>).<span class="kw">await</span> {
-                                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="prelude-val">Ok</span>(()) =&gt; {
                                     <span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>);
                                     <span class="bool-val">false</span>
                                 },
-                                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                                <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
                             }
                         },
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                        <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
                     };
 
                     <span class="kw">if</span> <span class="ident">full_connect</span> {
@@ -583,7 +583,7 @@
                     }
                 }
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::FullReconnect</span>) <span class="op">=</span><span class="op">&gt;</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::FullReconnect</span>) =&gt;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">take</span>() {
                     <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">info</span>.<span class="ident">clone</span>();
 
@@ -591,10 +591,10 @@
                         .<span class="ident">attempt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">retrying</span>, <span class="kw-2">&amp;</span><span class="ident">interconnect</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>)
                         .<span class="kw">await</span>;
                 },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RebuildInterconnect</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RebuildInterconnect</span>) =&gt; {
                 <span class="ident">interconnect</span>.<span class="ident">restart_volatile_internals</span>();
             },
-            <span class="prelude-val">Err</span>(<span class="ident">RecvError::Disconnected</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Poison</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">RecvError::Disconnected</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Poison</span>) =&gt; {
                 <span class="kw">break</span>;
             },
         }
@@ -617,15 +617,15 @@
         <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ConnectionError</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
         <span class="ident">idx_src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    ) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::base</span>(<span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>), <span class="ident">info</span>, <span class="ident">idx_src</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">reconnect</span>(<span class="ident">info</span>: <span class="ident">ConnectionInfo</span>, <span class="ident">idx_src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">reconnect</span>(<span class="ident">info</span>: <span class="ident">ConnectionInfo</span>, <span class="ident">idx_src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::base</span>(<span class="ident">ConnectionFlavour::Reconnect</span>, <span class="ident">info</span>, <span class="ident">idx_src</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">base</span>(<span class="ident">flavour</span>: <span class="ident">ConnectionFlavour</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>, <span class="ident">idx_src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">base</span>(<span class="ident">flavour</span>: <span class="ident">ConnectionFlavour</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>, <span class="ident">idx_src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="kw-2">*</span><span class="ident">idx_src</span> <span class="op">=</span> <span class="ident">idx_src</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
 
         <span class="self">Self</span> {
@@ -642,11 +642,11 @@
         <span class="ident">attempt_slot</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>,
         <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">Connection::new</span>(<span class="self">self</span>.<span class="ident">info</span>.<span class="ident">clone</span>(), <span class="ident">interconnect</span>, <span class="ident">config</span>, <span class="self">self</span>.<span class="ident">idx</span>).<span class="kw">await</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">connection</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">connection</span>) =&gt; {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flavour</span> {
-                    <span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>) =&gt; {
                         <span class="comment">// Other side may not be listening: this is fine.</span>
                         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(()));
 
@@ -657,7 +657,7 @@
                             }),
                         ));
                     },
-                    <span class="ident">ConnectionFlavour::Reconnect</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">ConnectionFlavour::Reconnect</span> =&gt; {
                         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                             <span class="ident">CoreContext::DriverReconnect</span>(<span class="ident">InternalConnect</span> {
                                 <span class="ident">info</span>: <span class="ident">connection</span>.<span class="ident">info</span>.<span class="ident">clone</span>(),
@@ -669,7 +669,7 @@
 
                 <span class="prelude-val">Some</span>(<span class="ident">connection</span>)
             },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot;Failed to connect for {:?}: {}&quot;</span>, <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">guild_id</span>, <span class="ident">why</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">config</span>.<span class="ident">driver_retry</span>.<span class="ident">retry_in</span>(<span class="self">self</span>.<span class="ident">last_wait</span>, <span class="self">self</span>.<span class="ident">attempts</span>) {
                     <span class="kw">let</span> <span class="ident">remote_ic</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">clone</span>();
@@ -696,7 +696,7 @@
                     <span class="kw">let</span> <span class="ident">reason</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">DisconnectReason::from</span>(<span class="kw-2">&amp;</span><span class="ident">why</span>));
 
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flavour</span> {
-                        <span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>) =&gt; {
                             <span class="comment">// See above.</span>
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">why</span>));
 
@@ -712,7 +712,7 @@
                                 }),
                             ));
                         },
-                        <span class="ident">ConnectionFlavour::Reconnect</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">ConnectionFlavour::Reconnect</span> =&gt; {
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                                 <span class="ident">CoreContext::DriverReconnectFailed</span>,
                             ));
