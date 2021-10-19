@@ -10,6 +10,7 @@ use crate::{
 };
 use flume::Sender;
 use serde_json::json;
+use std::fmt::Debug;
 use tracing::instrument;
 
 #[cfg(feature = "driver-core")]
@@ -68,15 +69,28 @@ impl Call {
     /// the given shard.
     #[inline]
     #[instrument]
-    pub fn new(guild_id: GuildId, ws: Shard, user_id: UserId) -> Self {
-        Self::new_raw_cfg(guild_id, Some(ws), user_id, Default::default())
+    pub fn new<G, U>(guild_id: G, ws: Shard, user_id: U) -> Self
+    where
+        G: Into<GuildId> + Debug,
+        U: Into<UserId> + Debug,
+    {
+        Self::new_raw_cfg(
+            guild_id.into(),
+            Some(ws),
+            user_id.into(),
+            Default::default(),
+        )
     }
 
     /// Creates a new Call, configuring the driver as specified.
     #[inline]
     #[instrument]
-    pub fn from_config(guild_id: GuildId, ws: Shard, user_id: UserId, config: Config) -> Self {
-        Self::new_raw_cfg(guild_id, Some(ws), user_id, config)
+    pub fn from_config<G, U>(guild_id: G, ws: Shard, user_id: U, config: Config) -> Self
+    where
+        G: Into<GuildId> + Debug,
+        U: Into<UserId> + Debug,
+    {
+        Self::new_raw_cfg(guild_id.into(), Some(ws), user_id.into(), config)
     }
 
     /// Creates a new, standalone Call which is not connected via
@@ -89,15 +103,23 @@ impl Call {
     /// For most use cases you do not want this.
     #[inline]
     #[instrument]
-    pub fn standalone(guild_id: GuildId, user_id: UserId) -> Self {
-        Self::new_raw_cfg(guild_id, None, user_id, Default::default())
+    pub fn standalone<G, U>(guild_id: G, user_id: U) -> Self
+    where
+        G: Into<GuildId> + Debug,
+        U: Into<UserId> + Debug,
+    {
+        Self::new_raw_cfg(guild_id.into(), None, user_id.into(), Default::default())
     }
 
     /// Creates a new standalone Call from the given configuration file.
     #[inline]
     #[instrument]
-    pub fn standalone_from_config(guild_id: GuildId, user_id: UserId, config: Config) -> Self {
-        Self::new_raw_cfg(guild_id, None, user_id, config)
+    pub fn standalone_from_config<G, U>(guild_id: G, user_id: U, config: Config) -> Self
+    where
+        G: Into<GuildId> + Debug,
+        U: Into<UserId> + Debug,
+    {
+        Self::new_raw_cfg(guild_id.into(), None, user_id.into(), config)
     }
 
     fn new_raw_cfg(guild_id: GuildId, ws: Option<Shard>, user_id: UserId, config: Config) -> Self {
@@ -198,7 +220,16 @@ impl Call {
     ///
     /// [`Songbird::join`]: crate::Songbird::join
     #[instrument(skip(self))]
-    pub async fn join(&mut self, channel_id: ChannelId) -> JoinResult<Join> {
+    #[inline]
+    pub async fn join<C>(&mut self, channel_id: C) -> JoinResult<Join>
+    where
+        C: Into<ChannelId> + Debug,
+    {
+        self._join(channel_id.into()).await
+    }
+
+    #[cfg(feature = "driver-core")]
+    async fn _join(&mut self, channel_id: ChannelId) -> JoinResult<Join> {
         let (tx, rx) = flume::unbounded();
         let (gw_tx, gw_rx) = flume::unbounded();
 
@@ -250,7 +281,15 @@ impl Call {
     ///
     /// [`Songbird::join_gateway`]: crate::Songbird::join_gateway
     #[instrument(skip(self))]
-    pub async fn join_gateway(&mut self, channel_id: ChannelId) -> JoinResult<JoinGateway> {
+    #[inline]
+    pub async fn join_gateway<C>(&mut self, channel_id: C) -> JoinResult<JoinGateway>
+    where
+        C: Into<ChannelId> + Debug,
+    {
+        self._join_gateway(channel_id.into()).await
+    }
+
+    async fn _join_gateway(&mut self, channel_id: ChannelId) -> JoinResult<JoinGateway> {
         let (tx, rx) = flume::unbounded();
 
         let do_conn = self
@@ -376,7 +415,15 @@ impl Call {
     ///
     /// [`standalone`]: Call::standalone
     #[instrument(skip(self))]
-    pub fn update_state(&mut self, session_id: String, channel_id: Option<ChannelId>) {
+    #[inline]
+    pub fn update_state<C>(&mut self, session_id: String, channel_id: Option<C>)
+    where
+        C: Into<ChannelId> + Debug,
+    {
+        self._update_state(session_id, channel_id.map(|c| c.into()))
+    }
+
+    fn _update_state(&mut self, session_id: String, channel_id: Option<ChannelId>) {
         if let Some(channel_id) = channel_id {
             let try_conn = if let Some((ref mut progress, _)) = self.connection.as_mut() {
                 progress.apply_state_update(session_id, channel_id)
