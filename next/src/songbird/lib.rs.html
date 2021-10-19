@@ -89,6 +89,9 @@
 <span id="89">89</span>
 <span id="90">90</span>
 <span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span>(
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png&quot;</span>
@@ -127,6 +130,9 @@
 <span class="doccomment">//! [&quot;Black-Capped Chickadee&quot;]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/</span>
 <span class="doccomment">//! [`ConnectionInfo`]: struct@ConnectionInfo</span>
 <span class="doccomment">//! [lavalink]: https://github.com/freyacodes/Lavalink</span>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;youtube-dlc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;yt-dlp&quot;</span>))]</span>
+<span class="macro">compile_error!</span>(<span class="string">&quot;feature \&quot;youtube-dlc\&quot; and feature \&quot;yt-dlp\&quot; cannot be enabled at the same time&quot;</span>);
 
 <span class="kw">mod</span> <span class="ident">config</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">constants</span>;
