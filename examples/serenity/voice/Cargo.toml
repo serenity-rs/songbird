@@ -21,8 +21,9 @@ features = ["mp3", "isomp4"]
 path = "../../../"
 
 [dependencies.serenity]
-version = "0.10"
 features = ["client", "standard_framework", "voice", "rustls_backend"]
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
 
 [dependencies.tokio]
 version = "1.0"

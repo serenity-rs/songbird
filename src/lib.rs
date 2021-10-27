@@ -37,6 +37,9 @@
 //! [`ConnectionInfo`]: struct@ConnectionInfo
 //! [lavalink]: https://github.com/freyacodes/Lavalink
 
+#[cfg(all(feature = "youtube-dlc", feature = "yt-dlp"))]
+compile_error!("feature \"youtube-dlc\" and feature \"yt-dlp\" cannot be enabled at the same time");
+
 mod config;
 pub mod constants;
 #[cfg(feature = "driver-core")]
