@@ -97,13 +97,9 @@ pub enum SymphInput {
     /// * permanantly sunset restartables: a great idea when people remember them,
     ///   but it'll be better if I can make their lazy mode the default.
     Lazy(Box<dyn Compose>),
-    /// Literally just a ReadSeek.
-    Raw(Box<dyn MediaSource>),
-    /// A parsed and buffered stream?
-    Wrapped(MediaSourceStream),
     /// Account for tyhe case that someone proceses their stream entirely locally?
     /// FIXME: Rename me to Live.
-    Parsed(LiveInput, Option<Box<dyn Compose>>),
+    Live(LiveInput, Option<Box<dyn Compose>>),
 }
 
 #[allow(missing_docs)]
@@ -111,6 +107,78 @@ pub enum LiveInput {
     Raw(Blarga<Box<dyn MediaSource>>),
     Wrapped(Blarga<MediaSourceStream>),
     Parsed(Parsed),
+}
+
+impl LiveInput {
+    /// Huh.
+    pub fn promote(self) -> Self {
+        // TODO: take references to codecs and probe and shit.
+        let mut out = self;
+
+        if let LiveInput::Raw(r) = out {
+            // make a Wrapped.
+            todo!();
+        }
+
+        if let LiveInput::Wrapped(w) = out {
+            let mut reg = symphonia::core::codecs::CodecRegistry::new();
+            symphonia::default::register_enabled_codecs(&mut reg);
+            reg.register_all::<crate::input::codec::SymphOpusDecoder>();
+
+            let probe = symphonia::default::get_probe();
+
+            let mut probe = symphonia::core::probe::Probe::default();
+            probe.register_all::<crate::input::SymphDcaReader>();
+            symphonia::default::register_enabled_formats(&mut probe);
+
+            // TODO: figure out various methods to maybe pass a hint in, too.
+            let hint = w.hint.unwrap_or_default();
+            let input = w.input;
+
+            let p_ta = std::time::Instant::now();
+            let f = probe.format(&hint, input, &Default::default(), &Default::default());
+            let d1 = p_ta.elapsed();
+
+            // TODO: find a way to pass init/track errors back out to calling code.
+            match f {
+                Ok(pr) => {
+                    let mut formatter = pr.format;
+
+                    let mut tracks = HashMap::new();
+
+                    for track in formatter.tracks() {
+                        match reg.make(&track.codec_params, &Default::default()) {
+                            Ok(mut txer) => {
+                                tracks.insert(track.id, txer);
+                            },
+                            Err(e) => {
+                                println!("\t\tMake error: {:?}", e);
+                            },
+                        }
+                    }
+
+                    let p = Parsed {
+                        format: formatter,
+                        decoders: tracks,
+                        spawner: w.spawner,
+                    };
+
+                    out = LiveInput::Parsed(p);
+                },
+                Err(e) => {
+                    println!("Symph error: {:?}", e);
+                    panic!("Whoopsie, rewrite me");
+                },
+            }
+            println!(
+                "init time probe format {}, make decoders {}",
+                d1.as_nanos(),
+                p_ta.elapsed().as_nanos()
+            );
+        }
+
+        out
+    }
 }
 
 #[allow(missing_docs)]
@@ -128,6 +196,7 @@ pub trait Compose: Send {
 pub struct Blarga<T: Send> {
     pub input: T,
     pub hint: Option<Hint>,
+    pub spawner: Option<Box<dyn Compose>>,
 }
 
 #[allow(missing_docs)]
@@ -141,6 +210,7 @@ pub enum Bloopa {
 pub struct Parsed {
     pub format: Box<dyn FormatReader>,
     pub decoders: HashMap<u32, Box<dyn Decoder>>,
+    pub spawner: Option<Box<dyn Compose>>,
 }
 
 /// Data and metadata needed to correctly parse a [`Reader`]'s audio bytestream.

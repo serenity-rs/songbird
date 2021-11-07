@@ -1,7 +1,7 @@
 use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
-    input::Parsed,
+    input::{Parsed, SymphInput},
     tracks::{PlayMode, Track},
     Config,
 };
@@ -60,7 +60,7 @@ pub struct Mixer {
     //     volume: f32,
     // )
     pub tracks: Vec<Track>,
-    pub full_inputs: Vec<Parsed>,
+    full_inputs: Vec<InputState>,
     input_states: Vec<LocalInput>,
 
     pub symph_formats: Vec<Box<dyn symphonia_core::formats::FormatReader>>,
@@ -235,7 +235,7 @@ impl Mixer {
 
         let error = match msg {
             AddTrack(mut t) => {
-                todo!();
+                // todo!();
                 // t.source.prep_with_handle(self.async_handle.clone());
                 self.add_track(t)
             },
@@ -341,63 +341,62 @@ impl Mixer {
             SymphTrack(s) => {
                 match s {
                     crate::input::SymphInput::Lazy(_) => todo!(),
-                    crate::input::SymphInput::Raw(_) => todo!(),
-                    crate::input::SymphInput::Wrapped(wrapped) => {
-                        // FIXME: clean this up and let people config their own probes etc.
-                        // FIXME: offer reasonable default (lazy-static) which includes these already.
-                        let mut reg = symphonia::core::codecs::CodecRegistry::new();
-                        symphonia::default::register_enabled_codecs(&mut reg);
-                        reg.register_all::<crate::input::codec::SymphOpusDecoder>();
+                    // crate::input::SymphInput::Wrapped(wrapped) => {
+                    //     // FIXME: clean this up and let people config their own probes etc.
+                    //     // FIXME: offer reasonable default (lazy-static) which includes these already.
+                    //     let mut reg = symphonia::core::codecs::CodecRegistry::new();
+                    //     symphonia::default::register_enabled_codecs(&mut reg);
+                    //     reg.register_all::<crate::input::codec::SymphOpusDecoder>();
 
-                        let probe = symphonia::default::get_probe();
+                    //     let probe = symphonia::default::get_probe();
 
-                        let mut probe = symphonia::core::probe::Probe::default();
-                        probe.register_all::<crate::input::SymphDcaReader>();
-                        symphonia::default::register_enabled_formats(&mut probe);
+                    //     let mut probe = symphonia::core::probe::Probe::default();
+                    //     probe.register_all::<crate::input::SymphDcaReader>();
+                    //     symphonia::default::register_enabled_formats(&mut probe);
 
-                        // TODO: figure out various methods to maybe pass a hint in, too.
-                        let mut hint = symphonia::core::probe::Hint::new();
+                    //     // TODO: figure out various methods to maybe pass a hint in, too.
+                    //     let mut hint = symphonia::core::probe::Hint::new();
 
-                        let p_ta = std::time::Instant::now();
-                        let f =
-                            probe.format(&hint, wrapped, &Default::default(), &Default::default());
-                        let d1 = p_ta.elapsed();
+                    //     let p_ta = std::time::Instant::now();
+                    //     let f =
+                    //         probe.format(&hint, wrapped, &Default::default(), &Default::default());
+                    //     let d1 = p_ta.elapsed();
 
-                        // TODO: find a way to pass init/track errors back out to calling code.
-                        match f {
-                            Ok(pr) => {
-                                let mut formatter = pr.format;
+                    //     // TODO: find a way to pass init/track errors back out to calling code.
+                    //     match f {
+                    //         Ok(pr) => {
+                    //             let mut formatter = pr.format;
 
-                                let mut tracks = HashMap::new();
+                    //             let mut tracks = HashMap::new();
 
-                                for track in formatter.tracks() {
-                                    match reg.make(&track.codec_params, &Default::default()) {
-                                        Ok(mut txer) => {
-                                            tracks.insert(track.id, txer);
-                                        },
-                                        Err(e) => {
-                                            println!("\t\tMake error: {:?}", e);
-                                        },
-                                    }
-                                }
+                    //             for track in formatter.tracks() {
+                    //                 match reg.make(&track.codec_params, &Default::default()) {
+                    //                     Ok(mut txer) => {
+                    //                         tracks.insert(track.id, txer);
+                    //                     },
+                    //                     Err(e) => {
+                    //                         println!("\t\tMake error: {:?}", e);
+                    //                     },
+                    //                 }
+                    //             }
 
-                                self.symph_formats.push(formatter);
-                                self.symph_decoders.push(tracks);
-                                self.symph_resamplers.push(HashMap::default());
-                            },
-                            Err(e) => {
-                                println!("Symph error: {:?}", e);
-                            },
-                        }
-                        println!(
-                            "init time probe format {}, make decoders {}",
-                            d1.as_nanos(),
-                            p_ta.elapsed().as_nanos()
-                        );
+                    //             self.symph_formats.push(formatter);
+                    //             self.symph_decoders.push(tracks);
+                    //             self.symph_resamplers.push(HashMap::default());
+                    //         },
+                    //         Err(e) => {
+                    //             println!("Symph error: {:?}", e);
+                    //         },
+                    //     }
+                    //     println!(
+                    //         "init time probe format {}, make decoders {}",
+                    //         d1.as_nanos(),
+                    //         p_ta.elapsed().as_nanos()
+                    //     );
 
-                        Ok(())
-                    },
-                    crate::input::SymphInput::Parsed(_, _) => todo!(),
+                    //     Ok(())
+                    // },
+                    crate::input::SymphInput::Live(_, _) => todo!(),
                 }
             },
         };
@@ -424,15 +423,39 @@ impl Mixer {
 
     #[inline]
     fn add_track(&mut self, mut track: Track) -> Result<()> {
-        let evts = track.events.take().unwrap_or_default();
-        let state = track.state();
-        let handle = track.handle.clone();
+        // TODO: make this an error?
+        if let Some(source) = track.source.take() {
+            // TODO: not kill the recreation function?
+            let full_input = match source {
+                a @ SymphInput::Lazy(_) => InputState::NotReady(a),
+                // SymphInput::Raw(_) => unreachable!(),
+                // SymphInput::Wrapped(_) => unreachable!(),
+                SymphInput::Live(live, rec) => match live {
+                    crate::input::LiveInput::Parsed(p) => InputState::Ready(p),
+                    other => InputState::NotReady(SymphInput::Live(other, rec)),
+                },
+            };
 
-        self.tracks.push(track);
+            self.full_inputs.push(full_input);
 
-        self.interconnect
-            .events
-            .send(EventMessage::AddTrack(evts, state, handle))?;
+            let evts = track.events.take().unwrap_or_default();
+            let state = track.state();
+            let handle = track.handle.clone();
+
+            self.tracks.push(track);
+
+            self.input_states.push(LocalInput {
+                inner_pos: 0,
+                resampler: None,
+                chosen_track: None,
+            });
+
+            self.interconnect
+                .events
+                .send(EventMessage::AddTrack(evts, state, handle))?;
+        } else {
+            println!("WTF no track?");
+        }
 
         Ok(())
     }
@@ -675,6 +698,16 @@ impl Mixer {
     }
 }
 
+enum InputState {
+    NotReady(SymphInput),
+    Preparing(PreparingInfo),
+    Ready(Parsed),
+}
+
+struct PreparingInfo {
+    time: Instant,
+}
+
 #[derive(Debug, Eq, PartialEq)]
 enum MixType {
     Passthrough(usize),
@@ -715,18 +748,24 @@ fn mix_symph_indiv(
     let mut buf_in_progress = false;
     let mut track_status = MixStatus::Live;
 
+    println!("mixing!");
+
     resample_scratch.clear();
 
     while samples_written != MONO_FRAME_SIZE {
-        // FIXME: re-engimeer for one default track.
-        let my_decoder = input.decoders.get_mut(&0).unwrap();
+        println!("SAMPLES: {}/{}.", samples_written, MONO_FRAME_SIZE);
+        // TODO: move out elsewhere? Try to init local state with default track?
+        let default_track = input.format.default_track().map(|t| t.id).unwrap_or(0);
+        let my_decoder = input.decoders.get_mut(&default_track).unwrap();
 
         let source_packet = if local_state.inner_pos != 0 {
             // This is a deliberate unwrap:
+            println!("Getting old packet.");
             my_decoder.last_decoded()
         } else {
-            // TODO: move out elsewhere? Try to init local state with default track?
             let default_track = input.format.default_track().map(|t| t.id);
+
+            println!("Getting new packet.");
 
             if let Ok(pkt) = input.format.next_packet() {
                 let my_track = local_state
@@ -734,6 +773,7 @@ fn mix_symph_indiv(
                     .get_or_insert_with(|| default_track.unwrap_or_else(|| pkt.track_id()));
 
                 if pkt.track_id() != *my_track {
+                    println!("Skipping packet: not me.");
                     continue;
                 }
 
@@ -746,6 +786,7 @@ fn mix_symph_indiv(
                     .ok()
             } else {
                 // file end.
+                println!("No packets left!");
                 track_status = MixStatus::Ended;
                 None
             }
@@ -753,7 +794,9 @@ fn mix_symph_indiv(
 
         // Cleanup: failed to get the next packet, but still have to convert and mix scratch.
         if source_packet.is_none() {
+            println!("Cleaning up this file...");
             if buf_in_progress {
+                println!("Flushing final buffer.");
                 // fill up buf with zeroes, resample, mix
                 let resampler = local_state.resampler.as_mut().unwrap();
                 let in_len = resample_scratch.frames();
@@ -791,6 +834,10 @@ fn mix_symph_indiv(
         let in_rate = source_packet.spec().rate;
 
         if in_rate != SAMPLE_RATE_RAW as u32 {
+            println!(
+                "Sample rate mismatch: in {}, need {}",
+                in_rate, SAMPLE_RATE_RAW
+            );
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels.count();
             let resampler = local_state.resampler.get_or_insert_with(|| {
@@ -798,7 +845,7 @@ fn mix_symph_indiv(
                     in_rate as usize,
                     SAMPLE_RATE_RAW,
                     RESAMPLE_OUTPUT_FRAME_SIZE,
-                    1,
+                    4,
                     chan_c,
                 )
             });
@@ -809,11 +856,13 @@ fn mix_symph_indiv(
             let available_frames = pkt_frames - inner_pos;
 
             let force_copy = buf_in_progress || needed_in_frames > available_frames;
+            println!("Frame processing state: chan_c {}, inner_pos {}, pkt_frames {}, needed {}, available {}, force_copy {}.", chan_c, inner_pos, pkt_frames, needed_in_frames, available_frames, force_copy);
             let resampled = if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
                 // This is the only case where we can pull off a straight resample...
                 // I would really like if this could be a slice of slices,
                 // but the technology just isn't there yet. And I don't feel like
                 // writing unsafe transformations to do so.
+                println!("Frame processing: no ***->f32 conv needed.");
 
                 // NOTE: if let needed as if-let && {bool} is nightly only.
                 if let AudioBufferRef::F32(s_pkt) = source_packet {
@@ -821,7 +870,7 @@ fn mix_symph_indiv(
                         .planes()
                         .planes()
                         .iter()
-                        .map(|s| &s[inner_pos..])
+                        .map(|s| &s[inner_pos..][..needed_in_frames])
                         .collect();
 
                     local_state.inner_pos += needed_in_frames;
@@ -842,6 +891,8 @@ fn mix_symph_indiv(
                 //  else:
                 //   inner_pos = 0
                 //   continue (gets next packet).
+
+                println!("Frame processing: cross-frame boundary and/or wrong format.");
 
                 let old_scratch_len = resample_scratch.frames();
                 let missing_frames = needed_in_frames - old_scratch_len;
@@ -893,7 +944,9 @@ fn mix_symph_indiv(
         }
     }
 
-    (MixType::MixedPcm(samples_written), track_status)
+    println!("mixed! {}", samples_written);
+
+    (MixType::MixedPcm(samples_written * 2), track_status)
 }
 
 #[inline]
@@ -962,6 +1015,7 @@ fn mix_resampled(
     volume: f32,
 ) -> usize {
     let mix_ct = source[0].len();
+    println!("Mixing {} samples into pos starting {}.", mix_ct, dest_pos);
 
     // FIXME: downmix if target is mono.
     for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
@@ -1032,7 +1086,7 @@ fn mix_tracks<'a>(
     symph_mix: &mut AudioBuffer<f32>,
     symph_scratch: &mut AudioBuffer<f32>,
     tracks: &mut Vec<Track>,
-    full_inputs: &mut Vec<Parsed>,
+    full_inputs: &mut Vec<InputState>,
     input_states: &mut Vec<LocalInput>,
     interconnect: &Interconnect,
     prevent_events: bool,
@@ -1047,6 +1101,13 @@ fn mix_tracks<'a>(
         (track.volume - 1.0).abs() < f32::EPSILON // && track.source.supports_passthrough()
     };
 
+    println!(
+        "lens {} {} {}",
+        tracks.len(),
+        full_inputs.len(),
+        input_states.len()
+    );
+
     for (((i, track), input), local_state) in tracks
         .iter_mut()
         .enumerate()
@@ -1054,11 +1115,23 @@ fn mix_tracks<'a>(
         .zip(input_states.iter_mut())
     {
         let vol = track.volume;
-        let stream = &mut track.source;
+        // let stream = &mut track.source;
 
         if track.playing != PlayMode::Play {
             continue;
         }
+
+        let input = match input {
+            InputState::NotReady(_) => {
+                // TODO: handoff to preparation pipeline.
+                todo!();
+                continue;
+            },
+            InputState::Preparing(_) => {
+                continue;
+            },
+            InputState::Ready(a) => a,
+        };
 
         // let (temp_len, opus_len) = if do_passthrough {
         //     (0, track.source.read_opus_frame(opus_frame).ok())

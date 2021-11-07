@@ -272,14 +272,14 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
     let songs = [
         "02-gojira-amazonia.mp3",
-        "02-gojira-amazonia.ogg",
-        "02-gojira-amazonia.opus",
-        "02-gojira-amazonia.flac",
-        // "ckick-dca0.dca",
-        "ckick-dca1.dca",
+        // "02-gojira-amazonia.ogg",
+        // "02-gojira-amazonia.opus",
+        // "02-gojira-amazonia.flac",
+        // // "ckick-dca0.dca",
+        // "ckick-dca1.dca",
     ];
 
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
     let guild_id = guild.id;
 
     let manager = songbird::get(ctx).await
@@ -300,7 +300,17 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
         println!("init times file {}, mss {}", d1.as_nanos(), d2.as_nanos());
 
-        handler.play_symph(songbird::input::SymphInput::Wrapped(mss));
+        let progress = songbird::input::Blarga {
+            input: mss,
+            hint: None,
+            spawner: None,
+        };
+
+        let progress = songbird::input::LiveInput::Wrapped(progress);
+
+        // handler.play_symph(songbird::input::SymphInput::Live(songbird::input::LiveInput::Parsed(mss), None));
+
+        handler.play_source(songbird::input::SymphInput::Live(progress.promote(), None));
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {
@@ -348,7 +358,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             },
         };
 
-        handler.play_source(source);
+        // handler.play_source(source);
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {
