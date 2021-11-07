@@ -765,12 +765,12 @@ fn mix_symph_indiv(
         } else {
             let default_track = input.format.default_track().map(|t| t.id);
 
-            println!("Getting new packet.");
-
             if let Ok(pkt) = input.format.next_packet() {
                 let my_track = local_state
                     .chosen_track
                     .get_or_insert_with(|| default_track.unwrap_or_else(|| pkt.track_id()));
+
+                println!("Getting new packet: want {:?} (ideally {}), saw {}.", default_track, my_track, pkt.track_id());
 
                 if pkt.track_id() != *my_track {
                     println!("Skipping packet: not me.");
@@ -852,6 +852,11 @@ fn mix_symph_indiv(
 
             let inner_pos = local_state.inner_pos;
             let pkt_frames = source_packet.frames();
+
+            if pkt_frames == 0 {
+                continue;
+            }
+
             let needed_in_frames = resampler.nbr_frames_needed();
             let available_frames = pkt_frames - inner_pos;
 

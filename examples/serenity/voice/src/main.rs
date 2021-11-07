@@ -271,8 +271,8 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     check_msg(msg.channel_id.say(&ctx.http, "Pong!").await);
 
     let songs = [
-        "02-gojira-amazonia.mp3",
-        // "02-gojira-amazonia.ogg",
+        // "02-gojira-amazonia.mp3",
+        "02-gojira-amazonia.ogg",
         // "02-gojira-amazonia.opus",
         // "02-gojira-amazonia.flac",
         // // "ckick-dca0.dca",

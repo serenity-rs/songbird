@@ -149,6 +149,7 @@ impl LiveInput {
                     for track in formatter.tracks() {
                         match reg.make(&track.codec_params, &Default::default()) {
                             Ok(mut txer) => {
+                                println!("TRACK ID FOUND: {}", track.id);
                                 tracks.insert(track.id, txer);
                             },
                             Err(e) => {
