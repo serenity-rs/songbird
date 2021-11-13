@@ -3,6 +3,8 @@
 pub(crate) mod disposal;
 pub mod error;
 mod events;
+pub(crate) mod input_creator;
+pub(crate) mod input_parser;
 pub mod message;
 pub mod mixer;
 pub(crate) mod udp_rx;
@@ -226,10 +228,6 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
             },
             Err(RecvError::Disconnected) | Ok(CoreMessage::Poison) => {
                 break;
-            },
-
-            Ok(CoreMessage::SymphTrack(s)) => {
-                let _ = interconnect.mixer.send(MixerMessage::SymphTrack(s));
             },
         }
     }

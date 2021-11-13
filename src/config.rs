@@ -1,10 +1,18 @@
 #[cfg(feature = "driver-core")]
-use super::driver::{retry::Retry, CryptoMode, DecodeMode};
+use super::{
+    driver::{retry::Retry, CryptoMode, DecodeMode},
+    input::registry::*,
+};
 
+#[cfg(feature = "driver-core")]
+use symphonia::core::{codecs::CodecRegistry, probe::Probe};
+
+use derivative::Derivative;
 use std::time::Duration;
 
 /// Configuration for drivers and calls.
-#[derive(Clone, Debug)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 #[non_exhaustive]
 pub struct Config {
     #[cfg(feature = "driver-core")]
@@ -74,6 +82,24 @@ pub struct Config {
     ///
     /// Defaults to 10 seconds. If set to `None`, connections will never time out.
     pub driver_timeout: Option<Duration>,
+    #[cfg(feature = "driver-core")]
+    #[derivative(Debug = "ignore")]
+    /// Registry of the inner codecs supported by the driver, adding audiopus-based
+    /// Opus codec support to all of Symphonia's default codecs.
+    ///
+    /// Defaults to [`CODEC_REGISTRY`].
+    ///
+    /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
+    pub codec_registry: &'static CodecRegistry,
+    #[cfg(feature = "driver-core")]
+    #[derivative(Debug = "ignore")]
+    /// Registry of the muxers and container formats supported by the driver.
+    ///
+    /// Defaults to [`PROBE`], which includes all of Symphonia's default format handlers
+    /// and DCA format support.
+    ///
+    /// [`PROBE`]: static@PROBE
+    pub format_registry: &'static Probe,
 }
 
 impl Default for Config {
@@ -91,6 +117,10 @@ impl Default for Config {
             driver_retry: Default::default(),
             #[cfg(feature = "driver-core")]
             driver_timeout: Some(Duration::from_secs(10)),
+            #[cfg(feature = "driver-core")]
+            codec_registry: &CODEC_REGISTRY,
+            #[cfg(feature = "driver-core")]
+            format_registry: &PROBE,
         }
     }
 }

@@ -300,17 +300,16 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
         println!("init times file {}, mss {}", d1.as_nanos(), d2.as_nanos());
 
-        let progress = songbird::input::Blarga {
+        let progress = songbird::input::AudioStream {
             input: mss,
             hint: None,
-            spawner: None,
         };
 
         let progress = songbird::input::LiveInput::Wrapped(progress);
 
         // handler.play_symph(songbird::input::SymphInput::Live(songbird::input::LiveInput::Parsed(mss), None));
 
-        handler.play_source(songbird::input::SymphInput::Live(progress.promote(), None));
+        handler.play_source(songbird::input::SymphInput::Live(progress, None));
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {

@@ -26,6 +26,4 @@ pub enum CoreMessage {
     FullReconnect,
     RebuildInterconnect,
     Poison,
-
-    SymphTrack(crate::input::SymphInput),
 }

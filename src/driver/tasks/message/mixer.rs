@@ -4,9 +4,11 @@ use super::{Interconnect, UdpRxMessage, UdpTxMessage, WsMessage};
 
 use crate::{
     driver::{Bitrate, Config, CryptoState},
+    input::{AudioStreamError, Compose, Parsed},
     tracks::Track,
 };
 use flume::Sender;
+use symphonia_core::errors::Error as SymphoniaError;
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 pub struct MixerConnection {
@@ -39,6 +41,10 @@ pub enum MixerMessage {
     RebuildEncoder,
 
     Poison,
+}
 
-    SymphTrack(crate::input::SymphInput),
+pub enum MixerInputResultMessage {
+    InputCreateErr(AudioStreamError),
+    InputParseErr(SymphoniaError),
+    InputBuilt(Parsed, Option<Box<dyn Compose>>),
 }

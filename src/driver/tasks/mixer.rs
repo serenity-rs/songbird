@@ -1,7 +1,7 @@
-use super::{disposal, error::Result, message::*};
+use super::{disposal, error::Result, input_creator, input_parser, message::*};
 use crate::{
     constants::*,
-    input::{Parsed, SymphInput},
+    input::{AudioStreamError, Compose, Parsed, SymphInput},
     tracks::{PlayMode, Track},
     Config,
 };
@@ -20,10 +20,11 @@ use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
 use rubato::{FftFixedOut, Resampler};
 use spin_sleep::SpinSleeper;
-use std::{borrow::Borrow, collections::HashMap, time::Instant};
+use std::{result::Result as StdResult, time::Instant};
 use symphonia_core::{
     audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal},
     conv::IntoSample,
+    errors::Error as SymphoniaError,
     sample::Sample,
 };
 #[cfg(not(feature = "tokio-02-marker"))]
@@ -38,6 +39,8 @@ pub struct Mixer {
     pub bitrate: Bitrate,
     pub config: Config,
     pub conn_active: Option<MixerConnection>,
+    pub content_prep_sequence: u64,
+    pub creator: Sender<InputCreateMessage>,
     pub deadline: Instant,
     pub disposer: Sender<DisposalMessage>,
     pub encoder: OpusEncoder,
@@ -45,6 +48,7 @@ pub struct Mixer {
     pub mix_rx: Receiver<MixerMessage>,
     pub muted: bool,
     pub packet: [u8; VOICE_PACKET_MAX],
+    pub parser: Sender<InputParseMessage>,
     pub prevent_events: bool,
     pub silence_frames: u8,
     pub skip_sleep: bool,
@@ -52,23 +56,9 @@ pub struct Mixer {
     pub soft_clip: SoftClip,
     pub ws: Option<Sender<WsMessage>>,
 
-    // fn mix_symph_indiv(
-    //     symph_mix: &mut AudioBuffer<f32>,
-    //     resample_scratch: &mut AudioBuffer<f32>,
-    //     input: &mut Parsed,
-    //     local_state: &mut LocalInput,
-    //     volume: f32,
-    // )
     pub tracks: Vec<Track>,
     full_inputs: Vec<InputState>,
     input_states: Vec<LocalInput>,
-
-    pub symph_formats: Vec<Box<dyn symphonia_core::formats::FormatReader>>,
-    pub symph_decoders: Vec<HashMap<u32, Box<dyn symphonia_core::codecs::Decoder>>>,
-    pub symph_resamplers: Vec<HashMap<u32, rubato::FftFixedOut<f32>>>,
-    pub symph_inner_frame_pos: Vec<HashMap<u32, usize>>,
-    // Should the above hashmaps be stuck together?
-    // Do we just make the simplifying assumption and use only the default track?
 }
 
 fn new_encoder(bitrate: Bitrate) -> Result<OpusEncoder> {
@@ -109,11 +99,26 @@ impl Mixer {
         let (disposer, disposal_rx) = flume::unbounded();
         std::thread::spawn(move || disposal::runner(disposal_rx));
 
+        // Create input processing pipelines.
+        let (parser, parser_rx) = flume::unbounded();
+        let ic_remote = interconnect.clone();
+        let config_remote = config.clone();
+        std::thread::spawn(move || input_parser::runner(ic_remote, parser_rx, config_remote));
+
+        let (creator, creator_rx) = flume::unbounded();
+        let parser_remote = parser.clone();
+        let ic_remote = interconnect.clone();
+        async_handle.spawn(async move {
+            input_creator::runner(ic_remote, creator_rx, parser_remote).await;
+        });
+
         Self {
             async_handle,
             bitrate,
             config,
             conn_active: None,
+            content_prep_sequence: 0,
+            creator,
             deadline: Instant::now(),
             disposer,
             encoder,
@@ -121,6 +126,7 @@ impl Mixer {
             mix_rx,
             muted: false,
             packet,
+            parser,
             prevent_events: false,
             silence_frames: 0,
             skip_sleep: false,
@@ -131,11 +137,6 @@ impl Mixer {
             tracks,
             full_inputs,
             input_states,
-
-            symph_formats: vec![],
-            symph_decoders: vec![],
-            symph_resamplers: vec![],
-            symph_inner_frame_pos: vec![],
         }
     }
 
@@ -295,6 +296,14 @@ impl Mixer {
                         .send(UdpRxMessage::ReplaceInterconnect(i.clone()))
                         .is_err();
                 }
+
+                let _ = self
+                    .creator
+                    .send(InputCreateMessage::ReplaceInterconnect(i.clone()));
+                let _ = self
+                    .parser
+                    .send(InputParseMessage::ReplaceInterconnect(i.clone()));
+
                 self.interconnect = i;
 
                 self.rebuild_tracks()
@@ -337,68 +346,6 @@ impl Mixer {
                 should_exit = true;
                 Ok(())
             },
-
-            SymphTrack(s) => {
-                match s {
-                    crate::input::SymphInput::Lazy(_) => todo!(),
-                    // crate::input::SymphInput::Wrapped(wrapped) => {
-                    //     // FIXME: clean this up and let people config their own probes etc.
-                    //     // FIXME: offer reasonable default (lazy-static) which includes these already.
-                    //     let mut reg = symphonia::core::codecs::CodecRegistry::new();
-                    //     symphonia::default::register_enabled_codecs(&mut reg);
-                    //     reg.register_all::<crate::input::codec::SymphOpusDecoder>();
-
-                    //     let probe = symphonia::default::get_probe();
-
-                    //     let mut probe = symphonia::core::probe::Probe::default();
-                    //     probe.register_all::<crate::input::SymphDcaReader>();
-                    //     symphonia::default::register_enabled_formats(&mut probe);
-
-                    //     // TODO: figure out various methods to maybe pass a hint in, too.
-                    //     let mut hint = symphonia::core::probe::Hint::new();
-
-                    //     let p_ta = std::time::Instant::now();
-                    //     let f =
-                    //         probe.format(&hint, wrapped, &Default::default(), &Default::default());
-                    //     let d1 = p_ta.elapsed();
-
-                    //     // TODO: find a way to pass init/track errors back out to calling code.
-                    //     match f {
-                    //         Ok(pr) => {
-                    //             let mut formatter = pr.format;
-
-                    //             let mut tracks = HashMap::new();
-
-                    //             for track in formatter.tracks() {
-                    //                 match reg.make(&track.codec_params, &Default::default()) {
-                    //                     Ok(mut txer) => {
-                    //                         tracks.insert(track.id, txer);
-                    //                     },
-                    //                     Err(e) => {
-                    //                         println!("\t\tMake error: {:?}", e);
-                    //                     },
-                    //                 }
-                    //             }
-
-                    //             self.symph_formats.push(formatter);
-                    //             self.symph_decoders.push(tracks);
-                    //             self.symph_resamplers.push(HashMap::default());
-                    //         },
-                    //         Err(e) => {
-                    //             println!("Symph error: {:?}", e);
-                    //         },
-                    //     }
-                    //     println!(
-                    //         "init time probe format {}, make decoders {}",
-                    //         d1.as_nanos(),
-                    //         p_ta.elapsed().as_nanos()
-                    //     );
-
-                    //     Ok(())
-                    // },
-                    crate::input::SymphInput::Live(_, _) => todo!(),
-                }
-            },
         };
 
         if let Err(e) = error {
@@ -428,10 +375,8 @@ impl Mixer {
             // TODO: not kill the recreation function?
             let full_input = match source {
                 a @ SymphInput::Lazy(_) => InputState::NotReady(a),
-                // SymphInput::Raw(_) => unreachable!(),
-                // SymphInput::Wrapped(_) => unreachable!(),
                 SymphInput::Live(live, rec) => match live {
-                    crate::input::LiveInput::Parsed(p) => InputState::Ready(p),
+                    crate::input::LiveInput::Parsed(p) => InputState::Ready(p, rec),
                     other => InputState::NotReady(SymphInput::Live(other, rec)),
                 },
             };
@@ -447,7 +392,6 @@ impl Mixer {
             self.input_states.push(LocalInput {
                 inner_pos: 0,
                 resampler: None,
-                chosen_track: None,
             });
 
             self.interconnect
@@ -578,6 +522,8 @@ impl Mixer {
                 &mut self.full_inputs,
                 &mut self.input_states,
                 &self.interconnect,
+                &self.creator,
+                &self.parser,
                 self.prevent_events,
             );
 
@@ -701,11 +647,12 @@ impl Mixer {
 enum InputState {
     NotReady(SymphInput),
     Preparing(PreparingInfo),
-    Ready(Parsed),
+    Ready(Parsed, Option<Box<dyn Compose>>),
 }
 
 struct PreparingInfo {
     time: Instant,
+    callback: Receiver<MixerInputResultMessage>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -727,7 +674,6 @@ impl MixType {
 struct LocalInput {
     inner_pos: usize,
     resampler: Option<FftFixedOut<f32>>,
-    chosen_track: Option<u32>,
 }
 
 enum MixStatus {
@@ -755,29 +701,25 @@ fn mix_symph_indiv(
     while samples_written != MONO_FRAME_SIZE {
         println!("SAMPLES: {}/{}.", samples_written, MONO_FRAME_SIZE);
         // TODO: move out elsewhere? Try to init local state with default track?
-        let default_track = input.format.default_track().map(|t| t.id).unwrap_or(0);
-        let my_decoder = input.decoders.get_mut(&default_track).unwrap();
-
         let source_packet = if local_state.inner_pos != 0 {
             // This is a deliberate unwrap:
             println!("Getting old packet.");
-            my_decoder.last_decoded()
+            input.decoder.last_decoded()
         } else {
-            let default_track = input.format.default_track().map(|t| t.id);
-
             if let Ok(pkt) = input.format.next_packet() {
-                let my_track = local_state
-                    .chosen_track
-                    .get_or_insert_with(|| default_track.unwrap_or_else(|| pkt.track_id()));
+                println!(
+                    "Getting new packet: want {}, saw {}.",
+                    input.track_id,
+                    pkt.track_id()
+                );
 
-                println!("Getting new packet: want {:?} (ideally {}), saw {}.", default_track, my_track, pkt.track_id());
-
-                if pkt.track_id() != *my_track {
+                if pkt.track_id() != input.track_id {
                     println!("Skipping packet: not me.");
                     continue;
                 }
 
-                my_decoder
+                input
+                    .decoder
                     .decode(&pkt)
                     .map_err(|e| {
                         track_status = MixStatus::Errored;
@@ -1094,6 +1036,8 @@ fn mix_tracks<'a>(
     full_inputs: &mut Vec<InputState>,
     input_states: &mut Vec<LocalInput>,
     interconnect: &Interconnect,
+    creator: &Sender<InputCreateMessage>,
+    parser: &Sender<InputParseMessage>,
     prevent_events: bool,
 ) -> MixType {
     let mut len = 0;
@@ -1126,16 +1070,14 @@ fn mix_tracks<'a>(
             continue;
         }
 
-        let input = match input {
-            InputState::NotReady(_) => {
-                // TODO: handoff to preparation pipeline.
-                todo!();
+        let input = match get_or_ready_input(input, creator, parser) {
+            Ok(i) => i,
+            Err(InputReadyingError::Waiting) => continue,
+            // TODO: allow for retry in given time.
+            Err(_) => {
+                track.end();
                 continue;
             },
-            InputState::Preparing(_) => {
-                continue;
-            },
-            InputState::Ready(a) => a,
         };
 
         // let (temp_len, opus_len) = if do_passthrough {
@@ -1184,6 +1126,69 @@ fn mix_tracks<'a>(
     MixType::MixedPcm(len)
 }
 
+/// Readies the requested input state.
+///
+/// Returns the usable version of the audio if available, and whether the track should be deleted.
+fn get_or_ready_input<'a>(
+    input: &'a mut InputState,
+    creator: &Sender<InputCreateMessage>,
+    parser: &Sender<InputParseMessage>,
+) -> StdResult<&'a mut Parsed, InputReadyingError> {
+    use InputReadyingError::*;
+
+    match input {
+        InputState::NotReady(r) => {
+            let (tx, rx) = flume::bounded(1);
+
+            let mut state = InputState::Preparing(PreparingInfo {
+                time: Instant::now(),
+                callback: rx,
+            });
+
+            std::mem::swap(&mut state, input);
+
+            match state {
+                InputState::NotReady(a @ SymphInput::Lazy(_)) => {
+                    let _ = creator.send(InputCreateMessage::Create(tx, a));
+                },
+                InputState::NotReady(SymphInput::Live(audio, rec)) => {
+                    let _ = parser.send(InputParseMessage::Promote(tx, audio, rec));
+                },
+                _ => unreachable!(),
+            }
+
+            Err(Waiting)
+        },
+        InputState::Preparing(info) => {
+            // Check this with a RefCell?
+
+            match info.callback.try_recv() {
+                Ok(MixerInputResultMessage::InputBuilt(parsed, rec)) => {
+                    *input = InputState::Ready(parsed, rec);
+
+                    if let InputState::Ready(ref mut parsed, _) = input {
+                        Ok(parsed)
+                    } else {
+                        unreachable!()
+                    }
+                },
+                Err(TryRecvError::Empty) => Err(Waiting),
+                Ok(MixerInputResultMessage::InputCreateErr(e)) => Err(Creation(e)),
+                Ok(MixerInputResultMessage::InputParseErr(e)) => Err(Parsing(e)),
+                Err(TryRecvError::Disconnected) => Err(Dropped),
+            }
+        },
+        InputState::Ready(parsed, _) => Ok(parsed),
+    }
+}
+
+enum InputReadyingError {
+    Parsing(SymphoniaError),
+    Creation(AudioStreamError),
+    Dropped,
+    Waiting,
+}
+
 /// The mixing thread is a synchronous context due to its compute-bound nature.
 ///
 /// We pass in an async handle for the benefit of some Input classes (e.g., restartables)
@@ -1200,4 +1205,6 @@ pub(crate) fn runner(
     mixer.run();
 
     let _ = mixer.disposer.send(DisposalMessage::Poison);
+    let _ = mixer.creator.send(InputCreateMessage::Poison);
+    let _ = mixer.parser.send(InputParseMessage::Poison);
 }

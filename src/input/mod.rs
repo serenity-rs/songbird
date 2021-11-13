@@ -37,6 +37,7 @@ pub mod error;
 mod ffmpeg_src;
 mod metadata;
 pub mod reader;
+pub mod registry;
 pub mod restartable;
 pub mod utils;
 mod ytdl_src;
@@ -76,16 +77,18 @@ use std::{
         SeekFrom,
     },
     mem,
+    result::Result as StdResult,
     time::Duration,
 };
 use tracing::{debug, error};
 
 use symphonia_core::{
     audio::AudioBufferRef,
-    codecs::Decoder,
+    codecs::{CodecRegistry, Decoder},
+    errors::Error as SymphError,
     formats::FormatReader,
     io::{MediaSource, MediaSourceStream},
-    probe::Hint,
+    probe::{Hint, Probe, ProbedMetadata},
 };
 
 /// Test text hello.
@@ -104,114 +107,105 @@ pub enum SymphInput {
 
 #[allow(missing_docs)]
 pub enum LiveInput {
-    Raw(Blarga<Box<dyn MediaSource>>),
-    Wrapped(Blarga<MediaSourceStream>),
+    Raw(AudioStream<Box<dyn MediaSource>>),
+    Wrapped(AudioStream<MediaSourceStream>),
     Parsed(Parsed),
 }
 
+#[allow(missing_docs)]
 impl LiveInput {
-    /// Huh.
-    pub fn promote(self) -> Self {
-        // TODO: take references to codecs and probe and shit.
+    pub fn promote(self, codecs: &CodecRegistry, probe: &Probe) -> StdResult<Self, SymphError> {
         let mut out = self;
 
         if let LiveInput::Raw(r) = out {
-            // make a Wrapped.
-            todo!();
+            // TODO: allow passing in of MSS options?
+            let mss = MediaSourceStream::new(r.input, Default::default());
+            out = LiveInput::Wrapped(AudioStream {
+                input: mss,
+                hint: r.hint,
+            });
         }
 
         if let LiveInput::Wrapped(w) = out {
-            let mut reg = symphonia::core::codecs::CodecRegistry::new();
-            symphonia::default::register_enabled_codecs(&mut reg);
-            reg.register_all::<crate::input::codec::SymphOpusDecoder>();
-
-            let probe = symphonia::default::get_probe();
-
-            let mut probe = symphonia::core::probe::Probe::default();
-            probe.register_all::<crate::input::SymphDcaReader>();
-            symphonia::default::register_enabled_formats(&mut probe);
-
-            // TODO: figure out various methods to maybe pass a hint in, too.
             let hint = w.hint.unwrap_or_default();
             let input = w.input;
 
-            let p_ta = std::time::Instant::now();
-            let f = probe.format(&hint, input, &Default::default(), &Default::default());
-            let d1 = p_ta.elapsed();
+            let probe_data =
+                probe.format(&hint, input, &Default::default(), &Default::default())?;
+            let format = probe_data.format;
+            let meta = probe_data.metadata;
 
-            // TODO: find a way to pass init/track errors back out to calling code.
-            match f {
-                Ok(pr) => {
-                    let mut formatter = pr.format;
+            let mut default_track_id = format.default_track().map(|track| track.id);
+            let mut decoder: Option<Box<dyn Decoder>> = None;
 
-                    let mut tracks = HashMap::new();
+            // Take default track (if it exists), take first track to be found otherwise.
+            for track in format.tracks() {
+                if decoder.is_some() {
+                    break;
+                }
 
-                    for track in formatter.tracks() {
-                        match reg.make(&track.codec_params, &Default::default()) {
-                            Ok(mut txer) => {
-                                println!("TRACK ID FOUND: {}", track.id);
-                                tracks.insert(track.id, txer);
-                            },
-                            Err(e) => {
-                                println!("\t\tMake error: {:?}", e);
-                            },
-                        }
-                    }
+                if default_track_id.is_some() && Some(track.id) != default_track_id {
+                    continue;
+                }
 
-                    let p = Parsed {
-                        format: formatter,
-                        decoders: tracks,
-                        spawner: w.spawner,
-                    };
+                let this_decoder = codecs.make(&track.codec_params, &Default::default())?;
 
-                    out = LiveInput::Parsed(p);
-                },
-                Err(e) => {
-                    println!("Symph error: {:?}", e);
-                    panic!("Whoopsie, rewrite me");
-                },
+                decoder = Some(this_decoder);
+                default_track_id = Some(track.id);
             }
-            println!(
-                "init time probe format {}, make decoders {}",
-                d1.as_nanos(),
-                p_ta.elapsed().as_nanos()
-            );
+
+            let track_id = default_track_id.unwrap();
+
+            let p = Parsed {
+                format,
+                decoder: decoder.unwrap(),
+                track_id,
+                meta,
+            };
+
+            out = LiveInput::Parsed(p);
         }
 
-        out
+        Ok(out)
     }
 }
 
+// TODO: add an optional mechanism to query lightweight metadata?
+// i.e., w/o instantiating track.
 #[allow(missing_docs)]
 #[async_trait::async_trait]
 pub trait Compose: Send {
     /// Create a source synchronously.
-    fn create(&mut self) -> std::result::Result<Blarga<Box<dyn MediaSource>>, Bloopa>;
+    fn create(
+        &mut self,
+    ) -> std::result::Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError>;
     /// Create a source asynchronously.
-    async fn create_async(&mut self) -> std::result::Result<Blarga<Box<dyn MediaSource>>, Bloopa>;
+    async fn create_async(
+        &mut self,
+    ) -> std::result::Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError>;
     /// Hmm.
     fn should_create_async(&self) -> bool;
 }
 
 #[allow(missing_docs)]
-pub struct Blarga<T: Send> {
+pub struct AudioStream<T: Send> {
     pub input: T,
     pub hint: Option<Hint>,
-    pub spawner: Option<Box<dyn Compose>>,
 }
 
 #[allow(missing_docs)]
 #[non_exhaustive]
-pub enum Bloopa {
+pub enum AudioStreamError {
     RetryIn(Duration),
-    Fail(Box<dyn std::error::Error>),
+    Fail(Box<dyn std::error::Error + Send>),
 }
 
 #[allow(missing_docs)]
 pub struct Parsed {
     pub format: Box<dyn FormatReader>,
-    pub decoders: HashMap<u32, Box<dyn Decoder>>,
-    pub spawner: Option<Box<dyn Compose>>,
+    pub decoder: Box<dyn Decoder>,
+    pub track_id: u32,
+    pub meta: ProbedMetadata,
 }
 
 /// Data and metadata needed to correctly parse a [`Reader`]'s audio bytestream.
