@@ -101,15 +101,13 @@ impl Mixer {
 
         // Create input processing pipelines.
         let (parser, parser_rx) = flume::unbounded();
-        let ic_remote = interconnect.clone();
         let config_remote = config.clone();
-        std::thread::spawn(move || input_parser::runner(ic_remote, parser_rx, config_remote));
+        std::thread::spawn(move || input_parser::runner(parser_rx, config_remote));
 
         let (creator, creator_rx) = flume::unbounded();
         let parser_remote = parser.clone();
-        let ic_remote = interconnect.clone();
         async_handle.spawn(async move {
-            input_creator::runner(ic_remote, creator_rx, parser_remote).await;
+            input_creator::runner(creator_rx, parser_remote).await;
         });
 
         Self {
@@ -296,13 +294,6 @@ impl Mixer {
                         .send(UdpRxMessage::ReplaceInterconnect(i.clone()))
                         .is_err();
                 }
-
-                let _ = self
-                    .creator
-                    .send(InputCreateMessage::ReplaceInterconnect(i.clone()));
-                let _ = self
-                    .parser
-                    .send(InputParseMessage::ReplaceInterconnect(i.clone()));
 
                 self.interconnect = i;
 
@@ -1074,7 +1065,7 @@ fn mix_tracks<'a>(
             Ok(i) => i,
             Err(InputReadyingError::Waiting) => continue,
             // TODO: allow for retry in given time.
-            Err(_) => {
+            Err(e) => {
                 track.end();
                 continue;
             },

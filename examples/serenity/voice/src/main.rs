@@ -273,11 +273,11 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let songs = [
         // "02-gojira-amazonia.mp3",
         // "02-gojira-amazonia.ogg",
-        // "04 - Fix The Error.m4a",
+        "04 - Fix The Error.m4a",
         // "02-gojira-amazonia.opus",
         // "02-gojira-amazonia.flac",
         // // "ckick-dca0.dca",
-        "ckick-dca1.dca",
+        // "ckick-dca1.dca",
     ];
 
     let guild = msg.guild(&ctx.cache).unwrap();
@@ -290,27 +290,9 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
         let mut handler = handler_lock.lock().await;
 
         let path = std::path::Path::new(songs[0]);
+        let file = songbird::input::File::new(path);
 
-        let t1 = std::time::Instant::now();
-        let file = std::fs::File::open(path).unwrap();
-        let d1 = t1.elapsed();
-
-        let t2 = std::time::Instant::now();
-        let mss = symphonia::core::io::MediaSourceStream::new(Box::new(file), Default::default());
-        let d2 = t2.elapsed();
-
-        println!("init times file {}, mss {}", d1.as_nanos(), d2.as_nanos());
-
-        let progress = songbird::input::AudioStream {
-            input: mss,
-            hint: None,
-        };
-
-        let progress = songbird::input::LiveInput::Wrapped(progress);
-
-        // handler.play_symph(songbird::input::SymphInput::Live(songbird::input::LiveInput::Parsed(mss), None));
-
-        handler.play_source(songbird::input::SymphInput::Live(progress, None));
+        handler.play_source(file.into());
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {

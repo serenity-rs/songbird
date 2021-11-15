@@ -3,13 +3,12 @@
 //!
 //! Bytestreams are Read/Seek in accordance with Symphonia, so this module is synchronous.
 
-use super::message::{InputParseMessage, Interconnect, MixerInputResultMessage};
+use super::message::{InputParseMessage, MixerInputResultMessage};
 
 use crate::{input::LiveInput, Config};
 use flume::Receiver;
 
 pub(crate) fn runner(
-    mut interconnect: Interconnect,
     rx: Receiver<InputParseMessage>,
     mut config: Config,
 ) {
@@ -28,7 +27,6 @@ pub(crate) fn runner(
                 }
             },
             Ok(InputParseMessage::Config(c)) => config = c,
-            Ok(InputParseMessage::ReplaceInterconnect(r)) => interconnect = r,
             Err(_) | Ok(InputParseMessage::Poison) => break,
         }
     }

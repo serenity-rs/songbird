@@ -1,4 +1,4 @@
-use super::{Interconnect, MixerInputResultMessage};
+use super::MixerInputResultMessage;
 use crate::{
     input::{Compose, LiveInput},
     Config,
@@ -12,6 +12,5 @@ pub enum InputParseMessage {
         Option<Box<dyn Compose>>,
     ),
     Config(Config),
-    ReplaceInterconnect(Interconnect),
     Poison,
 }

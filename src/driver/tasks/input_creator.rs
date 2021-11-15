@@ -5,7 +5,6 @@
 use super::message::{
     InputCreateMessage,
     InputParseMessage,
-    Interconnect,
     MixerInputResultMessage,
 };
 
@@ -13,7 +12,6 @@ use crate::input::{AudioStreamError, LiveInput, SymphInput};
 use flume::{Receiver, Sender};
 
 pub(crate) async fn runner(
-    mut interconnect: Interconnect,
     rx: Receiver<InputCreateMessage>,
     tx: Sender<InputParseMessage>,
 ) {
@@ -47,6 +45,7 @@ pub(crate) async fn runner(
                                 .await;
                         },
                         Err(e) => {
+                            println!("Failed to create: {:?}", e);
                             let _ = callback
                                 .send_async(MixerInputResultMessage::InputCreateErr(e))
                                 .await;
@@ -59,7 +58,6 @@ pub(crate) async fn runner(
                         .await;
                 },
             },
-            Ok(InputCreateMessage::ReplaceInterconnect(r)) => interconnect = r,
             Err(_) | Ok(InputCreateMessage::Poison) => break,
         }
     }
