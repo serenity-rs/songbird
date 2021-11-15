@@ -704,7 +704,7 @@ fn mix_symph_indiv(
         let source_packet = if local_state.inner_pos != 0 {
             // This is a deliberate unwrap:
             println!("Getting old packet.");
-            input.decoder.last_decoded()
+            Some(input.decoder.last_decoded())
         } else {
             if let Ok(pkt) = input.format.next_packet() {
                 println!(

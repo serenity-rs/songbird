@@ -272,11 +272,12 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
     let songs = [
         // "02-gojira-amazonia.mp3",
-        "02-gojira-amazonia.ogg",
+        // "02-gojira-amazonia.ogg",
+        // "04 - Fix The Error.m4a",
         // "02-gojira-amazonia.opus",
         // "02-gojira-amazonia.flac",
         // // "ckick-dca0.dca",
-        // "ckick-dca1.dca",
+        "ckick-dca1.dca",
     ];
 
     let guild = msg.guild(&ctx.cache).unwrap();

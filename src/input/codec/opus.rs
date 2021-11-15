@@ -70,35 +70,8 @@ pub struct SymphOpusDecoder {
     rawbuf: Vec<f32>,
 }
 
-impl Decoder for SymphOpusDecoder {
-    fn try_new(params: &CodecParameters, _options: &DecoderOptions) -> SymphResult<Self> {
-        // TODO: investigate how Symphonia wants me to specify the output format?
-        let inner = OpusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
-
-        Ok(Self {
-            inner,
-            params: params.clone(),
-            buf: AudioBuffer::new(
-                MONO_FRAME_SIZE as u64,
-                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
-            ),
-            rawbuf: vec![0.0f32; STEREO_FRAME_SIZE],
-        })
-    }
-
-    fn supported_codecs() -> &'static [symphonia::core::codecs::CodecDescriptor] {
-        &[symphonia_core::support_codec!(
-            CODEC_TYPE_OPUS,
-            "opus",
-            "libopus (1.3+, audiopus)"
-        )]
-    }
-
-    fn codec_params(&self) -> &symphonia::core::codecs::CodecParameters {
-        &self.params
-    }
-
-    fn decode(&mut self, packet: &Packet) -> SymphResult<AudioBufferRef> {
+impl SymphOpusDecoder {
+    fn decode_inner(&mut self, packet: &Packet) -> SymphResult<()> {
         let pkt = if packet.buf().len() == 0 {
             None
         } else {
@@ -135,7 +108,45 @@ impl Decoder for SymphOpusDecoder {
             }
         }
 
-        Ok(self.buf.as_audio_buffer_ref())
+        Ok(())
+    }
+}
+
+impl Decoder for SymphOpusDecoder {
+    fn try_new(params: &CodecParameters, _options: &DecoderOptions) -> SymphResult<Self> {
+        // TODO: investigate how Symphonia wants me to specify the output format?
+        let inner = OpusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
+
+        Ok(Self {
+            inner,
+            params: params.clone(),
+            buf: AudioBuffer::new(
+                MONO_FRAME_SIZE as u64,
+                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
+            ),
+            rawbuf: vec![0.0f32; STEREO_FRAME_SIZE],
+        })
+    }
+
+    fn supported_codecs() -> &'static [symphonia::core::codecs::CodecDescriptor] {
+        &[symphonia_core::support_codec!(
+            CODEC_TYPE_OPUS,
+            "opus",
+            "libopus (1.3+, audiopus)"
+        )]
+    }
+
+    fn codec_params(&self) -> &symphonia::core::codecs::CodecParameters {
+        &self.params
+    }
+
+    fn decode(&mut self, packet: &Packet) -> SymphResult<AudioBufferRef<'_>> {
+        if let Err(e) = self.decode_inner(packet) {
+            self.buf.clear();
+            Err(e)
+        } else {
+            Ok(self.buf.as_audio_buffer_ref())
+        }
     }
 
     fn reset(&mut self) {
@@ -146,11 +157,7 @@ impl Decoder for SymphOpusDecoder {
         unimplemented!()
     }
 
-    fn last_decoded(&self) -> Option<AudioBufferRef> {
-        if self.buf.frames() != 0 {
-            Some(self.buf.as_audio_buffer_ref())
-        } else {
-            None
-        }
+    fn last_decoded(&self) -> AudioBufferRef {
+        self.buf.as_audio_buffer_ref()
     }
 }

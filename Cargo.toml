@@ -102,17 +102,13 @@ version = "1"
 
 [dependencies.symphonia]
 optional = true
-# version = "0.3"
-git = "https://github.com/felixmcfelix/Symphonia"
-branch = "last-packet"
-# path = "../Symphonia/symphonia"
+# version = "0.4"
+git = "https://github.com/pdeljanov/Symphonia"
 
 [dependencies.symphonia-core]
 optional = true
-# version = "0.3"
-git = "https://github.com/felixmcfelix/Symphonia"
-branch = "last-packet"
-# path = "../Symphonia/symphonia-core"
+# version = "0.4"
+git = "https://github.com/pdeljanov/Symphonia"
 
 [dependencies.tokio]
 optional = true
