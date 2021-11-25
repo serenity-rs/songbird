@@ -8,10 +8,7 @@ use super::message::{InputParseMessage, MixerInputResultMessage};
 use crate::{input::LiveInput, Config};
 use flume::Receiver;
 
-pub(crate) fn runner(
-    rx: Receiver<InputParseMessage>,
-    mut config: Config,
-) {
+pub(crate) fn runner(rx: Receiver<InputParseMessage>, mut config: Config) {
     loop {
         match rx.recv() {
             Ok(InputParseMessage::Promote(callback, input, maybe_compose)) => {

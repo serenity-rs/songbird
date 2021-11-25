@@ -28,6 +28,7 @@
 //! [`Compressed`]: cached::Compressed
 //! [`dca`]: dca()
 
+mod adapter;
 pub mod cached;
 mod child;
 pub mod codec;
@@ -43,6 +44,7 @@ pub mod utils;
 mod ytdl_src;
 
 pub use self::{
+    adapter::*,
     child::*,
     codec::{Codec, CodecType},
     container::{Container, Frame},
@@ -64,7 +66,12 @@ use tokio::runtime::Handle;
 #[cfg(feature = "tokio-02-marker")]
 use tokio_compat::runtime::Handle;
 
-use std::{collections::HashMap, convert::TryFrom, error::Error as StdError, fmt::Display, io::{
+use std::{
+    collections::HashMap,
+    convert::TryFrom,
+    error::Error as StdError,
+    fmt::Display,
+    io::{
         self,
         Error as IoError,
         ErrorKind as IoErrorKind,
@@ -72,7 +79,12 @@ use std::{collections::HashMap, convert::TryFrom, error::Error as StdError, fmt:
         Result as IoResult,
         Seek,
         SeekFrom,
-    }, mem, path::Path, result::Result as StdResult, time::Duration};
+    },
+    mem,
+    path::Path,
+    result::Result as StdResult,
+    time::Duration,
+};
 use tracing::{debug, error};
 
 use symphonia_core::{
@@ -203,14 +215,16 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
     fn create(
         &mut self,
     ) -> std::result::Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-        let err: Box<dyn StdError + Send + Sync> = "Files should be created asynchronously.".to_string().into();
+        let err: Box<dyn StdError + Send + Sync> =
+            "Files should be created asynchronously.".to_string().into();
         Err(AudioStreamError::Fail(err))
     }
 
     async fn create_async(
         &mut self,
     ) -> std::result::Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-        let file = tokio::fs::File::open(&self.path).await
+        let file = tokio::fs::File::open(&self.path)
+            .await
             .map_err(|io| AudioStreamError::Fail(Box::new(io)))?;
 
         let input = Box::new(file.into_std().await);
@@ -220,7 +234,7 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
             hint.with_extension(ext);
         }
 
-        Ok(AudioStream{
+        Ok(AudioStream {
             input,
             hint: Some(hint),
         })

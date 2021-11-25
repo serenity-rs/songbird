@@ -2,19 +2,12 @@
 //!
 //! This task is an asynchronous thread, which will either spawn_blocking or run async as needed.
 
-use super::message::{
-    InputCreateMessage,
-    InputParseMessage,
-    MixerInputResultMessage,
-};
+use super::message::{InputCreateMessage, InputParseMessage, MixerInputResultMessage};
 
 use crate::input::{AudioStreamError, LiveInput, SymphInput};
 use flume::{Receiver, Sender};
 
-pub(crate) async fn runner(
-    rx: Receiver<InputCreateMessage>,
-    tx: Sender<InputParseMessage>,
-) {
+pub(crate) async fn runner(rx: Receiver<InputCreateMessage>, tx: Sender<InputParseMessage>) {
     loop {
         match rx.recv_async().await {
             Ok(InputCreateMessage::Create(callback, input)) => match input {

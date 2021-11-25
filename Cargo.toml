@@ -27,7 +27,7 @@ version = "0.1"
 default-features = false
 features = ["tokio-runtime"]
 optional = true
-version = "0.14"
+version = "0.16"
 
 [dependencies.async-tungstenite-compat]
 package = "async-tungstenite"
@@ -76,6 +76,16 @@ version = "1"
 optional = true
 version = "0.8"
 
+[dependencies.reqwest]
+optional = true
+default-features = false
+features = ["stream"]
+version = "0.11"
+
+[dependencies.ringbuf]
+optional = true
+version = "0.2"
+
 [dependencies.rubato]
 optional = true
 version = "0.10"
@@ -114,6 +124,11 @@ git = "https://github.com/pdeljanov/Symphonia"
 optional = true
 version = "1.0"
 default-features = false
+
+[dependencies.tokio-util]
+optional = true
+version = "0.6"
+features = ["io"]
 
 [dependencies.tokio-compat]
 optional = true
@@ -188,23 +203,26 @@ driver-core = [
     "audiopus",
     "byteorder",
     "discortp",
+    "reqwest",
     "flume",
     "lazy_static",
     "parking_lot",
     "rand",
+    "ringbuf",
     "rubato",
     "serenity-voice-model",
     "spin_sleep",
     "streamcatcher",
     "symphonia",
     "symphonia-core",
+    "tokio-util",
     "typemap_rev",
     "url",
     "uuid",
     "xsalsa20poly1305",
 ]
-rustls = ["async-tungstenite/tokio-rustls-webpki-roots", "rustls-marker"]
-native = ["async-tungstenite/tokio-native-tls", "native-marker"]
+rustls = ["async-tungstenite/tokio-rustls-webpki-roots", "reqwest/rustls-tls", "rustls-marker"]
+native = ["async-tungstenite/tokio-native-tls", "native-marker", "reqwest/native-tls"]
 serenity-rustls = ["serenity/rustls_backend", "rustls", "gateway", "serenity-deps"]
 serenity-native = ["serenity/native_tls_backend", "native", "gateway", "serenity-deps"]
 twilight-rustls = ["twilight", "twilight-gateway/rustls", "rustls", "gateway"]
