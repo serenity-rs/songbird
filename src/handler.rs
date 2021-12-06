@@ -9,6 +9,9 @@ use crate::{
     Config,
 };
 use flume::Sender;
+#[cfg(feature = "serenity")]
+use serenity::json::json;
+#[cfg(not(feature = "serenity"))]
 use serde_json::json;
 use std::fmt::Debug;
 use tracing::instrument;
