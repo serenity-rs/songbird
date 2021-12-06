@@ -5,6 +5,9 @@ use crate::error::{JoinError, JoinResult};
 use futures::channel::mpsc::{TrySendError, UnboundedSender as Sender};
 #[cfg(feature = "serenity")]
 use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock};
+#[cfg(feature = "serenity")]
+use serenity::json::Value;
+#[cfg(not(feature = "serenity"))]
 use serde_json::Value;
 #[cfg(feature = "serenity")]
 use serenity::gateway::InterMessage;
