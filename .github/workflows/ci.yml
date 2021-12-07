@@ -59,6 +59,9 @@ jobs:
           - name: legacy tokio
             features: serenity-rustls-tokio-02 driver-tokio-02
             dont-test: true
+          - name: simd json 
+            features: simdjson serenity-rustls driver gateway
+            dont-test: true
 
     steps:
       - name: Checkout sources
