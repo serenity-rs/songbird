@@ -60,7 +60,7 @@ jobs:
             features: serenity-rustls-tokio-02 driver-tokio-02
             dont-test: true
           - name: simd json 
-            features: simdjson serenity-rustls driver gateway
+            features: simdjson serenity-rustls driver gateway serenity/simdjson
             dont-test: true
 
     steps:
