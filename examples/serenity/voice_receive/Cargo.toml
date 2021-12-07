@@ -10,13 +10,13 @@ tracing-subscriber = "0.2"
 tracing-futures = "0.2"
 
 [dependencies.songbird]
+features = ["simdjson"]
 path = "../../../"
 
 [dependencies.serenity]
 features = ["client", "standard_framework", "voice", "rustls_backend", "simdjson"]
-#git = "https://github.com/serenity-rs/serenity"
-#branch = "next"
-path = "../../../../serenity"
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
 
 [dependencies.tokio]
 version = "1.0"

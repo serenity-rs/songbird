@@ -76,15 +76,13 @@ version = "0.8"
 optional = true
 default-features = false
 features = ["voice", "gateway"]
-#git = "https://github.com/serenity-rs/serenity"
-#branch = "next"
-path = "../serenity"
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
 
 [dependencies.serenity-voice-model]
 optional = true
-#git = "https://github.com/serenity-rs/serenity"
-#branch = "next"
-path = "../serenity/voice-model"
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
 
 [dependencies.spin_sleep]
 optional = true
@@ -193,6 +191,8 @@ twilight = ["twilight-model"]
 zlib-simd = ["twilight-gateway/zlib-simd"]
 zlib-stock = ["twilight-gateway/zlib-stock"]
 serenity-deps = ["async-trait"]
+
+simdjson = []
 
 rustls-marker = []
 native-marker = []

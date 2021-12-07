@@ -18,7 +18,7 @@ use async_tungstenite_compat::{
 use futures::{SinkExt, StreamExt, TryStreamExt};
 #[cfg(not(feature = "serenity"))]
 use serde_json::Error as JsonError;
-#[cfg(feature = "serenity")]
+#[cfg(all(feature = "serenity", feature = "simdjson"))]
 #[allow(unused_imports)]
 use serenity::json::prelude::ValueAccess;
 #[cfg(feature = "serenity")]

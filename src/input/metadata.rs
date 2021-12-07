@@ -1,8 +1,7 @@
 use crate::constants::*;
 #[cfg(not(feature = "serenity"))]
 use serde_json::Value;
-#[cfg(feature = "serenity")]
-#[allow(unused_imports)]
+#[cfg(all(feature = "serenity", feature = "simdjson"))]
 use serenity::json::prelude::ValueAccess;
 #[cfg(feature = "serenity")]
 use serenity::json::Value;
