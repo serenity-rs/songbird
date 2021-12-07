@@ -2,7 +2,10 @@
 
 use audiopus::Error as OpusError;
 use core::fmt;
+#[cfg(not(feature = "serenity"))]
 use serde_json::{Error as JsonError, Value};
+#[cfg(feature = "serenity")]
+use serenity::json::prelude::{JsonError, Value};
 use std::{error::Error as StdError, io::Error as IoError, process::Output};
 use streamcatcher::CatcherError;
 

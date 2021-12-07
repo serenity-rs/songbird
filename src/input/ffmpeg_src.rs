@@ -6,7 +6,10 @@ use super::{
     Input,
     Metadata,
 };
+#[cfg(not(feature = "serenity"))]
 use serde_json::Value;
+#[cfg(feature = "serenity")]
+use serenity::json::Value;
 use std::{
     ffi::OsStr,
     process::{Command, Stdio},
@@ -143,6 +146,15 @@ pub(crate) async fn is_stereo(path: &OsStr) -> Result<(bool, Metadata)> {
         .output()
         .await?;
 
+    #[cfg(feature = "serenity")]
+    let value: Value = serenity::json::prelude::from_reader(&out.stdout[..]).map_err(|err| Error::Json {
+        error: err,
+        parsed_text: std::str::from_utf8(&out.stdout[..])
+            .unwrap_or_default()
+            .to_string(),
+    })?;
+
+    #[cfg(not(feature = "serenity"))]
     let value: Value = serde_json::from_reader(&out.stdout[..]).map_err(|err| Error::Json {
         error: err,
         parsed_text: std::str::from_utf8(&out.stdout[..])

@@ -16,7 +16,13 @@ use async_tungstenite_compat::{
     WebSocketStream,
 };
 use futures::{SinkExt, StreamExt, TryStreamExt};
+#[cfg(not(feature = "serenity"))]
 use serde_json::Error as JsonError;
+#[cfg(feature = "serenity")]
+use serenity::json::JsonError;
+#[cfg(feature = "serenity")]
+#[allow(unused_imports)]
+use serenity::json::prelude::ValueAccess;
 #[cfg(not(feature = "tokio-02-marker"))]
 use tokio::time::{timeout, Duration};
 #[cfg(feature = "tokio-02-marker")]
@@ -103,28 +109,54 @@ impl ReceiverExt for WsStream {
 #[async_trait]
 impl SenderExt for SplitSink<WsStream, Message> {
     async fn send_json(&mut self, value: &Event) -> Result<()> {
-        Ok(serde_json::to_string(value)
-            .map(Message::Text)
-            .map_err(Error::from)
-            .map(|m| self.send(m))?
-            .await?)
+        #[cfg(feature = "serenity")]
+        {
+            Ok(serenity::json::prelude::to_string(value)
+                .map(Message::Text)
+                .map_err(Error::from)
+                .map(|m| self.send(m))?
+                .await?)
+        }
+
+        #[cfg(not(feature = "serenity"))]
+        {
+            Ok(serde_json::to_string(value)
+                .map(Message::Text)
+                .map_err(Error::from)
+                .map(|m| self.send(m))?
+                .await?)
+        }
     }
 }
 
 #[async_trait]
 impl SenderExt for WsStream {
     async fn send_json(&mut self, value: &Event) -> Result<()> {
-        Ok(serde_json::to_string(value)
-            .map(Message::Text)
-            .map_err(Error::from)
-            .map(|m| self.send(m))?
-            .await?)
+        #[cfg(feature = "serenity")]
+        {
+            Ok(serenity::json::prelude::to_string(value)
+                .map(Message::Text)
+                .map_err(Error::from)
+                .map(|m| self.send(m))?
+                .await?)
+        }
+        #[cfg(not(feature = "serenity"))]
+        {
+            Ok(serde_json::to_string(value)
+                .map(Message::Text)
+                .map_err(Error::from)
+                .map(|m| self.send(m))?
+                .await?)
+        }
     }
 }
 
 #[inline]
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     Ok(match message {
+        #[cfg(feature = "serenity")]
+        Some(Message::Text(mut payload)) => serenity::json::prelude::from_str(&mut payload).map(Some)?,
+        #[cfg(not(feature = "serenity"))]
         Some(Message::Text(payload)) => serde_json::from_str(&payload).map(Some)?,
         Some(Message::Binary(bytes)) => {
             return Err(Error::UnexpectedBinaryMessage(bytes));

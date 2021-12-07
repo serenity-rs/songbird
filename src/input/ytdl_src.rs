@@ -6,7 +6,10 @@ use super::{
     Input,
     Metadata,
 };
+#[cfg(not(feature = "serenity"))]
 use serde_json::Value;
+#[cfg(feature = "serenity")]
+use serenity::json::Value;
 use std::{
     io::{BufRead, BufReader, Read},
     process::{Command, Stdio},
@@ -81,10 +84,21 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
             let mut serde_read = BufReader::new(s.by_ref());
             // Newline...
             if let Ok(len) = serde_read.read_until(0xA, &mut o_vec) {
-                serde_json::from_slice(&o_vec[..len]).map_err(|err| Error::Json {
-                    error: err,
-                    parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),
-                })
+                #[cfg(not(feature = "serenity"))]
+                {
+                    serde_json::from_slice(&o_vec[..len]).map_err(|err| Error::Json {
+                        error: err,
+                        parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),
+                    })
+                }
+
+                #[cfg(feature = "serenity")]
+                {
+                    serenity::json::prelude::from_slice(&mut o_vec[..len]).map_err(|err| Error::Json {
+                        error: err,
+                        parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),
+                    })
+                }
             } else {
                 Result::Err(Error::Metadata)
             }
@@ -145,6 +159,9 @@ pub(crate) async fn _ytdl_metadata(uri: &str) -> Result<Metadata> {
         .output()
         .await?;
 
+    #[cfg(feature = "serenity")]
+    let mut o_vec = youtube_dl_output.stderr;
+    #[cfg(not(feature = "serenity"))]
     let o_vec = youtube_dl_output.stderr;
 
     let end = (&o_vec)
@@ -152,6 +169,12 @@ pub(crate) async fn _ytdl_metadata(uri: &str) -> Result<Metadata> {
         .position(|el| *el == 0xA)
         .unwrap_or_else(|| o_vec.len());
 
+    #[cfg(feature = "serenity")]
+    let value = serenity::json::prelude::from_slice(&mut o_vec[..end]).map_err(|err| Error::Json {
+        error: err,
+        parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),
+    })?;
+    #[cfg(not(feature = "serenity"))]
     let value = serde_json::from_slice(&o_vec[..end]).map_err(|err| Error::Json {
         error: err,
         parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),

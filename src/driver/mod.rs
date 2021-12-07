@@ -24,10 +24,12 @@ pub use decode_mode::DecodeMode;
 
 #[cfg(feature = "builtin-queue")]
 use crate::tracks::TrackQueue;
+#[cfg(feature = "builtin-queue")]
+use crate::tracks;
 use crate::{
     events::EventData,
     input::Input,
-    tracks::{self, Track, TrackHandle},
+    tracks::{Track, TrackHandle},
     Config,
     ConnectionInfo,
     Event,
