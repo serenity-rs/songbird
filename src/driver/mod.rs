@@ -23,9 +23,9 @@ pub(crate) use crypto::CryptoState;
 pub use decode_mode::DecodeMode;
 
 #[cfg(feature = "builtin-queue")]
-use crate::tracks::TrackQueue;
-#[cfg(feature = "builtin-queue")]
 use crate::tracks;
+#[cfg(feature = "builtin-queue")]
+use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,
     input::Input,

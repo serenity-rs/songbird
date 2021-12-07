@@ -147,12 +147,13 @@ pub(crate) async fn is_stereo(path: &OsStr) -> Result<(bool, Metadata)> {
         .await?;
 
     #[cfg(feature = "serenity")]
-    let value: Value = serenity::json::prelude::from_reader(&out.stdout[..]).map_err(|err| Error::Json {
-        error: err,
-        parsed_text: std::str::from_utf8(&out.stdout[..])
-            .unwrap_or_default()
-            .to_string(),
-    })?;
+    let value: Value =
+        serenity::json::prelude::from_reader(&out.stdout[..]).map_err(|err| Error::Json {
+            error: err,
+            parsed_text: std::str::from_utf8(&out.stdout[..])
+                .unwrap_or_default()
+                .to_string(),
+        })?;
 
     #[cfg(not(feature = "serenity"))]
     let value: Value = serde_json::from_reader(&out.stdout[..]).map_err(|err| Error::Json {

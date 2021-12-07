@@ -49,9 +49,10 @@ async fn _dca(path: &OsStr) -> Result<Input, DcaError> {
     let reader = json_reader.into_inner().into_std().await;
 
     #[cfg(feature = "serenity")]
-    let metadata: Metadata = serenity::json::prelude::from_slice::<DcaMetadata>(raw_json.as_mut_slice())
-        .map_err(DcaError::InvalidMetadata)?
-        .into();
+    let metadata: Metadata =
+        serenity::json::prelude::from_slice::<DcaMetadata>(raw_json.as_mut_slice())
+            .map_err(DcaError::InvalidMetadata)?
+            .into();
     #[cfg(not(feature = "serenity"))]
     let metadata: Metadata = serde_json::from_slice::<DcaMetadata>(raw_json.as_slice())
         .map_err(DcaError::InvalidMetadata)?

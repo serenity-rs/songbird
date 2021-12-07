@@ -2,10 +2,10 @@ use crate::constants::*;
 #[cfg(not(feature = "serenity"))]
 use serde_json::Value;
 #[cfg(feature = "serenity")]
-use serenity::json::Value;
-#[cfg(feature = "serenity")]
 #[allow(unused_imports)]
 use serenity::json::prelude::ValueAccess;
+#[cfg(feature = "serenity")]
+use serenity::json::Value;
 use std::time::Duration;
 
 /// Information about an [`Input`] source.

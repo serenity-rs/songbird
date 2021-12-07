@@ -94,9 +94,13 @@ pub(crate) async fn _ytdl(uri: &str, pre_args: &[&str]) -> Result<Input> {
 
                 #[cfg(feature = "serenity")]
                 {
-                    serenity::json::prelude::from_slice(&mut o_vec[..len]).map_err(|err| Error::Json {
-                        error: err,
-                        parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),
+                    serenity::json::prelude::from_slice(&mut o_vec[..len]).map_err(|err| {
+                        Error::Json {
+                            error: err,
+                            parsed_text: std::str::from_utf8(&o_vec)
+                                .unwrap_or_default()
+                                .to_string(),
+                        }
                     })
                 }
             } else {
@@ -170,10 +174,11 @@ pub(crate) async fn _ytdl_metadata(uri: &str) -> Result<Metadata> {
         .unwrap_or_else(|| o_vec.len());
 
     #[cfg(feature = "serenity")]
-    let value = serenity::json::prelude::from_slice(&mut o_vec[..end]).map_err(|err| Error::Json {
-        error: err,
-        parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),
-    })?;
+    let value =
+        serenity::json::prelude::from_slice(&mut o_vec[..end]).map_err(|err| Error::Json {
+            error: err,
+            parsed_text: std::str::from_utf8(&o_vec).unwrap_or_default().to_string(),
+        })?;
     #[cfg(not(feature = "serenity"))]
     let value = serde_json::from_slice(&o_vec[..end]).map_err(|err| Error::Json {
         error: err,

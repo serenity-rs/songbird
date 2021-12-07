@@ -19,10 +19,10 @@ use futures::{SinkExt, StreamExt, TryStreamExt};
 #[cfg(not(feature = "serenity"))]
 use serde_json::Error as JsonError;
 #[cfg(feature = "serenity")]
-use serenity::json::JsonError;
-#[cfg(feature = "serenity")]
 #[allow(unused_imports)]
 use serenity::json::prelude::ValueAccess;
+#[cfg(feature = "serenity")]
+use serenity::json::JsonError;
 #[cfg(not(feature = "tokio-02-marker"))]
 use tokio::time::{timeout, Duration};
 #[cfg(feature = "tokio-02-marker")]
@@ -155,7 +155,8 @@ impl SenderExt for WsStream {
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     Ok(match message {
         #[cfg(feature = "serenity")]
-        Some(Message::Text(mut payload)) => serenity::json::prelude::from_str(&mut payload).map(Some)?,
+        Some(Message::Text(mut payload)) =>
+            serenity::json::prelude::from_str(&mut payload).map(Some)?,
         #[cfg(not(feature = "serenity"))]
         Some(Message::Text(payload)) => serde_json::from_str(&payload).map(Some)?,
         Some(Message::Binary(bytes)) => {
