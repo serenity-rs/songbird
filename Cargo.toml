@@ -120,6 +120,10 @@ optional = true
 # version = "0.4"
 git = "https://github.com/pdeljanov/Symphonia"
 
+[dependencies.rusty_pool]
+optional = true
+version = "0.6"
+
 [dependencies.tokio]
 optional = true
 version = "1.0"
@@ -215,6 +219,7 @@ driver-core = [
     "streamcatcher",
     "symphonia",
     "symphonia-core",
+    "rusty_pool",
     "tokio-util",
     "typemap_rev",
     "url",

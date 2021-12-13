@@ -1,7 +1,7 @@
-use super::{disposal, error::Result, input_creator, input_parser, message::*};
+use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
-    input::{AudioStreamError, Compose, Parsed, SymphInput},
+    input::{AudioStream, AudioStreamError, Compose, LiveInput, Parsed, SymphInput},
     tracks::{PlayMode, Track},
     Config,
 };
@@ -17,15 +17,24 @@ use discortp::{
     MutablePacket,
 };
 use flume::{Receiver, Sender, TryRecvError};
+use parking_lot::RwLock;
 use rand::random;
 use rubato::{FftFixedOut, Resampler};
 use spin_sleep::SpinSleeper;
-use std::{result::Result as StdResult, time::Instant};
+use std::{
+    num::IntErrorKind,
+    result::Result as StdResult,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use symphonia_core::{
     audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal},
     conv::IntoSample,
-    errors::Error as SymphoniaError,
+    errors::{Error as SymphoniaError, SeekErrorKind},
+    formats::{SeekMode, SeekTo},
+    io::MediaSource,
     sample::Sample,
+    units::Time,
 };
 #[cfg(not(feature = "tokio-02-marker"))]
 use tokio::runtime::Handle;
@@ -35,12 +44,10 @@ use tracing::{debug, error, instrument};
 use xsalsa20poly1305::TAG_SIZE;
 
 pub struct Mixer {
-    pub async_handle: Handle,
     pub bitrate: Bitrate,
-    pub config: Config,
+    pub config: Arc<Config>,
     pub conn_active: Option<MixerConnection>,
     pub content_prep_sequence: u64,
-    pub creator: Sender<InputCreateMessage>,
     pub deadline: Instant,
     pub disposer: Sender<DisposalMessage>,
     pub encoder: OpusEncoder,
@@ -48,12 +55,12 @@ pub struct Mixer {
     pub mix_rx: Receiver<MixerMessage>,
     pub muted: bool,
     pub packet: [u8; VOICE_PACKET_MAX],
-    pub parser: Sender<InputParseMessage>,
     pub prevent_events: bool,
     pub silence_frames: u8,
     pub skip_sleep: bool,
     pub sleeper: SpinSleeper,
     pub soft_clip: SoftClip,
+    thread_pool: BlockyTaskPool,
     pub ws: Option<Sender<WsMessage>>,
 
     pub tracks: Vec<Track>,
@@ -99,24 +106,15 @@ impl Mixer {
         let (disposer, disposal_rx) = flume::unbounded();
         std::thread::spawn(move || disposal::runner(disposal_rx));
 
-        // Create input processing pipelines.
-        let (parser, parser_rx) = flume::unbounded();
-        let config_remote = config.clone();
-        std::thread::spawn(move || input_parser::runner(parser_rx, config_remote));
+        let thread_pool = BlockyTaskPool::new(async_handle);
 
-        let (creator, creator_rx) = flume::unbounded();
-        let parser_remote = parser.clone();
-        async_handle.spawn(async move {
-            input_creator::runner(creator_rx, parser_remote).await;
-        });
+        let config = config.into();
 
         Self {
-            async_handle,
             bitrate,
             config,
             conn_active: None,
             content_prep_sequence: 0,
-            creator,
             deadline: Instant::now(),
             disposer,
             encoder,
@@ -124,12 +122,12 @@ impl Mixer {
             mix_rx,
             muted: false,
             packet,
-            parser,
             prevent_events: false,
             silence_frames: 0,
             skip_sleep: false,
             sleeper: Default::default(),
             soft_clip,
+            thread_pool,
             ws: None,
 
             tracks,
@@ -300,7 +298,7 @@ impl Mixer {
                 self.rebuild_tracks()
             },
             SetConfig(new_config) => {
-                self.config = new_config.clone();
+                self.config = Arc::new(new_config.clone());
 
                 if self.tracks.capacity() < self.config.preallocated_tracks {
                     self.tracks
@@ -419,7 +417,39 @@ impl Mixer {
             // but if the event thread has died then we'll certainly
             // detect that on the tick later.
             // Changes to play state etc. MUST all be handled.
-            track.process_commands(i, &self.interconnect);
+            let maybe_seek = track.process_commands(i, &self.interconnect);
+
+            if let Some(time) = maybe_seek {
+                let full_input = &mut self.full_inputs[i];
+                if let InputState::Ready(p, rec) = full_input {
+                    let time = symphonia_core::units::Time::from(time.as_secs_f64());
+                    let ts = symphonia_core::formats::SeekTo::Time {
+                        time,
+                        track_id: Some(p.track_id),
+                    };
+
+                    let (tx, rx) = flume::bounded(1);
+                    let mut new_state = InputState::Preparing(PreparingInfo {
+                        time: Instant::now(),
+                        callback: rx,
+                    });
+
+                    std::mem::swap(full_input, &mut new_state);
+
+                    match new_state {
+                        InputState::NotReady(lazy) => {
+                            unimplemented!()
+                        },
+                        InputState::Preparing(_) => {
+                            unimplemented!()
+                        },
+                        InputState::Ready(p, r) => {
+                            self.thread_pool
+                                .seek(tx, p, r, ts, true, self.config.clone());
+                        },
+                    }
+                }
+            }
         }
 
         // TODO: do without vec?
@@ -434,12 +464,17 @@ impl Mixer {
             if track.playing.is_done() {
                 let p_state = track.playing();
                 let to_drop = self.tracks.swap_remove(i);
+                let _ = self.disposer.send(DisposalMessage::Track(to_drop));
+                let to_drop = self.full_inputs.swap_remove(i);
+                let _ = self.disposer.send(DisposalMessage::State(to_drop));
+                let to_drop = self.input_states.swap_remove(i);
+                let _ = self.disposer.send(DisposalMessage::Local(to_drop));
+
                 to_remove.push(i);
                 self.fire_event(EventMessage::ChangeState(
                     i,
                     TrackStateChange::Mode(p_state),
                 ))?;
-                let _ = self.disposer.send(DisposalMessage::Track(to_drop));
             } else {
                 i += 1;
             }
@@ -513,8 +548,8 @@ impl Mixer {
                 &mut self.full_inputs,
                 &mut self.input_states,
                 &self.interconnect,
-                &self.creator,
-                &self.parser,
+                &self.thread_pool,
+                &self.config,
                 self.prevent_events,
             );
 
@@ -635,13 +670,13 @@ impl Mixer {
     }
 }
 
-enum InputState {
+pub enum InputState {
     NotReady(SymphInput),
     Preparing(PreparingInfo),
     Ready(Parsed, Option<Box<dyn Compose>>),
 }
 
-struct PreparingInfo {
+pub struct PreparingInfo {
     time: Instant,
     callback: Receiver<MixerInputResultMessage>,
 }
@@ -662,9 +697,16 @@ impl MixType {
     }
 }
 
-struct LocalInput {
+pub struct LocalInput {
     inner_pos: usize,
     resampler: Option<FftFixedOut<f32>>,
+}
+
+impl LocalInput {
+    fn reset(&mut self) {
+        self.inner_pos = 0;
+        self.resampler = None;
+    }
 }
 
 enum MixStatus {
@@ -685,27 +727,27 @@ fn mix_symph_indiv(
     let mut buf_in_progress = false;
     let mut track_status = MixStatus::Live;
 
-    println!("mixing!");
+    // println!("mixing!");
 
     resample_scratch.clear();
 
     while samples_written != MONO_FRAME_SIZE {
-        println!("SAMPLES: {}/{}.", samples_written, MONO_FRAME_SIZE);
+        // println!("SAMPLES: {}/{}.", samples_written, MONO_FRAME_SIZE);
         // TODO: move out elsewhere? Try to init local state with default track?
         let source_packet = if local_state.inner_pos != 0 {
             // This is a deliberate unwrap:
-            println!("Getting old packet.");
+            // println!("Getting old packet.");
             Some(input.decoder.last_decoded())
         } else {
             if let Ok(pkt) = input.format.next_packet() {
-                println!(
-                    "Getting new packet: want {}, saw {}.",
-                    input.track_id,
-                    pkt.track_id()
-                );
+                // println!(
+                //     "Getting new packet: want {}, saw {}.",
+                //     input.track_id,
+                //     pkt.track_id()
+                // );
 
                 if pkt.track_id() != input.track_id {
-                    println!("Skipping packet: not me.");
+                    // println!("Skipping packet: not me.");
                     continue;
                 }
 
@@ -719,7 +761,7 @@ fn mix_symph_indiv(
                     .ok()
             } else {
                 // file end.
-                println!("No packets left!");
+                // println!("No packets left!");
                 track_status = MixStatus::Ended;
                 None
             }
@@ -727,9 +769,9 @@ fn mix_symph_indiv(
 
         // Cleanup: failed to get the next packet, but still have to convert and mix scratch.
         if source_packet.is_none() {
-            println!("Cleaning up this file...");
+            // println!("Cleaning up this file...");
             if buf_in_progress {
-                println!("Flushing final buffer.");
+                // println!("Flushing final buffer.");
                 // fill up buf with zeroes, resample, mix
                 let resampler = local_state.resampler.as_mut().unwrap();
                 let in_len = resample_scratch.frames();
@@ -767,10 +809,10 @@ fn mix_symph_indiv(
         let in_rate = source_packet.spec().rate;
 
         if in_rate != SAMPLE_RATE_RAW as u32 {
-            println!(
-                "Sample rate mismatch: in {}, need {}",
-                in_rate, SAMPLE_RATE_RAW
-            );
+            // println!(
+            //     "Sample rate mismatch: in {}, need {}",
+            //     in_rate, SAMPLE_RATE_RAW
+            // );
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels.count();
             let resampler = local_state.resampler.get_or_insert_with(|| {
@@ -794,13 +836,13 @@ fn mix_symph_indiv(
             let available_frames = pkt_frames - inner_pos;
 
             let force_copy = buf_in_progress || needed_in_frames > available_frames;
-            println!("Frame processing state: chan_c {}, inner_pos {}, pkt_frames {}, needed {}, available {}, force_copy {}.", chan_c, inner_pos, pkt_frames, needed_in_frames, available_frames, force_copy);
+            // println!("Frame processing state: chan_c {}, inner_pos {}, pkt_frames {}, needed {}, available {}, force_copy {}.", chan_c, inner_pos, pkt_frames, needed_in_frames, available_frames, force_copy);
             let resampled = if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
                 // This is the only case where we can pull off a straight resample...
                 // I would really like if this could be a slice of slices,
                 // but the technology just isn't there yet. And I don't feel like
                 // writing unsafe transformations to do so.
-                println!("Frame processing: no ***->f32 conv needed.");
+                // println!("Frame processing: no ***->f32 conv needed.");
 
                 // NOTE: if let needed as if-let && {bool} is nightly only.
                 if let AudioBufferRef::F32(s_pkt) = source_packet {
@@ -830,7 +872,7 @@ fn mix_symph_indiv(
                 //   inner_pos = 0
                 //   continue (gets next packet).
 
-                println!("Frame processing: cross-frame boundary and/or wrong format.");
+                // println!("Frame processing: cross-frame boundary and/or wrong format.");
 
                 let old_scratch_len = resample_scratch.frames();
                 let missing_frames = needed_in_frames - old_scratch_len;
@@ -882,7 +924,7 @@ fn mix_symph_indiv(
         }
     }
 
-    println!("mixed! {}", samples_written);
+    // println!("mixed! {}", samples_written);
 
     (MixType::MixedPcm(samples_written * 2), track_status)
 }
@@ -953,7 +995,7 @@ fn mix_resampled(
     volume: f32,
 ) -> usize {
     let mix_ct = source[0].len();
-    println!("Mixing {} samples into pos starting {}.", mix_ct, dest_pos);
+    // println!("Mixing {} samples into pos starting {}.", mix_ct, dest_pos);
 
     // FIXME: downmix if target is mono.
     for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
@@ -1027,8 +1069,8 @@ fn mix_tracks<'a>(
     full_inputs: &mut Vec<InputState>,
     input_states: &mut Vec<LocalInput>,
     interconnect: &Interconnect,
-    creator: &Sender<InputCreateMessage>,
-    parser: &Sender<InputParseMessage>,
+    thread_pool: &BlockyTaskPool,
+    config: &Arc<Config>,
     prevent_events: bool,
 ) -> MixType {
     let mut len = 0;
@@ -1041,12 +1083,12 @@ fn mix_tracks<'a>(
         (track.volume - 1.0).abs() < f32::EPSILON // && track.source.supports_passthrough()
     };
 
-    println!(
-        "lens {} {} {}",
-        tracks.len(),
-        full_inputs.len(),
-        input_states.len()
-    );
+    // println!(
+    //     "lens {} {} {}",
+    //     tracks.len(),
+    //     full_inputs.len(),
+    //     input_states.len()
+    // );
 
     for (((i, track), input), local_state) in tracks
         .iter_mut()
@@ -1061,7 +1103,17 @@ fn mix_tracks<'a>(
             continue;
         }
 
-        let input = match get_or_ready_input(input, creator, parser) {
+        let input = get_or_ready_input(
+            input,
+            local_state,
+            track,
+            i,
+            interconnect,
+            thread_pool,
+            config,
+        );
+
+        let input = match input {
             Ok(i) => i,
             Err(InputReadyingError::Waiting) => continue,
             // TODO: allow for retry in given time.
@@ -1120,10 +1172,14 @@ fn mix_tracks<'a>(
 /// Readies the requested input state.
 ///
 /// Returns the usable version of the audio if available, and whether the track should be deleted.
-fn get_or_ready_input<'a>(
+fn get_or_ready_input<'a, 'b, 'c>(
     input: &'a mut InputState,
-    creator: &Sender<InputCreateMessage>,
-    parser: &Sender<InputParseMessage>,
+    local: &'b mut LocalInput,
+    track: &'c mut Track,
+    id: usize,
+    interconnect: &Interconnect,
+    pool: &BlockyTaskPool,
+    config: &Arc<Config>,
 ) -> StdResult<&'a mut Parsed, InputReadyingError> {
     use InputReadyingError::*;
 
@@ -1140,10 +1196,10 @@ fn get_or_ready_input<'a>(
 
             match state {
                 InputState::NotReady(a @ SymphInput::Lazy(_)) => {
-                    let _ = creator.send(InputCreateMessage::Create(tx, a));
+                    pool.create(tx, a, None, config.clone());
                 },
                 InputState::NotReady(SymphInput::Live(audio, rec)) => {
-                    let _ = parser.send(InputParseMessage::Promote(tx, audio, rec));
+                    pool.parse(config.clone(), tx, audio, rec, None);
                 },
                 _ => unreachable!(),
             }
@@ -1151,16 +1207,88 @@ fn get_or_ready_input<'a>(
             Err(Waiting)
         },
         InputState::Preparing(info) => {
-            // Check this with a RefCell?
-
             match info.callback.try_recv() {
-                Ok(MixerInputResultMessage::InputBuilt(parsed, rec)) => {
+                Ok(MixerInputResultMessage::InputBuilt(mut parsed, rec)) => {
                     *input = InputState::Ready(parsed, rec);
+                    local.reset();
 
                     if let InputState::Ready(ref mut parsed, _) = input {
                         Ok(parsed)
                     } else {
                         unreachable!()
+                    }
+                },
+                Ok(MixerInputResultMessage::InputSeek(mut parsed, rec, seek_res)) => {
+                    // local.reset();
+                    // AND recompute local time.
+
+                    // handle error cases here...
+
+                    match seek_res {
+                        Ok(pos) => {
+                            let time_base =
+                                if let Some(tb) = parsed.decoder.codec_params().time_base {
+                                    tb
+                                } else {
+                                    // Probably fire an Unsupported.
+                                    todo!()
+                                };
+                            // modify track.
+                            let new_time = time_base.calc_time(pos.actual_ts);
+                            let time_in_float = new_time.seconds as f64 + new_time.frac;
+                            track.position = std::time::Duration::from_secs_f64(time_in_float);
+
+                            let _ = interconnect.events.send(EventMessage::ChangeState(
+                                id,
+                                TrackStateChange::Position(track.position),
+                            ));
+
+                            local.reset();
+                            *input = InputState::Ready(parsed, rec);
+
+                            if let InputState::Ready(ref mut parsed, _) = input {
+                                Ok(parsed)
+                            } else {
+                                unreachable!()
+                            }
+                        },
+                        Err(e) => {
+                            // ...kill track based on error severity?
+                            todo!()
+                            // Err(Creation(e))
+                        },
+                        //     Err(SymphoniaError::SeekError(symphonia_core::errors::SeekErrorKind::ForwardOnly)) => {
+                        //         // request stream recreation, and then seek to target.
+                        //         let (tx, rx) = flume::bounded(1);
+
+                        //         if rec.is_some() {
+                        //             Some((tx, InputState::Preparing(PreparingInfo {
+                        //                 time: Instant::now(),
+                        //                 callback: rx,
+                        //                 queued_seek: Some(time),
+                        //             })))
+                        //         } else {
+                        //             // fire error.
+                        //             None
+                        //         }
+                        //     },
+                        //     Err(SymphoniaError::SeekError(e)) => {
+                        //         // SeekErrors refer to the *possibility* of the operation,
+                        //         // rather than a failure to do so based on I/O.
+                        //         // report and continue.
+                        //         // todo!()
+
+                        //         // FIXME: fire an event.
+                        //         debug!("Symphonia seek error for track {}", i);
+                        //         None
+                        //     },
+                        //     Err(e) => {
+                        //         // Generic track I/O error: kill and report.
+                        //         // FIXME: fire an event.
+                        //         // FIXME: kill track.
+                        //         debug!("Maybe fatal seek error for track {}", i);
+                        //         None
+                        //     }
                     }
                 },
                 Err(TryRecvError::Empty) => Err(Waiting),
@@ -1196,6 +1324,139 @@ pub(crate) fn runner(
     mixer.run();
 
     let _ = mixer.disposer.send(DisposalMessage::Poison);
-    let _ = mixer.creator.send(InputCreateMessage::Poison);
-    let _ = mixer.parser.send(InputParseMessage::Poison);
+}
+
+#[derive(Clone)]
+pub(crate) struct BlockyTaskPool {
+    pool: Arc<RwLock<rusty_pool::ThreadPool>>,
+    handle: Handle,
+}
+
+impl BlockyTaskPool {
+    fn new(handle: Handle) -> Self {
+        Self {
+            pool: Arc::new(RwLock::new(rusty_pool::ThreadPool::new(
+                5,
+                64,
+                Duration::from_secs(300),
+            ))),
+            handle,
+        }
+    }
+
+    fn create(
+        &self,
+        callback: Sender<MixerInputResultMessage>,
+        input: SymphInput,
+        seek_time: Option<SeekTo>,
+        config: Arc<Config>,
+    ) {
+        match input {
+            SymphInput::Lazy(mut lazy) => {
+                let far_pool = self.clone();
+                if lazy.should_create_async() {
+                    self.handle.spawn(async move {
+                        let out = lazy.create_async().await;
+                        far_pool.send_to_parse(out, lazy, callback, seek_time, config);
+                    });
+                } else {
+                    let pool = self.pool.read();
+                    pool.execute(move || {
+                        let out = lazy.create();
+                        far_pool.send_to_parse(out, lazy, callback, seek_time, config);
+                    });
+                }
+            },
+            SymphInput::Live(live, maybe_create) =>
+                self.parse(config, callback, live, maybe_create, seek_time),
+        }
+    }
+
+    fn send_to_parse(
+        &self,
+        create_res: StdResult<AudioStream<Box<dyn MediaSource>>, AudioStreamError>,
+        rec: Box<dyn Compose>,
+        callback: Sender<MixerInputResultMessage>,
+        seek_time: Option<SeekTo>,
+        config: Arc<Config>,
+    ) {
+        match create_res {
+            Ok(o) => {
+                self.parse(config, callback, LiveInput::Raw(o), Some(rec), seek_time);
+            },
+            Err(e) => {
+                let _ = callback.send(MixerInputResultMessage::InputCreateErr(e));
+            },
+        }
+    }
+
+    fn parse(
+        &self,
+        config: Arc<Config>,
+        callback: Sender<MixerInputResultMessage>,
+        input: LiveInput,
+        rec: Option<Box<dyn Compose>>,
+        seek_time: Option<SeekTo>,
+    ) {
+        let pool_clone = self.clone();
+        let pool = self.pool.read();
+
+        pool.execute(
+            move || match input.promote(config.codec_registry, config.format_registry) {
+                Ok(LiveInput::Parsed(parsed)) =>
+                    if let Some(seek_time) = seek_time {
+                        pool_clone.seek(callback, parsed, rec, seek_time, false, config);
+                    } else {
+                        let _ = callback.send(MixerInputResultMessage::InputBuilt(parsed, rec));
+                    },
+                Ok(_) => unreachable!(),
+                Err(e) => {
+                    let _ = callback.send(MixerInputResultMessage::InputParseErr(e));
+                },
+            },
+        );
+    }
+
+    fn seek(
+        &self,
+        callback: Sender<MixerInputResultMessage>,
+        mut input: Parsed,
+        rec: Option<Box<dyn Compose>>,
+        seek_time: SeekTo,
+        should_recreate: bool,
+        config: Arc<Config>,
+    ) {
+        let pool_clone = self.clone();
+        let pool = self.pool.read();
+
+        pool.execute(move || {
+            let res = input
+                .format
+                .seek(SeekMode::Coarse, copy_seek_to(&seek_time));
+
+            let backseek_needed = matches!(
+                res,
+                Err(SymphoniaError::SeekError(SeekErrorKind::ForwardOnly))
+            );
+
+            if should_recreate && backseek_needed && rec.is_some() {
+                pool_clone.create(
+                    callback,
+                    SymphInput::Lazy(rec.unwrap()),
+                    Some(seek_time),
+                    config,
+                );
+            } else {
+                let _ = callback.send(MixerInputResultMessage::InputSeek(input, rec, res));
+            }
+        });
+    }
+}
+
+// SeekTo lacks Copy and Clone... somehow.
+fn copy_seek_to(pos: &SeekTo) -> SeekTo {
+    match *pos {
+        SeekTo::Time { time, track_id } => SeekTo::Time { time, track_id },
+        SeekTo::TimeStamp { ts, track_id } => SeekTo::TimeStamp { ts, track_id },
+    }
 }

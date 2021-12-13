@@ -1,10 +1,11 @@
 #![allow(missing_docs)]
 
 use super::{AudioStreamError, Compose, SymphInput};
-use flume::{Receiver, Sender, TryRecvError};
-use futures::TryStreamExt;
+use flume::{Receiver, RecvError, Sender, TryRecvError};
+use futures::{future::Either, stream::FuturesUnordered, FutureExt, StreamExt, TryStreamExt};
 use ringbuf::*;
-use std::{io::{
+use std::{
+    io::{
         Error as IoError,
         ErrorKind as IoErrorKind,
         Read,
@@ -12,15 +13,25 @@ use std::{io::{
         Seek,
         SeekFrom,
         Write,
-    }, sync::atomic::{AtomicBool, Ordering}, time::Duration};
+    },
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
 use symphonia_core::io::MediaSource;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt};
+use tokio::{
+    io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt},
+    sync::Notify,
+};
 
 struct AsyncAdapterSink {
     bytes_in: Producer<u8>,
     req_rx: Receiver<AdapterRequest>,
     resp_tx: Sender<AdapterResponse>,
     stream: Box<dyn AsyncMediaSource>,
+    notify_rx: Arc<Notify>,
 }
 
 impl AsyncAdapterSink {
@@ -32,6 +43,8 @@ impl AsyncAdapterSink {
         let mut pause_buf_moves = false;
         let mut seek_res = None;
 
+        println!("New asyncread");
+
         loop {
             // if read_region is empty, refill from src.
             //  if that read is zero, tell other half.
@@ -40,9 +53,9 @@ impl AsyncAdapterSink {
 
             if !pause_buf_moves {
                 if !hit_end && read_region.is_empty() {
-                    println!("tryna...");
+                    // println!("tryna...");
                     if let Ok(n) = self.stream.read(&mut inner_buf).await {
-                        println!("read in {} bytes on asyncland", n);
+                        // println!("read in {} bytes on asyncland", n);
                         read_region = 0..n;
                         if n == 0 {
                             let _ = self.resp_tx.send_async(AdapterResponse::ReadZero).await;
@@ -54,12 +67,12 @@ impl AsyncAdapterSink {
                 }
 
                 while !read_region.is_empty() && !blocked {
-                    println!("loopy");
+                    // println!("loopy");
                     if let Ok(n_moved) = self
                         .bytes_in
                         .write(&mut inner_buf[read_region.start..read_region.end])
                     {
-                        println!("copied {} bytes to ring", n_moved);
+                        // println!("copied {} bytes to ring", n_moved);
                         read_region.start += n_moved;
                     } else {
                         blocked = true;
@@ -68,8 +81,15 @@ impl AsyncAdapterSink {
             }
 
             let msg = if blocked || hit_end {
-                match self.req_rx.recv_async().await {
-                    Ok(a) => a,
+                let mut fs = FuturesUnordered::new();
+                fs.push(Either::Left(self.req_rx.recv_async()));
+                fs.push(Either::Right(self.notify_rx.notified().map(|_| {
+                    let o: Result<AdapterRequest, RecvError> = Ok(AdapterRequest::Wake);
+                    o
+                })));
+
+                match fs.next().await {
+                    Some(Ok(a)) => a,
                     _ => break,
                 }
             } else {
@@ -104,6 +124,8 @@ impl AsyncAdapterSink {
                 },
             }
         }
+
+        println!("Dropped");
     }
 }
 
@@ -116,6 +138,7 @@ pub struct AsyncAdapterStream {
     finalised: AtomicBool,
     req_tx: Sender<AdapterRequest>,
     resp_rx: Receiver<AdapterResponse>,
+    notify_tx: Arc<Notify>,
 }
 
 impl AsyncAdapterStream {
@@ -125,12 +148,15 @@ impl AsyncAdapterStream {
         let (resp_tx, resp_rx) = flume::unbounded();
         let (req_tx, req_rx) = flume::unbounded();
         let can_seek = stream.is_seekable();
+        let notify_rx = Arc::new(Notify::new());
+        let notify_tx = notify_rx.clone();
 
         let sink = AsyncAdapterSink {
             bytes_in,
             req_rx,
             resp_tx,
             stream,
+            notify_rx,
         };
         let stream = AsyncAdapterStream {
             bytes_out,
@@ -138,6 +164,7 @@ impl AsyncAdapterStream {
             finalised: false.into(),
             req_tx,
             resp_rx,
+            notify_tx,
         };
 
         tokio::spawn(async move {
@@ -179,6 +206,7 @@ impl AsyncAdapterStream {
 
 impl Read for AsyncAdapterStream {
     fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
+        println!("Read tried");
         // try read:
         // if nothing,
         //  convert to ok 0 if finalised
@@ -189,18 +217,20 @@ impl Read for AsyncAdapterStream {
 
         // TODO: make this run via condvar instead?
         // This needs to remain blocking or spin loopy
-        // 
+        // Mainly because this is at odds with "keep CPU low."
         loop {
             let _ = self.handle_messages(false);
 
             match self.bytes_out.read(buf) {
                 Ok(n) => {
-                    let _ = self.req_tx.send(AdapterRequest::Wake);
+                    self.notify_tx.notify_one();
                     println!("read {}", n);
                     return Ok(n);
                 },
                 Err(e) if e.kind() == IoErrorKind::WouldBlock => {
-                    println!("Will it block?");
+                    // println!("Will it block? {}", self.bytes_out.len());
+                    // receive side must ABSOLUTELY be unblocked here.
+                    self.notify_tx.notify_one();
                     if self.finalised.load(Ordering::Relaxed) {
                         println!("It's... done?");
                         return Ok(0);
@@ -318,7 +348,10 @@ impl AsyncSeek for HttpStream {
         Err(IoErrorKind::Unsupported.into())
     }
 
-    fn poll_complete(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<std::io::Result<u64>> {
+    fn poll_complete(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<std::io::Result<u64>> {
         unreachable!()
     }
 }
@@ -329,7 +362,6 @@ impl AsyncMediaSource for HttpStream {
         false
     }
 
-
     async fn byte_len(&self) -> Option<u64> {
         self.len
     }
@@ -337,28 +369,41 @@ impl AsyncMediaSource for HttpStream {
 
 #[async_trait::async_trait]
 impl Compose for HttpRequest {
-    fn create(&mut self) -> Result<super::AudioStream<Box<dyn MediaSource>>, super::AudioStreamError> {
+    fn create(
+        &mut self,
+    ) -> Result<super::AudioStream<Box<dyn MediaSource>>, super::AudioStreamError> {
         unimplemented!()
     }
 
-    async fn create_async(&mut self) -> Result<super::AudioStream<Box<dyn MediaSource>>, super::AudioStreamError>{
-        let resp = self.client.get(&self.request).send()
+    async fn create_async(
+        &mut self,
+    ) -> Result<super::AudioStream<Box<dyn MediaSource>>, super::AudioStreamError> {
+        let resp = self
+            .client
+            .get(&self.request)
+            .send()
             .await
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
         if let Some(t) = resp.headers().get(reqwest::header::RETRY_AFTER) {
             t.to_str()
                 .map_err(|_| {
-                    let msg: Box<dyn std::error::Error + Send + Sync + 'static> = "Retry-after field contained non-ASCII data.".into();
+                    let msg: Box<dyn std::error::Error + Send + Sync + 'static> =
+                        "Retry-after field contained non-ASCII data.".into();
                     AudioStreamError::Fail(msg)
                 })
-                .and_then(|str_text| str_text.parse().map_err(|_| {
-                    let msg: Box<dyn std::error::Error + Send + Sync + 'static> = "Retry-after field was non-numeric.".into();
-                    AudioStreamError::Fail(msg)
-                }))
+                .and_then(|str_text| {
+                    str_text.parse().map_err(|_| {
+                        let msg: Box<dyn std::error::Error + Send + Sync + 'static> =
+                            "Retry-after field was non-numeric.".into();
+                        AudioStreamError::Fail(msg)
+                    })
+                })
                 .and_then(|t| Err(AudioStreamError::RetryIn(Duration::from_secs(t))))
         } else {
-            let hint = resp.headers().get(reqwest::header::CONTENT_TYPE)
+            let hint = resp
+                .headers()
+                .get(reqwest::header::CONTENT_TYPE)
                 .and_then(|val| val.to_str().ok())
                 .map(|val| {
                     let mut out: symphonia_core::probe::Hint = Default::default();
@@ -366,15 +411,17 @@ impl Compose for HttpRequest {
                     out
                 });
 
-            let len = resp.headers().get(reqwest::header::CONTENT_LENGTH)
+            let len = resp
+                .headers()
+                .get(reqwest::header::CONTENT_LENGTH)
                 .and_then(|val| val.to_str().ok())
                 .and_then(|val| val.parse().ok());
 
-            let stream = Box::new(tokio_util::io::StreamReader::new(resp.bytes_stream().map_err(|e| IoError::new(IoErrorKind::Other, e))));
-            let input = HttpStream {
-                stream,
-                len,
-            };
+            let stream = Box::new(tokio_util::io::StreamReader::new(
+                resp.bytes_stream()
+                    .map_err(|e| IoError::new(IoErrorKind::Other, e)),
+            ));
+            let input = HttpStream { stream, len };
             let stream = AsyncAdapterStream::new(Box::new(input), 1024 * 1024);
 
             Ok(super::AudioStream {

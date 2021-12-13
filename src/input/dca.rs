@@ -4,7 +4,10 @@ use super::{codec::OpusDecoderState, error::DcaError, Codec, Container, Input, M
 use audiopus::Channels;
 use serde::{Deserialize, Serialize};
 use std::{alloc::Layout, ffi::OsStr, mem};
-use symphonia_core::{codecs::CodecParameters, io::MediaSourceStream};
+use symphonia_core::{
+    codecs::CodecParameters,
+    io::{MediaSourceStream, SeekBuffered},
+};
 #[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{fs::File as TokioFile, io::AsyncReadExt};
 #[cfg(feature = "tokio-02-marker")]

@@ -3,24 +3,12 @@
 mod core;
 mod disposal;
 mod events;
-mod input_creator;
-mod input_parser;
 mod mixer;
 mod udp_rx;
 mod udp_tx;
 mod ws;
 
-pub use self::{
-    core::*,
-    disposal::*,
-    events::*,
-    input_creator::*,
-    input_parser::*,
-    mixer::*,
-    udp_rx::*,
-    udp_tx::*,
-    ws::*,
-};
+pub use self::{core::*, disposal::*, events::*, mixer::*, udp_rx::*, udp_tx::*, ws::*};
 
 use flume::Sender;
 #[cfg(not(feature = "tokio-02-marker"))]

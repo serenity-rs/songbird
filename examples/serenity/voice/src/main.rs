@@ -292,7 +292,17 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
         let path = std::path::Path::new(songs[0]);
         let file = songbird::input::File::new(path);
 
-        handler.play_source(file.into());
+        let handle = handler.play_source(file.into());
+
+        tokio::spawn(async move {
+            println!("Spawned!");
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            handle.seek_time(std::time::Duration::from_secs(60));
+            println!("Sent!");
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            handle.seek_time(std::time::Duration::from_secs(20));
+            println!("Sent!");
+        });
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {
@@ -382,7 +392,7 @@ async fn play_url(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
             request: url.to_string(),
         };
 
-        handler.play_source(lazy.into());
+        let handle = handler.play_source(lazy.into());
 
         // let source = match songbird::input(&url).await {
         //     Ok(source) => source,
@@ -396,6 +406,13 @@ async fn play_url(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
         // };
 
         // handler.play_source(source);
+
+        tokio::spawn(async move {
+            println!("Spawned!");
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            handle.seek_time(std::time::Duration::from_secs(5));
+            println!("Sent!");
+        });
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {

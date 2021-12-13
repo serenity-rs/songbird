@@ -8,7 +8,7 @@ use crate::{
     tracks::Track,
 };
 use flume::Sender;
-use symphonia_core::errors::Error as SymphoniaError;
+use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 pub struct MixerConnection {
@@ -46,5 +46,10 @@ pub enum MixerMessage {
 pub enum MixerInputResultMessage {
     InputCreateErr(AudioStreamError),
     InputParseErr(SymphoniaError),
+    InputSeek(
+        Parsed,
+        Option<Box<dyn Compose>>,
+        Result<SeekedTo, SymphoniaError>,
+    ),
     InputBuilt(Parsed, Option<Box<dyn Compose>>),
 }

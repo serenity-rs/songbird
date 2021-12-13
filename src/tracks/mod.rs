@@ -239,9 +239,12 @@ impl Track {
     /// Receives and acts upon any commands forwarded by TrackHandles.
     ///
     /// *Used internally*, this should not be exposed to users.
-    pub(crate) fn process_commands(&mut self, index: usize, ic: &Interconnect) {
+    pub(crate) fn process_commands(&mut self, index: usize, ic: &Interconnect) -> Option<Duration> {
         // Note: disconnection and an empty channel are both valid,
         // and should allow the audio object to keep running as intended.
+
+        // We also need to export a target seek point to the mixer, if known.
+        let mut seek_point = None;
 
         // Note that interconnect failures are not currently errors.
         // In correct operation, the event thread should never panic,
@@ -280,13 +283,7 @@ impl Track {
                                 TrackStateChange::Volume(self.volume),
                             ));
                         },
-                        Seek(time) =>
-                            if let Ok(new_time) = self.seek_time(time) {
-                                let _ = ic.events.send(EventMessage::ChangeState(
-                                    index,
-                                    TrackStateChange::Position(new_time),
-                                ));
-                            },
+                        Seek(time) => seek_point = Some(time),
                         AddEvent(evt) => {
                             let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
                         },
@@ -319,6 +316,8 @@ impl Track {
                 },
             }
         }
+
+        seek_point
     }
 
     /// Ready a track for playing if it is lazily initialised.
@@ -393,7 +392,7 @@ pub fn create_player(source: SymphInput) -> (Track, TrackHandle) {
 pub fn create_player_with_uuid(source: SymphInput, uuid: Uuid) -> (Track, TrackHandle) {
     // FIXME: Unify this (and handles) with symphonia's metadata handling
     let (tx, rx) = flume::unbounded();
-    let can_seek = false; //source.is_seekable();
+    let can_seek = true; //source.is_seekable();
     let metadata = Default::default(); //source.metadata.clone();
     let handle = TrackHandle::new(tx, can_seek, uuid, metadata);
 
