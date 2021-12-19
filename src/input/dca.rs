@@ -8,10 +8,7 @@ use symphonia_core::{
     codecs::CodecParameters,
     io::{MediaSourceStream, SeekBuffered},
 };
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{fs::File as TokioFile, io::AsyncReadExt};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{fs::File as TokioFile, io::AsyncReadExt};
 
 use symphonia::core::{
     codecs::CODEC_TYPE_OPUS,

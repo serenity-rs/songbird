@@ -36,7 +36,7 @@ struct AsyncAdapterSink {
 
 impl AsyncAdapterSink {
     async fn launch(mut self) {
-        let mut inner_buf = [0u8; 1024];
+        let mut inner_buf = [0u8; 10 * 1024];
         let mut read_region = 0..0;
         let mut hit_end = false;
         let mut blocked = false;
@@ -422,7 +422,7 @@ impl Compose for HttpRequest {
                     .map_err(|e| IoError::new(IoErrorKind::Other, e)),
             ));
             let input = HttpStream { stream, len };
-            let stream = AsyncAdapterStream::new(Box::new(input), 1024 * 1024);
+            let stream = AsyncAdapterStream::new(Box::new(input), 3 * 1024 * 1024);
 
             Ok(super::AudioStream {
                 input: Box::new(stream),

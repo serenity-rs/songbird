@@ -30,6 +30,8 @@ use serenity::{
     Result as SerenityResult,
 };
 
+use songbird::input::Compose;
+
 struct Handler;
 
 #[async_trait]
@@ -339,18 +341,21 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let source = match songbird::ytdl(&url).await {
-            Ok(source) => source,
-            Err(why) => {
-                println!("Err starting source: {:?}", why);
+        let mut src = songbird::input::YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
+        // src.create_async().await;
 
-                check_msg(msg.channel_id.say(&ctx.http, "Error sourcing ffmpeg").await);
+        // let source = match songbird::ytdl(&url).await {
+        //     Ok(source) => source,
+        //     Err(why) => {
+        //         println!("Err starting source: {:?}", why);
 
-                return Ok(());
-            },
-        };
+        //         check_msg(msg.channel_id.say(&ctx.http, "Error sourcing ffmpeg").await);
 
-        // handler.play_source(source);
+        //         return Ok(());
+        //     },
+        // };
+
+        handler.play_source(src.into());
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {

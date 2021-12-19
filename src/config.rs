@@ -1,10 +1,10 @@
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 use super::{
     driver::{retry::Retry, CryptoMode, DecodeMode},
     input::registry::*,
 };
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
 use derivative::Derivative;
@@ -15,7 +15,7 @@ use std::time::Duration;
 #[derivative(Debug)]
 #[non_exhaustive]
 pub struct Config {
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// Selected tagging mode for voice packet encryption.
     ///
     /// Defaults to [`CryptoMode::Normal`].
@@ -26,7 +26,7 @@ pub struct Config {
     ///
     /// [`CryptoMode::Normal`]: CryptoMode::Normal
     pub crypto_mode: CryptoMode,
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// Configures whether decoding and decryption occur for all received packets.
     ///
     /// If voice receiving voice packets, generally you should choose [`DecodeMode::Decode`].
@@ -42,7 +42,7 @@ pub struct Config {
     /// [`DecodeMode::Pass`]: DecodeMode::Pass
     /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
     pub decode_mode: DecodeMode,
-    #[cfg(feature = "gateway-core")]
+    #[cfg(feature = "gateway")]
     /// Configures the amount of time to wait for Discord to reply with connection information
     /// if [`Call::join`]/[`join_gateway`] are used.
     ///
@@ -55,7 +55,7 @@ pub struct Config {
     /// [`Call::join`]: crate::Call::join
     /// [`join_gateway`]: crate::Call::join_gateway
     pub gateway_timeout: Option<Duration>,
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// Number of concurrently active tracks to allocate memory for.
     ///
     /// This should be set at, or just above, the maximum number of tracks
@@ -68,7 +68,7 @@ pub struct Config {
     /// Changes to this field in a running driver will only ever increase
     /// the capacity of the track store.
     pub preallocated_tracks: usize,
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// Connection retry logic for the [`Driver`].
     ///
     /// This controls how many times the [`Driver`] should retry any connections,
@@ -76,13 +76,13 @@ pub struct Config {
     ///
     /// [`Driver`]: crate::driver::Driver
     pub driver_retry: Retry,
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// Configures the maximum amount of time to wait for an attempted voice
     /// connection to Discord.
     ///
     /// Defaults to 10 seconds. If set to `None`, connections will never time out.
     pub driver_timeout: Option<Duration>,
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     #[derivative(Debug = "ignore")]
     /// Registry of the inner codecs supported by the driver, adding audiopus-based
     /// Opus codec support to all of Symphonia's default codecs.
@@ -91,7 +91,7 @@ pub struct Config {
     ///
     /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
     pub codec_registry: &'static CodecRegistry,
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     #[derivative(Debug = "ignore")]
     /// Registry of the muxers and container formats supported by the driver.
     ///
@@ -105,27 +105,27 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             crypto_mode: CryptoMode::Normal,
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             decode_mode: DecodeMode::Decrypt,
-            #[cfg(feature = "gateway-core")]
+            #[cfg(feature = "gateway")]
             gateway_timeout: Some(Duration::from_secs(10)),
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             preallocated_tracks: 1,
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             driver_retry: Default::default(),
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             driver_timeout: Some(Duration::from_secs(10)),
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             codec_registry: &CODEC_REGISTRY,
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             format_registry: &PROBE,
         }
     }
 }
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 impl Config {
     /// Sets this `Config`'s chosen cryptographic tagging scheme.
     pub fn crypto_mode(mut self, crypto_mode: CryptoMode) -> Self {
@@ -165,7 +165,7 @@ impl Config {
     }
 }
 
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 impl Config {
     /// Sets this `Config`'s timeout for joining a voice channel.
     pub fn gateway_timeout(mut self, gateway_timeout: Option<Duration>) -> Self {

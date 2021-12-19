@@ -22,10 +22,7 @@ use serenity::{
     },
 };
 use std::sync::Arc;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::sync::Mutex;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::sync::Mutex;
 use tracing::debug;
 #[cfg(feature = "twilight")]
 use twilight_gateway::Cluster;
@@ -205,7 +202,7 @@ impl Songbird {
         *client_data
     }
 
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// Connects to a target by retrieving its relevant [`Call`] and
     /// connecting, or creating the handler if required.
     ///
@@ -237,7 +234,7 @@ impl Songbird {
         self._join(guild_id.into(), channel_id.into()).await
     }
 
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     async fn _join(
         &self,
         guild_id: GuildId,

@@ -37,46 +37,43 @@
 //! [`ConnectionInfo`]: struct@ConnectionInfo
 //! [lavalink]: https://github.com/freyacodes/Lavalink
 
-#[cfg(all(feature = "youtube-dlc", feature = "yt-dlp"))]
-compile_error!("feature \"youtube-dlc\" and feature \"yt-dlp\" cannot be enabled at the same time");
-
 mod config;
 pub mod constants;
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub mod driver;
 pub mod error;
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub mod events;
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 mod handler;
 pub mod id;
 pub(crate) mod info;
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub mod input;
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 pub mod join;
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 mod manager;
 #[cfg(feature = "serenity")]
 pub mod serenity;
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 pub mod shards;
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub mod tracks;
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 mod ws;
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub use discortp as packet;
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub use serenity_voice_model as model;
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub use typemap_rev as typemap;
 
 #[cfg(test)]
 use utils as test_utils;
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub use crate::{
     driver::Driver,
     events::{CoreEvent, Event, EventContext, EventHandler, TrackEvent},
@@ -84,7 +81,7 @@ pub use crate::{
     tracks::create_player,
 };
 
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 pub use crate::{handler::*, manager::*};
 
 #[cfg(feature = "serenity")]

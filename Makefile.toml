@@ -23,13 +23,8 @@ args = ["build", "--no-default-features", "--features", "driver,rustls"]
 command = "cargo"
 dependencies = ["format"]
 
-[tasks.build-old-tokio]
-command = "cargo"
-args = ["build", "--no-default-features", "--features", "serenity-rustls-tokio-02,driver-tokio-02"]
-dependencies = ["format"]
-
 [tasks.build-variants]
-dependencies = ["build", "build-gateway", "build-driver", "build-old-tokio"]
+dependencies = ["build", "build-gateway", "build-driver"]
 
 [tasks.clippy]
 args = ["clippy", "--features", "full-doc", "--", "-D", "warnings"]

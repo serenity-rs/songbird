@@ -39,7 +39,6 @@ jobs:
           - Windows
           - driver only
           - gateway only
-          - legacy tokio
 
         include:
           - name: beta
@@ -55,9 +54,6 @@ jobs:
             dont-test: true
           - name: gateway only
             features: serenity-rustls
-            dont-test: true
-          - name: legacy tokio
-            features: serenity-rustls-tokio-02 driver-tokio-02
             dont-test: true
 
     steps:

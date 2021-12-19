@@ -4,10 +4,7 @@ use std::{
     mem,
     process::Child,
 };
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::runtime::Handle;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::runtime::Handle;
 use tracing::debug;
 
 /// Handle for a child process which ensures that any subprocesses are properly closed

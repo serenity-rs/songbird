@@ -11,10 +11,7 @@ use std::{
     ffi::OsStr,
     process::{Command, Stdio},
 };
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::process::Command as TokioCommand;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::process::Command as TokioCommand;
 use tracing::debug;
 
 /// Opens an audio file through `ffmpeg` and creates an audio source.

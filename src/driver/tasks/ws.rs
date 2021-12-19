@@ -11,22 +11,13 @@ use crate::{
     ws::{Error as WsError, ReceiverExt, SenderExt, WsStream},
     ConnectionInfo,
 };
-#[cfg(not(feature = "tokio-02-marker"))]
 use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
-#[cfg(feature = "tokio-02-marker")]
-use async_tungstenite_compat::tungstenite::protocol::frame::coding::CloseCode;
 use flume::Receiver;
 use rand::random;
 use std::time::Duration;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{
     select,
     time::{sleep_until, Instant},
-};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{
-    select,
-    time::{delay_until as sleep_until, Instant},
 };
 use tracing::{debug, info, instrument, trace, warn};
 
