@@ -2,7 +2,7 @@
 authors = ["Kyle Simpson <kyleandrew.simpson@gmail.com>"]
 description = "An async Rust library for the Discord voice API."
 documentation = "https://docs.rs/songbird"
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/serenity-rs/songbird"
 include = ["src/**/*.rs", "Cargo.toml", "build.rs"]
 keywords = ["discord", "api", "rtp", "audio"]
@@ -152,7 +152,7 @@ features = ["v4"]
 
 [dependencies.xsalsa20poly1305]
 optional = true
-version = "0.7"
+version = "0.8"
 features = ["std"]
 
 [dev-dependencies]

@@ -26,6 +26,10 @@ dependencies = ["format"]
 [tasks.build-variants]
 dependencies = ["build", "build-gateway", "build-driver"]
 
+[tasks.check]
+args = ["check", "--features", "full-doc"]
+dependencies = ["format"]
+
 [tasks.clippy]
 args = ["clippy", "--features", "full-doc", "--", "-D", "warnings"]
 dependencies = ["format"]

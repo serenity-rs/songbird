@@ -303,6 +303,7 @@ impl ConnectionRetryData {
                     let idx = self.idx;
 
                     spawn(async move {
+                        let _ = &remote_ic;
                         tsleep(t).await;
                         let _ = remote_ic.core.send(CoreMessage::RetryConnect(idx));
                     });
