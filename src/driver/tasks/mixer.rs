@@ -228,7 +228,7 @@ impl Mixer {
         use MixerMessage::*;
 
         let error = match msg {
-            AddTrack(mut t) => {
+            AddTrack(t) => {
                 // todo!();
                 // t.source.prep_with_handle(self.async_handle.clone());
                 self.add_track(t)
@@ -238,10 +238,7 @@ impl Mixer {
 
                 let mut out = self.fire_event(EventMessage::RemoveAllTracks);
 
-                if let Some(mut t) = t {
-                    todo!();
-                    // t.source.prep_with_handle(self.async_handle.clone());
-
+                if let Some(t) = t {
                     // Do this unconditionally: this affects local state infallibly,
                     // with the event installation being the remote part.
                     if let Err(e) = self.add_track(t) {
