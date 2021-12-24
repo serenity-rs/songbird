@@ -31,8 +31,9 @@ const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
 /// If you need looping or track seeking, then consider using
 /// [`Restartable::ytdl`].
 ///
-/// Uses `youtube-dlc` if the `"youtube-dlc"` feature is enabled.
-///
+/// `youtube-dlc` and `yt-dlp` are also available by enabling the `youtube-dlc`
+/// and `yt-dlp` features respectively.
+/// 
 /// [`Restartable::ytdl`]: crate::input::restartable::Restartable::ytdl
 pub async fn ytdl(uri: impl AsRef<str>) -> Result<Input> {
     _ytdl(uri.as_ref(), &[]).await
