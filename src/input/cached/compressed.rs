@@ -1,18 +1,26 @@
-use super::{apply_length_hint, compressed_cost_per_sec, default_config};
+use super::{
+    apply_length_hint,
+    compressed_cost_per_sec,
+    default_config,
+    CocdecCacheError,
+    ToAudioBytes,
+};
 use crate::{
     constants::*,
     input::{
         dca::*,
-        error::{DcaError, Error, Result},
+        registry::*,
         CodecType,
         Container,
         Input,
+        LiveInput,
         Metadata,
         Reader,
+        SymphInput, AudioStream,
     },
 };
 use audiopus::{
-    coder::Encoder as OpusEncoder,
+    coder::{Encoder as OpusEncoder, GenericCtl},
     Application,
     Bitrate,
     Channels,
@@ -23,38 +31,95 @@ use audiopus::{
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::{
     convert::TryInto,
-    io::{Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult, Write},
+    io::{
+        Cursor,
+        Error as IoError,
+        ErrorKind as IoErrorKind,
+        Read,
+        Result as IoResult,
+        Seek,
+        Write,
+    },
     mem,
     sync::atomic::{AtomicUsize, Ordering},
 };
-use streamcatcher::{Config, NeedsBytes, Stateful, Transform, TransformPosition, TxCatcher};
+use streamcatcher::{
+    Config as ScConfig,
+    NeedsBytes,
+    Stateful,
+    Transform,
+    TransformPosition,
+    TxCatcher,
+};
+use symphonia_core::{
+    codecs::{CodecParameters, CodecRegistry},
+    io::MediaSource,
+    meta::{StandardTagKey, Value},
+    probe::{Probe, ProbedMetadata},
+};
+use tokio::fs::{metadata, write};
 use tracing::{debug, trace};
+
+#[allow(missing_docs)]
+pub struct Config {
+    /// Registry of the inner codecs supported by the driver, adding audiopus-based
+    /// Opus codec support to all of Symphonia's default codecs.
+    ///
+    /// Defaults to [`CODEC_REGISTRY`].
+    ///
+    /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
+    pub codec_registry: &'static CodecRegistry,
+    /// Registry of the muxers and container formats supported by the driver.
+    ///
+    /// Defaults to [`PROBE`], which includes all of Symphonia's default format handlers
+    /// and DCA format support.
+    ///
+    /// [`PROBE`]: static@PROBE
+    pub format_registry: &'static Probe,
+    pub streamcatcher: ScConfig,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            codec_registry: &CODEC_REGISTRY,
+            format_registry: &PROBE,
+            streamcatcher: Default::default(),
+        }
+    }
+}
+
+impl Config {
+    pub fn default_from_cost(cost_per_sec: usize) -> Self {
+        let streamcatcher = default_config(cost_per_sec);
+        Self {
+            streamcatcher,
+            ..Default::default()
+        }
+    }
+}
 
 /// A wrapper around an existing [`Input`] which compresses
 /// the input using the Opus codec before storing it in memory.
 ///
 /// The main purpose of this wrapper is to enable seeking on
-/// incompatible sources (i.e., ffmpeg output) and to ease resource
-/// consumption for commonly reused/shared tracks. [`Restartable`]
-/// and [`Memory`] offer the same functionality with different
-/// tradeoffs.
+/// incompatible sources and to ease resource consumption for
+/// commonly reused/shared tracks. If only one Opus-compressed track
+/// is playing at a time, then this removes the runtime decode cost
+/// from the driver.
 ///
 /// This is intended for use with larger, repeatedly used audio
 /// tracks shared between sources, and stores the sound data
-/// retrieved as **compressed Opus audio**. There is an associated memory cost,
-/// but this is far smaller than using a [`Memory`].
+/// retrieved as **compressed Opus audio**.
+///
+/// Internally, this stores the stream and it's metadata as a DCA1
+///
 ///
 /// [`Input`]: Input
-/// [`Memory`]: super::Memory
-/// [`Restartable`]: crate::input::restartable::Restartable
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Compressed {
     /// Inner shared bytestore.
-    pub raw: TxCatcher<Box<Input>, OpusCompressor>,
-    /// Metadata moved out of the captured source.
-    pub metadata: Metadata,
-    /// Stereo-ness of the captured source.
-    pub stereo: bool,
+    pub raw: TxCatcher<ToAudioBytes, OpusCompressor>,
 }
 
 impl Compressed {
@@ -62,8 +127,8 @@ impl Compressed {
     ///
     /// [`Input`]: Input
     /// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration
-    pub fn new(source: Input, bitrate: Bitrate) -> Result<Self> {
-        Self::with_config(source, bitrate, None)
+    pub async fn new(source: SymphInput, bitrate: Bitrate) -> Result<Self, CocdecCacheError> {
+        Self::with_config(source, bitrate, None).await
     }
 
     /// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.
@@ -74,55 +139,87 @@ impl Compressed {
     ///
     /// [`Input`]: Input
     /// [`Metadata::duration`]: crate::input::Metadata::duration
-    pub fn with_config(source: Input, bitrate: Bitrate, config: Option<Config>) -> Result<Self> {
-        let channels = if source.stereo {
-            Channels::Stereo
-        } else {
-            Channels::Mono
-        };
-        let mut encoder = OpusEncoder::new(SampleRate::Hz48000, channels, Application::Audio)?;
+    pub async fn with_config(
+        source: SymphInput,
+        bitrate: Bitrate,
+        config: Option<Config>,
+    ) -> Result<Self, CocdecCacheError> {
+        let input = match source {
+            SymphInput::Lazy(mut r) => {
+                let created = if r.should_create_async() {
+                    r.create_async().await.map_err(CocdecCacheError::from)
+                } else {
+                    tokio::task::spawn_blocking(move || r.create().map_err(CocdecCacheError::from))
+                        .await
+                        .map_err(CocdecCacheError::from)
+                        .and_then(|v| v)
+                };
 
+                created.map(|v| LiveInput::Raw(v))
+            },
+            SymphInput::Live(LiveInput::Parsed(_), _) => Err(CocdecCacheError::StreamNotAtStart),
+            SymphInput::Live(a, _rec) => Ok(a),
+        }?;
+
+        let cost_per_sec = compressed_cost_per_sec(bitrate);
+        let config = config.unwrap_or_else(|| Config::default_from_cost(cost_per_sec));
+
+        let promoted = tokio::task::spawn_blocking(move || {
+            input.promote(config.codec_registry, config.format_registry)
+        })
+        .await??;
+
+        // If success, guaranteed to be Parsed
+        let mut parsed = if let LiveInput::Parsed(parsed) = promoted {
+            parsed
+        } else {
+            unreachable!()
+        };
+
+        let track_info = parsed.decoder.codec_params();
+        let chan_count = track_info.channels.map(|v| v.count()).unwrap_or(2);
+
+        let (channels, stereo) = if chan_count >= 2 {
+            (Channels::Stereo, true)
+        } else {
+            (Channels::Mono, false)
+        };
+
+        let mut encoder = OpusEncoder::new(SampleRate::Hz48000, channels, Application::Audio)?;
         encoder.set_bitrate(bitrate)?;
 
-        Self::with_encoder(source, encoder, config)
-    }
+        let codec_type = parsed.decoder.codec_params().codec;
+        let encoding = config
+            .codec_registry
+            .get_codec(codec_type)
+            .map(|v| v.short_name.to_string());
 
-    /// Wrap an existing [`Input`] with an in-memory store, compressed using a user-defined
-    /// Opus encoder.
-    ///
-    /// `length_hint` functions as in [`new`]. This function's behaviour is undefined if your encoder
-    /// has a different sample rate than 48kHz, and if the decoder has a different channel count from the source.
-    ///
-    /// [`Input`]: Input
-    /// [`new`]: Compressed::new
-    pub fn with_encoder(
-        mut source: Input,
-        encoder: OpusEncoder,
-        config: Option<Config>,
-    ) -> Result<Self> {
-        let bitrate = encoder.bitrate()?;
-        let cost_per_sec = compressed_cost_per_sec(bitrate);
-        let stereo = source.stereo;
-        let metadata = source.metadata.take();
+        let metadata = create_metadata(&mut parsed.meta, &encoder, chan_count as u8, encoding)?;
+        let mut metabytes = b"DCA1\0\0\0\0".to_vec();
+        let orig_len = metabytes.len();
+        serde_json::to_writer(&mut metabytes, &metadata)?;
+        let meta_len = (metabytes.len() - orig_len)
+            .try_into()
+            .map_err(|_| CocdecCacheError::MetadataTooLarge)?;
 
-        let mut config = config.unwrap_or_else(|| default_config(cost_per_sec));
+        (&mut metabytes[4..][..mem::size_of::<i32>()])
+            .write_i32::<LittleEndian>(meta_len)
+            .expect("Magic byte writing location guaranteed to be well-founded.");
 
         // apply length hint.
-        if config.length_hint.is_none() {
-            if let Some(dur) = metadata.duration {
-                apply_length_hint(&mut config, dur, cost_per_sec);
-            }
-        }
+        // if config.length_hint.is_none() {
+        //     if let Some(dur) = metadata.duration {
+        //         apply_length_hint(&mut config, dur, cost_per_sec);
+        //     }
+        // }
+
+        let source = ToAudioBytes::new(parsed, Some(2));
 
         let raw = config
-            .build_tx(Box::new(source), OpusCompressor::new(encoder, stereo))
-            .map_err(Error::Streamcatcher)?;
+            .streamcatcher
+            .build_tx(source, OpusCompressor::new(encoder, stereo, metabytes))?;
 
-        Ok(Self {
-            raw,
-            metadata,
-            stereo,
-        })
+        Ok(Self { raw })
     }
 
     /// Acquire a new handle to this object, creating a new
@@ -130,116 +227,117 @@ impl Compressed {
     pub fn new_handle(&self) -> Self {
         Self {
             raw: self.raw.new_handle(),
-            metadata: self.metadata.clone(),
-            stereo: self.stereo,
         }
-    }
-
-    /// Reads this audio stream to the end...
-    ///
-    /// *If the stream is not finalised, this is a blocking operation.*
-    pub fn to_dca(&self) -> Result<Vec<u8>> {
-        let mut out = vec![];
-
-        self.write_dca(&mut out).map(|b_len| {
-            out.truncate(b_len);
-            out
-        })
-    }
-
-    /// Writes out...
-    ///
-    /// *If the stream is not finalised, this is a blocking operation.*
-    pub fn write_dca<W: Write>(&self, mut out: W) -> Result<usize> {
-        let mut out_len = 4;
-
-        out.write_all(b"DCA1")?;
-
-        // Metadata handling
-        let dca = DcaInfo {
-            version: 1,
-            tool: Tool {
-                name: env!("CARGO_PKG_NAME").into(),
-                version: env!("CARGO_PKG_VERSION").into(),
-                url: Some(env!("CARGO_PKG_HOMEPAGE").into()),
-                author: Some(env!("CARGO_PKG_AUTHORS").into()),
-            },
-        };
-        // TODO: query these from the encoder instance.
-        let opus = Opus {
-            mode: "audio".into(),
-            // TODO: read
-            sample_rate: 48000,
-            // I assume this means the input size? Says bytes, but could be samples?
-            frame_size: if self.stereo {
-                STEREO_FRAME_BYTE_SIZE as u64
-            } else {
-                MONO_FRAME_BYTE_SIZE as u64
-            },
-            // TODO: read
-            abr: Some(320_000),
-            // TODO: read
-            vbr: false,
-            channels: if self.stereo { 2 } else { 1 },
-        };
-        let origin = Some(Origin {
-            source: Some("generated".into()),
-            abr: None,
-            channels: Some(if self.stereo { 2 } else { 1 }),
-            encoding: None,
-            url: self.metadata.source_url.clone(),
-        });
-        let info = Some(Info {
-            title: self
-                .metadata
-                .track
-                .clone()
-                .or_else(|| self.metadata.title.clone()),
-            artist: self.metadata.artist.clone(),
-            album: None,
-            genre: None,
-            cover: None,
-        });
-        let out_meta = crate::input::dca::DcaMetadata {
-            dca,
-            opus,
-            info,
-            origin,
-            extra: None,
-        };
-        let meta = serde_json::to_vec(&out_meta).map_err(DcaError::InvalidMetadata)?;
-
-        out.write_i32::<LittleEndian>(meta.len() as i32)?;
-        out.write_all(&meta[..])?;
-
-        out_len += mem::size_of::<i32>() + meta.len();
-
-        let mut starter_gun = self.new_handle();
-        Ok(std::io::copy(&mut starter_gun.raw, &mut out)
-            .map(|dca0_len| (dca0_len as usize) + out_len)?)
-    }
-
-    /// Same but no headers. Seems to have some issue atm...
-    ///
-    /// *Please don't call from `async`. Thanks.*
-    pub fn write_dca0<W: Write>(&self, mut out: W) -> Result<usize> {
-        let mut starter_gun = self.new_handle();
-        Ok(std::io::copy(&mut starter_gun.raw, &mut out).map(|v| v as usize)?)
     }
 }
 
-impl From<Compressed> for Input {
-    fn from(src: Compressed) -> Self {
-        Input::new(
-            true,
-            Reader::Compressed(src.raw),
-            CodecType::Opus
-                .try_into()
-                .expect("Default decoder values are known to be valid."),
-            Container::Dca { first_frame: 0 },
-            Some(src.metadata),
-        )
+fn create_metadata(
+    metadata: &mut ProbedMetadata,
+    opus: &OpusEncoder,
+    channels: u8,
+    encoding: Option<String>,
+) -> Result<DcaMetadata, CocdecCacheError> {
+    let dca = DcaInfo {
+        version: 1,
+        tool: Tool {
+            name: env!("CARGO_PKG_NAME").into(),
+            version: env!("CARGO_PKG_VERSION").into(),
+            url: Some(env!("CARGO_PKG_HOMEPAGE").into()),
+            author: Some(env!("CARGO_PKG_AUTHORS").into()),
+        },
+    };
+
+    let abr = match opus.bitrate()? {
+        Bitrate::BitsPerSecond(i) => Some(i as u64),
+        Bitrate::Auto => None,
+        Bitrate::Max => Some(510_000),
+    };
+
+    let vbr = opus.vbr()?;
+
+    let mode = match opus.application()? {
+        Application::Voip => "voip",
+        Application::Audio => "music",
+        Application::LowDelay => "lowdelay",
     }
+    .to_string();
+
+    let sample_rate = opus.sample_rate()? as u32;
+
+    let opus = Opus {
+        mode,
+        sample_rate,
+        frame_size: MONO_FRAME_BYTE_SIZE as u64,
+        abr,
+        vbr,
+        channels: channels.min(2),
+    };
+
+    let mut origin = Origin {
+        source: Some("file".into()),
+        abr: None,
+        channels: Some(channels),
+        encoding,
+        url: None,
+    };
+
+    let info = if let Some(meta) = metadata.get() {
+        if let Some(meta) = meta.current() {
+            let mut info = Info {
+                title: None,
+                artist: None,
+                album: None,
+                genre: None,
+                cover: None,
+                comments: None,
+            };
+
+            for tag in meta.tags() {
+                match tag.std_key {
+                    Some(StandardTagKey::Album) =>
+                        if let Value::String(s) = &tag.value {
+                            info.album = Some(s.clone());
+                        },
+                    Some(StandardTagKey::Artist) =>
+                        if let Value::String(s) = &tag.value {
+                            info.artist = Some(s.clone());
+                        },
+                    Some(StandardTagKey::Genre) =>
+                        if let Value::String(s) = &tag.value {
+                            info.genre = Some(s.clone());
+                        },
+                    Some(StandardTagKey::TrackTitle) =>
+                        if let Value::String(s) = &tag.value {
+                            info.title = Some(s.clone());
+                        },
+                    Some(StandardTagKey::Url | StandardTagKey::UrlSource) => {
+                        if let Value::String(s) = &tag.value {
+                            origin.url = Some(s.clone());
+                        }
+                    },
+                    _ => {},
+                }
+            }
+
+            for _visual in meta.visuals() {
+                // FIXME: will require MIME type inspection and Base64 conversion.
+            }
+
+            Some(info)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    Ok(DcaMetadata {
+        dca,
+        opus,
+        info,
+        origin: Some(origin),
+        extra: None,
+    })
 }
 
 /// Transform applied inside [`Compressed`], converting a floating-point PCM
@@ -250,6 +348,7 @@ impl From<Compressed> for Input {
 /// [`Compressed`]: Compressed
 #[derive(Debug)]
 pub struct OpusCompressor {
+    prepend: Option<Cursor<Vec<u8>>>,
     encoder: OpusEncoder,
     last_frame: Vec<u8>,
     stereo_input: bool,
@@ -258,8 +357,9 @@ pub struct OpusCompressor {
 }
 
 impl OpusCompressor {
-    fn new(encoder: OpusEncoder, stereo_input: bool) -> Self {
+    fn new(encoder: OpusEncoder, stereo_input: bool, prepend: Vec<u8>) -> Self {
         Self {
+            prepend: Some(Cursor::new(prepend)),
             encoder,
             last_frame: Vec::with_capacity(4000),
             stereo_input,
@@ -274,16 +374,25 @@ where
     T: Read,
 {
     fn transform_read(&mut self, src: &mut T, buf: &mut [u8]) -> IoResult<TransformPosition> {
+        if let Some(prepend) = self.prepend.as_mut() {
+            match prepend.read(buf)? {
+                0 => {},
+                n => return Ok(TransformPosition::Read(n)),
+            }
+        }
+
+        self.prepend = None;
+
         let output_start = mem::size_of::<u16>();
         let mut eof = false;
 
         let mut raw_len = 0;
         let mut out = None;
         let mut sample_buf = [0f32; STEREO_FRAME_SIZE];
-        let samples_in_frame = if self.stereo_input {
-            STEREO_FRAME_SIZE
+        let (samples_in_frame, interleaved_count) = if self.stereo_input {
+            (STEREO_FRAME_SIZE, 2)
         } else {
-            MONO_FRAME_SIZE
+            (MONO_FRAME_SIZE, 1)
         };
 
         // Purge old frame and read new, if needed.
@@ -291,11 +400,11 @@ where
             self.last_frame.resize(self.last_frame.capacity(), 0);
 
             // We can't use `read_f32_into` because we can't guarantee the buffer will be filled.
-            for el in sample_buf[..samples_in_frame].iter_mut() {
-                match src.read_f32::<LittleEndian>() {
-                    Ok(sample) => {
-                        *el = sample;
-                        raw_len += 1;
+            // However, we can guarantee that reads will be channel aligned at least!
+            for el in sample_buf[..samples_in_frame].chunks_mut(interleaved_count) {
+                match src.read_f32_into::<LittleEndian>(el) {
+                    Ok(_) => {
+                        raw_len += interleaved_count;
                     },
                     Err(e) if e.kind() == IoErrorKind::UnexpectedEof => {
                         eof = true;
@@ -392,5 +501,38 @@ impl Stateful for OpusCompressor {
 
     fn state(&self) -> Self::State {
         self.audio_bytes.load(Ordering::Acquire)
+    }
+}
+
+impl Read for Compressed {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.raw.read(buf)
+    }
+}
+
+impl Seek for Compressed {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+        self.raw.seek(pos)
+    }
+}
+
+impl MediaSource for Compressed {
+    fn is_seekable(&self) -> bool {
+        true
+    }
+
+    fn byte_len(&self) -> Option<u64> {
+        if self.raw.is_finished() {
+            Some(self.raw.len() as u64)
+        } else {
+            None
+        }
+    }
+}
+
+impl From<Compressed> for SymphInput {
+    fn from(val: Compressed) -> SymphInput {
+        let input = Box::new(val);
+        SymphInput::Live(LiveInput::Raw(AudioStream {input, hint: None}), None)
     }
 }

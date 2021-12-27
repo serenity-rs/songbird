@@ -1,53 +1,32 @@
-use super::{apply_length_hint, default_config, raw_cost_per_sec};
-use crate::input::{
-    error::{Error, Result},
-    CodecType,
-    Container,
-    Input,
-    Metadata,
-    Reader,
+use super::{apply_length_hint, default_config, raw_cost_per_sec, Error};
+use crate::input::{CodecType, Container, Input, LiveInput, Metadata, Reader, SymphInput, AudioStream};
+use std::{
+    convert::{TryFrom, TryInto},
+    io::{Read, Seek},
 };
-use std::convert::{TryFrom, TryInto};
 use streamcatcher::{Catcher, Config};
+use symphonia_core::io::MediaSource;
 
-/// A wrapper around an existing [`Input`] which caches
-/// the decoded and converted audio data locally in memory.
+/// A wrapper around an existing [`Input`] which caches its data
+/// in memory.
 ///
-/// The main purpose of this wrapper is to enable seeking on
-/// incompatible sources (i.e., ffmpeg output) and to ease resource
-/// consumption for commonly reused/shared tracks. [`Restartable`]
-/// and [`Compressed`] offer the same functionality with different
-/// tradeoffs.
+/// The main purpose of this wrapper is to enable fast seeking on
+/// incompatible sources (i.e., HTTP streams) and to ease resource
+/// consumption for commonly reused/shared tracks.
 ///
-/// This is intended for use with small, repeatedly used audio
-/// tracks shared between sources, and stores the sound data
-/// retrieved in **uncompressed floating point** form to minimise the
-/// cost of audio processing. This is a significant *3 Mbps (375 kiB/s)*,
-/// or 131 MiB of RAM for a 6 minute song.
+/// This consumes exactly as many bytes of memory as the input stream contains.
 ///
 /// [`Input`]: Input
-/// [`Compressed`]: super::Compressed
-/// [`Restartable`]: crate::input::restartable::Restartable
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Memory {
     /// Inner shared bytestore.
-    pub raw: Catcher<Box<Reader>>,
-    /// Metadata moved out of the captured source.
-    pub metadata: Metadata,
-    /// Codec used to read the inner bytestore.
-    pub kind: CodecType,
-    /// Stereo-ness of the captured source.
-    pub stereo: bool,
-    /// Framing mechanism for the inner bytestore.
-    pub container: Container,
+    pub raw: Catcher<Box<dyn MediaSource>>,
 }
 
 impl Memory {
     /// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.
-    ///
-    /// [`Input`]: Input
-    pub fn new(source: Input) -> Result<Self> {
-        Self::with_config(source, None)
+    pub async fn new(source: SymphInput) -> Result<Self, Error> {
+        Self::with_config(source, None).await
     }
 
     /// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.
@@ -58,34 +37,37 @@ impl Memory {
     ///
     /// [`Input`]: Input
     /// [`Metadata::duration`]: crate::input::Metadata::duration
-    pub fn with_config(mut source: Input, config: Option<Config>) -> Result<Self> {
-        let stereo = source.stereo;
-        let kind = (&source.kind).into();
-        let container = source.container;
-        let metadata = source.metadata.take();
+    pub async fn with_config(source: SymphInput, config: Option<Config>) -> Result<Self, Error> {
+        let input = match source {
+            SymphInput::Lazy(mut r) => {
+                let created = if r.should_create_async() {
+                    r.create_async().await
+                } else {
+                    tokio::task::spawn_blocking(move || r.create()).await?
+                };
 
-        let cost_per_sec = raw_cost_per_sec(stereo);
+                created.map(|v| v.input).map_err(Error::from)
+            },
+            SymphInput::Live(LiveInput::Raw(a), _rec) => Ok(a.input),
+            SymphInput::Live(LiveInput::Wrapped(a), _rec) =>
+                Ok(Box::new(a.input) as Box<dyn MediaSource>),
+            SymphInput::Live(LiveInput::Parsed(_), _) => Err(Error::StreamNotAtStart),
+        }?;
 
-        let mut config = config.unwrap_or_else(|| default_config(cost_per_sec));
+        let cost_per_sec = raw_cost_per_sec(true);
 
-        // apply length hint.
-        if config.length_hint.is_none() {
-            if let Some(dur) = metadata.duration {
-                apply_length_hint(&mut config, dur, cost_per_sec);
-            }
-        }
+        let config = config.unwrap_or_else(|| default_config(cost_per_sec));
 
-        let raw = config
-            .build(Box::new(source.reader))
-            .map_err(Error::Streamcatcher)?;
+        // TODO: apply length hint.
+        // if config.length_hint.is_none() {
+        //     if let Some(dur) = metadata.duration {
+        //         apply_length_hint(&mut config, dur, cost_per_sec);
+        //     }
+        // }
 
-        Ok(Self {
-            raw,
-            metadata,
-            kind,
-            stereo,
-            container,
-        })
+        let raw = config.build(input)?;
+
+        Ok(Self { raw })
     }
 
     /// Acquire a new handle to this object, creating a new
@@ -93,24 +75,39 @@ impl Memory {
     pub fn new_handle(&self) -> Self {
         Self {
             raw: self.raw.new_handle(),
-            metadata: self.metadata.clone(),
-            kind: self.kind,
-            stereo: self.stereo,
-            container: self.container,
         }
     }
 }
 
-impl TryFrom<Memory> for Input {
-    type Error = Error;
+impl Read for Memory {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.raw.read(buf)
+    }
+}
 
-    fn try_from(src: Memory) -> Result<Self> {
-        Ok(Input::new(
-            src.stereo,
-            Reader::Memory(src.raw),
-            src.kind.try_into()?,
-            src.container,
-            Some(src.metadata),
-        ))
+impl Seek for Memory {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+        self.raw.seek(pos)
+    }
+}
+
+impl MediaSource for Memory {
+    fn is_seekable(&self) -> bool {
+        true
+    }
+
+    fn byte_len(&self) -> Option<u64> {
+        if self.raw.is_finished() {
+            Some(self.raw.len() as u64)
+        } else {
+            None
+        }
+    }
+}
+
+impl From<Memory> for SymphInput {
+    fn from(val: Memory) -> SymphInput {
+        let input = Box::new(val);
+        SymphInput::Live(LiveInput::Raw(AudioStream {input, hint: None}), None)
     }
 }

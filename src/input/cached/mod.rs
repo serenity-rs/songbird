@@ -2,12 +2,16 @@
 //! direct Opus frame passthrough.
 
 mod compressed;
+mod decompressed;
+mod error;
 mod hint;
 mod memory;
 #[cfg(test)]
 mod tests;
+mod util;
 
-pub use self::{compressed::*, hint::*, memory::*};
+pub(crate) use self::util::*;
+pub use self::{compressed::*, decompressed::*, error::*, hint::*, memory::*};
 
 use crate::constants::*;
 use crate::input::utils;

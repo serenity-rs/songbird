@@ -299,6 +299,7 @@ pub struct Info {
     pub album: Option<String>,
     pub genre: Option<String>,
     pub cover: Option<String>,
+    pub comments: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
