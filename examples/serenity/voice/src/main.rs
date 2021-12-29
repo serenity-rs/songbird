@@ -275,11 +275,11 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let songs = [
         // "02-gojira-amazonia.mp3",
         // "02-gojira-amazonia.ogg",
-        "04 - Fix The Error.m4a",
+        // "04 - Fix The Error.m4a",
         // "02-gojira-amazonia.opus",
         // "02-gojira-amazonia.flac",
         // // "ckick-dca0.dca",
-        // "ckick-dca1.dca",
+        "ckick-dca1.dca",
     ];
 
     let guild = msg.guild(&ctx.cache).unwrap();
@@ -294,7 +294,6 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
         let path = std::path::Path::new(songs[0]);
         let file = songbird::input::File::new(path);
 
-        let test = songbird::input::cached::Compressed::new(file.into(), songbird::driver::Bitrate::BitsPerSecond(128_000)).await.unwrap();
 
         // use std::io::Read;
         // let mut testy = test.new_handle().raw;
@@ -303,9 +302,14 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
         // testy.read(&mut space[1024..1024+2048]);
         // testy.read(&mut space[1024+2048..]);
         // println!("{:x?}", &space[3934-4..][..12]);
+
+
         // let test = songbird::input::cached::Memory::new(file.into()).await.unwrap();
 
-        let handle = handler.play_source(test.into());
+        // let test = songbird::input::cached::Compressed::new(file.into(), songbird::driver::Bitrate::BitsPerSecond(128_000)).await.unwrap();
+        // let handle = handler.play_source(test.into());
+
+        let handle = handler.play_source(file.into());
 
         // tokio::spawn(async move {
         //     println!("Spawned!");

@@ -22,6 +22,7 @@ use rand::random;
 use rubato::{FftFixedOut, Resampler};
 use spin_sleep::SpinSleeper;
 use std::{
+    io::Write,
     num::IntErrorKind,
     result::Result as StdResult,
     sync::Arc,
@@ -29,6 +30,7 @@ use std::{
 };
 use symphonia_core::{
     audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal},
+    codecs::CODEC_TYPE_OPUS,
     conv::IntoSample,
     errors::{Error as SymphoniaError, SeekErrorKind},
     formats::{SeekMode, SeekTo},
@@ -375,6 +377,7 @@ impl Mixer {
             self.input_states.push(LocalInput {
                 inner_pos: 0,
                 resampler: None,
+                passthrough: Passthrough::Inactive,
             });
 
             self.interconnect
@@ -694,6 +697,7 @@ impl MixType {
 pub struct LocalInput {
     inner_pos: usize,
     resampler: Option<FftFixedOut<f32>>,
+    passthrough: Passthrough,
 }
 
 impl LocalInput {
@@ -716,33 +720,43 @@ fn mix_symph_indiv(
     input: &mut Parsed,
     local_state: &mut LocalInput,
     volume: f32,
+    mut opus_slot: Option<&mut [u8]>,
 ) -> (MixType, MixStatus) {
     let mut samples_written = 0;
     let mut buf_in_progress = false;
     let mut track_status = MixStatus::Live;
-
-    // println!("mixing!");
+    let codec_type = input.decoder.codec_params().codec;
 
     resample_scratch.clear();
 
     while samples_written != MONO_FRAME_SIZE {
-        // println!("SAMPLES: {}/{}.", samples_written, MONO_FRAME_SIZE);
-        // TODO: move out elsewhere? Try to init local state with default track?
         let source_packet = if local_state.inner_pos != 0 {
-            // This is a deliberate unwrap:
-            // println!("Getting old packet.");
             Some(input.decoder.last_decoded())
         } else {
             if let Ok(pkt) = input.format.next_packet() {
-                // println!(
-                //     "Getting new packet: want {}, saw {}.",
-                //     input.track_id,
-                //     pkt.track_id()
-                // );
-
                 if pkt.track_id() != input.track_id {
-                    // println!("Skipping packet: not me.");
                     continue;
+                }
+
+                let buf = pkt.buf();
+
+                // Opus packet passthrough special case.
+                if codec_type == CODEC_TYPE_OPUS && local_state.passthrough != Passthrough::Block {
+                    if let Some(slot) = opus_slot.as_mut() {
+                        let sample_ct = audiopus::packet::nb_samples(buf, SAMPLE_RATE);
+                        match sample_ct {
+                            Ok(MONO_FRAME_SIZE) if buf.len() <= slot.len() => {
+                                slot.write_all(buf).expect(
+                                    "Bounds check performed, and failure will block passthrough.",
+                                );
+
+                                return (MixType::Passthrough(buf.len()), MixStatus::Live);
+                            },
+                            _ => {
+                                local_state.passthrough = Passthrough::Block;
+                            },
+                        }
+                    }
                 }
 
                 input
@@ -754,8 +768,6 @@ fn mix_symph_indiv(
                     })
                     .ok()
             } else {
-                // file end.
-                // println!("No packets left!");
                 track_status = MixStatus::Ended;
                 None
             }
@@ -763,9 +775,7 @@ fn mix_symph_indiv(
 
         // Cleanup: failed to get the next packet, but still have to convert and mix scratch.
         if source_packet.is_none() {
-            // println!("Cleaning up this file...");
             if buf_in_progress {
-                // println!("Flushing final buffer.");
                 // fill up buf with zeroes, resample, mix
                 let resampler = local_state.resampler.as_mut().unwrap();
                 let in_len = resample_scratch.frames();
@@ -803,10 +813,6 @@ fn mix_symph_indiv(
         let in_rate = source_packet.spec().rate;
 
         if in_rate != SAMPLE_RATE_RAW as u32 {
-            // println!(
-            //     "Sample rate mismatch: in {}, need {}",
-            //     in_rate, SAMPLE_RATE_RAW
-            // );
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels.count();
             let resampler = local_state.resampler.get_or_insert_with(|| {
@@ -836,7 +842,6 @@ fn mix_symph_indiv(
                 // I would really like if this could be a slice of slices,
                 // but the technology just isn't there yet. And I don't feel like
                 // writing unsafe transformations to do so.
-                // println!("Frame processing: no ***->f32 conv needed.");
 
                 // NOTE: if let needed as if-let && {bool} is nightly only.
                 if let AudioBufferRef::F32(s_pkt) = source_packet {
@@ -857,17 +862,6 @@ fn mix_symph_indiv(
             } else {
                 // We either lack enough samples, or have the wrong data format, forcing
                 // a conversion/copy into the buffer.
-                // THIS IS (read beyond end or building buf)
-                //  copy in to scratch
-                //  update inner_pos
-                //  if scratch full:
-                //   tget = scratch
-                //  else:
-                //   inner_pos = 0
-                //   continue (gets next packet).
-
-                // println!("Frame processing: cross-frame boundary and/or wrong format.");
-
                 let old_scratch_len = resample_scratch.frames();
                 let missing_frames = needed_in_frames - old_scratch_len;
                 let frames_to_take = available_frames.min(missing_frames);
@@ -917,8 +911,6 @@ fn mix_symph_indiv(
             local_state.inner_pos %= source_packet.frames();
         }
     }
-
-    // println!("mixed! {}", samples_written);
 
     (MixType::MixedPcm(samples_written * 2), track_status)
 }
@@ -1123,7 +1115,14 @@ fn mix_tracks<'a>(
         //     (stream.mix(mix_buffer, vol), None)
         // };
 
-        let (mix_type, status) = mix_symph_indiv(symph_mix, symph_scratch, input, local_state, vol);
+        let opus_slot = if do_passthrough {
+            Some(&mut opus_frame[..])
+        } else {
+            None
+        };
+
+        let (mix_type, status) =
+            mix_symph_indiv(symph_mix, symph_scratch, input, local_state, vol, opus_slot);
 
         // FIXME: allow Ended to trigger a seek/loop/revisit in the same mix cycle?
         // This is a straight port of old logic, maybe we could combine with MixStatus::Ended.
@@ -1156,7 +1155,13 @@ fn mix_tracks<'a>(
             MixType::MixedPcm(pcm_len) => {
                 len = len.max(pcm_len);
             },
-            a => return a,
+            a => {
+                if local_state.passthrough == Passthrough::Inactive {
+                    input.decoder.reset();
+                }
+                local_state.passthrough = Passthrough::Active;
+                return a;
+            },
         }
     }
 
@@ -1441,6 +1446,7 @@ impl BlockyTaskPool {
                     config,
                 );
             } else {
+                input.decoder.reset();
                 let _ = callback.send(MixerInputResultMessage::InputSeek(input, rec, res));
             }
         });
@@ -1453,4 +1459,19 @@ fn copy_seek_to(pos: &SeekTo) -> SeekTo {
         SeekTo::Time { time, track_id } => SeekTo::Time { time, track_id },
         SeekTo::TimeStamp { ts, track_id } => SeekTo::TimeStamp { ts, track_id },
     }
+}
+
+/// Simple state to manage decoder resets etc.
+///
+/// Inactive->Active transitions should trigger a reset.
+///
+/// Block should be used if a source contains known-bad packets:
+/// it's unlikely that packet sizes will vary, but if they do then
+/// we can't passthrough (and every attempt will trigger a codec reset,
+/// which probably won't sound too smooth).
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum Passthrough {
+    Active,
+    Inactive,
+    Block,
 }

@@ -5,7 +5,8 @@ use rubato::{FftFixedOut, Resampler};
 use std::{
     io::{Read, Write},
     mem,
-    ops::Range, num::IntErrorKind,
+    num::IntErrorKind,
+    ops::Range,
 };
 use symphonia_core::{
     audio::{AudioBuffer, AudioBufferRef, Signal},
@@ -414,7 +415,8 @@ fn write_resample_buffer(
         {
             // write this into the correct slot of buf.
             let addr = ((j * num_chans) + i) * SAMPLE_LEN;
-            (&mut buf[addr..][..SAMPLE_LEN]).write_f32::<LittleEndian>(*sample)
+            (&mut buf[addr..][..SAMPLE_LEN])
+                .write_f32::<LittleEndian>(*sample)
                 .expect("Address well-formed according to bounds checks.");
         }
 

@@ -1,6 +1,6 @@
 use crate::constants::*;
 use audiopus::{
-    coder::Decoder as OpusDecoder,
+    coder::{Decoder as OpusDecoder, GenericCtl},
     Channels,
     Error as OpusError,
     SampleRate,
@@ -149,11 +149,11 @@ impl Decoder for SymphOpusDecoder {
     }
 
     fn reset(&mut self) {
-        todo!()
+        let _ = self.inner.reset_state();
     }
 
     fn finalize(&mut self) -> FinalizeResult {
-        unimplemented!()
+        Default::default()
     }
 
     fn last_decoded(&self) -> AudioBufferRef {

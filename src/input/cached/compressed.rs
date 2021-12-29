@@ -10,13 +10,14 @@ use crate::{
     input::{
         dca::*,
         registry::*,
+        AudioStream,
         CodecType,
         Container,
         Input,
         LiveInput,
         Metadata,
         Reader,
-        SymphInput, AudioStream,
+        SymphInput,
     },
 };
 use audiopus::{
@@ -533,6 +534,6 @@ impl MediaSource for Compressed {
 impl From<Compressed> for SymphInput {
     fn from(val: Compressed) -> SymphInput {
         let input = Box::new(val);
-        SymphInput::Live(LiveInput::Raw(AudioStream {input, hint: None}), None)
+        SymphInput::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
     }
 }

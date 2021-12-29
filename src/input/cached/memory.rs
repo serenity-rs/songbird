@@ -1,5 +1,14 @@
 use super::{apply_length_hint, default_config, raw_cost_per_sec, Error};
-use crate::input::{CodecType, Container, Input, LiveInput, Metadata, Reader, SymphInput, AudioStream};
+use crate::input::{
+    AudioStream,
+    CodecType,
+    Container,
+    Input,
+    LiveInput,
+    Metadata,
+    Reader,
+    SymphInput,
+};
 use std::{
     convert::{TryFrom, TryInto},
     io::{Read, Seek},
@@ -108,6 +117,6 @@ impl MediaSource for Memory {
 impl From<Memory> for SymphInput {
     fn from(val: Memory) -> SymphInput {
         let input = Box::new(val);
-        SymphInput::Live(LiveInput::Raw(AudioStream {input, hint: None}), None)
+        SymphInput::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
     }
 }
