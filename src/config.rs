@@ -1,6 +1,6 @@
 #[cfg(feature = "driver")]
 use super::{
-    driver::{retry::Retry, CryptoMode, DecodeMode},
+    driver::{retry::Retry, CryptoMode, DecodeMode, MixMode},
     input::registry::*,
 };
 
@@ -55,6 +55,14 @@ pub struct Config {
     /// [`Call::join`]: crate::Call::join
     /// [`join_gateway`]: crate::Call::join_gateway
     pub gateway_timeout: Option<Duration>,
+    #[cfg(feature = "driver")]
+    /// Configures the maximum amount of time to wait for an attempted voice
+    /// connection to Discord.
+    ///
+    /// Defaults to [`Stereo`].
+    ///
+    /// [`Stereo`]: MixMode::Stereo
+    pub mix_mode: MixMode,
     #[cfg(feature = "driver")]
     /// Number of concurrently active tracks to allocate memory for.
     ///
@@ -112,6 +120,8 @@ impl Default for Config {
             #[cfg(feature = "gateway")]
             gateway_timeout: Some(Duration::from_secs(10)),
             #[cfg(feature = "driver")]
+            mix_mode: MixMode::Mono, //Stereo,
+            #[cfg(feature = "driver")]
             preallocated_tracks: 1,
             #[cfg(feature = "driver")]
             driver_retry: Default::default(),
@@ -136,6 +146,12 @@ impl Config {
     /// Sets this `Config`'s received packet decryption/decoding behaviour.
     pub fn decode_mode(mut self, decode_mode: DecodeMode) -> Self {
         self.decode_mode = decode_mode;
+        self
+    }
+
+    /// Sets this `Config`'s audio mixing channel count.
+    pub fn mix_mode(mut self, mix_mode: MixMode) -> Self {
+        self.mix_mode = mix_mode;
         self
     }
 

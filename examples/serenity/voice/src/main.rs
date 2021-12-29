@@ -278,8 +278,9 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
         // "04 - Fix The Error.m4a",
         // "02-gojira-amazonia.opus",
         // "02-gojira-amazonia.flac",
+        "monot.mp3",
         // // "ckick-dca0.dca",
-        "ckick-dca1.dca",
+        // "ckick-dca1.dca",
     ];
 
     let guild = msg.guild(&ctx.cache).unwrap();

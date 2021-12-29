@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::{alloc::Layout, ffi::OsStr, mem};
 use symphonia_core::{
     codecs::CodecParameters,
-    io::{MediaSourceStream, SeekBuffered},
+    io::{MediaSource, MediaSourceStream, SeekBuffered},
 };
 use tokio::{fs::File as TokioFile, io::AsyncReadExt};
 
@@ -209,7 +209,8 @@ impl FormatReader for SymphDcaReader {
         self.metas.metadata()
     }
 
-    fn seek(&mut self, mode: SeekMode, to: SeekTo) -> SymphResult<SeekedTo> {
+    fn seek(&mut self, _mode: SeekMode, to: SeekTo) -> SymphResult<SeekedTo> {
+        // let can_backseek = self.source.is_seekable();
         todo!()
     }
 
@@ -238,6 +239,7 @@ impl FormatReader for SymphDcaReader {
         }
 
         // FIXME: may not be 20ms frames.
+        // use audiopus frame inspection.
         // Will be on my files, at least.
         let ts = (MONO_FRAME_SIZE as u64) * self.frame_pos;
         let out = Packet::new_from_boxed_slice(

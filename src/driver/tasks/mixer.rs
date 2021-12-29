@@ -1,6 +1,7 @@
 use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
+    driver::MixMode,
     input::{AudioStream, AudioStreamError, Compose, LiveInput, Parsed, SymphInput},
     tracks::{PlayMode, Track},
     Config,
@@ -23,13 +24,12 @@ use rubato::{FftFixedOut, Resampler};
 use spin_sleep::SpinSleeper;
 use std::{
     io::Write,
-    num::IntErrorKind,
     result::Result as StdResult,
     sync::Arc,
     time::{Duration, Instant},
 };
 use symphonia_core::{
-    audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal},
+    audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal, SignalSpec},
     codecs::CODEC_TYPE_OPUS,
     conv::IntoSample,
     errors::{Error as SymphoniaError, SeekErrorKind},
@@ -65,10 +65,14 @@ pub struct Mixer {
     pub tracks: Vec<Track>,
     full_inputs: Vec<InputState>,
     input_states: Vec<LocalInput>,
+
+    sample_buffer: SampleBuffer<f32>,
+    symph_mix: AudioBuffer<f32>,
+    resample_scratch: AudioBuffer<f32>,
 }
 
-fn new_encoder(bitrate: Bitrate) -> Result<OpusEncoder> {
-    let mut encoder = OpusEncoder::new(SAMPLE_RATE, Channels::Stereo, CodingMode::Audio)?;
+fn new_encoder(bitrate: Bitrate, mix_mode: MixMode) -> Result<OpusEncoder> {
+    let mut encoder = OpusEncoder::new(SAMPLE_RATE, mix_mode.to_opus(), CodingMode::Audio)?;
     encoder.set_bitrate(bitrate)?;
 
     Ok(encoder)
@@ -82,9 +86,9 @@ impl Mixer {
         config: Config,
     ) -> Self {
         let bitrate = DEFAULT_BITRATE;
-        let encoder = new_encoder(bitrate)
+        let encoder = new_encoder(bitrate, config.mix_mode)
             .expect("Failed to create encoder in mixing thread with known-good values.");
-        let soft_clip = SoftClip::new(Channels::Stereo);
+        let soft_clip = SoftClip::new(config.mix_mode.to_opus());
 
         let mut packet = [0u8; VOICE_PACKET_MAX];
 
@@ -107,7 +111,28 @@ impl Mixer {
 
         let thread_pool = BlockyTaskPool::new(async_handle);
 
+        let symph_layout = config.mix_mode.symph_layout();
+
         let config = config.into();
+
+        let sample_buffer = SampleBuffer::<f32>::new(
+            MONO_FRAME_SIZE as u64,
+            symphonia_core::audio::SignalSpec::new_with_layout(
+                SAMPLE_RATE_RAW as u32,
+                symph_layout,
+            ),
+        );
+        let symph_mix = AudioBuffer::<f32>::new(
+            MONO_FRAME_SIZE as u64,
+            symphonia_core::audio::SignalSpec::new_with_layout(
+                SAMPLE_RATE_RAW as u32,
+                symph_layout,
+            ),
+        );
+        let resample_scratch = AudioBuffer::<f32>::new(
+            MONO_FRAME_SIZE as u64,
+            SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
+        );
 
         Self {
             bitrate,
@@ -132,6 +157,10 @@ impl Mixer {
             tracks,
             full_inputs,
             input_states,
+
+            sample_buffer,
+            symph_mix,
+            resample_scratch,
         }
     }
 
@@ -294,6 +323,27 @@ impl Mixer {
                 self.rebuild_tracks()
             },
             SetConfig(new_config) => {
+                if new_config.mix_mode != self.config.mix_mode {
+                    self.soft_clip = SoftClip::new(new_config.mix_mode.to_opus());
+                    if let Ok(enc) = new_encoder(self.bitrate, new_config.mix_mode) {
+                        self.encoder = enc;
+                    } else {
+                        self.bitrate = DEFAULT_BITRATE;
+                        self.encoder = new_encoder(self.bitrate, new_config.mix_mode)
+                            .expect("Failed fallback rebuild of OpusEncoder with safe inputs.");
+                    }
+
+                    let sl = new_config.mix_mode.symph_layout();
+                    self.sample_buffer = SampleBuffer::<f32>::new(
+                        MONO_FRAME_SIZE as u64,
+                        SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, sl),
+                    );
+                    self.symph_mix = AudioBuffer::<f32>::new(
+                        MONO_FRAME_SIZE as u64,
+                        SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, sl),
+                    );
+                }
+
                 self.config = Arc::new(new_config.clone());
 
                 if self.tracks.capacity() < self.config.preallocated_tracks {
@@ -310,7 +360,7 @@ impl Mixer {
 
                 Ok(())
             },
-            RebuildEncoder => match new_encoder(self.bitrate) {
+            RebuildEncoder => match new_encoder(self.bitrate, self.config.mix_mode) {
                 Ok(encoder) => {
                     self.encoder = encoder;
                     Ok(())
@@ -318,7 +368,7 @@ impl Mixer {
                 Err(e) => {
                     error!("Failed to rebuild encoder. Resetting bitrate. {:?}", e);
                     self.bitrate = DEFAULT_BITRATE;
-                    self.encoder = new_encoder(self.bitrate)
+                    self.encoder = new_encoder(self.bitrate, self.config.mix_mode)
                         .expect("Failed fallback rebuild of OpusEncoder with safe inputs.");
                     Ok(())
                 },
@@ -357,11 +407,10 @@ impl Mixer {
     fn add_track(&mut self, mut track: Track) -> Result<()> {
         // TODO: make this an error?
         if let Some(source) = track.source.take() {
-            // TODO: not kill the recreation function?
             let full_input = match source {
                 a @ SymphInput::Lazy(_) => InputState::NotReady(a),
                 SymphInput::Live(live, rec) => match live {
-                    crate::input::LiveInput::Parsed(p) => InputState::Ready(p, rec),
+                    LiveInput::Parsed(p) => InputState::Ready(p, rec),
                     other => InputState::NotReady(SymphInput::Live(other, rec)),
                 },
             };
@@ -419,8 +468,8 @@ impl Mixer {
             if let Some(time) = maybe_seek {
                 let full_input = &mut self.full_inputs[i];
                 if let InputState::Ready(p, rec) = full_input {
-                    let time = symphonia_core::units::Time::from(time.as_secs_f64());
-                    let ts = symphonia_core::formats::SeekTo::Time {
+                    let time = Time::from(time.as_secs_f64());
+                    let ts = SeekTo::Time {
                         time,
                         track_id: Some(p.track_id),
                     };
@@ -501,31 +550,11 @@ impl Mixer {
     }
 
     pub fn cycle(&mut self) -> Result<()> {
-        // TODO: allow mixer config to be either stereo or mono.
         let mut mix_buffer = [0f32; STEREO_FRAME_SIZE];
-        let mut symph_buffer = SampleBuffer::<f32>::new(
-            MONO_FRAME_SIZE as u64,
-            symphonia_core::audio::SignalSpec::new_with_layout(
-                SAMPLE_RATE_RAW as u32,
-                Layout::Stereo,
-            ),
-        );
-        let mut symph_mix = symphonia_core::audio::AudioBuffer::<f32>::new(
-            MONO_FRAME_SIZE as u64,
-            symphonia_core::audio::SignalSpec::new_with_layout(
-                SAMPLE_RATE_RAW as u32,
-                Layout::Stereo,
-            ),
-        );
-        let mut symph_scratch = symphonia_core::audio::AudioBuffer::<f32>::new(
-            MONO_FRAME_SIZE as u64,
-            symphonia_core::audio::SignalSpec::new_with_layout(
-                SAMPLE_RATE_RAW as u32,
-                Layout::Stereo,
-            ),
-        );
 
-        symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
+        self.symph_mix.clear();
+        self.symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
+        self.resample_scratch.clear();
 
         // Walk over all the audio files, combining into one audio frame according
         // to volume, play state, etc.
@@ -539,8 +568,8 @@ impl Mixer {
 
             let out = mix_tracks(
                 &mut payload[TAG_SIZE..],
-                &mut symph_mix,
-                &mut symph_scratch,
+                &mut self.symph_mix,
+                &mut self.resample_scratch,
                 &mut self.tracks,
                 &mut self.full_inputs,
                 &mut self.input_states,
@@ -550,12 +579,10 @@ impl Mixer {
                 self.prevent_events,
             );
 
-            symph_buffer.copy_interleaved_typed(&symph_mix);
+            self.sample_buffer.copy_interleaved_typed(&self.symph_mix);
 
             out
         };
-
-        self.soft_clip.apply(&mut mix_buffer[..])?;
 
         if self.muted {
             mix_len = MixType::MixedPcm(0);
@@ -593,6 +620,18 @@ impl Mixer {
             }
         } else {
             self.silence_frames = 5;
+
+            if let MixType::MixedPcm(n) = mix_len {
+                // to apply soft_clip, we need this to be in a normal f32 buffer.
+                // unfortunately, SampleBuffer does not expose a `.samples_mut()`.
+                // hence, an extra copy...
+                let samples_to_copy = self.config.mix_mode.channels() * n;
+
+                (&mut mix_buffer[..samples_to_copy])
+                    .copy_from_slice(&self.sample_buffer.samples()[..samples_to_copy]);
+
+                self.soft_clip.apply(&mut mix_buffer[..])?;
+            }
         }
 
         if let Some(ws) = &self.ws {
@@ -600,8 +639,13 @@ impl Mixer {
         }
 
         self.march_deadline();
-        // self.prep_and_send_packet(mix_buffer, mix_len)?;
-        self.prep_and_send_packet(symph_buffer.samples(), mix_len)?;
+        self.prep_and_send_packet(&mix_buffer, mix_len)?;
+
+        if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
+            for plane in self.symph_mix.planes_mut().planes() {
+                plane.fill(0.0);
+            }
+        }
 
         Ok(())
     }
@@ -611,7 +655,7 @@ impl Mixer {
     }
 
     #[inline]
-    fn prep_and_send_packet(&mut self, buffer: &[f32], mix_len: MixType) -> Result<()> {
+    fn prep_and_send_packet(&mut self, buffer: &[f32; 1920], mix_len: MixType) -> Result<()> {
         let conn = self
             .conn_active
             .as_mut()
@@ -631,7 +675,7 @@ impl Mixer {
                 MixType::MixedPcm(_samples) => {
                     let total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
                     self.encoder.encode_float(
-                        &buffer[..STEREO_FRAME_SIZE],
+                        &buffer[..self.config.mix_mode.sample_count_in_frame()],
                         &mut payload[TAG_SIZE..total_payload_space],
                     )?
                 },
@@ -678,7 +722,7 @@ pub struct PreparingInfo {
     callback: Receiver<MixerInputResultMessage>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum MixType {
     Passthrough(usize),
     MixedPcm(usize),
@@ -912,7 +956,7 @@ fn mix_symph_indiv(
         }
     }
 
-    (MixType::MixedPcm(samples_written * 2), track_status)
+    (MixType::MixedPcm(samples_written), track_status)
 }
 
 #[inline]
@@ -951,22 +995,52 @@ where
     S: Sample + IntoSample<f32>,
 {
     // mix in source_packet[inner_pos..] til end of EITHER buffer.
-    // target.planes_mut()
     let src_usable = source.frames() - source_pos;
     let tgt_usable = target.frames() - dest_pos;
 
     let mix_ct = src_usable.min(tgt_usable);
 
-    // FIXME: downmix if target is mono.
-    for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
-        .iter_mut()
-        .zip(source.planes().planes()[..].iter())
-    {
-        for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
+    let target_chans = target.spec().channels.count();
+    let target_mono = target_chans == 1;
+    let source_chans = source.spec().channels.count();
+    let source_mono = source_chans == 1;
+
+    let source_planes = source.planes();
+    let source_raw_planes = source_planes.planes();
+
+    if source_mono {
+        let source_plane = source_raw_planes[0];
+        for d_plane in (&mut target.planes_mut().planes()[..]).iter_mut() {
+            for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
+                .iter_mut()
+                .zip(source_plane[source_pos..source_pos + mix_ct].iter())
+            {
+                *d += volume * (*s).into_sample();
+            }
+        }
+    } else if target_mono {
+        let vol_adj = 1.0 / (source_chans as f32);
+        let mut t_planes = target.planes_mut();
+        let d_plane = &mut t_planes.planes()[0];
+        for s_plane in source_raw_planes[..].iter() {
+            for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
+                .iter_mut()
+                .zip(s_plane[source_pos..source_pos + mix_ct].iter())
+            {
+                *d += volume * vol_adj * (*s).into_sample();
+            }
+        }
+    } else {
+        for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
             .iter_mut()
-            .zip(s_plane[source_pos..source_pos + mix_ct].iter())
+            .zip(source_raw_planes[..].iter())
         {
-            *d += volume * (*s).into_sample();
+            for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
+                .iter_mut()
+                .zip(s_plane[source_pos..source_pos + mix_ct].iter())
+            {
+                *d += volume * (*s).into_sample();
+            }
         }
     }
 
@@ -981,15 +1055,39 @@ fn mix_resampled(
     volume: f32,
 ) -> usize {
     let mix_ct = source[0].len();
-    // println!("Mixing {} samples into pos starting {}.", mix_ct, dest_pos);
 
-    // FIXME: downmix if target is mono.
-    for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
-        .iter_mut()
-        .zip(source[..].iter())
-    {
-        for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
-            *d += volume * (*s);
+    let target_chans = target.spec().channels.count();
+    let target_mono = target_chans == 1;
+    let source_chans = source.len();
+    let source_mono = source_chans == 1;
+
+    if source_mono {
+        let source_plane = &source[0];
+        for d_plane in (&mut target.planes_mut().planes()[..]).iter_mut() {
+            for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
+                .iter_mut()
+                .zip(source_plane)
+            {
+                *d += volume * s;
+            }
+        }
+    } else if target_mono {
+        let vol_adj = 1.0 / (source_chans as f32);
+        let mut t_planes = target.planes_mut();
+        let d_plane = &mut t_planes.planes()[0];
+        for s_plane in source[..].iter() {
+            for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
+                *d += volume * vol_adj * s;
+            }
+        }
+    } else {
+        for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
+            .iter_mut()
+            .zip(source[..].iter())
+        {
+            for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
+                *d += volume * (*s);
+            }
         }
     }
 
@@ -1066,15 +1164,8 @@ fn mix_tracks<'a>(
     // Opus codec type.
     let do_passthrough = tracks.len() == 1 && {
         let track = &tracks[0];
-        (track.volume - 1.0).abs() < f32::EPSILON // && track.source.supports_passthrough()
+        (track.volume - 1.0).abs() < f32::EPSILON
     };
-
-    // println!(
-    //     "lens {} {} {}",
-    //     tracks.len(),
-    //     full_inputs.len(),
-    //     input_states.len()
-    // );
 
     for (((i, track), input), local_state) in tracks
         .iter_mut()
@@ -1108,12 +1199,6 @@ fn mix_tracks<'a>(
                 continue;
             },
         };
-
-        // let (temp_len, opus_len) = if do_passthrough {
-        //     (0, track.source.read_opus_frame(opus_frame).ok())
-        // } else {
-        //     (stream.mix(mix_buffer, vol), None)
-        // };
 
         let opus_slot = if do_passthrough {
             Some(&mut opus_frame[..])

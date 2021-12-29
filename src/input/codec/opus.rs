@@ -113,7 +113,6 @@ impl SymphOpusDecoder {
 
 impl Decoder for SymphOpusDecoder {
     fn try_new(params: &CodecParameters, _options: &DecoderOptions) -> SymphResult<Self> {
-        // TODO: investigate how Symphonia wants me to specify the output format?
         let inner = OpusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
 
         Ok(Self {
