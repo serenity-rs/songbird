@@ -55,7 +55,7 @@ use streamcatcher::{
 use symphonia_core::{
     codecs::{CodecParameters, CodecRegistry},
     io::MediaSource,
-    meta::{StandardTagKey, Value},
+    meta::{MetadataRevision, StandardTagKey, Value},
     probe::{Probe, ProbedMetadata},
 };
 use tokio::fs::{metadata, write};
@@ -195,7 +195,16 @@ impl Compressed {
             .get_codec(codec_type)
             .map(|v| v.short_name.to_string());
 
-        let metadata = create_metadata(&mut parsed.meta, &encoder, chan_count as u8, encoding)?;
+        let format_meta_hold = parsed.format.metadata();
+        let format_meta = format_meta_hold.current();
+
+        let metadata = create_metadata(
+            &mut parsed.meta,
+            format_meta,
+            &encoder,
+            chan_count as u8,
+            encoding,
+        )?;
         let mut metabytes = b"DCA1\0\0\0\0".to_vec();
         let orig_len = metabytes.len();
         serde_json::to_writer(&mut metabytes, &metadata)?;
@@ -206,13 +215,6 @@ impl Compressed {
         (&mut metabytes[4..][..mem::size_of::<i32>()])
             .write_i32::<LittleEndian>(meta_len)
             .expect("Magic byte writing location guaranteed to be well-founded.");
-
-        // apply length hint.
-        // if config.length_hint.is_none() {
-        //     if let Some(dur) = metadata.duration {
-        //         apply_length_hint(&mut config, dur, cost_per_sec);
-        //     }
-        // }
 
         let source = ToAudioBytes::new(parsed, Some(2));
 
@@ -233,7 +235,8 @@ impl Compressed {
 }
 
 fn create_metadata(
-    metadata: &mut ProbedMetadata,
+    probe_metadata: &mut ProbedMetadata,
+    track_metadata: Option<&MetadataRevision>,
     opus: &OpusEncoder,
     channels: u8,
     encoding: Option<String>,
@@ -282,63 +285,67 @@ fn create_metadata(
         url: None,
     };
 
-    let info = if let Some(meta) = metadata.get() {
-        if let Some(meta) = meta.current() {
-            let mut info = Info {
-                title: None,
-                artist: None,
-                album: None,
-                genre: None,
-                cover: None,
-                comments: None,
-            };
-
-            for tag in meta.tags() {
-                match tag.std_key {
-                    Some(StandardTagKey::Album) =>
-                        if let Value::String(s) = &tag.value {
-                            info.album = Some(s.clone());
-                        },
-                    Some(StandardTagKey::Artist) =>
-                        if let Value::String(s) = &tag.value {
-                            info.artist = Some(s.clone());
-                        },
-                    Some(StandardTagKey::Genre) =>
-                        if let Value::String(s) = &tag.value {
-                            info.genre = Some(s.clone());
-                        },
-                    Some(StandardTagKey::TrackTitle) =>
-                        if let Value::String(s) = &tag.value {
-                            info.title = Some(s.clone());
-                        },
-                    Some(StandardTagKey::Url | StandardTagKey::UrlSource) => {
-                        if let Value::String(s) = &tag.value {
-                            origin.url = Some(s.clone());
-                        }
-                    },
-                    _ => {},
-                }
-            }
-
-            for _visual in meta.visuals() {
-                // FIXME: will require MIME type inspection and Base64 conversion.
-            }
-
-            Some(info)
-        } else {
-            None
-        }
-    } else {
-        None
+    let mut info = Info {
+        title: None,
+        artist: None,
+        album: None,
+        genre: None,
+        cover: None,
+        comments: None,
     };
+
+    if let Some(meta) = probe_metadata.get() {
+        apply_meta_to_dca(&mut info, &mut origin, meta.current());
+    }
+
+    apply_meta_to_dca(&mut info, &mut origin, track_metadata);
 
     Ok(DcaMetadata {
         dca,
         opus,
-        info,
+        info: Some(info),
         origin: Some(origin),
         extra: None,
     })
+}
+
+fn apply_meta_to_dca(info: &mut Info, origin: &mut Origin, src_meta: Option<&MetadataRevision>) {
+    if let Some(meta) = src_meta {
+        for tag in meta.tags() {
+            match tag.std_key {
+                Some(StandardTagKey::Album) =>
+                    if let Value::String(s) = &tag.value {
+                        info.album = Some(s.clone());
+                    },
+                Some(StandardTagKey::Artist) =>
+                    if let Value::String(s) = &tag.value {
+                        info.artist = Some(s.clone());
+                    },
+                Some(StandardTagKey::Comment) =>
+                    if let Value::String(s) = &tag.value {
+                        info.comments = Some(s.clone());
+                    },
+                Some(StandardTagKey::Genre) =>
+                    if let Value::String(s) = &tag.value {
+                        info.genre = Some(s.clone());
+                    },
+                Some(StandardTagKey::TrackTitle) =>
+                    if let Value::String(s) = &tag.value {
+                        info.title = Some(s.clone());
+                    },
+                Some(StandardTagKey::Url | StandardTagKey::UrlSource) => {
+                    if let Value::String(s) = &tag.value {
+                        origin.url = Some(s.clone());
+                    }
+                },
+                _ => {},
+            }
+        }
+
+        for _visual in meta.visuals() {
+            // FIXME: will require MIME type inspection and Base64 conversion.
+        }
+    }
 }
 
 /// Transform applied inside [`Compressed`], converting a floating-point PCM

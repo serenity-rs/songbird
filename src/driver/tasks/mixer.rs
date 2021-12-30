@@ -1292,7 +1292,7 @@ fn get_or_ready_input<'a, 'b, 'c>(
         },
         InputState::Preparing(info) => {
             match info.callback.try_recv() {
-                Ok(MixerInputResultMessage::InputBuilt(mut parsed, rec)) => {
+                Ok(MixerInputResultMessage::InputBuilt(parsed, rec)) => {
                     *input = InputState::Ready(parsed, rec);
                     local.reset();
 
@@ -1302,12 +1302,7 @@ fn get_or_ready_input<'a, 'b, 'c>(
                         unreachable!()
                     }
                 },
-                Ok(MixerInputResultMessage::InputSeek(mut parsed, rec, seek_res)) => {
-                    // local.reset();
-                    // AND recompute local time.
-
-                    // handle error cases here...
-
+                Ok(MixerInputResultMessage::InputSeek(parsed, rec, seek_res)) => {
                     match seek_res {
                         Ok(pos) => {
                             let time_base =
@@ -1336,43 +1331,7 @@ fn get_or_ready_input<'a, 'b, 'c>(
                                 unreachable!()
                             }
                         },
-                        Err(e) => {
-                            // ...kill track based on error severity?
-                            todo!()
-                            // Err(Creation(e))
-                        },
-                        //     Err(SymphoniaError::SeekError(symphonia_core::errors::SeekErrorKind::ForwardOnly)) => {
-                        //         // request stream recreation, and then seek to target.
-                        //         let (tx, rx) = flume::bounded(1);
-
-                        //         if rec.is_some() {
-                        //             Some((tx, InputState::Preparing(PreparingInfo {
-                        //                 time: Instant::now(),
-                        //                 callback: rx,
-                        //                 queued_seek: Some(time),
-                        //             })))
-                        //         } else {
-                        //             // fire error.
-                        //             None
-                        //         }
-                        //     },
-                        //     Err(SymphoniaError::SeekError(e)) => {
-                        //         // SeekErrors refer to the *possibility* of the operation,
-                        //         // rather than a failure to do so based on I/O.
-                        //         // report and continue.
-                        //         // todo!()
-
-                        //         // FIXME: fire an event.
-                        //         debug!("Symphonia seek error for track {}", i);
-                        //         None
-                        //     },
-                        //     Err(e) => {
-                        //         // Generic track I/O error: kill and report.
-                        //         // FIXME: fire an event.
-                        //         // FIXME: kill track.
-                        //         debug!("Maybe fatal seek error for track {}", i);
-                        //         None
-                        //     }
+                        Err(e) => Err(Seeking(e)),
                     }
                 },
                 Err(TryRecvError::Empty) => Err(Waiting),
@@ -1388,6 +1347,7 @@ fn get_or_ready_input<'a, 'b, 'c>(
 enum InputReadyingError {
     Parsing(SymphoniaError),
     Creation(AudioStreamError),
+    Seeking(SymphoniaError),
     Dropped,
     Waiting,
 }

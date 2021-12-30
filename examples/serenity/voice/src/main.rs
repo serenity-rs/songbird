@@ -275,10 +275,10 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     let songs = [
         // "02-gojira-amazonia.mp3",
         // "02-gojira-amazonia.ogg",
-        // "04 - Fix The Error.m4a",
+        "04 - Fix The Error.m4a",
         // "02-gojira-amazonia.opus",
         // "02-gojira-amazonia.flac",
-        "monot.mp3",
+        // "monot.mp3",
         // // "ckick-dca0.dca",
         // "ckick-dca1.dca",
     ];
@@ -307,10 +307,10 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
         // let test = songbird::input::cached::Memory::new(file.into()).await.unwrap();
 
-        // let test = songbird::input::cached::Compressed::new(file.into(), songbird::driver::Bitrate::BitsPerSecond(128_000)).await.unwrap();
-        // let handle = handler.play_source(test.into());
+        let test = songbird::input::cached::Compressed::new(file.into(), songbird::driver::Bitrate::BitsPerSecond(128_000)).await.unwrap();
+        let handle = handler.play_source(test.into());
 
-        let handle = handler.play_source(file.into());
+        // let handle = handler.play_source(file.into());
 
         // tokio::spawn(async move {
         //     println!("Spawned!");
@@ -319,6 +319,9 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
         //     println!("Sent!");
         //     tokio::time::sleep(std::time::Duration::from_secs(10)).await;
         //     handle.seek_time(std::time::Duration::from_secs(20));
+        //     println!("Sent!");
+        //     tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+        //     handle.seek_time(std::time::Duration::from_secs(300));
         //     println!("Sent!");
         // });
 
