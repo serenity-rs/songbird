@@ -1,12 +1,14 @@
 #![allow(missing_docs)]
 
+use super::HttpRequest;
+
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::Value;
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
 
-use super::{AudioStreamError, Compose, SymphInput};
+use super::{AudioStreamError, Compose, Input};
 
 const YOUTUBE_DL_COMMAND: &str = "yt-dlp";
 
@@ -30,9 +32,9 @@ impl YoutubeDl {
     }
 }
 
-impl From<YoutubeDl> for SymphInput {
+impl From<YoutubeDl> for Input {
     fn from(val: YoutubeDl) -> Self {
-        SymphInput::Lazy(Box::new(val))
+        Input::Lazy(Box::new(val))
     }
 }
 
@@ -71,7 +73,7 @@ impl Compose for YoutubeDl {
                 AudioStreamError::Fail(msg)
             })?;
 
-        let mut req = super::adapter::HttpRequest {
+        let mut req = HttpRequest {
             client: self.client.clone(),
             request: url.to_string(),
         };

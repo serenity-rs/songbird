@@ -24,7 +24,7 @@ mod state;
 
 pub use self::{command::*, error::*, handle::*, looping::*, mode::*, queue::*, state::*};
 
-use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::SymphInput};
+use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::Input};
 use flume::{Receiver, TryRecvError};
 use std::time::Duration;
 use uuid::Uuid;
@@ -82,7 +82,7 @@ pub struct Track {
     /// Underlying data access object.
     ///
     /// *Calling code is not expected to use this.*
-    pub(crate) source: Option<SymphInput>,
+    pub(crate) source: Option<Input>,
 
     /// The current playback position in the track.
     pub(crate) position: Duration,
@@ -123,11 +123,7 @@ impl Track {
     /// In general, you should probably use [`create_player`].
     ///
     /// [`create_player`]: fn.create_player.html
-    pub fn new_raw(
-        source: SymphInput,
-        commands: Receiver<TrackCommand>,
-        handle: TrackHandle,
-    ) -> Self {
+    pub fn new_raw(source: Input, commands: Receiver<TrackCommand>, handle: TrackHandle) -> Self {
         let uuid = handle.uuid();
 
         Self {
@@ -203,20 +199,10 @@ impl Track {
     }
 
     /// Set an audio track to loop a set number of times.
-    ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
-    ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
-    pub fn set_loops(&mut self, loops: LoopState) -> TrackResult<()> {
-        // if self.source.is_seekable() {
-        //     self.loops = loops;
-        //     Ok(())
-        // } else {
-        //     Err(TrackError::SeekUnsupported)
-        // }
-        todo!()
+    pub fn set_loops(&mut self, loops: LoopState) -> &mut Self {
+        self.loops = loops;
+
+        self
     }
 
     pub(crate) fn do_loop(&mut self) -> bool {
@@ -297,13 +283,13 @@ impl Track {
                         Request(tx) => {
                             let _ = tx.send(self.state());
                         },
-                        Loop(loops) =>
-                            if self.set_loops(loops).is_ok() {
-                                let _ = ic.events.send(EventMessage::ChangeState(
-                                    index,
-                                    TrackStateChange::Loops(self.loops, true),
-                                ));
-                            },
+                        Loop(loops) => {
+                            self.set_loops(loops);
+                            let _ = ic.events.send(EventMessage::ChangeState(
+                                index,
+                                TrackStateChange::Loops(self.loops, true),
+                            ));
+                        },
                         MakePlayable => self.make_playable(),
                     }
                 },
@@ -328,7 +314,9 @@ impl Track {
     /// [`Restartable`]: crate::input::restartable::Restartable
     pub fn make_playable(&mut self) {
         // self.source.reader.make_playable();
-        todo!()
+        todo!();
+
+        println!("fill me out pls.");
     }
 
     /// Creates a read-only copy of the audio track's state.
@@ -347,23 +335,6 @@ impl Track {
         }
     }
 
-    /// Seek to a specific point in the track.
-    ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
-    ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
-    pub fn seek_time(&mut self, pos: Duration) -> TrackResult<Duration> {
-        // if let Some(t) = self.source.seek_time(pos) {
-        //     self.position = t;
-        //     Ok(t)
-        // } else {
-        //     Err(TrackError::SeekUnsupported)
-        // }
-        todo!()
-    }
-
     /// Returns this track's unique identifier.
     pub fn uuid(&self) -> Uuid {
         self.uuid
@@ -379,7 +350,7 @@ impl Track {
 /// [`Track`]: Track
 /// [`TrackHandle`]: TrackHandle
 #[inline]
-pub fn create_player(source: SymphInput) -> (Track, TrackHandle) {
+pub fn create_player(source: Input) -> (Track, TrackHandle) {
     create_player_with_uuid(source, Uuid::new_v4())
 }
 
@@ -389,7 +360,7 @@ pub fn create_player(source: SymphInput) -> (Track, TrackHandle) {
 /// [`create_player`]: create_player
 /// [`Track`]: Track
 /// [`TrackHandle`]: TrackHandle
-pub fn create_player_with_uuid(source: SymphInput, uuid: Uuid) -> (Track, TrackHandle) {
+pub fn create_player_with_uuid(source: Input, uuid: Uuid) -> (Track, TrackHandle) {
     // FIXME: Unify this (and handles) with symphonia's metadata handling
     let (tx, rx) = flume::unbounded();
     let can_seek = true; //source.is_seekable();

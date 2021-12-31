@@ -1,9 +1,5 @@
 use super::*;
-use std::{
-    io::{BufReader, Read},
-    mem,
-    process::Child,
-};
+use std::{io::Read, mem, process::Child};
 use tokio::runtime::Handle;
 use tracing::debug;
 
@@ -15,26 +11,7 @@ use tracing::debug;
 /// make sure to use `From<Vec<Child>>`. Here, the *last* process in the `Vec` will be
 /// used as the audio byte source.
 #[derive(Debug)]
-pub struct ChildContainer(Vec<Child>);
-
-pub(crate) fn children_to_reader<T>(children: Vec<Child>) -> Reader {
-    Reader::Pipe(BufReader::with_capacity(
-        STEREO_FRAME_SIZE * mem::size_of::<T>() * CHILD_BUFFER_LEN,
-        ChildContainer(children),
-    ))
-}
-
-impl From<Child> for Reader {
-    fn from(container: Child) -> Self {
-        children_to_reader::<f32>(vec![container])
-    }
-}
-
-impl From<Vec<Child>> for Reader {
-    fn from(container: Vec<Child>) -> Self {
-        children_to_reader::<f32>(container)
-    }
-}
+pub struct ChildContainer(pub Vec<Child>);
 
 impl Read for ChildContainer {
     fn read(&mut self, buffer: &mut [u8]) -> IoResult<usize> {
@@ -42,6 +19,18 @@ impl Read for ChildContainer {
             Some(ref mut child) => child.stdout.as_mut().unwrap().read(buffer),
             None => Ok(0),
         }
+    }
+}
+
+impl From<Child> for ChildContainer {
+    fn from(container: Child) -> Self {
+        Self(vec![container])
+    }
+}
+
+impl From<Vec<Child>> for ChildContainer {
+    fn from(container: Vec<Child>) -> Self {
+        Self(container)
     }
 }
 

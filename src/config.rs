@@ -120,7 +120,7 @@ impl Default for Config {
             #[cfg(feature = "gateway")]
             gateway_timeout: Some(Duration::from_secs(10)),
             #[cfg(feature = "driver")]
-            mix_mode: MixMode::Mono, //Stereo,
+            mix_mode: MixMode::Stereo,
             #[cfg(feature = "driver")]
             preallocated_tracks: 1,
             #[cfg(feature = "driver")]

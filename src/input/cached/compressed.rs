@@ -1,24 +1,7 @@
-use super::{
-    apply_length_hint,
-    compressed_cost_per_sec,
-    default_config,
-    CocdecCacheError,
-    ToAudioBytes,
-};
+use super::{compressed_cost_per_sec, default_config, CocdecCacheError, ToAudioBytes};
 use crate::{
     constants::*,
-    input::{
-        dca::*,
-        registry::*,
-        AudioStream,
-        CodecType,
-        Container,
-        Input,
-        LiveInput,
-        Metadata,
-        Reader,
-        SymphInput,
-    },
+    input::{dca::*, registry::*, AudioStream, Input, LiveInput},
 };
 use audiopus::{
     coder::{Encoder as OpusEncoder, GenericCtl},
@@ -32,15 +15,7 @@ use audiopus::{
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::{
     convert::TryInto,
-    io::{
-        Cursor,
-        Error as IoError,
-        ErrorKind as IoErrorKind,
-        Read,
-        Result as IoResult,
-        Seek,
-        Write,
-    },
+    io::{Cursor, Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult, Seek},
     mem,
     sync::atomic::{AtomicUsize, Ordering},
 };
@@ -53,12 +28,11 @@ use streamcatcher::{
     TxCatcher,
 };
 use symphonia_core::{
-    codecs::{CodecParameters, CodecRegistry},
+    codecs::CodecRegistry,
     io::MediaSource,
     meta::{MetadataRevision, StandardTagKey, Value},
     probe::{Probe, ProbedMetadata},
 };
-use tokio::fs::{metadata, write};
 use tracing::{debug, trace};
 
 #[allow(missing_docs)]
@@ -128,7 +102,7 @@ impl Compressed {
     ///
     /// [`Input`]: Input
     /// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration
-    pub async fn new(source: SymphInput, bitrate: Bitrate) -> Result<Self, CocdecCacheError> {
+    pub async fn new(source: Input, bitrate: Bitrate) -> Result<Self, CocdecCacheError> {
         Self::with_config(source, bitrate, None).await
     }
 
@@ -141,12 +115,12 @@ impl Compressed {
     /// [`Input`]: Input
     /// [`Metadata::duration`]: crate::input::Metadata::duration
     pub async fn with_config(
-        source: SymphInput,
+        source: Input,
         bitrate: Bitrate,
         config: Option<Config>,
     ) -> Result<Self, CocdecCacheError> {
         let input = match source {
-            SymphInput::Lazy(mut r) => {
+            Input::Lazy(mut r) => {
                 let created = if r.should_create_async() {
                     r.create_async().await.map_err(CocdecCacheError::from)
                 } else {
@@ -158,8 +132,8 @@ impl Compressed {
 
                 created.map(|v| LiveInput::Raw(v))
             },
-            SymphInput::Live(LiveInput::Parsed(_), _) => Err(CocdecCacheError::StreamNotAtStart),
-            SymphInput::Live(a, _rec) => Ok(a),
+            Input::Live(LiveInput::Parsed(_), _) => Err(CocdecCacheError::StreamNotAtStart),
+            Input::Live(a, _rec) => Ok(a),
         }?;
 
         let cost_per_sec = compressed_cost_per_sec(bitrate);
@@ -176,6 +150,13 @@ impl Compressed {
         } else {
             unreachable!()
         };
+
+        // TODO: apply length hint.
+        // if config.length_hint.is_none() {
+        //     if let Some(dur) = metadata.duration {
+        //         apply_length_hint(&mut config, dur, cost_per_sec);
+        //     }
+        // }
 
         let track_info = parsed.decoder.codec_params();
         let chan_count = track_info.channels.map(|v| v.count()).unwrap_or(2);
@@ -538,9 +519,9 @@ impl MediaSource for Compressed {
     }
 }
 
-impl From<Compressed> for SymphInput {
-    fn from(val: Compressed) -> SymphInput {
+impl From<Compressed> for Input {
+    fn from(val: Compressed) -> Input {
         let input = Box::new(val);
-        SymphInput::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
+        Input::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
     }
 }

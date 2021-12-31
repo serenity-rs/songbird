@@ -5,7 +5,6 @@ use rubato::{FftFixedOut, Resampler};
 use std::{
     io::{Read, Write},
     mem,
-    num::IntErrorKind,
     ops::Range,
 };
 use symphonia_core::{
@@ -156,24 +155,22 @@ impl Read for ToAudioBytes {
             // Now work with new packets.
             let source_packet = if !self.inner_pos.is_empty() {
                 Some(self.parsed.decoder.last_decoded())
-            } else {
-                if let Ok(pkt) = self.parsed.format.next_packet() {
-                    if pkt.track_id() != self.parsed.track_id {
-                        continue;
-                    }
-
-                    self.parsed
-                        .decoder
-                        .decode(&pkt)
-                        .map(|pkt| {
-                            self.inner_pos = 0..pkt.frames();
-                            pkt
-                        })
-                        .ok()
-                } else {
-                    // EOF.
-                    None
+            } else if let Ok(pkt) = self.parsed.format.next_packet() {
+                if pkt.track_id() != self.parsed.track_id {
+                    continue;
                 }
+
+                self.parsed
+                    .decoder
+                    .decode(&pkt)
+                    .map(|pkt| {
+                        self.inner_pos = 0..pkt.frames();
+                        pkt
+                    })
+                    .ok()
+            } else {
+                // EOF.
+                None
             };
 
             if source_packet.is_none() {

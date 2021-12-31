@@ -28,8 +28,8 @@ pub use mix_mode::MixMode;
 use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,
-    input::{Input, SymphInput},
-    tracks::{self, Track, TrackHandle},
+    input::Input,
+    tracks::{Track, TrackHandle},
     Config,
     ConnectionInfo,
     Event,
@@ -145,7 +145,7 @@ impl Driver {
     /// [`ffmpeg`]: crate::input::ffmpeg
     /// [`ytdl`]: crate::input::ytdl
     #[instrument(skip(self, source))]
-    pub fn play_source(&mut self, source: SymphInput) -> TrackHandle {
+    pub fn play_source(&mut self, source: Input) -> TrackHandle {
         let (player, handle) = super::create_player(source);
         self.send(CoreMessage::AddTrack(player));
 
@@ -159,7 +159,7 @@ impl Driver {
     ///
     /// [`play_source`]: Driver::play_source
     #[instrument(skip(self, source))]
-    pub fn play_only_source(&mut self, source: SymphInput) -> TrackHandle {
+    pub fn play_only_source(&mut self, source: Input) -> TrackHandle {
         let (player, handle) = super::create_player(source);
         self.send(CoreMessage::SetTrack(Some(player)));
 
@@ -283,8 +283,8 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn enqueue_source(&mut self, source: SymphInput) {
-        let (mut track, _) = tracks::create_player(source);
+    pub fn enqueue_source(&mut self, source: Input) {
+        let (mut track, _) = super::create_player(source);
         self.queue.add_raw(&mut track);
         self.play(track);
     }

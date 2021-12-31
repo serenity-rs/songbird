@@ -1,8 +1,15 @@
+mod pool;
+mod result;
+mod util;
+
+use pool::*;
+use result::*;
+
 use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
     driver::MixMode,
-    input::{AudioStream, AudioStreamError, Compose, LiveInput, Parsed, SymphInput},
+    input::{AudioStreamError, Compose, Input, LiveInput, Parsed},
     tracks::{PlayMode, Track},
     Config,
 };
@@ -11,30 +18,22 @@ use audiopus::{
     softclip::SoftClip,
     Application as CodingMode,
     Bitrate,
-    Channels,
 };
 use discortp::{
     rtp::{MutableRtpPacket, RtpPacket},
     MutablePacket,
 };
 use flume::{Receiver, Sender, TryRecvError};
-use parking_lot::RwLock;
 use rand::random;
 use rubato::{FftFixedOut, Resampler};
 use spin_sleep::SpinSleeper;
-use std::{
-    io::Write,
-    result::Result as StdResult,
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{io::Write, result::Result as StdResult, sync::Arc, time::Instant};
 use symphonia_core::{
     audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal, SignalSpec},
     codecs::CODEC_TYPE_OPUS,
     conv::IntoSample,
-    errors::{Error as SymphoniaError, SeekErrorKind},
-    formats::{SeekMode, SeekTo},
-    io::MediaSource,
+    errors::Error as SymphoniaError,
+    formats::SeekTo,
     sample::Sample,
     units::Time,
 };
@@ -408,10 +407,10 @@ impl Mixer {
         // TODO: make this an error?
         if let Some(source) = track.source.take() {
             let full_input = match source {
-                a @ SymphInput::Lazy(_) => InputState::NotReady(a),
-                SymphInput::Live(live, rec) => match live {
+                a @ Input::Lazy(_) => InputState::NotReady(a),
+                Input::Live(live, rec) => match live {
                     LiveInput::Parsed(p) => InputState::Ready(p, rec),
-                    other => InputState::NotReady(SymphInput::Live(other, rec)),
+                    other => InputState::NotReady(Input::Live(other, rec)),
                 },
             };
 
@@ -712,30 +711,15 @@ impl Mixer {
 }
 
 pub enum InputState {
-    NotReady(SymphInput),
+    NotReady(Input),
     Preparing(PreparingInfo),
     Ready(Parsed, Option<Box<dyn Compose>>),
 }
 
 pub struct PreparingInfo {
+    #[allow(dead_code)]
     time: Instant,
     callback: Receiver<MixerInputResultMessage>,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-enum MixType {
-    Passthrough(usize),
-    MixedPcm(usize),
-}
-
-impl MixType {
-    fn contains_audio(&self) -> bool {
-        use MixType::*;
-
-        match self {
-            Passthrough(a) | MixedPcm(a) => *a != 0,
-        }
-    }
 }
 
 pub struct LocalInput {
@@ -749,12 +733,6 @@ impl LocalInput {
         self.inner_pos = 0;
         self.resampler = None;
     }
-}
-
-enum MixStatus {
-    Live,
-    Ended,
-    Errored,
 }
 
 #[inline]
@@ -776,45 +754,43 @@ fn mix_symph_indiv(
     while samples_written != MONO_FRAME_SIZE {
         let source_packet = if local_state.inner_pos != 0 {
             Some(input.decoder.last_decoded())
-        } else {
-            if let Ok(pkt) = input.format.next_packet() {
-                if pkt.track_id() != input.track_id {
-                    continue;
-                }
+        } else if let Ok(pkt) = input.format.next_packet() {
+            if pkt.track_id() != input.track_id {
+                continue;
+            }
 
-                let buf = pkt.buf();
+            let buf = pkt.buf();
 
-                // Opus packet passthrough special case.
-                if codec_type == CODEC_TYPE_OPUS && local_state.passthrough != Passthrough::Block {
-                    if let Some(slot) = opus_slot.as_mut() {
-                        let sample_ct = audiopus::packet::nb_samples(buf, SAMPLE_RATE);
-                        match sample_ct {
-                            Ok(MONO_FRAME_SIZE) if buf.len() <= slot.len() => {
-                                slot.write_all(buf).expect(
-                                    "Bounds check performed, and failure will block passthrough.",
-                                );
+            // Opus packet passthrough special case.
+            if codec_type == CODEC_TYPE_OPUS && local_state.passthrough != Passthrough::Block {
+                if let Some(slot) = opus_slot.as_mut() {
+                    let sample_ct = audiopus::packet::nb_samples(buf, SAMPLE_RATE);
+                    match sample_ct {
+                        Ok(MONO_FRAME_SIZE) if buf.len() <= slot.len() => {
+                            slot.write_all(buf).expect(
+                                "Bounds check performed, and failure will block passthrough.",
+                            );
 
-                                return (MixType::Passthrough(buf.len()), MixStatus::Live);
-                            },
-                            _ => {
-                                local_state.passthrough = Passthrough::Block;
-                            },
-                        }
+                            return (MixType::Passthrough(buf.len()), MixStatus::Live);
+                        },
+                        _ => {
+                            local_state.passthrough = Passthrough::Block;
+                        },
                     }
                 }
-
-                input
-                    .decoder
-                    .decode(&pkt)
-                    .map_err(|e| {
-                        track_status = MixStatus::Errored;
-                        e
-                    })
-                    .ok()
-            } else {
-                track_status = MixStatus::Ended;
-                None
             }
+
+            input
+                .decoder
+                .decode(&pkt)
+                .map_err(|e| {
+                    track_status = MixStatus::Errored;
+                    e
+                })
+                .ok()
+        } else {
+            track_status = MixStatus::Ended;
+            None
         };
 
         // Cleanup: failed to get the next packet, but still have to convert and mix scratch.
@@ -1161,7 +1137,7 @@ fn mix_tracks<'a>(
 
     // Opus frame passthrough.
     // This requires that we have only one track, who has volume 1.0, and an
-    // Opus codec type.
+    // Opus codec type (verified internally).
     let do_passthrough = tracks.len() == 1 && {
         let track = &tracks[0];
         (track.volume - 1.0).abs() < f32::EPSILON
@@ -1174,7 +1150,6 @@ fn mix_tracks<'a>(
         .zip(input_states.iter_mut())
     {
         let vol = track.volume;
-        // let stream = &mut track.source;
 
         if track.playing != PlayMode::Play {
             continue;
@@ -1188,6 +1163,7 @@ fn mix_tracks<'a>(
             interconnect,
             thread_pool,
             config,
+            prevent_events,
         );
 
         let input = match input {
@@ -1214,24 +1190,7 @@ fn mix_tracks<'a>(
         if mix_type.contains_audio() {
             track.step_frame();
         } else if track.do_loop() {
-            if let Ok(time) = track.seek_time(Default::default()) {
-                // have to reproduce self.fire_event here
-                // to circumvent the borrow checker's lack of knowledge.
-                //
-                // In event of error, one of the later event calls will
-                // trigger the event thread rebuild: it is more prudent that
-                // the mixer works as normal right now.
-                if !prevent_events {
-                    let _ = interconnect.events.send(EventMessage::ChangeState(
-                        i,
-                        TrackStateChange::Position(time),
-                    ));
-                    let _ = interconnect.events.send(EventMessage::ChangeState(
-                        i,
-                        TrackStateChange::Loops(track.loops, false),
-                    ));
-                }
-            }
+            let _ = track.handle.seek_time(Default::default());
         } else {
             track.end();
         }
@@ -1264,6 +1223,7 @@ fn get_or_ready_input<'a, 'b, 'c>(
     interconnect: &Interconnect,
     pool: &BlockyTaskPool,
     config: &Arc<Config>,
+    prevent_events: bool,
 ) -> StdResult<&'a mut Parsed, InputReadyingError> {
     use InputReadyingError::*;
 
@@ -1279,10 +1239,10 @@ fn get_or_ready_input<'a, 'b, 'c>(
             std::mem::swap(&mut state, input);
 
             match state {
-                InputState::NotReady(a @ SymphInput::Lazy(_)) => {
+                InputState::NotReady(a @ Input::Lazy(_)) => {
                     pool.create(tx, a, None, config.clone());
                 },
-                InputState::NotReady(SymphInput::Live(audio, rec)) => {
+                InputState::NotReady(Input::Live(audio, rec)) => {
                     pool.parse(config.clone(), tx, audio, rec, None);
                 },
                 _ => unreachable!(),
@@ -1317,10 +1277,12 @@ fn get_or_ready_input<'a, 'b, 'c>(
                             let time_in_float = new_time.seconds as f64 + new_time.frac;
                             track.position = std::time::Duration::from_secs_f64(time_in_float);
 
-                            let _ = interconnect.events.send(EventMessage::ChangeState(
-                                id,
-                                TrackStateChange::Position(track.position),
-                            ));
+                            if !prevent_events {
+                                let _ = interconnect.events.send(EventMessage::ChangeState(
+                                    id,
+                                    TrackStateChange::Position(track.position),
+                                ));
+                            }
 
                             local.reset();
                             *input = InputState::Ready(parsed, rec);
@@ -1368,142 +1330,6 @@ pub(crate) fn runner(
     mixer.run();
 
     let _ = mixer.disposer.send(DisposalMessage::Poison);
-}
-
-#[derive(Clone)]
-pub(crate) struct BlockyTaskPool {
-    pool: Arc<RwLock<rusty_pool::ThreadPool>>,
-    handle: Handle,
-}
-
-impl BlockyTaskPool {
-    fn new(handle: Handle) -> Self {
-        Self {
-            pool: Arc::new(RwLock::new(rusty_pool::ThreadPool::new(
-                5,
-                64,
-                Duration::from_secs(300),
-            ))),
-            handle,
-        }
-    }
-
-    fn create(
-        &self,
-        callback: Sender<MixerInputResultMessage>,
-        input: SymphInput,
-        seek_time: Option<SeekTo>,
-        config: Arc<Config>,
-    ) {
-        match input {
-            SymphInput::Lazy(mut lazy) => {
-                let far_pool = self.clone();
-                if lazy.should_create_async() {
-                    self.handle.spawn(async move {
-                        let out = lazy.create_async().await;
-                        far_pool.send_to_parse(out, lazy, callback, seek_time, config);
-                    });
-                } else {
-                    let pool = self.pool.read();
-                    pool.execute(move || {
-                        let out = lazy.create();
-                        far_pool.send_to_parse(out, lazy, callback, seek_time, config);
-                    });
-                }
-            },
-            SymphInput::Live(live, maybe_create) =>
-                self.parse(config, callback, live, maybe_create, seek_time),
-        }
-    }
-
-    fn send_to_parse(
-        &self,
-        create_res: StdResult<AudioStream<Box<dyn MediaSource>>, AudioStreamError>,
-        rec: Box<dyn Compose>,
-        callback: Sender<MixerInputResultMessage>,
-        seek_time: Option<SeekTo>,
-        config: Arc<Config>,
-    ) {
-        match create_res {
-            Ok(o) => {
-                self.parse(config, callback, LiveInput::Raw(o), Some(rec), seek_time);
-            },
-            Err(e) => {
-                let _ = callback.send(MixerInputResultMessage::InputCreateErr(e));
-            },
-        }
-    }
-
-    fn parse(
-        &self,
-        config: Arc<Config>,
-        callback: Sender<MixerInputResultMessage>,
-        input: LiveInput,
-        rec: Option<Box<dyn Compose>>,
-        seek_time: Option<SeekTo>,
-    ) {
-        let pool_clone = self.clone();
-        let pool = self.pool.read();
-
-        pool.execute(
-            move || match input.promote(config.codec_registry, config.format_registry) {
-                Ok(LiveInput::Parsed(parsed)) =>
-                    if let Some(seek_time) = seek_time {
-                        pool_clone.seek(callback, parsed, rec, seek_time, false, config);
-                    } else {
-                        let _ = callback.send(MixerInputResultMessage::InputBuilt(parsed, rec));
-                    },
-                Ok(_) => unreachable!(),
-                Err(e) => {
-                    let _ = callback.send(MixerInputResultMessage::InputParseErr(e));
-                },
-            },
-        );
-    }
-
-    fn seek(
-        &self,
-        callback: Sender<MixerInputResultMessage>,
-        mut input: Parsed,
-        rec: Option<Box<dyn Compose>>,
-        seek_time: SeekTo,
-        should_recreate: bool,
-        config: Arc<Config>,
-    ) {
-        let pool_clone = self.clone();
-        let pool = self.pool.read();
-
-        pool.execute(move || {
-            let res = input
-                .format
-                .seek(SeekMode::Coarse, copy_seek_to(&seek_time));
-
-            let backseek_needed = matches!(
-                res,
-                Err(SymphoniaError::SeekError(SeekErrorKind::ForwardOnly))
-            );
-
-            if should_recreate && backseek_needed && rec.is_some() {
-                pool_clone.create(
-                    callback,
-                    SymphInput::Lazy(rec.unwrap()),
-                    Some(seek_time),
-                    config,
-                );
-            } else {
-                input.decoder.reset();
-                let _ = callback.send(MixerInputResultMessage::InputSeek(input, rec, res));
-            }
-        });
-    }
-}
-
-// SeekTo lacks Copy and Clone... somehow.
-fn copy_seek_to(pos: &SeekTo) -> SeekTo {
-    match *pos {
-        SeekTo::Time { time, track_id } => SeekTo::Time { time, track_id },
-        SeekTo::TimeStamp { ts, track_id } => SeekTo::TimeStamp { ts, track_id },
-    }
 }
 
 /// Simple state to manage decoder resets etc.

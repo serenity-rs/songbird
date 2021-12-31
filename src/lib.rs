@@ -77,7 +77,6 @@ use utils as test_utils;
 pub use crate::{
     driver::Driver,
     events::{CoreEvent, Event, EventContext, EventHandler, TrackEvent},
-    input::{ffmpeg, ytdl},
     tracks::create_player,
 };
 

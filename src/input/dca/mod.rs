@@ -1,96 +1,20 @@
-use crate::constants::{MONO_FRAME_SIZE, SAMPLE_RATE, SAMPLE_RATE_RAW};
+mod metadata;
+pub use self::metadata::*;
 
-use super::{codec::OpusDecoderState, error::DcaError, Codec, Container, Input, Metadata, Reader};
-use audiopus::Channels;
-use serde::{Deserialize, Serialize};
-use serenity::builder::Timestamp;
-use std::{
-    alloc::Layout,
-    ffi::OsStr,
-    io::{Seek, SeekFrom},
-    mem,
-};
-use symphonia_core::{
-    codecs::CodecParameters,
-    errors::SeekErrorKind,
-    io::{MediaSource, MediaSourceStream, SeekBuffered},
-    meta::{MetadataBuilder, StandardTagKey, Tag, Value},
-};
-use tokio::{
-    fs::{metadata, File as TokioFile},
-    io::AsyncReadExt,
-};
+use crate::constants::{SAMPLE_RATE, SAMPLE_RATE_RAW};
 
+use std::io::{Seek, SeekFrom};
 use symphonia::core::{
-    codecs::CODEC_TYPE_OPUS,
-    errors::{self as symph_err, Result as SymphResult},
+    codecs::{CodecParameters, CODEC_TYPE_OPUS},
+    errors::{self as symph_err, Result as SymphResult, SeekErrorKind},
     formats::prelude::*,
-    io::ReadBytes,
-    meta::{Metadata as SymphMetadata, MetadataLog},
+    io::{MediaSource, MediaSourceStream, ReadBytes, SeekBuffered},
+    meta::{Metadata as SymphMetadata, MetadataBuilder, MetadataLog, StandardTagKey, Tag, Value},
     probe::{Descriptor, Instantiate, QueryDescriptor},
     units::TimeStamp,
 };
 
-/// Creates a streamed audio source from a DCA file.
-/// Currently only accepts the [DCA1 format](https://github.com/bwmarrin/dca).
-pub async fn dca<P: AsRef<OsStr>>(path: P) -> Result<Input, DcaError> {
-    _dca(path.as_ref()).await
-}
-
-async fn _dca(path: &OsStr) -> Result<Input, DcaError> {
-    let mut reader = TokioFile::open(path).await.map_err(DcaError::IoError)?;
-
-    let mut header = [0u8; 4];
-
-    // Read in the magic number to verify it's a DCA file.
-    reader
-        .read_exact(&mut header)
-        .await
-        .map_err(DcaError::IoError)?;
-
-    if header != b"DCA1"[..] {
-        return Err(DcaError::InvalidHeader);
-    }
-
-    let size = reader
-        .read_i32_le()
-        .await
-        .map_err(|_| DcaError::InvalidHeader)?;
-
-    // Sanity check
-    if size < 2 {
-        return Err(DcaError::InvalidSize(size));
-    }
-
-    let mut raw_json = Vec::with_capacity(size as usize);
-
-    let mut json_reader = reader.take(size as u64);
-
-    json_reader
-        .read_to_end(&mut raw_json)
-        .await
-        .map_err(DcaError::IoError)?;
-
-    let reader = json_reader.into_inner().into_std().await;
-
-    let metadata: Metadata = serde_json::from_slice::<DcaMetadata>(raw_json.as_slice())
-        .map_err(DcaError::InvalidMetadata)?
-        .into();
-
-    let stereo = metadata.channels == Some(2);
-
-    Ok(Input::new(
-        stereo,
-        Reader::from_file(reader),
-        Codec::Opus(OpusDecoderState::new().map_err(DcaError::Opus)?),
-        Container::Dca {
-            first_frame: (size as usize) + mem::size_of::<i32>() + header.len(),
-        },
-        Some(metadata),
-    ))
-}
-
-impl QueryDescriptor for SymphDcaReader {
+impl QueryDescriptor for DcaReader {
     fn query() -> &'static [Descriptor] {
         &[symphonia_core::support_format!(
             "dca",
@@ -146,7 +70,9 @@ impl SeekAccel {
 ///
 /// * No Magic bytes for it
 /// * Symphonia doesn't yet use extension/MIME hints.
-pub struct SymphDcaReader {
+/// Creates a streamed audio source from a DCA file.
+/// Currently only accepts the [DCA1 format](https://github.com/bwmarrin/dca).
+pub struct DcaReader {
     source: MediaSourceStream,
     track: Option<Track>,
     metas: MetadataLog,
@@ -156,7 +82,7 @@ pub struct SymphDcaReader {
     held_packet: Option<Packet>,
 }
 
-impl FormatReader for SymphDcaReader {
+impl FormatReader for DcaReader {
     fn try_new(mut source: MediaSourceStream, options: &FormatOptions) -> SymphResult<Self> {
         // Read in the magic number to verify it's a DCA file.
         let magic = source.read_quad_bytes()?;
@@ -390,80 +316,5 @@ impl FormatReader for SymphDcaReader {
 
     fn into_inner(self: Box<Self>) -> MediaSourceStream {
         self.source
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct DcaMetadata {
-    pub dca: DcaInfo,
-    pub opus: Opus,
-    pub info: Option<Info>,
-    pub origin: Option<Origin>,
-    pub extra: Option<serde_json::Value>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct DcaInfo {
-    pub version: u64,
-    pub tool: Tool,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Tool {
-    pub name: String,
-    pub version: String,
-    pub url: Option<String>,
-    pub author: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Opus {
-    pub mode: String,
-    pub sample_rate: u32,
-    pub frame_size: u64,
-    pub abr: Option<u64>,
-    pub vbr: bool,
-    pub channels: u8,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Info {
-    pub title: Option<String>,
-    pub artist: Option<String>,
-    pub album: Option<String>,
-    pub genre: Option<String>,
-    pub cover: Option<String>,
-    pub comments: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Origin {
-    pub source: Option<String>,
-    pub abr: Option<u64>,
-    pub channels: Option<u8>,
-    pub encoding: Option<String>,
-    pub url: Option<String>,
-}
-
-impl From<DcaMetadata> for Metadata {
-    fn from(mut d: DcaMetadata) -> Self {
-        let (track, artist) = d
-            .info
-            .take()
-            .map(|mut m| (m.title.take(), m.artist.take()))
-            .unwrap_or_else(|| (None, None));
-
-        let channels = Some(d.opus.channels);
-        let sample_rate = Some(d.opus.sample_rate);
-
-        Self {
-            track,
-            artist,
-
-            channels,
-            sample_rate,
-
-            ..Default::default()
-        }
     }
 }

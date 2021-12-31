@@ -1,7 +1,7 @@
 use crate::{
     driver::Driver,
     events::{Event, EventContext, EventData, EventHandler, TrackEvent},
-    input::{Input, SymphInput},
+    input::Input,
     tracks::{self, Track, TrackHandle, TrackResult},
 };
 use async_trait::async_trait;
@@ -165,7 +165,7 @@ impl TrackQueue {
     }
 
     /// Adds an audio source to the queue, to be played in the channel managed by `handler`.
-    pub fn add_source(&self, source: SymphInput, handler: &mut Driver) {
+    pub fn add_source(&self, source: Input, handler: &mut Driver) {
         let (audio, _) = tracks::create_player(source);
         self.add(audio, handler);
     }

@@ -1,18 +1,6 @@
-use super::{apply_length_hint, default_config, raw_cost_per_sec, Error};
-use crate::input::{
-    AudioStream,
-    CodecType,
-    Container,
-    Input,
-    LiveInput,
-    Metadata,
-    Reader,
-    SymphInput,
-};
-use std::{
-    convert::{TryFrom, TryInto},
-    io::{Read, Seek},
-};
+use super::{default_config, raw_cost_per_sec, Error};
+use crate::input::{AudioStream, Input, LiveInput};
+use std::io::{Read, Seek};
 use streamcatcher::{Catcher, Config};
 use symphonia_core::io::MediaSource;
 
@@ -34,7 +22,7 @@ pub struct Memory {
 
 impl Memory {
     /// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.
-    pub async fn new(source: SymphInput) -> Result<Self, Error> {
+    pub async fn new(source: Input) -> Result<Self, Error> {
         Self::with_config(source, None).await
     }
 
@@ -46,9 +34,9 @@ impl Memory {
     ///
     /// [`Input`]: Input
     /// [`Metadata::duration`]: crate::input::Metadata::duration
-    pub async fn with_config(source: SymphInput, config: Option<Config>) -> Result<Self, Error> {
+    pub async fn with_config(source: Input, config: Option<Config>) -> Result<Self, Error> {
         let input = match source {
-            SymphInput::Lazy(mut r) => {
+            Input::Lazy(mut r) => {
                 let created = if r.should_create_async() {
                     r.create_async().await
                 } else {
@@ -57,10 +45,10 @@ impl Memory {
 
                 created.map(|v| v.input).map_err(Error::from)
             },
-            SymphInput::Live(LiveInput::Raw(a), _rec) => Ok(a.input),
-            SymphInput::Live(LiveInput::Wrapped(a), _rec) =>
+            Input::Live(LiveInput::Raw(a), _rec) => Ok(a.input),
+            Input::Live(LiveInput::Wrapped(a), _rec) =>
                 Ok(Box::new(a.input) as Box<dyn MediaSource>),
-            SymphInput::Live(LiveInput::Parsed(_), _) => Err(Error::StreamNotAtStart),
+            Input::Live(LiveInput::Parsed(_), _) => Err(Error::StreamNotAtStart),
         }?;
 
         let cost_per_sec = raw_cost_per_sec(true);
@@ -114,9 +102,9 @@ impl MediaSource for Memory {
     }
 }
 
-impl From<Memory> for SymphInput {
-    fn from(val: Memory) -> SymphInput {
+impl From<Memory> for Input {
+    fn from(val: Memory) -> Input {
         let input = Box::new(val);
-        SymphInput::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
+        Input::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
     }
 }
