@@ -31,7 +31,8 @@ const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {
 /// If you need looping or track seeking, then consider using
 /// [`Restartable::ytdl`].
 ///
-/// Uses `youtube-dlc` if the `"youtube-dlc"` feature is enabled.
+/// `youtube-dlc` and `yt-dlp` are also useable by enabling the `youtube-dlc`
+/// and `yt-dlp` features respectively.
 ///
 /// [`Restartable::ytdl`]: crate::input::restartable::Restartable::ytdl
 pub async fn ytdl(uri: impl AsRef<str>) -> Result<Input> {
@@ -169,7 +170,8 @@ pub(crate) async fn _ytdl_metadata(uri: &str) -> Result<Metadata> {
 /// If you need looping or track seeking, then consider using
 /// [`Restartable::ytdl_search`].
 ///
-/// Uses `youtube-dlc` if the `"youtube-dlc"` feature is enabled.
+/// `youtube-dlc` and `yt-dlp` are also useable by enabling the `youtube-dlc`
+/// and `yt-dlp` features respectively.
 ///
 /// [`Restartable::ytdl_search`]: crate::input::restartable::Restartable::ytdl_search
 pub async fn ytdl_search(name: impl AsRef<str>) -> Result<Input> {
