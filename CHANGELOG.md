@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.1] — 2022-05-01
+
+This patch release adds support for the `yt-dlp` fork of `youtube-dl`, and fixes track events to correctly fire events when multiple timed handlers are present on a track.
+
+Thanks to the following for their contributions:
+
+- [@FelixMcFelix]
+- [@Lunarmagpie]
+- [@lajp]
+- [@Miezhiko]
+
+### Added
+
+- [docs] Docs: added documentation for `yt-dlp` feature (#106) ([@Lunarmagpie]) [c:73323e5]
+- [input] Input: Allows yt-dlp usage as another youtube-dl fork (#90) ([@Miezhiko]) [c:6fcb196]
+
+### Fixed
+
+- [docs] Examples: Fix unmatched quotation mark in comment. (#101) ([@lajp]) [c:62ecfe6]
+- [events] Events: fix handling of multiple timed events on a single track (#96) ([@FelixMcFelix]) [c:e25cc14]
+
 ## [0.2.0] — 2021-08-17 — **Magpie**
 
 Magpies are a common sight year-round; strong, intelligent, industrious, and loyal.
@@ -299,6 +320,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.2.1]: https://github.com/serenity-rs/songbird/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/serenity-rs/songbird/compare/v0.1.8...v0.2.0
 [0.1.8]: https://github.com/serenity-rs/songbird/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/serenity-rs/songbird/compare/v0.1.6...v0.1.7
@@ -328,9 +350,12 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@JellyWX]: https://github.com/JellyWX
 [@jtscuba]: https://github.com/jtscuba
 [@Lakelezz]: https://github.com/Lakelezz
+[@lajp]: https://github.com/lajp
 [@LikeLakers2]: https://github.com/LikeLakers2
+[@Lunarmagpie]: https://github.com/Lunarmagpie
 [@Maspenguin]: https://github.com/Maspenguin
 [@mendess]: https://github.com/mendess
+[@Miezhiko]: https://github.com/Miezhiko
 [@nickelc]: https://github.com/nickelc
 [@nitsuga5124]: https://github.com/nitsuga5124
 [@peppizza]: https://github.com/peppizza
@@ -346,6 +371,10 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:73323e5]: https://github.com/serenity-rs/songbird/commit/73323e58ddf47dfa2bb0e334c37e939cfbd95a86
+[c:6fcb196]: https://github.com/serenity-rs/songbird/commit/6fcb196e34922a7ec7e98f874a46e3c3518bfef5
+[c:62ecfe6]: https://github.com/serenity-rs/songbird/commit/62ecfe68d640d793c0f6988f88938462ca2d54d7
+[c:e25cc14]: https://github.com/serenity-rs/songbird/commit/e25cc140b8151d6546ae0b9c63b6fc0bb8a5e010
 [c:47e20d6]: https://github.com/serenity-rs/songbird/commit/47e20d6177bc380d44c8cc456f370d2a22b975fd
 [c:dad48ca]: https://github.com/serenity-rs/songbird/commit/dad48ca83595ec6693a4a089c30371e132d099b1
 [c:3efe756]: https://github.com/serenity-rs/songbird/commit/3efe756ca505ee50dfdcfb25bac7ed7e58bf723b
