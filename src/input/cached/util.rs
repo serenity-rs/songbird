@@ -115,9 +115,9 @@ impl Read for ToAudioBytes {
         let orig_sz = buf.len();
         let num_chans = self.num_channels();
 
-        while buf.len() != 0 && !self.is_done() {
+        while !buf.is_empty() && !self.is_done() {
             // Work to clear interrupted channel floats.
-            while buf.len() != 0 && !self.interrupted_byte_pos.is_empty() {
+            while !buf.is_empty() && !self.interrupted_byte_pos.is_empty() {
                 let index_of_first_f32 = self.interrupted_byte_pos.start / SAMPLE_LEN;
                 let f32_inner_pos = self.interrupted_byte_pos.start % SAMPLE_LEN;
                 let f32_bytes_remaining = SAMPLE_LEN - f32_inner_pos;
@@ -131,9 +131,9 @@ impl Read for ToAudioBytes {
             // Clear out already produced resampled floats.
             if let Some(resample) = self.resample.as_mut() {
                 if let Some(data) = resample.resampled_data.as_mut() {
-                    if buf.len() != 0 && !resample.resample_pos.is_empty() {
+                    if !buf.is_empty() && !resample.resample_pos.is_empty() {
                         let bytes_advanced = write_resample_buffer(
-                            &data,
+                            data,
                             buf,
                             &mut resample.resample_pos,
                             &mut self.interrupted_samples,
@@ -355,14 +355,8 @@ where
         *spill_range = 0..num_chans * SAMPLE_LEN;
     }
 
-    for (i, plane) in (&source.planes().planes()[..num_chans])
-        .into_iter()
-        .enumerate()
-    {
-        for (j, sample) in (&plane[source_pos.start..][..to_write])
-            .into_iter()
-            .enumerate()
-        {
+    for (i, plane) in (&source.planes().planes()[..num_chans]).iter().enumerate() {
+        for (j, sample) in (&plane[source_pos.start..][..to_write]).iter().enumerate() {
             // write this into the correct slot of buf.
             let addr = ((j * num_chans) + i) * SAMPLE_LEN;
             (&mut buf[addr..][..SAMPLE_LEN])
@@ -382,7 +376,7 @@ where
 
 #[inline]
 fn write_resample_buffer(
-    source: &Vec<Vec<f32>>,
+    source: &[Vec<f32>],
     buf: &mut [u8],
     source_pos: &mut Range<usize>,
     spillover: &mut Vec<f32>,
@@ -405,11 +399,8 @@ fn write_resample_buffer(
         *spill_range = 0..num_chans * SAMPLE_LEN;
     }
 
-    for (i, plane) in (&source[..num_chans]).into_iter().enumerate() {
-        for (j, sample) in (&plane[source_pos.start..][..to_write])
-            .into_iter()
-            .enumerate()
-        {
+    for (i, plane) in (&source[..num_chans]).iter().enumerate() {
+        for (j, sample) in (&plane[source_pos.start..][..to_write]).iter().enumerate() {
             // write this into the correct slot of buf.
             let addr = ((j * num_chans) + i) * SAMPLE_LEN;
             (&mut buf[addr..][..SAMPLE_LEN])
@@ -424,8 +415,7 @@ fn write_resample_buffer(
 
     source_pos.start += samples_used;
 
-    let out = to_write * num_chans * SAMPLE_LEN;
-    out
+    to_write * num_chans * SAMPLE_LEN
 }
 
 // these two are exact copies of the driver code...
@@ -464,7 +454,7 @@ fn copy_symph_buffer<S>(
 where
     S: Sample + IntoSample<f32>,
 {
-    for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
+    for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
         .iter_mut()
         .zip(source.planes().planes()[..].iter())
     {

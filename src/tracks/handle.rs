@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     events::{Event, EventData, EventHandler},
-    input::Metadata,
+    input::AuxMetadata,
 };
 use flume::Sender;
 use std::{fmt, sync::Arc, time::Duration};
@@ -29,7 +29,7 @@ struct InnerHandle {
     command_channel: Sender<TrackCommand>,
     seekable: bool,
     uuid: Uuid,
-    metadata: Box<Metadata>,
+    metadata: Box<AuxMetadata>,
     typemap: RwLock<TypeMap>,
 }
 
@@ -54,7 +54,7 @@ impl TrackHandle {
         command_channel: Sender<TrackCommand>,
         seekable: bool,
         uuid: Uuid,
-        metadata: Box<Metadata>,
+        metadata: Box<AuxMetadata>,
     ) -> Self {
         let inner = Arc::new(InnerHandle {
             command_channel,
@@ -223,7 +223,7 @@ impl TrackHandle {
     /// read-only from then on.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn metadata(&self) -> &Metadata {
+    pub fn metadata(&self) -> &AuxMetadata {
         &self.inner.metadata
     }
 

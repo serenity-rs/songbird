@@ -28,7 +28,7 @@ use tracing::{info, warn};
 /// use songbird::{
 ///     driver::Driver,
 ///     id::GuildId,
-///     ffmpeg,
+///     input::File,
 ///     tracks::{create_player, TrackQueue},
 /// };
 /// use std::collections::HashMap;
@@ -40,16 +40,14 @@ use tracing::{info, warn};
 ///
 /// let mut queues: HashMap<GuildId, TrackQueue> = Default::default();
 ///
-/// let source = ffmpeg("../audio/my-favourite-song.mp3")
-///     .await
-///     .expect("This might fail: handle this error!");
+/// let source = File::new("../audio/my-favourite-song.mp3");
 ///
 /// // We need to ensure that this guild has a TrackQueue created for it.
 /// let queue = queues.entry(guild)
 ///     .or_default();
 ///
 /// // Queueing a track is this easy!
-/// queue.add_source(source, &mut driver);
+/// queue.add_source(source.into(), &mut driver);
 /// # };
 /// ```
 ///
@@ -165,9 +163,9 @@ impl TrackQueue {
     }
 
     /// Adds an audio source to the queue, to be played in the channel managed by `handler`.
-    pub fn add_source(&self, source: Input, handler: &mut Driver) {
+    pub async fn add_source(&self, source: Input, handler: &mut Driver) {
         let (audio, _) = tracks::create_player(source);
-        self.add(audio, handler);
+        self.add(audio, handler).await;
     }
 
     /// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.
@@ -177,13 +175,13 @@ impl TrackQueue {
     ///
     /// [`Track`]: Track
     /// [`create_player`]: super::create_player
-    pub fn add(&self, mut track: Track, handler: &mut Driver) {
-        self.add_raw(&mut track);
+    pub async fn add(&self, mut track: Track, handler: &mut Driver) {
+        self.add_raw(&mut track).await;
         handler.play(track);
     }
 
     #[inline]
-    pub(crate) fn add_raw(&self, track: &mut Track) {
+    pub(crate) async fn add_raw(&self, track: &mut Track) {
         info!("Track added to queue.");
         let remote_lock = self.inner.clone();
         let mut inner = self.inner.lock();
@@ -206,9 +204,15 @@ impl TrackQueue {
         // Attempts to start loading the next track before this one ends.
         // Idea is to provide as close to gapless playback as possible,
         // while minimising memory use.
-        let time: Option<Duration> = todo!();
+        let meta = match track.source.as_mut() {
+            Some(Input::Lazy(ref mut rec)) => rec.aux_metadata().await.ok(),
+            Some(Input::Live(_, Some(ref mut rec))) => rec.aux_metadata().await.ok(),
+            _ => None,
+        };
+
+        let time: Option<Duration> = meta.and_then(|meta| meta.duration);
+
         if let Some(time) = time {
-            // track.source.metadata.duration {
             let preload_time: Duration =
                 time.checked_sub(Duration::from_secs(5)).unwrap_or_default();
             let remote_lock = self.inner.clone();

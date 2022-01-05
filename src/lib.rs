@@ -3,7 +3,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"
 )]
 #![deny(missing_docs)]
-#![deny(broken_intra_doc_links)]
+#![deny(rustdoc::broken_intra_doc_links)]
 //! ![project logo][logo]
 //!
 //! Songbird is an async, cross-library compatible voice system for Discord, written in Rust.

@@ -1,3 +1,6 @@
+use crate::input::AudioStreamError;
+use symphonia_core::errors::Error as SymphoniaError;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum MixType {
     Passthrough(usize),
@@ -18,4 +21,12 @@ pub enum MixStatus {
     Live,
     Ended,
     Errored,
+}
+
+pub enum InputReadyingError {
+    Parsing(SymphoniaError),
+    Creation(AudioStreamError),
+    Seeking(SymphoniaError),
+    Dropped,
+    Waiting,
 }

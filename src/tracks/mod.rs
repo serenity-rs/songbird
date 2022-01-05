@@ -39,15 +39,13 @@ use uuid::Uuid;
 /// # Example
 ///
 /// ```rust,no_run
-/// use songbird::{driver::Driver, ffmpeg, tracks::create_player};
+/// use songbird::{driver::Driver, input::File, tracks::create_player};
 ///
 /// # async {
 /// // A Call is also valid here!
 /// let mut handler: Driver = Default::default();
-/// let source = ffmpeg("../audio/my-favourite-song.mp3")
-///     .await
-///     .expect("This might fail: handle this error!");
-/// let (mut audio, audio_handle) = create_player(source);
+/// let source = File::new("../audio/my-favourite-song.mp3");
+/// let (mut audio, audio_handle) = create_player(source.into());
 ///
 /// audio.set_volume(0.5);
 ///
@@ -225,12 +223,17 @@ impl Track {
     /// Receives and acts upon any commands forwarded by TrackHandles.
     ///
     /// *Used internally*, this should not be exposed to users.
-    pub(crate) fn process_commands(&mut self, index: usize, ic: &Interconnect) -> Option<Duration> {
+    pub(crate) fn process_commands(
+        &mut self,
+        index: usize,
+        ic: &Interconnect,
+    ) -> (Option<Duration>, bool) {
         // Note: disconnection and an empty channel are both valid,
         // and should allow the audio object to keep running as intended.
 
         // We also need to export a target seek point to the mixer, if known.
         let mut seek_point = None;
+        let mut to_ready = false;
 
         // Note that interconnect failures are not currently errors.
         // In correct operation, the event thread should never panic,
@@ -290,7 +293,7 @@ impl Track {
                                 TrackStateChange::Loops(self.loops, true),
                             ));
                         },
-                        MakePlayable => self.make_playable(),
+                        MakePlayable => to_ready = true,
                     }
                 },
                 Err(TryRecvError::Disconnected) => {
@@ -303,20 +306,7 @@ impl Track {
             }
         }
 
-        seek_point
-    }
-
-    /// Ready a track for playing if it is lazily initialised.
-    ///
-    /// Currently, only [`Restartable`] sources support lazy setup.
-    /// This call is a no-op for all others.
-    ///
-    /// [`Restartable`]: crate::input::restartable::Restartable
-    pub fn make_playable(&mut self) {
-        // self.source.reader.make_playable();
-        todo!();
-
-        println!("fill me out pls.");
+        (seek_point, to_ready)
     }
 
     /// Creates a read-only copy of the audio track's state.

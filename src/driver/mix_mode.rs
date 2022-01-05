@@ -17,7 +17,7 @@ pub enum MixMode {
 }
 
 impl MixMode {
-    pub(crate) const fn to_opus(&self) -> Channels {
+    pub(crate) const fn to_opus(self) -> Channels {
         use MixMode::*;
         match self {
             Mono => Channels::Mono,
@@ -25,7 +25,7 @@ impl MixMode {
         }
     }
 
-    pub(crate) const fn sample_count_in_frame(&self) -> usize {
+    pub(crate) const fn sample_count_in_frame(self) -> usize {
         use MixMode::*;
         match self {
             Mono => MONO_FRAME_SIZE,
@@ -33,7 +33,7 @@ impl MixMode {
         }
     }
 
-    pub(crate) const fn channels(&self) -> usize {
+    pub(crate) const fn channels(self) -> usize {
         use MixMode::*;
         match self {
             Mono => 1,
@@ -41,7 +41,7 @@ impl MixMode {
         }
     }
 
-    pub(crate) const fn symph_layout(&self) -> Layout {
+    pub(crate) const fn symph_layout(self) -> Layout {
         use MixMode::*;
         match self {
             Mono => Layout::Mono,

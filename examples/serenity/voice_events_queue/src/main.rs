@@ -35,10 +35,7 @@ use serenity::{
 };
 
 use songbird::{
-    input::{
-        self,
-        restartable::Restartable,
-    },
+    input::YoutubeDl,
     Event,
     EventContext,
     EventHandler as VoiceEventHandler,
@@ -350,20 +347,11 @@ async fn play_fade(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let source = match input::ytdl(&url).await {
-            Ok(source) => source,
-            Err(why) => {
-                println!("Err starting source: {:?}", why);
-
-                check_msg(msg.channel_id.say(&ctx.http, "Error sourcing ffmpeg").await);
-
-                return Ok(());
-            },
-        };
+        let src = YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
 
         // This handler object will allow you to, as needed,
         // control the audio track via events and further commands.
-        let song = handler.play_source(source);
+        let song = handler.play_source(src.into());
         let send_http = ctx.http.clone();
         let chan_id = msg.channel_id;
 
@@ -483,18 +471,9 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
         // Here, we use lazy restartable sources to make sure that we don't pay
         // for decoding, playback on tracks which aren't actually live yet.
-        let source = match Restartable::ytdl(url, true).await {
-            Ok(source) => source,
-            Err(why) => {
-                println!("Err starting source: {:?}", why);
+        let src = YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
 
-                check_msg(msg.channel_id.say(&ctx.http, "Error sourcing ffmpeg").await);
-
-                return Ok(());
-            },
-        };
-
-        handler.enqueue_source(source.into());
+        handler.enqueue_source(src.into()).await;
 
         check_msg(
             msg.channel_id

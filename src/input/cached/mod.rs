@@ -6,8 +6,6 @@ mod decompressed;
 mod error;
 mod hint;
 mod memory;
-#[cfg(test)]
-mod tests;
 mod util;
 
 pub(crate) use self::util::*;

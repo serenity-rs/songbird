@@ -69,7 +69,7 @@ impl AsyncAdapterSink {
                     // println!("loopy");
                     if let Ok(n_moved) = self
                         .bytes_in
-                        .write(&mut inner_buf[read_region.start..read_region.end])
+                        .write(&inner_buf[read_region.start..read_region.end])
                     {
                         // println!("copied {} bytes to ring", n_moved);
                         read_region.start += n_moved;

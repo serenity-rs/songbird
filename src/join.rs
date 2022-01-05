@@ -137,6 +137,7 @@ impl Future for JoinGateway {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[pin_project(project = JoinClassProj)]
 enum JoinClass<T: 'static> {
     WithTimeout(#[pin] Timeout<RecvFut<'static, T>>),

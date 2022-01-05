@@ -361,18 +361,6 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         let mut handler = handler_lock.lock().await;
 
         let mut src = songbird::input::YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
-        // src.create_async().await;
-
-        // let source = match songbird::ytdl(&url).await {
-        //     Ok(source) => source,
-        //     Err(why) => {
-        //         println!("Err starting source: {:?}", why);
-
-        //         check_msg(msg.channel_id.say(&ctx.http, "Error sourcing ffmpeg").await);
-
-        //         return Ok(());
-        //     },
-        // };
 
         handler.play_source(src.into());
 

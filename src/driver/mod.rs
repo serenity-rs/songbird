@@ -139,11 +139,6 @@ impl Driver {
     }
 
     /// Plays audio from a source, returning a handle for further control.
-    ///
-    /// This can be a source created via [`ffmpeg`] or [`ytdl`].
-    ///
-    /// [`ffmpeg`]: crate::input::ffmpeg
-    /// [`ytdl`]: crate::input::ytdl
     #[instrument(skip(self, source))]
     pub fn play_source(&mut self, source: Input) -> TrackHandle {
         let (player, handle) = super::create_player(source);
@@ -283,9 +278,9 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn enqueue_source(&mut self, source: Input) {
+    pub async fn enqueue_source(&mut self, source: Input) {
         let (mut track, _) = super::create_player(source);
-        self.queue.add_raw(&mut track);
+        self.queue.add_raw(&mut track).await;
         self.play(track);
     }
 
@@ -294,8 +289,8 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     ///
     /// [`Track`]: crate::tracks::Track
-    pub fn enqueue(&mut self, mut track: Track) {
-        self.queue.add_raw(&mut track);
+    pub async fn enqueue(&mut self, mut track: Track) {
+        self.queue.add_raw(&mut track).await;
         self.play(track);
     }
 }

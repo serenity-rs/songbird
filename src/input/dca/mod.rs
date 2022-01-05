@@ -51,9 +51,6 @@ impl SeekAccel {
     fn update(&mut self, ts: TimeStamp, pos: u64) {
         if ts >= self.next_ts {
             self.next_ts += (self.seek_index_fill_rate as u64) * (SAMPLE_RATE_RAW as u64);
-
-            println!("New cache pos: ts={} pos={}", ts, pos);
-
             self.frame_offsets.push((ts, pos));
         }
     }
@@ -122,43 +119,41 @@ impl FormatReader for DcaReader {
             let metadata: DcaMetadata = serde_json::from_slice::<DcaMetadata>(&raw_json)
                 .map_err(|_| symph_err::Error::DecodeError("malformed DCA1 metadata block"))?;
 
-            println!("META: {:#?}", metadata);
-
             let mut revision = MetadataBuilder::new();
 
             if let Some(info) = metadata.info {
                 if let Some(t) = info.title {
                     revision.add_tag(Tag::new(
                         Some(StandardTagKey::TrackTitle),
-                        "title".into(),
+                        "title",
                         Value::String(t),
                     ));
                 }
                 if let Some(t) = info.album {
                     revision.add_tag(Tag::new(
                         Some(StandardTagKey::Album),
-                        "album".into(),
+                        "album",
                         Value::String(t),
                     ));
                 }
                 if let Some(t) = info.artist {
                     revision.add_tag(Tag::new(
                         Some(StandardTagKey::Artist),
-                        "artist".into(),
+                        "artist",
                         Value::String(t),
                     ));
                 }
                 if let Some(t) = info.genre {
                     revision.add_tag(Tag::new(
                         Some(StandardTagKey::Genre),
-                        "genre".into(),
+                        "genre",
                         Value::String(t),
                     ));
                 }
                 if let Some(t) = info.comments {
                     revision.add_tag(Tag::new(
                         Some(StandardTagKey::Comment),
-                        "comments".into(),
+                        "comments",
                         Value::String(t),
                     ));
                 }
@@ -169,11 +164,7 @@ impl FormatReader for DcaReader {
 
             if let Some(origin) = metadata.origin {
                 if let Some(t) = origin.url {
-                    revision.add_tag(Tag::new(
-                        Some(StandardTagKey::Url),
-                        "url".into(),
-                        Value::String(t),
-                    ));
+                    revision.add_tag(Tag::new(Some(StandardTagKey::Url), "url", Value::String(t)));
                 }
             }
 

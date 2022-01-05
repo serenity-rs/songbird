@@ -74,7 +74,7 @@ impl BlockyTaskPool {
                 self.parse(config, callback, LiveInput::Raw(o), Some(rec), seek_time);
             },
             Err(e) => {
-                let _ = callback.send(MixerInputResultMessage::InputCreateErr(e));
+                let _ = callback.send(MixerInputResultMessage::CreateErr(e));
             },
         }
     }
@@ -96,11 +96,11 @@ impl BlockyTaskPool {
                     if let Some(seek_time) = seek_time {
                         pool_clone.seek(callback, parsed, rec, seek_time, false, config);
                     } else {
-                        let _ = callback.send(MixerInputResultMessage::InputBuilt(parsed, rec));
+                        let _ = callback.send(MixerInputResultMessage::Built(parsed, rec));
                     },
                 Ok(_) => unreachable!(),
                 Err(e) => {
-                    let _ = callback.send(MixerInputResultMessage::InputParseErr(e));
+                    let _ = callback.send(MixerInputResultMessage::ParseErr(e));
                 },
             },
         );
@@ -128,11 +128,14 @@ impl BlockyTaskPool {
                 Err(SymphoniaError::SeekError(SeekErrorKind::ForwardOnly))
             );
 
-            if should_recreate && backseek_needed && rec.is_some() {
-                pool_clone.create(callback, Input::Lazy(rec.unwrap()), Some(seek_time), config);
-            } else {
-                input.decoder.reset();
-                let _ = callback.send(MixerInputResultMessage::InputSeek(input, rec, res));
+            match rec {
+                Some(rec) if should_recreate && backseek_needed => {
+                    pool_clone.create(callback, Input::Lazy(rec), Some(seek_time), config);
+                },
+                _ => {
+                    input.decoder.reset();
+                    let _ = callback.send(MixerInputResultMessage::Seek(input, rec, res));
+                },
             }
         });
     }

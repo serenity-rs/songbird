@@ -130,7 +130,7 @@ impl Compressed {
                         .and_then(|v| v)
                 };
 
-                created.map(|v| LiveInput::Raw(v))
+                created.map(LiveInput::Raw)
             },
             Input::Live(LiveInput::Parsed(_), _) => Err(CocdecCacheError::StreamNotAtStart),
             Input::Live(a, _rec) => Ok(a),

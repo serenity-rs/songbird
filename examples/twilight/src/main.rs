@@ -22,7 +22,7 @@
 
 use futures::StreamExt;
 use songbird::{
-    input::{Input, Restartable},
+    input::{Compose, YoutubeDl},
     tracks::{PlayMode, TrackHandle},
     Songbird,
 };
@@ -188,18 +188,15 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 
     let guild_id = msg.guild_id.unwrap();
 
-    if let Ok(song) = Restartable::ytdl(msg.content.clone(), false).await {
-        let input = Input::from(song);
-
+    let mut src = YoutubeDl::new(reqwest::Client::new(), msg.content.clone());
+    if let Ok(metadata) = src.aux_metadata().await {
         let content = format!(
             "Playing **{:?}** by **{:?}**",
-            input
-                .metadata
+            metadata
                 .track
                 .as_ref()
                 .unwrap_or(&"<UNKNOWN>".to_string()),
-            input
-                .metadata
+            metadata
                 .artist
                 .as_ref()
                 .unwrap_or(&"<UNKNOWN>".to_string()),
@@ -214,7 +211,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 
         if let Some(call_lock) = state.songbird.get(guild_id) {
             let mut call = call_lock.lock().await;
-            let handle = call.play_source(input);
+            let handle = call.play_source(src.into());
 
             let mut store = state.trackdata.write().await;
             store.insert(guild_id, handle);

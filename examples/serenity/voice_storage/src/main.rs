@@ -29,9 +29,9 @@ use serenity::{
 use songbird::{
     driver::Bitrate,
     input::{
-        self,
         cached::{Compressed, Memory},
         Input,
+        File,
     },
     Call,
     Event,
@@ -118,15 +118,15 @@ async fn main() {
         // ahead of time. We do this in both cases to ensure optimal performance for the audio
         // core.
         let ting_src = Memory::new(
-            input::ffmpeg("ting.wav").await.expect("File should be in root folder."),
-        ).expect("These parameters are well-defined.");
+            File::new("ting.wav").into(),
+        ).await.expect("These parameters are well-defined.");
         let _ = ting_src.raw.spawn_loader();
         audio_map.insert("ting".into(), CachedSound::Uncompressed(ting_src));
 
         // Another short sting, to show where each loop occurs.
         let loop_src = Memory::new(
-            input::ffmpeg("loop.wav").await.expect("File should be in root folder."),
-        ).expect("These parameters are well-defined.");
+            File::new("loop.wav").into(),
+        ).await.expect("These parameters are well-defined.");
         let _ = loop_src.raw.spawn_loader();
         audio_map.insert("loop".into(), CachedSound::Uncompressed(loop_src));
 
@@ -136,18 +136,18 @@ async fn main() {
         //
         // Music by Cloudkicker, used under CC BY-SC-SA 3.0 (https://creativecommons.org/licenses/by-nc-sa/3.0/).
         let song_src = Compressed::new(
-                input::ffmpeg("Cloudkicker_-_Loops_-_22_2011_07.mp3").await.expect("Link may be dead."),
+                File::new("Cloudkicker_-_Loops_-_22_2011_07.mp3").into(),
                 Bitrate::BitsPerSecond(128_000),
-            ).expect("These parameters are well-defined.");
+            ).await.expect("These parameters are well-defined.");
         let _ = song_src.raw.spawn_loader();
 
+        // Compressed sources are internally stored as DCA1 format files.
+        // Because `Compressed` implement `std::io::Read`, we can save these
+        // to disk and use them again later if we want!
         let mut creator = song_src.new_handle();
         std::thread::spawn(move || {
-            let mut f1 = std::fs::File::create("ckick-dca0.dca").unwrap();
-            creator.write_dca0(f1).unwrap();
-
-            let mut f2 = std::fs::File::create("ckick-dca1.dca").unwrap();
-            creator.write_dca(f2).unwrap();
+            let mut out_file = std::fs::File::create("ckick-dca1.dca").unwrap();
+            std::io::copy(&mut creator, &mut out_file).expect("Error writing out song!");
         });
 
         audio_map.insert("song".into(), CachedSound::Compressed(song_src));

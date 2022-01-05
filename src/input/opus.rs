@@ -28,10 +28,10 @@ pub struct OpusDecoder {
 
 impl OpusDecoder {
     fn decode_inner(&mut self, packet: &Packet) -> SymphResult<()> {
-        let pkt = if packet.buf().len() == 0 {
+        let pkt = if packet.buf().is_empty() {
             None
         } else {
-            Some(&packet.buf()[..])
+            Some(packet.buf())
         };
 
         let s_ct = loop {

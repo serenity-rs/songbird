@@ -31,8 +31,10 @@
 mod adapter;
 pub mod cached;
 mod child;
+mod compose;
 mod dca;
-pub mod error;
+mod error;
+mod file;
 mod http;
 mod metadata;
 mod opus;
@@ -43,9 +45,12 @@ mod ytdl;
 pub use self::{
     adapter::*,
     child::*,
+    compose::*,
     dca::DcaReader,
+    error::*,
+    file::*,
     http::*,
-    metadata::Metadata,
+    metadata::AuxMetadata,
     opus::*,
     ytdl::*,
 };
@@ -53,14 +58,7 @@ pub use self::{
 /// TODO: explain the role of symph.
 pub use symphonia_core as core;
 
-use std::{
-    error::Error as StdError,
-    fmt::Display,
-    io::Result as IoResult,
-    path::Path,
-    result::Result as StdResult,
-    time::Duration,
-};
+use std::io::Result as IoResult;
 use symphonia_core::{
     codecs::{CodecRegistry, Decoder},
     errors::Error as SymphError,
@@ -92,7 +90,7 @@ pub enum LiveInput {
 
 #[allow(missing_docs)]
 impl LiveInput {
-    pub fn promote(self, codecs: &CodecRegistry, probe: &Probe) -> StdResult<Self, SymphError> {
+    pub fn promote(self, codecs: &CodecRegistry, probe: &Probe) -> Result<Self, SymphError> {
         let mut out = self;
 
         if let LiveInput::Raw(r) = out {
@@ -148,108 +146,10 @@ impl LiveInput {
     }
 }
 
-// TODO: add an optional mechanism to query lightweight metadata?
-// i.e., w/o instantiating track.
-#[allow(missing_docs)]
-#[async_trait::async_trait]
-pub trait Compose: Send {
-    /// Create a source synchronously.
-    fn create(
-        &mut self,
-    ) -> std::result::Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError>;
-    /// Create a source asynchronously.
-    async fn create_async(
-        &mut self,
-    ) -> std::result::Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError>;
-    /// Hmm.
-    fn should_create_async(&self) -> bool;
-}
-
-#[allow(missing_docs)]
-pub struct File<P: AsRef<Path>> {
-    path: P,
-}
-
-#[allow(missing_docs)]
-impl<P: AsRef<Path>> File<P> {
-    pub fn new(path: P) -> Self {
-        Self { path }
-    }
-}
-
-impl<P: AsRef<Path> + Send + Sync + 'static> From<File<P>> for Input {
-    fn from(val: File<P>) -> Self {
-        Input::Lazy(Box::new(val))
-    }
-}
-
-#[async_trait::async_trait]
-impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
-    fn create(
-        &mut self,
-    ) -> std::result::Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-        let err: Box<dyn StdError + Send + Sync> =
-            "Files should be created asynchronously.".to_string().into();
-        Err(AudioStreamError::Fail(err))
-    }
-
-    async fn create_async(
-        &mut self,
-    ) -> std::result::Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-        let file = tokio::fs::File::open(&self.path)
-            .await
-            .map_err(|io| AudioStreamError::Fail(Box::new(io)))?;
-
-        let input = Box::new(file.into_std().await);
-
-        let mut hint = Hint::default();
-        if let Some(ext) = self.path.as_ref().extension().and_then(|s| s.to_str()) {
-            hint.with_extension(ext);
-        }
-
-        Ok(AudioStream {
-            input,
-            hint: Some(hint),
-        })
-    }
-
-    fn should_create_async(&self) -> bool {
-        true
-    }
-}
-
 #[allow(missing_docs)]
 pub struct AudioStream<T: Send> {
     pub input: T,
     pub hint: Option<Hint>,
-}
-
-#[allow(missing_docs)]
-#[non_exhaustive]
-#[derive(Debug)]
-pub enum AudioStreamError {
-    RetryIn(Duration),
-    Fail(Box<dyn StdError + Send>),
-}
-
-impl Display for AudioStreamError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("failed to create audio -- ")?;
-        match self {
-            Self::RetryIn(t) => f.write_fmt(format_args!("retry in {:.2}s", t.as_secs_f32())),
-            Self::Fail(why) => f.write_fmt(format_args!("{}", why)),
-        }
-    }
-}
-
-impl StdError for AudioStreamError {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        None
-    }
-
-    fn cause(&self) -> Option<&dyn StdError> {
-        self.source()
-    }
 }
 
 #[allow(missing_docs)]

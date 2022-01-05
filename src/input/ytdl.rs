@@ -1,20 +1,20 @@
 #![allow(missing_docs)]
 
-use super::HttpRequest;
+use super::{AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input};
 
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::Value;
+use std::error::Error;
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
-
-use super::{AudioStreamError, Compose, Input};
 
 const YOUTUBE_DL_COMMAND: &str = "yt-dlp";
 
 pub struct YoutubeDl {
     program: &'static str,
     client: Client,
+    metadata: Option<AuxMetadata>,
     url: String,
 }
 
@@ -27,26 +27,12 @@ impl YoutubeDl {
         Self {
             program,
             client,
+            metadata: None,
             url,
         }
     }
-}
 
-impl From<YoutubeDl> for Input {
-    fn from(val: YoutubeDl) -> Self {
-        Input::Lazy(Box::new(val))
-    }
-}
-
-#[async_trait]
-impl Compose for YoutubeDl {
-    fn create(&mut self) -> Result<super::AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-        unimplemented!()
-    }
-
-    async fn create_async(
-        &mut self,
-    ) -> Result<super::AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
+    async fn query(&mut self) -> Result<Value, AudioStreamError> {
         let ytdl_args = [
             "-j",
             &self.url,
@@ -63,12 +49,36 @@ impl Compose for YoutubeDl {
         let stdout: Value = serde_json::from_slice(&output.stdout[..])
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
+        let metadata = Some(AuxMetadata::from_ytdl_output(&stdout));
+        self.metadata = metadata;
+
+        Ok(stdout)
+    }
+}
+
+impl From<YoutubeDl> for Input {
+    fn from(val: YoutubeDl) -> Self {
+        Input::Lazy(Box::new(val))
+    }
+}
+
+#[async_trait]
+impl Compose for YoutubeDl {
+    fn create(&mut self) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
+        Err(AudioStreamError::Unsupported)
+    }
+
+    async fn create_async(
+        &mut self,
+    ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
+        let stdout = self.query().await?;
+
         let url = stdout
             .as_object()
             .and_then(|top| top.get("url"))
             .and_then(|url| url.as_str())
             .ok_or_else(|| {
-                let msg: Box<dyn std::error::Error + Send + Sync + 'static> =
+                let msg: Box<dyn Error + Send + Sync + 'static> =
                     "URL field not found on youtube-dl output.".into();
                 AudioStreamError::Fail(msg)
             })?;
@@ -90,5 +100,19 @@ impl Compose for YoutubeDl {
 
     fn should_create_async(&self) -> bool {
         true
+    }
+
+    async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
+        if let Some(meta) = self.metadata.as_ref() {
+            return Ok(meta.clone());
+        }
+
+        let _ = self.query().await?;
+
+        self.metadata.clone().ok_or_else(|| {
+            let msg: Box<dyn Error + Send + Sync + 'static> =
+                "Failed to instansiate any metadata... Should be unreachable.".into();
+            AudioStreamError::Fail(msg)
+        })
     }
 }

@@ -62,7 +62,7 @@ impl Compose for HttpRequest {
     fn create(
         &mut self,
     ) -> Result<super::AudioStream<Box<dyn MediaSource>>, super::AudioStreamError> {
-        unimplemented!()
+        Err(AudioStreamError::Unsupported)
     }
 
     async fn create_async(

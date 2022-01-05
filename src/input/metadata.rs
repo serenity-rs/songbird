@@ -2,12 +2,13 @@ use crate::constants::*;
 use serde_json::Value;
 use std::time::Duration;
 
-/// Information about an [`Input`] source.
+/// Extra information about an [`Input`] source which is acquired without
+/// parsing the file itself (e.g., from a webpage).
 ///
 /// [`Input`]: crate::input::Input
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Metadata {
-    /// The track of this stream.
+pub struct AuxMetadata {
+    /// The track name of this stream.
     pub track: Option<String>,
     /// The main artist of this stream.
     pub artist: Option<String>,
@@ -15,8 +16,6 @@ pub struct Metadata {
     pub date: Option<String>,
 
     /// The number of audio channels in this stream.
-    ///
-    /// Any number `>= 2` is treated as stereo.
     pub channels: Option<u8>,
     /// The YouTube channel of this stream.
     pub channel: Option<String>,
@@ -36,9 +35,8 @@ pub struct Metadata {
     pub thumbnail: Option<String>,
 }
 
-impl Metadata {
-    /// Extract metadata and details from the output of
-    /// `ffprobe`.
+impl AuxMetadata {
+    /// Extract metadata and details from the output of `ffprobe`.
     pub fn from_ffprobe_json(value: &Value) -> Self {
         let format = value.as_object().and_then(|m| m.get("format"));
 
@@ -106,7 +104,7 @@ impl Metadata {
     }
 
     /// Use `youtube-dl`'s JSON output for metadata for an online resource.
-    pub fn from_ytdl_output(value: Value) -> Self {
+    pub fn from_ytdl_output(value: &Value) -> Self {
         let obj = value.as_object();
 
         let track = obj

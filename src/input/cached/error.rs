@@ -28,7 +28,7 @@ impl From<CatcherError> for Error {
 }
 
 impl From<JoinError> for Error {
-    fn from(val: JoinError) -> Self {
+    fn from(_val: JoinError) -> Self {
         Self::CreatePanicked
     }
 }
@@ -58,7 +58,7 @@ impl From<CatcherError> for CocdecCacheError {
 }
 
 impl From<JoinError> for CocdecCacheError {
-    fn from(val: JoinError) -> Self {
+    fn from(_val: JoinError) -> Self {
         Self::CreatePanicked
     }
 }

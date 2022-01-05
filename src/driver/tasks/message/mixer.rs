@@ -44,12 +44,12 @@ pub enum MixerMessage {
 }
 
 pub enum MixerInputResultMessage {
-    InputCreateErr(AudioStreamError),
-    InputParseErr(SymphoniaError),
-    InputSeek(
+    CreateErr(AudioStreamError),
+    ParseErr(SymphoniaError),
+    Seek(
         Parsed,
         Option<Box<dyn Compose>>,
         Result<SeekedTo, SymphoniaError>,
     ),
-    InputBuilt(Parsed, Option<Box<dyn Compose>>),
+    Built(Parsed, Option<Box<dyn Compose>>),
 }

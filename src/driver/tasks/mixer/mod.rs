@@ -9,7 +9,7 @@ use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
     driver::MixMode,
-    input::{AudioStreamError, Compose, Input, LiveInput, Parsed},
+    input::{Compose, Input, LiveInput, Parsed},
     tracks::{PlayMode, Track},
     Config,
 };
@@ -32,13 +32,12 @@ use symphonia_core::{
     audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal, SignalSpec},
     codecs::CODEC_TYPE_OPUS,
     conv::IntoSample,
-    errors::Error as SymphoniaError,
     formats::SeekTo,
     sample::Sample,
     units::Time,
 };
 use tokio::runtime::Handle;
-use tracing::{debug, error, instrument};
+use tracing::{debug, error, instrument, warn};
 use xsalsa20poly1305::TAG_SIZE;
 
 pub struct Mixer {
@@ -258,11 +257,7 @@ impl Mixer {
         use MixerMessage::*;
 
         let error = match msg {
-            AddTrack(t) => {
-                // todo!();
-                // t.source.prep_with_handle(self.async_handle.clone());
-                self.add_track(t)
-            },
+            AddTrack(t) => self.add_track(t),
             SetTrack(t) => {
                 self.tracks.clear();
 
@@ -462,38 +457,71 @@ impl Mixer {
             // but if the event thread has died then we'll certainly
             // detect that on the tick later.
             // Changes to play state etc. MUST all be handled.
-            let maybe_seek = track.process_commands(i, &self.interconnect);
+            let (maybe_seek, ready_now) = track.process_commands(i, &self.interconnect);
 
             if let Some(time) = maybe_seek {
                 let full_input = &mut self.full_inputs[i];
-                if let InputState::Ready(p, rec) = full_input {
-                    let time = Time::from(time.as_secs_f64());
-                    let ts = SeekTo::Time {
-                        time,
-                        track_id: Some(p.track_id),
-                    };
+                let time = Time::from(time.as_secs_f64());
+                let mut ts = SeekTo::Time {
+                    time,
+                    track_id: None,
+                };
+                let (tx, rx) = flume::bounded(1);
 
-                    let (tx, rx) = flume::bounded(1);
-                    let mut new_state = InputState::Preparing(PreparingInfo {
-                        time: Instant::now(),
-                        callback: rx,
-                    });
+                let queued_seek = if matches!(full_input, InputState::Preparing(_)) {
+                    Some(util::copy_seek_to(&ts))
+                } else {
+                    None
+                };
 
-                    std::mem::swap(full_input, &mut new_state);
+                let mut new_state = InputState::Preparing(PreparingInfo {
+                    time: Instant::now(),
+                    callback: rx,
+                    queued_seek,
+                });
 
-                    match new_state {
-                        InputState::NotReady(lazy) => {
-                            unimplemented!()
-                        },
-                        InputState::Preparing(_) => {
-                            unimplemented!()
-                        },
-                        InputState::Ready(p, r) => {
-                            self.thread_pool
-                                .seek(tx, p, r, ts, true, self.config.clone());
-                        },
-                    }
+                std::mem::swap(full_input, &mut new_state);
+
+                match new_state {
+                    InputState::Ready(p, r) => {
+                        if let SeekTo::Time { time: _, track_id } = &mut ts {
+                            *track_id = Some(p.track_id);
+                        }
+
+                        self.thread_pool
+                            .seek(tx, p, r, ts, true, self.config.clone());
+                    },
+                    InputState::Preparing(old_prep) => {
+                        // Annoying case: we need to mem_swap for the other two cases,
+                        // but here we don't want to.
+                        // new_state contains the old request now, so we want to move its
+                        // callback and time *back* into self.full_inputs[i].
+                        if let InputState::Preparing(new_prep) = full_input {
+                            new_prep.callback = old_prep.callback;
+                            new_prep.time = old_prep.time;
+                        } else {
+                            unreachable!()
+                        }
+                    },
+                    InputState::NotReady(lazy) =>
+                        self.thread_pool
+                            .create(tx, lazy, Some(ts), self.config.clone()),
                 }
+            }
+
+            if ready_now {
+                let full_input = &mut self.full_inputs[i];
+                let local_state = &mut self.input_states[i];
+                let _ = get_or_ready_input(
+                    full_input,
+                    local_state,
+                    track,
+                    i,
+                    &self.interconnect,
+                    &self.thread_pool,
+                    &self.config,
+                    self.prevent_events,
+                );
             }
         }
 
@@ -719,12 +747,13 @@ pub enum InputState {
 pub struct PreparingInfo {
     #[allow(dead_code)]
     time: Instant,
+    queued_seek: Option<SeekTo>,
     callback: Receiver<MixerInputResultMessage>,
 }
 
 pub struct LocalInput {
     inner_pos: usize,
-    resampler: Option<FftFixedOut<f32>>,
+    resampler: Option<(usize, FftFixedOut<f32>)>,
     passthrough: Passthrough,
 }
 
@@ -797,7 +826,7 @@ fn mix_symph_indiv(
         if source_packet.is_none() {
             if buf_in_progress {
                 // fill up buf with zeroes, resample, mix
-                let resampler = local_state.resampler.as_mut().unwrap();
+                let (chan_c, resampler) = local_state.resampler.as_mut().unwrap();
                 let in_len = resample_scratch.frames();
                 let to_render = resampler.nbr_frames_needed().saturating_sub(in_len);
 
@@ -812,7 +841,7 @@ fn mix_symph_indiv(
 
                 // Luckily, we make use of the WHOLE input buffer here.
                 let resampled = resampler
-                    .process(resample_scratch.planes().planes())
+                    .process(&resample_scratch.planes().planes()[..*chan_c])
                     .unwrap();
 
                 // Calculate true end position using sample rate math
@@ -835,13 +864,16 @@ fn mix_symph_indiv(
         if in_rate != SAMPLE_RATE_RAW as u32 {
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels.count();
-            let resampler = local_state.resampler.get_or_insert_with(|| {
-                FftFixedOut::new(
-                    in_rate as usize,
-                    SAMPLE_RATE_RAW,
-                    RESAMPLE_OUTPUT_FRAME_SIZE,
-                    4,
+            let (_, resampler) = local_state.resampler.get_or_insert_with(|| {
+                (
                     chan_c,
+                    FftFixedOut::new(
+                        in_rate as usize,
+                        SAMPLE_RATE_RAW,
+                        RESAMPLE_OUTPUT_FRAME_SIZE,
+                        4,
+                        chan_c,
+                    ),
                 )
             });
 
@@ -904,7 +936,7 @@ fn mix_symph_indiv(
                     continue;
                 } else {
                     let out = resampler
-                        .process(resample_scratch.planes().planes())
+                        .process(&resample_scratch.planes().planes()[..chan_c])
                         .unwrap();
                     resample_scratch.clear();
                     buf_in_progress = false;
@@ -986,7 +1018,7 @@ where
 
     if source_mono {
         let source_plane = source_raw_planes[0];
-        for d_plane in (&mut target.planes_mut().planes()[..]).iter_mut() {
+        for d_plane in (&mut *target.planes_mut().planes()).iter_mut() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane[source_pos..source_pos + mix_ct].iter())
@@ -1007,7 +1039,7 @@ where
             }
         }
     } else {
-        for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
+        for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
             .iter_mut()
             .zip(source_raw_planes[..].iter())
         {
@@ -1025,7 +1057,7 @@ where
 
 #[inline]
 fn mix_resampled(
-    source: &Vec<Vec<f32>>,
+    source: &[Vec<f32>],
     target: &mut AudioBuffer<f32>,
     dest_pos: usize,
     volume: f32,
@@ -1039,7 +1071,7 @@ fn mix_resampled(
 
     if source_mono {
         let source_plane = &source[0];
-        for d_plane in (&mut target.planes_mut().planes()[..]).iter_mut() {
+        for d_plane in (&mut *target.planes_mut().planes()).iter_mut() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane)
@@ -1057,7 +1089,7 @@ fn mix_resampled(
             }
         }
     } else {
-        for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
+        for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
             .iter_mut()
             .zip(source[..].iter())
         {
@@ -1105,7 +1137,7 @@ fn copy_symph_buffer<S>(
 where
     S: Sample + IntoSample<f32>,
 {
-    for (d_plane, s_plane) in (&mut target.planes_mut().planes()[..])
+    for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
         .iter_mut()
         .zip(source.planes().planes()[..].iter())
     {
@@ -1120,7 +1152,9 @@ where
     len
 }
 
+// TODO: make on &mut self?
 #[inline]
+#[allow(clippy::too_many_arguments)]
 fn mix_tracks<'a>(
     opus_frame: &'a mut [u8],
     symph_mix: &mut AudioBuffer<f32>,
@@ -1170,19 +1204,19 @@ fn mix_tracks<'a>(
             Ok(i) => i,
             Err(InputReadyingError::Waiting) => continue,
             // TODO: allow for retry in given time.
-            Err(e) => {
+            Err(_e) => {
                 track.end();
                 continue;
             },
         };
 
         let opus_slot = if do_passthrough {
-            Some(&mut opus_frame[..])
+            Some(&mut *opus_frame)
         } else {
             None
         };
 
-        let (mix_type, status) =
+        let (mix_type, _status) =
             mix_symph_indiv(symph_mix, symph_scratch, input, local_state, vol, opus_slot);
 
         // FIXME: allow Ended to trigger a seek/loop/revisit in the same mix cycle?
@@ -1191,6 +1225,13 @@ fn mix_tracks<'a>(
             track.step_frame();
         } else if track.do_loop() {
             let _ = track.handle.seek_time(Default::default());
+            if !prevent_events {
+                // position update is sent out later, when the seek concludes.
+                let _ = interconnect.events.send(EventMessage::ChangeState(
+                    i,
+                    TrackStateChange::Loops(track.loops, false),
+                ));
+            }
         } else {
             track.end();
         }
@@ -1212,9 +1253,11 @@ fn mix_tracks<'a>(
     MixType::MixedPcm(len)
 }
 
+// TODO: make on &mut self?
 /// Readies the requested input state.
 ///
 /// Returns the usable version of the audio if available, and whether the track should be deleted.
+#[allow(clippy::too_many_arguments)]
 fn get_or_ready_input<'a, 'b, 'c>(
     input: &'a mut InputState,
     local: &'b mut LocalInput,
@@ -1228,11 +1271,12 @@ fn get_or_ready_input<'a, 'b, 'c>(
     use InputReadyingError::*;
 
     match input {
-        InputState::NotReady(r) => {
+        InputState::NotReady(_) => {
             let (tx, rx) = flume::bounded(1);
 
             let mut state = InputState::Preparing(PreparingInfo {
                 time: Instant::now(),
+                queued_seek: None,
                 callback: rx,
             });
 
@@ -1251,8 +1295,10 @@ fn get_or_ready_input<'a, 'b, 'c>(
             Err(Waiting)
         },
         InputState::Preparing(info) => {
-            match info.callback.try_recv() {
-                Ok(MixerInputResultMessage::InputBuilt(parsed, rec)) => {
+            let queued_seek = info.queued_seek.take();
+
+            let orig_out = match info.callback.try_recv() {
+                Ok(MixerInputResultMessage::Built(parsed, rec)) => {
                     *input = InputState::Ready(parsed, rec);
                     local.reset();
 
@@ -1262,7 +1308,7 @@ fn get_or_ready_input<'a, 'b, 'c>(
                         unreachable!()
                     }
                 },
-                Ok(MixerInputResultMessage::InputSeek(parsed, rec, seek_res)) => {
+                Ok(MixerInputResultMessage::Seek(parsed, rec, seek_res)) => {
                     match seek_res {
                         Ok(pos) => {
                             let time_base =
@@ -1297,21 +1343,21 @@ fn get_or_ready_input<'a, 'b, 'c>(
                     }
                 },
                 Err(TryRecvError::Empty) => Err(Waiting),
-                Ok(MixerInputResultMessage::InputCreateErr(e)) => Err(Creation(e)),
-                Ok(MixerInputResultMessage::InputParseErr(e)) => Err(Parsing(e)),
+                Ok(MixerInputResultMessage::CreateErr(e)) => Err(Creation(e)),
+                Ok(MixerInputResultMessage::ParseErr(e)) => Err(Parsing(e)),
                 Err(TryRecvError::Disconnected) => Err(Dropped),
+            };
+
+            match (orig_out, queued_seek) {
+                (Ok(v), Some(_time)) => {
+                    warn!("Track was given seek command while busy: handling not impl'd yet.");
+                    Ok(v)
+                },
+                (a, _) => a,
             }
         },
         InputState::Ready(parsed, _) => Ok(parsed),
     }
-}
-
-enum InputReadyingError {
-    Parsing(SymphoniaError),
-    Creation(AudioStreamError),
-    Seeking(SymphoniaError),
-    Dropped,
-    Waiting,
 }
 
 /// The mixing thread is a synchronous context due to its compute-bound nature.
