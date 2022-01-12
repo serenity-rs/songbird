@@ -20,7 +20,15 @@ use tracing::debug;
 #[derive(Debug)]
 pub struct ChildContainer(Vec<Child>);
 
-pub(crate) fn children_to_reader<T>(children: Vec<Child>) -> Reader {
+impl ChildContainer {
+    /// Create a new [`ChildContainer`] from a child process
+    pub fn new(children: Vec<Child>) -> Self {
+        Self(children)
+    }
+}
+
+/// Create a [`Reader`] from a child process
+pub fn children_to_reader<T>(children: Vec<Child>) -> Reader {
     Reader::Pipe(BufReader::with_capacity(
         STEREO_FRAME_SIZE * mem::size_of::<T>() * CHILD_BUFFER_LEN,
         ChildContainer(children),
