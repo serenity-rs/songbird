@@ -87,7 +87,7 @@ impl Songbird {
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    pub fn twilight<U>(cluster: Cluster, user_id: U) -> Self
+    pub fn twilight<U>(cluster: Arc<Cluster>, user_id: U) -> Self
     where
         U: Into<UserId>,
     {
@@ -102,7 +102,7 @@ impl Songbird {
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    pub fn twilight_from_config<U>(cluster: Cluster, user_id: U, config: Config) -> Self
+    pub fn twilight_from_config<U>(cluster: Arc<Cluster>, user_id: U, config: Config) -> Self
     where
         U: Into<UserId>,
     {
@@ -117,7 +117,7 @@ impl Songbird {
                 user_id: user_id.into(),
             }),
             calls: Default::default(),
-            sharder: Sharder::Twilight(cluster),
+            sharder: Sharder::TwilightCluster(cluster),
             config: Some(config).into(),
         }
     }
@@ -378,7 +378,7 @@ impl Songbird {
                 }
             },
             TwilightEvent::VoiceStateUpdate(v) => {
-                if v.0.user_id.0 != self.client_data.read().user_id.0 {
+                if v.0.user_id.0.get() != self.client_data.read().user_id.0 {
                     return;
                 }
 
