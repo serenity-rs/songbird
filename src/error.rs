@@ -7,7 +7,7 @@ use serenity::gateway::InterMessage;
 #[cfg(feature = "gateway-core")]
 use std::{error::Error, fmt};
 #[cfg(feature = "twilight")]
-use twilight_gateway::shard::CommandError;
+use twilight_gateway::{cluster::ClusterCommandError, shard::CommandError};
 
 #[cfg(feature = "gateway-core")]
 #[derive(Debug)]
@@ -36,6 +36,10 @@ pub enum JoinError {
     ///
     /// [the `Call`'s configuration]: crate::Config
     TimedOut,
+    /// The given guild ID was zero.
+    IllegalGuild,
+    /// The given channel ID was zero.
+    IllegalChannel,
     #[cfg(feature = "driver-core")]
     /// The driver failed to establish a voice connection.
     ///
@@ -46,8 +50,11 @@ pub enum JoinError {
     /// Serenity-specific WebSocket send error.
     Serenity(TrySendError<InterMessage>),
     #[cfg(feature = "twilight")]
-    /// Twilight-specific WebSocket send error.
-    Twilight(CommandError),
+    /// Twilight-specific WebSocket send error returned when using a shard cluster.
+    TwilightCluster(ClusterCommandError),
+    #[cfg(feature = "twilight")]
+    /// Twilight-specific WebSocket send error when explicitly using a single shard.
+    TwilightShard(CommandError),
 }
 
 #[cfg(feature = "gateway-core")]
@@ -84,12 +91,16 @@ impl fmt::Display for JoinError {
             JoinError::NoSender => write!(f, "no gateway destination"),
             JoinError::NoCall => write!(f, "tried to leave a non-existent call"),
             JoinError::TimedOut => write!(f, "gateway response from Discord timed out"),
+            JoinError::IllegalGuild => write!(f, "target guild ID was zero"),
+            JoinError::IllegalChannel => write!(f, "target channel ID was zero"),
             #[cfg(feature = "driver-core")]
             JoinError::Driver(_) => write!(f, "establishing connection failed"),
             #[cfg(feature = "serenity")]
             JoinError::Serenity(e) => e.fmt(f),
             #[cfg(feature = "twilight")]
-            JoinError::Twilight(e) => e.fmt(f),
+            JoinError::TwilightCluster(e) => e.fmt(f),
+            #[cfg(feature = "twilight")]
+            JoinError::TwilightShard(e) => e.fmt(f),
         }
     }
 }
@@ -102,12 +113,16 @@ impl Error for JoinError {
             JoinError::NoSender => None,
             JoinError::NoCall => None,
             JoinError::TimedOut => None,
+            JoinError::IllegalGuild => None,
+            JoinError::IllegalChannel => None,
             #[cfg(feature = "driver-core")]
             JoinError::Driver(e) => Some(e),
             #[cfg(feature = "serenity")]
             JoinError::Serenity(e) => e.source(),
             #[cfg(feature = "twilight")]
-            JoinError::Twilight(e) => e.source(),
+            JoinError::TwilightCluster(e) => e.source(),
+            #[cfg(feature = "twilight")]
+            JoinError::TwilightShard(e) => e.source(),
         }
     }
 }
@@ -122,7 +137,14 @@ impl From<TrySendError<InterMessage>> for JoinError {
 #[cfg(all(feature = "twilight", feature = "gateway-core"))]
 impl From<CommandError> for JoinError {
     fn from(e: CommandError) -> Self {
-        JoinError::Twilight(e)
+        JoinError::TwilightShard(e)
+    }
+}
+
+#[cfg(all(feature = "twilight", feature = "gateway-core"))]
+impl From<ClusterCommandError> for JoinError {
+    fn from(e: ClusterCommandError) -> Self {
+        JoinError::TwilightCluster(e)
     }
 }
 

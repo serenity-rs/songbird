@@ -65,6 +65,7 @@ async fn _dca(path: &OsStr) -> Result<Input, DcaError> {
     ))
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub(crate) struct DcaMetadata {
     pub(crate) dca: Dca,
@@ -74,12 +75,14 @@ pub(crate) struct DcaMetadata {
     pub(crate) extra: Option<serde_json::Value>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub(crate) struct Dca {
     pub(crate) version: u64,
     pub(crate) tool: Tool,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub(crate) struct Tool {
     pub(crate) name: String,
@@ -88,6 +91,7 @@ pub(crate) struct Tool {
     pub(crate) author: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub(crate) struct Opus {
     pub(crate) mode: String,
@@ -98,6 +102,7 @@ pub(crate) struct Opus {
     pub(crate) channels: u8,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub(crate) struct Info {
     pub(crate) title: Option<String>,
@@ -107,6 +112,7 @@ pub(crate) struct Info {
     pub(crate) cover: Option<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub(crate) struct Origin {
     pub(crate) source: Option<String>,
