@@ -5,11 +5,10 @@ use crate::{
     id::{ChannelId, GuildId, UserId},
     info::{ConnectionInfo, ConnectionProgress},
     join::*,
-    shards::Shard,
+    shards::{Shard, VoiceUpdate},
     Config,
 };
 use flume::Sender;
-use serde_json::json;
 use std::fmt::Debug;
 use tracing::instrument;
 
@@ -448,17 +447,13 @@ impl Call {
     #[instrument(skip(self))]
     async fn update(&mut self) -> JoinResult<()> {
         if let Some(ws) = self.ws.as_mut() {
-            let map = json!({
-                "op": 4,
-                "d": {
-                    "channel_id": self.connection.as_ref().map(|c| c.0.channel_id().0),
-                    "guild_id": self.guild_id.0,
-                    "self_deaf": self.self_deaf,
-                    "self_mute": self.self_mute,
-                }
-            });
-
-            ws.send(map).await
+            ws.update_voice_state(
+                self.guild_id,
+                self.connection.as_ref().map(|c| c.0.channel_id()),
+                self.self_deaf,
+                self.self_mute,
+            )
+            .await
         } else {
             Err(JoinError::NoSender)
         }

@@ -13,6 +13,7 @@ repository = "https://github.com/serenity-rs/songbird.git"
 version = "0.2.2"
 
 [dependencies]
+derivative = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = { version = "0.1", features = ["log"] }
@@ -104,12 +105,12 @@ default-features = false
 
 [dependencies.twilight-gateway]
 optional = true
-version = ">=0.5, <0.7"
+version = "0.8"
 default-features = false
 
 [dependencies.twilight-model]
 optional = true
-version = ">=0.5, <0.7"
+version = "0.8"
 default-features = false
 
 [dependencies.typemap_rev]
