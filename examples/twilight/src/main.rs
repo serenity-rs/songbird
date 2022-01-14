@@ -30,14 +30,13 @@ use std::{collections::HashMap, env, error::Error, future::Future, sync::Arc};
 use tokio::sync::RwLock;
 use twilight_gateway::{Cluster, Event, Intents};
 use twilight_http::Client as HttpClient;
-use twilight_model::{channel::Message, gateway::payload::MessageCreate, id::GuildId};
+use twilight_model::{channel::Message, gateway::payload::incoming::MessageCreate, id::GuildId};
 use twilight_standby::Standby;
 
 type State = Arc<StateRef>;
 
 #[derive(Debug)]
 struct StateRef {
-    cluster: Cluster,
     http: HttpClient,
     trackdata: RwLock<HashMap<GuildId, TrackHandle>>,
     songbird: Songbird,
@@ -69,12 +68,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         let (cluster, events) = Cluster::new(token, intents).await?;
         cluster.up().await;
 
-        let songbird = Songbird::twilight(cluster.clone(), user_id);
+        let songbird = Songbird::twilight(Arc::new(cluster), user_id);
 
         (
             events,
             Arc::new(StateRef {
-                cluster,
                 http,
                 trackdata: Default::default(),
                 songbird,

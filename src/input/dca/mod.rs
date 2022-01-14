@@ -84,6 +84,8 @@ impl FormatReader for DcaReader {
         // Read in the magic number to verify it's a DCA file.
         let magic = source.read_quad_bytes()?;
 
+        // FIXME: make use of the new options.enable_gapless to apply the opus coder delay.
+
         let read_meta = match &magic {
             b"DCA1" => true,
             _ if &magic[..3] == b"DCA" => {
@@ -237,8 +239,8 @@ impl FormatReader for DcaReader {
         }
 
         while let Ok(pkt) = self.next_packet() {
-            let pts = pkt.pts();
-            let dur = pkt.duration();
+            let pts = pkt.ts;
+            let dur = pkt.dur;
             let track_id = pkt.track_id();
 
             if (pts..pts + dur).contains(&ts) {
