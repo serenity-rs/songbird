@@ -20,10 +20,7 @@ use tracing::{debug, error};
 #[cfg(feature = "twilight")]
 use twilight_gateway::{Cluster, Shard as TwilightShard};
 #[cfg(feature = "twilight")]
-use twilight_model::{
-    gateway::payload::outgoing::update_voice_state::UpdateVoiceState as TwilightVoiceState,
-    id::ChannelId as TwilightChannel,
-};
+use twilight_model::gateway::payload::outgoing::update_voice_state::UpdateVoiceState as TwilightVoiceState;
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -191,14 +188,14 @@ impl VoiceUpdate for Shard {
             },
             #[cfg(feature = "twilight")]
             Shard::TwilightCluster(handle, shard_id) => {
-                let channel_id = nz_channel_id.map(TwilightChannel);
+                let channel_id = nz_channel_id.map(From::from);
                 let cmd = TwilightVoiceState::new(nz_guild_id, channel_id, self_deaf, self_mute);
                 handle.command(*shard_id, &cmd).await?;
                 Ok(())
             },
             #[cfg(feature = "twilight")]
             Shard::TwilightShard(handle) => {
-                let channel_id = nz_channel_id.map(TwilightChannel);
+                let channel_id = nz_channel_id.map(From::from);
                 let cmd = TwilightVoiceState::new(nz_guild_id, channel_id, self_deaf, self_mute);
                 handle.command(&cmd).await?;
                 Ok(())
