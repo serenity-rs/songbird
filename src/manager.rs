@@ -378,7 +378,7 @@ impl Songbird {
                 }
             },
             TwilightEvent::VoiceStateUpdate(v) => {
-                if v.0.user_id.0.get() != self.client_data.read().user_id.0 {
+                if v.0.user_id.get() != self.client_data.read().user_id.0 {
                     return;
                 }
 
