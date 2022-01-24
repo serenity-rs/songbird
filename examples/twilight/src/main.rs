@@ -30,7 +30,11 @@ use std::{collections::HashMap, env, error::Error, future::Future, sync::Arc};
 use tokio::sync::RwLock;
 use twilight_gateway::{Cluster, Event, Intents};
 use twilight_http::Client as HttpClient;
-use twilight_model::{channel::Message, gateway::payload::incoming::MessageCreate, id::GuildId};
+use twilight_model::{
+    channel::Message,
+    gateway::payload::incoming::MessageCreate,
+    id::{marker::GuildMarker, Id},
+};
 use twilight_standby::Standby;
 
 type State = Arc<StateRef>;
@@ -38,7 +42,7 @@ type State = Arc<StateRef>;
 #[derive(Debug)]
 struct StateRef {
     http: HttpClient,
-    trackdata: RwLock<HashMap<GuildId, TrackHandle>>,
+    trackdata: RwLock<HashMap<Id<GuildMarker>, TrackHandle>>,
     songbird: Songbird,
     standby: Standby,
 }
