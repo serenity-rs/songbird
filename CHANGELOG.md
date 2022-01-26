@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.1] — 2022-05-01
+## [0.2.1] — 2022-01-05
 
 This patch release adds support for the `yt-dlp` fork of `youtube-dl`, and fixes track events to correctly fire events when multiple timed handlers are present on a track.
 
