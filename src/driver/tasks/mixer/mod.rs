@@ -657,7 +657,11 @@ impl Mixer {
                 (&mut mix_buffer[..samples_to_copy])
                     .copy_from_slice(&self.sample_buffer.samples()[..samples_to_copy]);
 
-                self.soft_clip.apply(&mut mix_buffer[..])?;
+                self.soft_clip.apply(
+                    (&mut mix_buffer[..])
+                        .try_into()
+                        .expect("Mix buffer is known to have a valid sample count (softclip)."),
+                )?;
             }
         }
 
@@ -702,7 +706,9 @@ impl Mixer {
                 MixType::MixedPcm(_samples) => {
                     let total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
                     self.encoder.encode_float(
-                        &buffer[..self.config.mix_mode.sample_count_in_frame()],
+                        (&buffer[..self.config.mix_mode.sample_count_in_frame()])
+                            .try_into()
+                            .expect("Mix buffer is known to have a valid sample count (encode)."),
                         &mut payload[TAG_SIZE..total_payload_space],
                     )?
                 },
@@ -793,7 +799,10 @@ fn mix_symph_indiv(
             // Opus packet passthrough special case.
             if codec_type == CODEC_TYPE_OPUS && local_state.passthrough != Passthrough::Block {
                 if let Some(slot) = opus_slot.as_mut() {
-                    let sample_ct = audiopus::packet::nb_samples(buf, SAMPLE_RATE);
+                    let sample_ct = buf
+                        .try_into()
+                        .and_then(|buf| audiopus::packet::nb_samples(buf, SAMPLE_RATE));
+
                     match sample_ct {
                         Ok(MONO_FRAME_SIZE) if buf.len() <= slot.len() => {
                             slot.write_all(buf).expect(

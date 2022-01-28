@@ -28,19 +28,27 @@ pub struct OpusDecoder {
 
 impl OpusDecoder {
     fn decode_inner(&mut self, packet: &Packet) -> SymphResult<()> {
-        let pkt = if packet.buf().is_empty() {
-            None
-        } else {
-            Some(packet.buf())
-        };
-
         let s_ct = loop {
-            match self.inner.decode_float(pkt, &mut self.rawbuf[..], false) {
+            let pkt = if packet.buf().is_empty() {
+                None
+            } else if let Ok(checked_pkt) = packet.buf().try_into() {
+                Some(checked_pkt)
+            } else {
+                return decode_error("Opus packet was too large (greater than i32::MAX bytes).");
+            };
+            let out_space = (&mut self.rawbuf[..]).try_into().expect("The following logic expands this buffer safely below i32::MAX, and we throw our own error.");
+
+            match self.inner.decode_float(pkt, out_space, false) {
                 Ok(v) => break v,
                 Err(OpusError::Opus(audiopus::ErrorCode::BufferTooSmall)) => {
                     // double the buffer size
                     // correct behav would be to mirror the decoder logic in the udp_rx set.
-                    self.rawbuf.resize(self.rawbuf.len() * 2, 0.0);
+                    let new_size = (self.rawbuf.len() * 2).min(std::i32::MAX as usize);
+                    if new_size == self.rawbuf.len() {
+                        return decode_error("Opus frame too big: cannot expand opus frame decode buffer any further.");
+                    }
+
+                    self.rawbuf.resize(new_size, 0.0);
                     self.buf = AudioBuffer::new(
                         self.rawbuf.len() as u64 / 2,
                         SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
@@ -48,7 +56,7 @@ impl OpusDecoder {
                 },
                 Err(e) => {
                     tracing::error!("Opus decode error: {:?}", e);
-                    return decode_error("desc");
+                    return decode_error("Opus decode error: see 'tracing' logs.");
                 },
             }
         };

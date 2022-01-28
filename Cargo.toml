@@ -32,7 +32,7 @@ version = "0.16"
 
 [dependencies.audiopus]
 optional = true
-version = "0.2"
+version = "0.3.0-rc.0"
 
 [dependencies.byteorder]
 optional = true
