@@ -18,8 +18,7 @@ git = "https://github.com/serenity-rs/serenity"
 branch = "next"
 
 [dependencies.symphonia]
-# version = "0.4"
-git = "https://github.com/pdeljanov/Symphonia"
+version = "0.5"
 features = ["mp3"]
 
 [dependencies.tokio]
