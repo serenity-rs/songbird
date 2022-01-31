@@ -292,7 +292,11 @@ impl FormatReader for DcaReader {
 
         let buf = self.source.read_boxed_slice_exact(p_len as usize)?;
 
-        let sample_ct = audiopus::packet::nb_samples(&buf[..], SAMPLE_RATE).or_else(|_| {
+        let checked_buf = (&buf[..]).try_into().or_else(|_| {
+            symph_err::decode_error("Packet was not a valid Opus Packet: too large for audiopus.")
+        })?;
+
+        let sample_ct = audiopus::packet::nb_samples(checked_buf, SAMPLE_RATE).or_else(|_| {
             symph_err::decode_error(
                 "Packet was not a valid Opus packet: couldn't read sample count.",
             )

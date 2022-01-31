@@ -11,6 +11,7 @@ use crate::{
 use audiopus::{
     coder::Decoder as OpusDecoder,
     error::{Error as OpusError, ErrorCode},
+    packet::Packet as OpusPacket,
     Channels,
 };
 use discortp::{
@@ -180,8 +181,11 @@ impl SsrcState {
             let mut out = vec![0; self.decode_size.len()];
 
             for _ in 0..missed_packets {
-                let missing_frame: Option<&[u8]> = None;
-                if let Err(e) = self.decoder.decode(missing_frame, &mut out[..], false) {
+                let missing_frame: Option<OpusPacket> = None;
+                let dest_samples = (&mut out[..])
+                    .try_into()
+                    .expect("Decode logic will cap decode buffer size at i32::MAX.");
+                if let Err(e) = self.decoder.decode(missing_frame, dest_samples, false) {
                     warn!("Issue while decoding for missed packet: {:?}.", e);
                 }
             }
@@ -193,9 +197,16 @@ impl SsrcState {
             // This should scan up to find the "correct" size that a source is using,
             // and then remember that.
             loop {
+                let frame_in_check = (&data[start..])
+                    .try_into()
+                    .map_err(|_| Error::IllegalVoicePacket)?;
+                let dest_samples = (&mut out[..])
+                    .try_into()
+                    .expect("Decode logic will cap decode buffer size at i32::MAX.");
+
                 let tried_audio_len =
                     self.decoder
-                        .decode(Some(&data[start..]), &mut out[..], false);
+                        .decode(Some(frame_in_check), dest_samples, false);
 
                 match tried_audio_len {
                     Ok(audio_len) => {
