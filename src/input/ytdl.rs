@@ -37,7 +37,7 @@ impl YoutubeDl {
             "-j",
             &self.url,
             "-f",
-            "ba[abr>0][ext!*=webm][vcodec=none]/best[ext!*=webm]",
+            "ba[abr>0][vcodec=none]/best",
         ];
 
         let output = Command::new(self.program)

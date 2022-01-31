@@ -26,6 +26,8 @@ pub struct OpusDecoder {
     rawbuf: Vec<f32>,
 }
 
+unsafe impl Sync for OpusDecoder {}
+
 impl OpusDecoder {
     fn decode_inner(&mut self, packet: &Packet) -> SymphResult<()> {
         let s_ct = loop {
