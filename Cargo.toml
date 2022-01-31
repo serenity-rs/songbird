@@ -126,12 +126,12 @@ features = ["io"]
 
 [dependencies.twilight-gateway]
 optional = true
-version = "0.8"
+version = "0.9"
 default-features = false
 
 [dependencies.twilight-model]
 optional = true
-version = "0.8"
+version = "0.9"
 default-features = false
 
 [dependencies.typemap_rev]
@@ -207,7 +207,7 @@ rustls = ["async-tungstenite/tokio-rustls-webpki-roots", "reqwest/rustls-tls", "
 native = ["async-tungstenite/tokio-native-tls", "native-marker", "reqwest/native-tls"]
 serenity-rustls = ["serenity/rustls_backend", "rustls", "gateway", "serenity-deps"]
 serenity-native = ["serenity/native_tls_backend", "native", "gateway", "serenity-deps"]
-twilight-rustls = ["twilight", "twilight-gateway/rustls", "rustls", "gateway"]
+twilight-rustls = ["twilight", "twilight-gateway/rustls-native-roots", "rustls", "gateway"]
 twilight-native = ["twilight", "twilight-gateway/native", "native", "gateway"]
 twilight = ["twilight-model"]
 zlib-simd = ["twilight-gateway/zlib-simd"]

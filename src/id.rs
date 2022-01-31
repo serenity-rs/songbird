@@ -11,9 +11,8 @@ use serenity::model::id::{
 use std::fmt::{Display, Formatter, Result as FmtResult};
 #[cfg(feature = "twilight")]
 use twilight_model::id::{
-    ChannelId as TwilightChannel,
-    GuildId as TwilightGuild,
-    UserId as TwilightUser,
+    marker::{ChannelMarker, GuildMarker, UserMarker},
+    Id as TwilightId,
 };
 
 /// ID of a Discord voice/text channel.
@@ -48,9 +47,9 @@ impl From<SerenityChannel> for ChannelId {
 }
 
 #[cfg(feature = "twilight")]
-impl From<TwilightChannel> for ChannelId {
-    fn from(id: TwilightChannel) -> Self {
-        Self(id.0.into())
+impl From<TwilightId<ChannelMarker>> for ChannelId {
+    fn from(id: TwilightId<ChannelMarker>) -> Self {
+        Self(id.get().into())
     }
 }
 
@@ -81,9 +80,9 @@ impl From<GuildId> for DriverGuild {
 }
 
 #[cfg(feature = "twilight")]
-impl From<TwilightGuild> for GuildId {
-    fn from(id: TwilightGuild) -> Self {
-        Self(id.0.into())
+impl From<TwilightId<GuildMarker>> for GuildId {
+    fn from(id: TwilightId<GuildMarker>) -> Self {
+        Self(id.get().into())
     }
 }
 
@@ -114,8 +113,8 @@ impl From<UserId> for DriverUser {
 }
 
 #[cfg(feature = "twilight")]
-impl From<TwilightUser> for UserId {
-    fn from(id: TwilightUser) -> Self {
-        Self(id.0.into())
+impl From<TwilightId<UserMarker>> for UserId {
+    fn from(id: TwilightId<UserMarker>) -> Self {
+        Self(id.get().into())
     }
 }
