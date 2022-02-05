@@ -1,6 +1,6 @@
 //! Codec registries extending Symphonia's probe and registry formats with Opus and DCA support.
 
-use crate::input::opus::*;
+use super::{DcaReader, OpusDecoder, RawReader};
 use lazy_static::lazy_static;
 use symphonia::{
     core::{codecs::CodecRegistry, probe::Probe},
@@ -22,7 +22,8 @@ lazy_static! {
     /// Default Symphonia Probe, including DCA format support.
     pub static ref PROBE: Probe = {
         let mut probe = Probe::default();
-        probe.register_all::<crate::input::DcaReader>();
+        probe.register_all::<DcaReader>();
+        probe.register_all::<RawReader>();
         register_enabled_formats(&mut probe);
         probe
     };

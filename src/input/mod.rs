@@ -46,6 +46,7 @@ mod file;
 mod http;
 mod metadata;
 mod opus;
+mod raw;
 pub mod registry;
 pub mod utils;
 mod ytdl;
@@ -60,6 +61,7 @@ pub use self::{
     http::*,
     metadata::AuxMetadata,
     opus::*,
+    raw::*,
     ytdl::*,
 };
 
