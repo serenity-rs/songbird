@@ -84,7 +84,7 @@ pub enum Input {
     /// [`Compose`]: Compose
     /// [`Input::Live`]: Input::Live
     Lazy(
-        /// A generic struct which can be used to (re)create a usable byte stream.
+        /// A trait object which can be used to (re)create a usable byte stream.
         Box<dyn Compose>,
     ),
     /// An initialised byte source.
