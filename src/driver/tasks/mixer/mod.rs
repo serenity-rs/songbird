@@ -706,9 +706,7 @@ impl Mixer {
                 MixType::MixedPcm(_samples) => {
                     let total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
                     self.encoder.encode_float(
-                        (&buffer[..self.config.mix_mode.sample_count_in_frame()])
-                            .try_into()
-                            .expect("Mix buffer is known to have a valid sample count (encode)."),
+                        &buffer[..self.config.mix_mode.sample_count_in_frame()],
                         &mut payload[TAG_SIZE..total_payload_space],
                     )?
                 },

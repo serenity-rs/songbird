@@ -3,13 +3,15 @@ use super::{AudioStream, AudioStreamError, Compose, Input};
 use std::{error::Error, path::Path};
 use symphonia_core::{io::MediaSource, probe::Hint};
 
-#[allow(missing_docs)]
+/// A lazily instantiated local file.
 pub struct File<P: AsRef<Path>> {
     path: P,
 }
 
-#[allow(missing_docs)]
 impl<P: AsRef<Path>> File<P> {
+    /// Creates a lazy file object, which will open the target path.
+    ///
+    /// This is infallible as the path is only checked during creation.
     pub fn new(path: P) -> Self {
         Self { path }
     }

@@ -18,7 +18,7 @@ use symphonia_core::{
     formats::Packet,
 };
 
-/// Test wrapper around libopus for Symphonia
+/// Opus decoder for symphonia, based on libopus v1.3 (via [`audiopus`]).
 pub struct OpusDecoder {
     inner: AudiopusDecoder,
     params: CodecParameters,

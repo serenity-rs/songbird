@@ -21,6 +21,5 @@ path = "../.."
 features = ["driver", "twilight-rustls", "zlib-stock"]
 
 [dependencies.symphonia]
-# version = "0.4"
-git = "https://github.com/pdeljanov/Symphonia"
+version = "0.5"
 features = ["aac", "mp3", "isomp4", "alac"]

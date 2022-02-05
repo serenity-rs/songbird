@@ -22,6 +22,8 @@ pub struct Memory {
 
 impl Memory {
     /// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.
+    ///
+    /// [`Input`]: Input
     pub async fn new(source: Input) -> Result<Self, Error> {
         Self::with_config(source, None).await
     }
@@ -29,11 +31,9 @@ impl Memory {
     /// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.
     ///
     /// `length_hint` may be used to control the size of the initial chunk, preventing
-    /// needless allocations and copies. If this is not present, the value specified in
-    /// `source`'s [`Metadata::duration`] will be used, assuming that the source is uncompressed.
+    /// needless allocations and copies.
     ///
     /// [`Input`]: Input
-    /// [`Metadata::duration`]: crate::input::Metadata::duration
     pub async fn with_config(source: Input, config: Option<Config>) -> Result<Self, Error> {
         let input = match source {
             Input::Lazy(mut r) => {

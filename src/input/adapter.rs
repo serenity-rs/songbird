@@ -1,5 +1,3 @@
-#![allow(missing_docs)]
-
 use async_trait::async_trait;
 use flume::{Receiver, RecvError, Sender, TryRecvError};
 use futures::{future::Either, stream::FuturesUnordered, FutureExt, StreamExt};
@@ -128,7 +126,12 @@ impl AsyncAdapterSink {
     }
 }
 
-#[allow(missing_docs)]
+/// An adapter for converting an async media source into a synchronous one
+/// usable by symphonia.
+///
+/// This adapter takes a source implementing `AsyncRead`, and allows the receive side to
+/// pass along seek requests needed. This allows for passing bytes from exclusively `AsyncRead`
+/// streams (e.g., hyper HTTP sessions) to Songbird.
 pub struct AsyncAdapterStream {
     bytes_out: Consumer<u8>,
     can_seek: bool,
@@ -141,7 +144,8 @@ pub struct AsyncAdapterStream {
 }
 
 impl AsyncAdapterStream {
-    #[allow(missing_docs)]
+    /// Wrap and pull from an async file stream, with an intermediate ring-buffer of size `buf_len`
+    /// between the async and sync halves.
     pub fn new(stream: Box<dyn AsyncMediaSource>, buf_len: usize) -> AsyncAdapterStream {
         let (bytes_in, bytes_out) = RingBuffer::new(buf_len).split();
         let (resp_tx, resp_rx) = flume::unbounded();
@@ -301,9 +305,17 @@ enum AdapterResponse {
     ReadZero,
 }
 
+/// An async port of symphonia's [`MediaSource`].
+///
+/// Streams which are not seekable should implement `AsyncSeek` such that all operations
+/// fail with `Unsupported`, and implement `fn is_seekable(&self) -> { false }`.
+///
+/// [`MediaSource`]: MediaSource
 #[async_trait]
 pub trait AsyncMediaSource: AsyncRead + AsyncSeek + Send + Sync + Unpin {
+    /// Returns if the source is seekable. This may be an expensive operation.
     fn is_seekable(&self) -> bool;
 
+    /// Returns the length in bytes, if available. This may be an expensive operation.
     async fn byte_len(&self) -> Option<u64>;
 }

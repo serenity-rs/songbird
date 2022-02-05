@@ -298,12 +298,8 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     let store = state.trackdata.read().await;
 
     let content = if let Some(handle) = store.get(&guild_id) {
-        if handle.is_seekable() {
-            let _success = handle.seek_time(std::time::Duration::from_secs(position));
-            format!("Seeked to {}s", position)
-        } else {
-            format!("Track is not compatible with seeking!")
-        }
+        let _success = handle.seek_time(std::time::Duration::from_secs(position));
+        format!("Seeking to {}s", position)
     } else {
         format!("No track to seek over!")
     };

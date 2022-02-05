@@ -1,9 +1,8 @@
-#![allow(missing_docs)]
-
 use super::{AsyncAdapterStream, AsyncMediaSource, AudioStream, AudioStreamError, Compose, Input};
 use async_trait::async_trait;
 use futures::TryStreamExt;
 use pin_project::pin_project;
+use reqwest::Client;
 use std::{
     io::{Error as IoError, ErrorKind as IoErrorKind, SeekFrom},
     time::Duration,
@@ -11,8 +10,11 @@ use std::{
 use symphonia_core::io::MediaSource;
 use tokio::io::{AsyncRead, AsyncSeek};
 
+/// A lazily instantiated HTTP request.
 pub struct HttpRequest {
-    pub client: reqwest::Client,
+    /// A reqwest client instance used to send the HTTP GET request.
+    pub client: Client,
+    /// The target URL of the required resource.
     pub request: String,
 }
 

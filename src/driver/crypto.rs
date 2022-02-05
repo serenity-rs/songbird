@@ -169,12 +169,24 @@ impl CryptoMode {
     }
 }
 
-#[allow(missing_docs)]
+/// State used in nonce generation for the XSalsa20Poly1305 encryption variants
+/// in [`CryptoMode`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum CryptoState {
+    /// The RTP header is used as the source of nonce bytes for the packet.
+    ///
+    /// No state is required.
     Normal,
+    /// An additional random 24B suffix is used as the source of nonce bytes for the packet.
+    /// This is regenerated randomly for each packet.
+    ///
+    /// No state is required.
     Suffix,
+    /// An additional random 4B suffix is used as the source of nonce bytes for the packet.
+    /// This nonce value increments by `1` with each packet.
+    ///
+    /// The last used nonce is stored.
     Lite(Wrapping<u32>),
 }
 

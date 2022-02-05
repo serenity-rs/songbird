@@ -49,7 +49,7 @@ impl From<SerenityChannel> for ChannelId {
 #[cfg(feature = "twilight")]
 impl From<TwilightId<ChannelMarker>> for ChannelId {
     fn from(id: TwilightId<ChannelMarker>) -> Self {
-        Self(id.get().into())
+        Self(id.get())
     }
 }
 
@@ -82,7 +82,7 @@ impl From<GuildId> for DriverGuild {
 #[cfg(feature = "twilight")]
 impl From<TwilightId<GuildMarker>> for GuildId {
     fn from(id: TwilightId<GuildMarker>) -> Self {
-        Self(id.get().into())
+        Self(id.get())
     }
 }
 
@@ -115,6 +115,6 @@ impl From<UserId> for DriverUser {
 #[cfg(feature = "twilight")]
 impl From<TwilightId<UserMarker>> for UserId {
     fn from(id: TwilightId<UserMarker>) -> Self {
-        Self(id.get().into())
+        Self(id.get())
     }
 }

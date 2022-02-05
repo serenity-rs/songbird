@@ -1,4 +1,4 @@
-use super::{compressed_cost_per_sec, default_config, CocdecCacheError, ToAudioBytes};
+use super::{compressed_cost_per_sec, default_config, CodecCacheError, ToAudioBytes};
 use crate::{
     constants::*,
     input::{dca::*, registry::*, AudioStream, Input, LiveInput},
@@ -35,7 +35,6 @@ use symphonia_core::{
 };
 use tracing::{debug, trace};
 
-#[allow(missing_docs)]
 pub struct Config {
     /// Registry of the inner codecs supported by the driver, adding audiopus-based
     /// Opus codec support to all of Symphonia's default codecs.
@@ -51,6 +50,9 @@ pub struct Config {
     ///
     /// [`PROBE`]: static@PROBE
     pub format_registry: &'static Probe,
+    /// Configuration for the inner streamcatcher instance.
+    ///
+    /// Notably, this governs size hints and resize logic.
     pub streamcatcher: ScConfig,
 }
 
@@ -87,10 +89,10 @@ impl Config {
 /// tracks shared between sources, and stores the sound data
 /// retrieved as **compressed Opus audio**.
 ///
-/// Internally, this stores the stream and it's metadata as a DCA1
+/// Internally, this stores the stream and its metadata as a DCA1 file,
+/// which can be written out to disk for later use.
 ///
-///
-/// [`Input`]: Input
+/// [`Input`]: crate::input::Input
 #[derive(Clone)]
 pub struct Compressed {
     /// Inner shared bytestore.
@@ -101,38 +103,35 @@ impl Compressed {
     /// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.
     ///
     /// [`Input`]: Input
-    /// [`Metadata.duration`]: ../struct.Metadata.html#structfield.duration
-    pub async fn new(source: Input, bitrate: Bitrate) -> Result<Self, CocdecCacheError> {
+    pub async fn new(source: Input, bitrate: Bitrate) -> Result<Self, CodecCacheError> {
         Self::with_config(source, bitrate, None).await
     }
 
     /// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.
     ///
     /// `config.length_hint` may be used to control the size of the initial chunk, preventing
-    /// needless allocations and copies. If this is not present, the value specified in
-    /// `source`'s [`Metadata::duration`] will be used.
+    /// needless allocations and copies.
     ///
     /// [`Input`]: Input
-    /// [`Metadata::duration`]: crate::input::Metadata::duration
     pub async fn with_config(
         source: Input,
         bitrate: Bitrate,
         config: Option<Config>,
-    ) -> Result<Self, CocdecCacheError> {
+    ) -> Result<Self, CodecCacheError> {
         let input = match source {
             Input::Lazy(mut r) => {
                 let created = if r.should_create_async() {
-                    r.create_async().await.map_err(CocdecCacheError::from)
+                    r.create_async().await.map_err(CodecCacheError::from)
                 } else {
-                    tokio::task::spawn_blocking(move || r.create().map_err(CocdecCacheError::from))
+                    tokio::task::spawn_blocking(move || r.create().map_err(CodecCacheError::from))
                         .await
-                        .map_err(CocdecCacheError::from)
+                        .map_err(CodecCacheError::from)
                         .and_then(|v| v)
                 };
 
                 created.map(LiveInput::Raw)
             },
-            Input::Live(LiveInput::Parsed(_), _) => Err(CocdecCacheError::StreamNotAtStart),
+            Input::Live(LiveInput::Parsed(_), _) => Err(CodecCacheError::StreamNotAtStart),
             Input::Live(a, _rec) => Ok(a),
         }?;
 
@@ -191,7 +190,7 @@ impl Compressed {
         serde_json::to_writer(&mut metabytes, &metadata)?;
         let meta_len = (metabytes.len() - orig_len)
             .try_into()
-            .map_err(|_| CocdecCacheError::MetadataTooLarge)?;
+            .map_err(|_| CodecCacheError::MetadataTooLarge)?;
 
         (&mut metabytes[4..][..mem::size_of::<i32>()])
             .write_i32::<LittleEndian>(meta_len)
@@ -221,7 +220,7 @@ fn create_metadata(
     opus: &OpusEncoder,
     channels: u8,
     encoding: Option<String>,
-) -> Result<DcaMetadata, CocdecCacheError> {
+) -> Result<DcaMetadata, CodecCacheError> {
     let dca = DcaInfo {
         version: 1,
         tool: Tool {

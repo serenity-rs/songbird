@@ -15,7 +15,7 @@
 /// This must be used sparingly: these cost a significant
 /// *3 Mbps (375 kiB/s)*, or 131 MiB of RAM for a 6 minute song.
 ///
-/// [`Input`]: Input
+/// [`Input`]: crate::input::Input
 /// [`Compressed`]: super::Compressed
 /// [`Restartable`]: crate::input::restartable::Restartable
 #[derive(Clone, Debug)]

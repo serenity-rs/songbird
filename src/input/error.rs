@@ -1,11 +1,21 @@
 use std::{error::Error, fmt::Display, time::Duration};
 
-#[allow(missing_docs)]
+/// Errors encountered when creating an [`AudioStream`] or requesting metadata
+/// from a [`Compose`].
+///
+/// [`AudioStream`]: super::AudioStream
+/// [`Compose`]: super::Compose
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum AudioStreamError {
+    /// The operation failed, and should be retried after a given time.
+    ///
+    /// Create operations invoked by the driver will retry on the first tick
+    /// after this time has passed.
     RetryIn(Duration),
+    /// The operation failed, and should not be retried.
     Fail(Box<dyn Error + Send>),
+    /// The operation was not supported, and will never succeed.
     Unsupported,
 }
 

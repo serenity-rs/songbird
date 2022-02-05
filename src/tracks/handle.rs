@@ -1,8 +1,5 @@
 use super::*;
-use crate::{
-    events::{Event, EventData, EventHandler},
-    input::AuxMetadata,
-};
+use crate::events::{Event, EventData, EventHandler};
 use flume::Sender;
 use std::{fmt, sync::Arc, time::Duration};
 use tokio::sync::RwLock;
@@ -27,9 +24,7 @@ pub struct TrackHandle {
 
 struct InnerHandle {
     command_channel: Sender<TrackCommand>,
-    seekable: bool,
     uuid: Uuid,
-    metadata: Box<AuxMetadata>,
     typemap: RwLock<TypeMap>,
 }
 
@@ -37,9 +32,7 @@ impl fmt::Debug for InnerHandle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("InnerHandle")
             .field("command_channel", &self.command_channel)
-            .field("seekable", &self.seekable)
             .field("uuid", &self.uuid)
-            .field("metadata", &self.metadata)
             .field("typemap", &"<LOCK>")
             .finish()
     }
@@ -50,17 +43,10 @@ impl TrackHandle {
     /// the underlying [`Input`] supports seek operations.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn new(
-        command_channel: Sender<TrackCommand>,
-        seekable: bool,
-        uuid: Uuid,
-        metadata: Box<AuxMetadata>,
-    ) -> Self {
+    pub fn new(command_channel: Sender<TrackCommand>, uuid: Uuid) -> Self {
         let inner = Arc::new(InnerHandle {
             command_channel,
-            seekable,
             uuid,
-            metadata,
             typemap: RwLock::new(TypeMap::new()),
         });
 
@@ -93,39 +79,20 @@ impl TrackHandle {
     }
 
     /// Ready a track for playing if it is lazily initialised.
-    ///
-    /// Currently, only [`Restartable`] sources support lazy setup.
-    /// This call is a no-op for all others.
-    ///
-    /// [`Restartable`]: crate::input::restartable::Restartable
     pub fn make_playable(&self) -> TrackResult<()> {
         self.send(TrackCommand::MakePlayable)
-    }
-
-    /// Denotes whether the underlying [`Input`] stream is compatible with arbitrary seeking.
-    ///
-    /// If this returns `false`, all calls to [`seek_time`] will fail, and the track is
-    /// incapable of looping.
-    ///
-    /// [`seek_time`]: TrackHandle::seek_time
-    /// [`Input`]: crate::input::Input
-    pub fn is_seekable(&self) -> bool {
-        self.inner.seekable
     }
 
     /// Seeks along the track to the specified position.
     ///
     /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// forward seeks will succeed. Backward seeks will recreate the
+    /// track using the lazy [`Compose`] if present.
     ///
     /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`Compose`]: crate::input::Compose
     pub fn seek_time(&self, position: Duration) -> TrackResult<()> {
-        if self.is_seekable() {
-            self.send(TrackCommand::Seek(position))
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        self.send(TrackCommand::Seek(position))
     }
 
     /// Attach an event handler to an audio track. These will receive [`EventContext::Track`].
@@ -168,63 +135,36 @@ impl TrackHandle {
 
     /// Set an audio track to loop indefinitely.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This requires either a [`Compose`] to be present or for the
+    /// input stream to be seekable.
     ///
     /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`Compose`]: crate::input::Compose
     pub fn enable_loop(&self) -> TrackResult<()> {
-        if self.is_seekable() {
-            self.send(TrackCommand::Loop(LoopState::Infinite))
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        self.send(TrackCommand::Loop(LoopState::Infinite))
     }
 
     /// Set an audio track to no longer loop.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This follows the same rules as [`enable_loop`].
     ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`enable_loop`]: Self::enable_loop
     pub fn disable_loop(&self) -> TrackResult<()> {
-        if self.is_seekable() {
-            self.send(TrackCommand::Loop(LoopState::Finite(0)))
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        self.send(TrackCommand::Loop(LoopState::Finite(0)))
     }
 
     /// Set an audio track to loop a set number of times.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This follows the same rules as [`enable_loop`].
     ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`enable_loop`]: Self::enable_loop
     pub fn loop_for(&self, count: usize) -> TrackResult<()> {
-        if self.is_seekable() {
-            self.send(TrackCommand::Loop(LoopState::Finite(count)))
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        self.send(TrackCommand::Loop(LoopState::Finite(count)))
     }
 
     /// Returns this handle's (and track's) unique identifier.
     pub fn uuid(&self) -> Uuid {
         self.inner.uuid
-    }
-
-    /// Returns the metadata stored in the handle.
-    ///
-    /// Metadata is cloned from the inner [`Input`] at
-    /// the time a track/handle is created, and is effectively
-    /// read-only from then on.
-    ///
-    /// [`Input`]: crate::input::Input
-    pub fn metadata(&self) -> &AuxMetadata {
-        &self.inner.metadata
     }
 
     /// Allows access to this track's attached TypeMap.

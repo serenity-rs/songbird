@@ -16,7 +16,7 @@
 //!  can run the songbird voice driver.
 //!  * And, by default, a fully featured voice system featuring events, queues, RT(C)P packet
 //!  handling, seeking on compatible streams, shared multithreaded audio stream caches,
-//!  and direct Opus data passthrough from DCA files.
+//!  and direct Opus data passthrough.
 //!
 //! ## Intents
 //! Songbird's gateway functionality requires you to specify the `GUILD_VOICE_STATES` intent.

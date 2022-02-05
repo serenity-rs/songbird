@@ -61,14 +61,7 @@ impl SeekAccel {
     }
 }
 
-/// DCA[0/1] Format reader for Symphonia
-///
-/// NOTE: DCA0 doesn't work right now since:
-///
-/// * No Magic bytes for it
-/// * Symphonia doesn't yet use extension/MIME hints.
-/// Creates a streamed audio source from a DCA file.
-/// Currently only accepts the [DCA1 format](https://github.com/bwmarrin/dca).
+/// [DCA[0/1]](https://github.com/bwmarrin/dca) Format reader for Symphonia.
 pub struct DcaReader {
     source: MediaSourceStream,
     track: Option<Track>,

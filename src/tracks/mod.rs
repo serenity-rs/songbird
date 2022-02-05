@@ -351,11 +351,8 @@ pub fn create_player(source: Input) -> (Track, TrackHandle) {
 /// [`Track`]: Track
 /// [`TrackHandle`]: TrackHandle
 pub fn create_player_with_uuid(source: Input, uuid: Uuid) -> (Track, TrackHandle) {
-    // FIXME: Unify this (and handles) with symphonia's metadata handling
     let (tx, rx) = flume::unbounded();
-    let can_seek = true; //source.is_seekable();
-    let metadata = Default::default(); //source.metadata.clone();
-    let handle = TrackHandle::new(tx, can_seek, uuid, metadata);
+    let handle = TrackHandle::new(tx, uuid);
 
     let player = Track::new_raw(source, rx, handle.clone());
 

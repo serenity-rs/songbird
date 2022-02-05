@@ -1,5 +1,3 @@
-#![allow(missing_docs)]
-
 use super::{AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input};
 
 use async_trait::async_trait;
@@ -11,6 +9,13 @@ use tokio::process::Command;
 
 const YOUTUBE_DL_COMMAND: &str = "yt-dlp";
 
+/// A lazily instantiated call to download a file, finding its URL via youtube-dl.
+///
+/// By default, this uses yt-dlp and is backed by an [`HttpRequest`]. This handler
+/// attempts to find the best audio-only source (typically WebM, enabling low-cost
+/// Opus frame passthrough).
+///
+/// [`HttpRequest`]: super::HttpRequest
 pub struct YoutubeDl {
     program: &'static str,
     client: Client,
@@ -19,10 +24,17 @@ pub struct YoutubeDl {
 }
 
 impl YoutubeDl {
+    /// Creates a lazy request to select an audio stream from `url`, using "yt-dlp".
+    ///
+    /// This requires a reqwest client: ideally, one should be created and shared between
+    /// all requests.
     pub fn new(client: Client, url: String) -> Self {
         Self::new_ytdl_like(YOUTUBE_DL_COMMAND, client, url)
     }
 
+    /// Creates a lazy request to select an audio stream from `url` as in [`new`], using `program`.
+    ///
+    /// [`new`]: Self::new
     pub fn new_ytdl_like(program: &'static str, client: Client, url: String) -> Self {
         Self {
             program,
@@ -33,12 +45,7 @@ impl YoutubeDl {
     }
 
     async fn query(&mut self) -> Result<Value, AudioStreamError> {
-        let ytdl_args = [
-            "-j",
-            &self.url,
-            "-f",
-            "ba[abr>0][vcodec=none]/best",
-        ];
+        let ytdl_args = ["-j", &self.url, "-f", "ba[abr>0][vcodec=none]/best"];
 
         let output = Command::new(self.program)
             .args(&ytdl_args)
