@@ -182,6 +182,17 @@ impl TrackQueue {
 
     #[inline]
     pub(crate) async fn add_raw(&self, track: &mut Track) {
+        // Attempts to start loading the next track before this one ends.
+        // Idea is to provide as close to gapless playback as possible,
+        // while minimising memory use.
+        let meta = match track.source.as_mut() {
+            Some(Input::Lazy(ref mut rec)) => rec.aux_metadata().await.ok(),
+            Some(Input::Live(_, Some(ref mut rec))) => rec.aux_metadata().await.ok(),
+            _ => None,
+        };
+
+        let time: Option<Duration> = meta.and_then(|meta| meta.duration);
+
         info!("Track added to queue.");
         let remote_lock = self.inner.clone();
         let mut inner = self.inner.lock();
@@ -200,17 +211,6 @@ impl TrackQueue {
                 EventData::new(Event::Track(TrackEvent::End), QueueHandler { remote_lock }),
                 track.position,
             );
-
-        // Attempts to start loading the next track before this one ends.
-        // Idea is to provide as close to gapless playback as possible,
-        // while minimising memory use.
-        let meta = match track.source.as_mut() {
-            Some(Input::Lazy(ref mut rec)) => rec.aux_metadata().await.ok(),
-            Some(Input::Live(_, Some(ref mut rec))) => rec.aux_metadata().await.ok(),
-            _ => None,
-        };
-
-        let time: Option<Duration> = meta.and_then(|meta| meta.duration);
 
         if let Some(time) = time {
             let preload_time: Duration =
