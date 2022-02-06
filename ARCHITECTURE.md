@@ -58,7 +58,7 @@ Inputs are audio sources supporting lazy initialisation, being either:
 * **lazy inputs**—a trait object which allows an instructions to create an audio source to be cheaply stored. This will be initialised when needed either synchronously or asynchronously based on what which methods the trait object supports.
 * **live inputs**—a usable audio object implementing `MediaSource: Read + Seek`. `Seek` support may be dummied in, as seek use and support is gated by `MediaSource`. These can be passed in at various stages of processing by symphonia.
 
-Several wrappers exist to add `Seek` capabilities to one-way streams via storage or explicitly recreating the struct, `AsyncRead` adapters, and raw audio input to WAV adapters.
+Several wrappers exist to add `Seek` capabilities to one-way streams via storage or explicitly recreating the struct, `AsyncRead` adapters, and raw audio input adapters.
 
 Internally, the mixer uses floating-point audio to prevent clipping and allow more granular volume control.
 Symphonia is used to demux and decode input files in a variety of formats into this floating-point buffer: songbird supports all codecs and containers which are part of the symphonia project, while adding support for Opus decoding and DCA1 container files.

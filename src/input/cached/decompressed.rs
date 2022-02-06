@@ -1,6 +1,15 @@
+use super::{compressed::Config, CodecCacheError, ToAudioBytes};
+use crate::{
+    constants::SAMPLE_RATE_RAW,
+    input::{AudioStream, Input, LiveInput, RawAdapter},
+};
+use std::io::{Read, Seek};
+use streamcatcher::Catcher;
+use symphonia_core::io::MediaSource;
+
 /// A wrapper around an existing [`Input`] which caches
 /// the decoded and converted audio data locally in memory
-/// as `f32`-format PCM WAV files.
+/// as `f32`-format PCM data.
 ///
 /// The main purpose of this wrapper is to enable seeking on
 /// incompatible sources (i.e., ffmpeg output) and to ease resource
@@ -17,6 +26,118 @@
 ///
 /// [`Input`]: crate::input::Input
 /// [`Compressed`]: super::Compressed
-/// [`Restartable`]: crate::input::restartable::Restartable
-#[derive(Clone, Debug)]
-pub struct Decompressed {}
+#[derive(Clone)]
+pub struct Decompressed {
+    /// Inner shared bytestore.
+    pub raw: Catcher<RawAdapter<ToAudioBytes>>,
+}
+
+impl Decompressed {
+    /// Wrap an existing [`Input`] with an in-memory store, decompressed into `f32` PCM audio.
+    ///
+    /// [`Input`]: Input
+    pub async fn new(source: Input) -> Result<Self, CodecCacheError> {
+        Self::with_config(source, None).await
+    }
+
+    /// Wrap an existing [`Input`] with an in-memory store, decompressed into `f32` PCM audio.
+    ///
+    /// `config.length_hint` may be used to control the size of the initial chunk, preventing
+    /// needless allocations and copies.
+    ///
+    /// [`Input`]: Input
+    pub async fn with_config(
+        source: Input,
+        config: Option<Config>,
+    ) -> Result<Self, CodecCacheError> {
+        let input = match source {
+            Input::Lazy(mut r) => {
+                let created = if r.should_create_async() {
+                    r.create_async().await.map_err(CodecCacheError::from)
+                } else {
+                    tokio::task::spawn_blocking(move || r.create().map_err(CodecCacheError::from))
+                        .await
+                        .map_err(CodecCacheError::from)
+                        .and_then(|v| v)
+                };
+
+                created.map(LiveInput::Raw)
+            },
+            Input::Live(LiveInput::Parsed(_), _) => Err(CodecCacheError::StreamNotAtStart),
+            Input::Live(a, _rec) => Ok(a),
+        }?;
+
+        let cost_per_sec = super::raw_cost_per_sec(true);
+        let config = config.unwrap_or_else(|| Config::default_from_cost(cost_per_sec));
+
+        let promoted = tokio::task::spawn_blocking(move || {
+            input.promote(config.codec_registry, config.format_registry)
+        })
+        .await??;
+
+        // If success, guaranteed to be Parsed
+        let parsed = if let LiveInput::Parsed(parsed) = promoted {
+            parsed
+        } else {
+            unreachable!()
+        };
+
+        let track_info = parsed.decoder.codec_params();
+        let chan_count = track_info
+            .channels
+            .map(|v| v.count())
+            .ok_or(CodecCacheError::UnknownChannelCount)?;
+        let sample_rate = SAMPLE_RATE_RAW as u32;
+
+        let source = RawAdapter::new(
+            ToAudioBytes::new(parsed, Some(chan_count)),
+            sample_rate,
+            chan_count as u32,
+        );
+
+        let raw = config.streamcatcher.build(source)?;
+
+        Ok(Self { raw })
+    }
+
+    /// Acquire a new handle to this object, creating a new
+    /// view of the existing cached data from the beginning.
+    pub fn new_handle(&self) -> Self {
+        Self {
+            raw: self.raw.new_handle(),
+        }
+    }
+}
+
+impl Read for Decompressed {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.raw.read(buf)
+    }
+}
+
+impl Seek for Decompressed {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+        self.raw.seek(pos)
+    }
+}
+
+impl MediaSource for Decompressed {
+    fn is_seekable(&self) -> bool {
+        true
+    }
+
+    fn byte_len(&self) -> Option<u64> {
+        if self.raw.is_finished() {
+            Some(self.raw.len() as u64)
+        } else {
+            None
+        }
+    }
+}
+
+impl From<Decompressed> for Input {
+    fn from(val: Decompressed) -> Input {
+        let input = Box::new(val);
+        Input::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
+    }
+}

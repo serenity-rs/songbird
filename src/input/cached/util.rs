@@ -3,13 +3,14 @@ use crate::{constants::*, input::Parsed};
 use byteorder::{LittleEndian, WriteBytesExt};
 use rubato::{FftFixedOut, Resampler};
 use std::{
-    io::{Read, Write},
+    io::{ErrorKind as IoErrorKind, Read, Seek, Write},
     mem,
     ops::Range,
 };
 use symphonia_core::{
-    audio::{AudioBuffer, AudioBufferRef, Signal},
+    audio::{AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec},
     conv::IntoSample,
+    io::MediaSource,
     sample::Sample,
 };
 
@@ -48,18 +49,34 @@ impl ToAudioBytes {
     pub fn new(parsed: Parsed, chan_limit: Option<usize>) -> Self {
         let track_info = parsed.decoder.codec_params();
         let sample_rate = track_info.sample_rate.unwrap_or(SAMPLE_RATE_RAW as u32);
-        let layout = track_info
-            .channel_layout
-            .unwrap_or(symphonia_core::audio::Layout::Stereo);
-        let chan_count = track_info.channels.map(|v| v.count()).unwrap_or(2);
+        let maybe_layout = track_info.channel_layout;
+        let maybe_chans = track_info.channels;
+
+        let chan_count = if let Some(chans) = maybe_chans {
+            chans.count()
+        } else if let Some(layout) = maybe_layout {
+            match layout {
+                Layout::Mono => 1,
+                Layout::Stereo => 2,
+                Layout::TwoPointOne => 3,
+                Layout::FivePointOne => 6,
+            }
+        } else {
+            2
+        };
 
         let chan_limit = chan_limit.unwrap_or(chan_count);
 
         let resample = if sample_rate != SAMPLE_RATE_RAW as u32 {
-            let scratch = AudioBuffer::<f32>::new(
-                MONO_FRAME_SIZE as u64,
-                symphonia_core::audio::SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, layout),
-            );
+            let spec = if let Some(chans) = maybe_chans {
+                SignalSpec::new(SAMPLE_RATE_RAW as u32, chans)
+            } else if let Some(layout) = maybe_layout {
+                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, layout)
+            } else {
+                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo)
+            };
+
+            let scratch = AudioBuffer::<f32>::new(MONO_FRAME_SIZE as u64, spec);
 
             let resampler = FftFixedOut::new(
                 sample_rate as usize,
@@ -299,6 +316,22 @@ impl Read for ToAudioBytes {
             }
         }
         Ok(orig_sz - buf.len())
+    }
+}
+
+impl Seek for ToAudioBytes {
+    fn seek(&mut self, _pos: std::io::SeekFrom) -> std::io::Result<u64> {
+        Err(IoErrorKind::Unsupported.into())
+    }
+}
+
+impl MediaSource for ToAudioBytes {
+    fn is_seekable(&self) -> bool {
+        false
+    }
+
+    fn byte_len(&self) -> Option<u64> {
+        None
     }
 }
 

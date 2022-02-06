@@ -57,6 +57,8 @@ pub enum CodecCacheError {
     MetadataTooLarge,
     /// The audio stream failed to be created due to a panic in `spawn_blocking`.
     CreatePanicked,
+    /// The audio stream's channel count could not be determined.
+    UnknownChannelCount,
     /// Streamcatcher's configuration was illegal, and the cache could not be created.
     Streamcatcher(CatcherError),
     /// The input stream had already been read (i.e., `Parsed`) and so the whole stream

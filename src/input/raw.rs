@@ -1,8 +1,8 @@
+use byteorder::{LittleEndian, WriteBytesExt};
 use std::io::{ErrorKind as IoErrorKind, Read, Result as IoResult, Seek, SeekFrom, Write};
-use byteorder::{WriteBytesExt, LittleEndian};
 use symphonia::core::{
     audio::Channels,
-    codecs::{CODEC_TYPE_PCM_F32LE, CodecParameters},
+    codecs::{CodecParameters, CODEC_TYPE_PCM_F32LE},
     errors::{self as symph_err, Result as SymphResult, SeekErrorKind},
     formats::prelude::*,
     io::{MediaSource, MediaSourceStream, ReadBytes, SeekBuffered},
@@ -27,9 +27,14 @@ impl QueryDescriptor for RawReader {
     }
 }
 
-/// Simple container for f32-PCM data of unknown duration.
+/// Symphonia support for a simple container for f32-PCM data of unknown duration.
 ///
-/// TODO: Explain format
+/// Contained files have a simple header:
+/// * the 8-byte signature `b"SbirdRaw"`,
+/// * the sample rate, as a little-endian `u32`,
+/// * the channel count, as a little-endian `u32`.
+///
+/// The remainder of the file is interleaved little-endian `f32` samples.
 pub struct RawReader {
     source: MediaSourceStream,
     track: Track,
@@ -47,7 +52,7 @@ impl FormatReader for RawReader {
             b"SbirdRaw" => {},
             _ => {
                 source.seek_buffered_rel(-(magic.len() as isize));
-                return symph_err::decode_error("rawf32: illegal magic byte sequence.")
+                return symph_err::decode_error("rawf32: illegal magic byte sequence.");
             },
         };
 
@@ -57,7 +62,10 @@ impl FormatReader for RawReader {
         let chans = match n_chans {
             1 => Channels::FRONT_LEFT,
             2 => Channels::FRONT_LEFT | Channels::FRONT_RIGHT,
-            _ => return symph_err::decode_error("rawf32: channel layout is not stereo or mono for fmt_pcm"),
+            _ =>
+                return symph_err::decode_error(
+                    "rawf32: channel layout is not stereo or mono for fmt_pcm",
+                ),
         };
 
         let mut codec_params = CodecParameters::new();
@@ -69,6 +77,7 @@ impl FormatReader for RawReader {
             .with_sample_rate(sample_rate)
             .with_time_base(TimeBase::new(1, sample_rate))
             .with_sample_format(symphonia_core::sample::SampleFormat::F32)
+            .with_max_frames_per_packet(sample_rate as u64 / 50)
             .with_channels(chans);
 
         Ok(Self {
@@ -147,7 +156,10 @@ impl FormatReader for RawReader {
 
     fn next_packet(&mut self) -> SymphResult<Packet> {
         let track = &self.track;
-        let rate = track.codec_params.sample_rate.expect("Sample rate is built into format.") as usize;
+        let rate = track
+            .codec_params
+            .sample_rate
+            .expect("Sample rate is built into format.") as usize;
 
         let chan_count = track
             .codec_params
@@ -157,7 +169,7 @@ impl FormatReader for RawReader {
 
         let sample_unit = std::mem::size_of::<f32>() * chan_count;
 
-        // Aim for 20ms.
+        // Aim for 20ms (50Hz).
         let buf = self.source.read_boxed_slice((rate / 50) * sample_unit)?;
 
         let sample_ct = (buf.len() / sample_unit) as u64;
@@ -178,6 +190,8 @@ impl FormatReader for RawReader {
 /// This may be used to port legacy songbird audio sources to be compatible with
 /// the symphonia backend, particularly those with unknown length (making WAV
 /// unsuitable).
+///
+/// The format is described in [`RawReader`].
 pub struct RawAdapter<A> {
     prepend: [u8; 16],
     inner: A,
@@ -190,9 +204,11 @@ impl<A: MediaSource> RawAdapter<A> {
         let mut prepend: [u8; 16] = *b"SbirdRaw\0\0\0\0\0\0\0\0";
         let mut write_space = &mut prepend[8..];
 
-        write_space.write_u32::<LittleEndian>(sample_rate)
+        write_space
+            .write_u32::<LittleEndian>(sample_rate)
             .expect("Prepend buffer is sized to include enough space.");
-        write_space.write_u32::<LittleEndian>(channel_count)
+        write_space
+            .write_u32::<LittleEndian>(channel_count)
             .expect("Prepend buffer is sized to include enough space.");
 
         Self {
@@ -206,10 +222,11 @@ impl<A: MediaSource> RawAdapter<A> {
 impl<A: MediaSource> Read for RawAdapter<A> {
     fn read(&mut self, mut buf: &mut [u8]) -> IoResult<usize> {
         let out = if self.pos < self.prepend.len() as u64 {
-            let remaining = self.prepend.len() - self.pos as usize;
+            let upos = self.pos as usize;
+            let remaining = self.prepend.len() - upos;
             let to_write = buf.len().min(remaining);
 
-            buf.write(&self.prepend[..][..to_write])
+            buf.write(&self.prepend[upos..][..to_write])
         } else {
             self.inner.read(buf)
         };
@@ -228,7 +245,8 @@ impl<A: MediaSource> Seek for RawAdapter<A> {
             let target_pos = match pos {
                 SeekFrom::Start(p) => p,
                 SeekFrom::End(_) => return Err(IoErrorKind::Unsupported.into()),
-                SeekFrom::Current(p) if p.abs() as u64 > self.pos => return Err(IoErrorKind::InvalidInput.into()),
+                SeekFrom::Current(p) if p.abs() as u64 > self.pos =>
+                    return Err(IoErrorKind::InvalidInput.into()),
                 SeekFrom::Current(p) => (self.pos as i64 + p) as u64,
             };
 

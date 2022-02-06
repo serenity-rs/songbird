@@ -23,6 +23,7 @@ pub enum MixStatus {
     Errored,
 }
 
+#[derive(Debug)]
 pub enum InputReadyingError {
     Parsing(SymphoniaError),
     Creation(AudioStreamError),

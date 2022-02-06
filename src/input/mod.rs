@@ -4,13 +4,25 @@
 //! decoding and management of synchronous byte sources (i.e., any items which
 //! `impl` [`Read`]).
 //!
-//! Songbird adds support for the Opus codec to symphonia via [`OpusDecoder`]
-//! and the [DCA1] file format via [`DcaReader`]; the format and codec registries in
-//! [`registry::*`] install these on top of those you enable when you include symphonia.
+//! Songbird adds support for the Opus codec to symphonia via [`OpusDecoder`],
+//! the [DCA1] file format via [`DcaReader`], and a simple PCM adapter via [`RawReader`];
+//! the format and codec registries in [`registry::*`] install these on top of those
+//! enabled in your `Cargo.toml` when you include symphonia.
+//!
+//! ## Common sources
+//! * [`File`] offers a lazy way to open local audio files,
+//! * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,
+//! * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape
+//!   a target URL for a usable audio stream, before opening an [`HttpRequest`].
 //!
 //! ## Adapters
-//! We have 'em! For impl'ing your own sources.
-//! TODO: finish this once I write the WAV adapter.
+//! Songbird includes several adapters to make developing your own inputs easier:
+//! * [`cached::*`], which allow seeking and shared caching of an input stream (storing
+//!   it in memory in a variety of formats),
+//! * [`ChildContainer`] for managing audio given by a process chain,
+//! * [`RawAdapter`], for feeding in a synchronous `f32`-PCM stream, and
+//! * [`AsyncAdapterStream`], for passing bytes from an `AsyncRead` (`+ AsyncSeek`) stream
+//!   into the mixer.
 //!
 //! ## Opus frame passthrough.
 //! Some sources, such as [`Compressed`] or any WebM/Opus/DCA file, support
@@ -27,14 +39,12 @@
 //! [`Input`]s which are almost suitable but which have **any** illegal frames will be
 //! blocked from passthrough to prevent glitches such as repeated encoder frame gaps.
 //!
-//! [`Input`]: Input
 //! [symphonia]: https://docs.rs/symphonia
 //! [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
 //! [`Compressed`]: cached::Compressed
-//! [`OpusDecoder`]: OpusDecoder
 //! [DCA1]: https://github.com/bwmarrin/dca
-//! [`DcaReader`]: DcaReader
 //! [`registry::*`]: registry
+//! [`cached::*`]: cached
 
 mod adapter;
 pub mod cached;
