@@ -23,6 +23,8 @@ use tokio::{
     sync::Notify,
 };
 
+use super::AudioStreamError;
+
 struct AsyncAdapterSink {
     bytes_in: Producer<u8>,
     req_rx: Receiver<AdapterRequest>,
@@ -39,8 +41,7 @@ impl AsyncAdapterSink {
         let mut blocked = false;
         let mut pause_buf_moves = false;
         let mut seek_res = None;
-
-        println!("New asyncread");
+        let mut seen_bytes = 0;
 
         loop {
             // if read_region is empty, refill from src.
@@ -50,26 +51,30 @@ impl AsyncAdapterSink {
 
             if !pause_buf_moves {
                 if !hit_end && read_region.is_empty() {
-                    // println!("tryna...");
                     if let Ok(n) = self.stream.read(&mut inner_buf).await {
-                        // println!("read in {} bytes on asyncland", n);
                         read_region = 0..n;
                         if n == 0 {
                             let _ = self.resp_tx.send_async(AdapterResponse::ReadZero).await;
                             hit_end = true;
                         }
+                        seen_bytes += n as u64;
                     } else {
-                        break;
+                        println!("Stream died");
+                        match self.stream.try_resume(seen_bytes).await {
+                            Ok(s) => {
+                                println!("Stream back!");
+                                self.stream = s;
+                            },
+                            Err(_e) => break,
+                        }
                     }
                 }
 
                 while !read_region.is_empty() && !blocked {
-                    // println!("loopy");
                     if let Ok(n_moved) = self
                         .bytes_in
                         .write(&inner_buf[read_region.start..read_region.end])
                     {
-                        // println!("copied {} bytes to ring", n_moved);
                         read_region.start += n_moved;
                     } else {
                         blocked = true;
@@ -121,8 +126,6 @@ impl AsyncAdapterSink {
                 },
             }
         }
-
-        println!("Dropped");
     }
 }
 
@@ -318,4 +321,12 @@ pub trait AsyncMediaSource: AsyncRead + AsyncSeek + Send + Sync + Unpin {
 
     /// Returns the length in bytes, if available. This may be an expensive operation.
     async fn byte_len(&self) -> Option<u64>;
+
+    /// Tries to recreate this stream in event of an error, resuming from the given offset.
+    async fn try_resume(
+        &mut self,
+        _offset: u64,
+    ) -> Result<Box<dyn AsyncMediaSource>, AudioStreamError> {
+        Err(AudioStreamError::Unsupported)
+    }
 }
