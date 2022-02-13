@@ -120,7 +120,7 @@ impl VoiceEventHandler for Receiver {
                 // You can implement your own logic here to handle a user who has left the
                 // voice channel e.g., finalise processing of statistics etc.
                 // You will typically need to map the User ID to their SSRC; observed when
-                // speaking or connecting.
+                // first speaking.
 
                 println!("Client disconnected: user {:?}", user_id);
             },

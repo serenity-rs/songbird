@@ -40,7 +40,7 @@ pub enum EventContext<'a> {
     RtcpPacket(RtcpData<'a>),
     #[deprecated(
         since = "0.2.2",
-        note = "ClientConnect events are no longer sent by Discord. Please use SpeakingUpdate or Discord gateway events."
+        note = "ClientConnect events are no longer sent by Discord. Please use SpeakingStateUpdate or Discord gateway events."
     )]
     /// Formerly fired whenever a client connects to a call for the first time, allowing SSRC/UserID
     /// matching. This event no longer fires.
@@ -48,9 +48,9 @@ pub enum EventContext<'a> {
     /// To detect when a user connects, you must correlate gateway (e.g., VoiceStateUpdate) events
     /// from the main part of your bot.
     ///
-    /// To obtain a user's SSRC, you must use [`SpeakingUpdate`] events.
+    /// To obtain a user's SSRC, you must use [`SpeakingStateUpdate`] events.
     ///
-    /// [`SpeakingUpdate`]: Self::SpeakingUpdate
+    /// [`SpeakingStateUpdate`]: Self::SpeakingStateUpdate
     ClientConnect(ClientConnect),
     /// Fired whenever a client disconnects.
     ClientDisconnect(ClientDisconnect),
