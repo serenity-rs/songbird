@@ -110,7 +110,7 @@
     <span class="ident">RtcpPacket</span>,
     <span class="attribute">#[<span class="ident">deprecated</span>(
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.2.2&quot;</span>,
-        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;ClientConnect events are no longer sent by Discord. Please use SpeakingUpdate or Discord gateway events.&quot;</span>
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;ClientConnect events are no longer sent by Discord. Please use SpeakingStateUpdate or Discord gateway events.&quot;</span>
     )]</span>
     <span class="doccomment">/// Formerly fired whenever a client connects to a call for the first time, allowing SSRC/UserID</span>
     <span class="doccomment">/// matching. This event no longer fires.</span>
@@ -118,9 +118,9 @@
     <span class="doccomment">/// To detect when a user connects, you must correlate gateway (e.g., VoiceStateUpdate) events</span>
     <span class="doccomment">/// from the main part of your bot.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// To obtain a user&#39;s SSRC, you must use [`SpeakingUpdate`] events.</span>
+    <span class="doccomment">/// To obtain a user&#39;s SSRC, you must use [`SpeakingStateUpdate`] events.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`SpeakingUpdate`]: Self::SpeakingUpdate</span>
+    <span class="doccomment">/// [`SpeakingStateUpdate`]: Self::SpeakingStateUpdate</span>
     <span class="ident">ClientConnect</span>,
     <span class="doccomment">/// Fires whenever a user disconnects from the same stream as the bot.</span>
     <span class="ident">ClientDisconnect</span>,

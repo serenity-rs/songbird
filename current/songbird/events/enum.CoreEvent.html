@@ -35,12 +35,12 @@ back using the user IDs seen through client connection, disconnection,
 or speaking state update.</p>
 </div><h3 id="variant.RtcpPacket" class="variant small-section-header"><a href="#variant.RtcpPacket" class="anchor field"></a><code>RtcpPacket</code></h3><div class="docblock"><p>Fires on receipt of an RTCP packet, containing various call stats
 such as latency reports.</p>
-</div><h3 id="variant.ClientConnect" class="variant small-section-header"><a href="#variant.ClientConnect" class="anchor field"></a><code>ClientConnect</code></h3><div class="item-info"><div class="stab deprecated"><span class="emoji">👎</span> Deprecated since 0.2.2: <p>ClientConnect events are no longer sent by Discord. Please use SpeakingUpdate or Discord gateway events.</p>
+</div><h3 id="variant.ClientConnect" class="variant small-section-header"><a href="#variant.ClientConnect" class="anchor field"></a><code>ClientConnect</code></h3><div class="item-info"><div class="stab deprecated"><span class="emoji">👎</span> Deprecated since 0.2.2: <p>ClientConnect events are no longer sent by Discord. Please use SpeakingStateUpdate or Discord gateway events.</p>
 </div></div><div class="docblock"><p>Formerly fired whenever a client connects to a call for the first time, allowing SSRC/UserID
 matching. This event no longer fires.</p>
 <p>To detect when a user connects, you must correlate gateway (e.g., VoiceStateUpdate) events
 from the main part of your bot.</p>
-<p>To obtain a user’s SSRC, you must use <a href="enum.CoreEvent.html#variant.SpeakingUpdate"><code>SpeakingUpdate</code></a> events.</p>
+<p>To obtain a user’s SSRC, you must use <a href="enum.CoreEvent.html#variant.SpeakingStateUpdate"><code>SpeakingStateUpdate</code></a> events.</p>
 </div><h3 id="variant.ClientDisconnect" class="variant small-section-header"><a href="#variant.ClientDisconnect" class="anchor field"></a><code>ClientDisconnect</code></h3><div class="docblock"><p>Fires whenever a user disconnects from the same stream as the bot.</p>
 </div><h3 id="variant.DriverConnect" class="variant small-section-header"><a href="#variant.DriverConnect" class="anchor field"></a><code>DriverConnect</code></h3><div class="docblock"><p>Fires when this driver successfully connects to a voice channel.</p>
 </div><h3 id="variant.DriverReconnect" class="variant small-section-header"><a href="#variant.DriverReconnect" class="anchor field"></a><code>DriverReconnect</code></h3><div class="docblock"><p>Fires when this driver successfully reconnects after a network error.</p>
