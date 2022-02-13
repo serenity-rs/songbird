@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.2.2] — 2022-02-13
+
+This patch release mskes it easier to create new `ChildContainer`s, and deprecates the `ClientConnect` event. Users should instead make use of `SpeakingStateUpdate` events and Discord gateway events.
+
+Thanks to the following for their contributions:
+
+- [@asg051]
+- [@FelixMcFelix]
+- [@reiyw]
+
+### Added
+
+- [input] Input: add ChildContainer::new (#108) ([@asg051]) [c:ecc47d5]
+
+### Changed
+
+- [events] Events: Deprecate `ClientConnect` (#112) ([@FelixMcFelix]) [c:c464fcc]
+
+### Fixed
+
+- [docs] Docs: fix ClientConnect to recommend `SpeakingStateUpdate` ([@FelixMcFelix]) [c:652ec1f]
+- [repo] Chore: Fix typo in CHANGELOG.md (#111) ([@reiyw]) [c:2feadc7]
+
 ## [0.2.1] — 2022-01-05
 
 This patch release adds support for the `yt-dlp` fork of `youtube-dl`, and fixes track events to correctly fire events when multiple timed handlers are present on a track.
@@ -320,6 +343,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.2.2]: https://github.com/serenity-rs/songbird/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/serenity-rs/songbird/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/serenity-rs/songbird/compare/v0.1.8...v0.2.0
 [0.1.8]: https://github.com/serenity-rs/songbird/compare/v0.1.7...v0.1.8
@@ -335,6 +359,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 <!-- AUTHORS -->
 [@acdenisSK]: https://github.com/acdenisSK
 [@Arcterus]: https://github.com/Arcterus
+[@asg051]: https://github.com/asg051
 [@clarity0]: https://github.com/clarity0
 [@DasEtwas]: https://github.com/DasEtwas
 [@DoumanAsh]: https://github.com/DoumanAsh
@@ -362,6 +387,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@perryprog]: https://github.com/perryprog
 [@Prof-Bloodstone]: https://github.com/Prof-Bloodstone
 [@Proximyst]: https://github.com/Proximyst
+[@reiyw]: https://github.com/reiyw
 [@Roughsketch]: https://github.com/Roughsketch
 [@saanuregh]: https://github.com/saanuregh
 [@s0lst1ce]: https://github.com/s0lst1ce
@@ -371,6 +397,10 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@vivian]: https://github.com/vivian
 
 <!-- COMMITS -->
+[c:ecc47d5]: https://github.com/serenity-rs/songbird/commit/ecc47d588ab4bf492cf72d13e1dc0f039f4f3aab
+[c:c464fcc]: https://github.com/serenity-rs/songbird/commit/c464fcc38dc180f5409f687bc5efdbbf994b1878
+[c:652ec1f]: https://github.com/serenity-rs/songbird/commit/652ec1f2934b50f43819bc92ee70d9d95586a548
+[c:2feadc7]: https://github.com/serenity-rs/songbird/commit/2feadc761e01cda2aa2a31265556d9a328460d05
 [c:73323e5]: https://github.com/serenity-rs/songbird/commit/73323e58ddf47dfa2bb0e334c37e939cfbd95a86
 [c:6fcb196]: https://github.com/serenity-rs/songbird/commit/6fcb196e34922a7ec7e98f874a46e3c3518bfef5
 [c:62ecfe6]: https://github.com/serenity-rs/songbird/commit/62ecfe68d640d793c0f6988f88938462ca2d54d7
