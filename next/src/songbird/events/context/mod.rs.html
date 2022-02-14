@@ -5,7 +5,7 @@
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -162,6 +162,19 @@
 <span id="155">155</span>
 <span id="156">156</span>
 <span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">data</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_data</span>;
 
@@ -202,8 +215,19 @@
     <span class="ident">VoicePacket</span>(<span class="ident">VoiceData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Telemetry/statistics packet, received from another stream.</span>
     <span class="ident">RtcpPacket</span>(<span class="ident">RtcpData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// Fired whenever a client connects to a call for the first time, allowing SSRC/UserID</span>
-    <span class="doccomment">/// matching.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(
+        <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.2.2&quot;</span>,
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;ClientConnect events are no longer sent by Discord. Please use SpeakingStateUpdate or Discord gateway events.&quot;</span>
+    )]</span>
+    <span class="doccomment">/// Formerly fired whenever a client connects to a call for the first time, allowing SSRC/UserID</span>
+    <span class="doccomment">/// matching. This event no longer fires.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// To detect when a user connects, you must correlate gateway (e.g., VoiceStateUpdate) events</span>
+    <span class="doccomment">/// from the main part of your bot.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// To obtain a user&#39;s SSRC, you must use [`SpeakingStateUpdate`] events.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`SpeakingStateUpdate`]: Self::SpeakingStateUpdate</span>
     <span class="ident">ClientConnect</span>(<span class="ident">ClientConnect</span>),
     <span class="doccomment">/// Fired whenever a client disconnects.</span>
     <span class="ident">ClientDisconnect</span>(<span class="ident">ClientDisconnect</span>),
@@ -278,6 +302,7 @@
             <span class="ident">SpeakingUpdate</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::SpeakingUpdate</span>(<span class="ident">SpeakingUpdateData::from</span>(<span class="ident">evt</span>)),
             <span class="ident">VoicePacket</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::VoicePacket</span>(<span class="ident">VoiceData::from</span>(<span class="ident">evt</span>)),
             <span class="ident">RtcpPacket</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::RtcpPacket</span>(<span class="ident">RtcpData::from</span>(<span class="ident">evt</span>)),
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
             <span class="ident">ClientConnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::ClientConnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
             <span class="ident">ClientDisconnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::ClientDisconnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
             <span class="ident">DriverConnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::DriverConnect</span>(<span class="ident">ConnectData::from</span>(<span class="ident">evt</span>)),
@@ -304,6 +329,7 @@
             <span class="ident">SpeakingUpdate</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::SpeakingUpdate</span>),
             <span class="ident">VoicePacket</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::VoicePacket</span>),
             <span class="ident">RtcpPacket</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::RtcpPacket</span>),
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
             <span class="ident">ClientConnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::ClientConnect</span>),
             <span class="ident">ClientDisconnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::ClientDisconnect</span>),
             <span class="ident">DriverConnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverConnect</span>),
@@ -320,5 +346,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (84322efad 2022-01-23)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (1e12aef3f 2022-02-13)" ></div>
 </body></html>
