@@ -329,10 +329,6 @@ impl ConnectionRetryData {
                             let _ = tx.send(Err(why));
 
                             let _ = interconnect.events.send(EventMessage::FireCoreEvent(
-                                CoreContext::DriverConnectFailed,
-                            ));
-
-                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
                                 CoreContext::DriverDisconnect(InternalDisconnect {
                                     kind: DisconnectKind::Connect,
                                     reason,
@@ -341,10 +337,6 @@ impl ConnectionRetryData {
                             ));
                         },
                         ConnectionFlavour::Reconnect => {
-                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
-                                CoreContext::DriverReconnectFailed,
-                            ));
-
                             let _ = interconnect.events.send(EventMessage::FireCoreEvent(
                                 CoreContext::DriverDisconnect(InternalDisconnect {
                                     kind: DisconnectKind::Reconnect,

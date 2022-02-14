@@ -191,9 +191,7 @@ impl AuxNetwork {
                 ));
             },
             GatewayEvent::ClientConnect(ev) => {
-                let _ = interconnect
-                    .events
-                    .send(EventMessage::FireCoreEvent(CoreContext::ClientConnect(ev)));
+                debug!("Received discontinued ClientConnect: {:?}", ev);
             },
             GatewayEvent::ClientDisconnect(ev) => {
                 let _ = interconnect.events.send(EventMessage::FireCoreEvent(
