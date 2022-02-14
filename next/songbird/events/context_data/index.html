@@ -18,8 +18,7 @@ transmitting. This fires in response to a silent burst, or the first packet
 breaking such a burst.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.VoiceData.html" title="songbird::events::context_data::VoiceData struct">VoiceData</a></div><div class="item-right docblock-short"><p>Opus audio packet, received from another stream (detailed in <code>packet</code>).
 <code>payload_offset</code> contains the true payload location within the raw packet’s <code>payload()</code>,
-if extensions or raw packet data are required.
-If <code>audio.len() == 0</code>, then this packet arrived out-of-order.</p>
+if extensions or raw packet data are required.</p>
 </div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.DisconnectKind.html" title="songbird::events::context_data::DisconnectKind enum">DisconnectKind</a></div><div class="item-right docblock-short"><p>The location that a voice connection was terminated.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.DisconnectReason.html" title="songbird::events::context_data::DisconnectReason enum">DisconnectReason</a></div><div class="item-right docblock-short"><p>The reason that a voice connection failed.</p>
