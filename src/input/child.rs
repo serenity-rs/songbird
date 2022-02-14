@@ -22,6 +22,13 @@ impl Read for ChildContainer {
     }
 }
 
+impl ChildContainer {
+    /// Create a new [`ChildContainer`] from a child process
+    pub fn new(children: Vec<Child>) -> Self {
+        Self(children)
+    }
+}
+
 impl From<Child> for ChildContainer {
     fn from(container: Child) -> Self {
         Self(vec![container])

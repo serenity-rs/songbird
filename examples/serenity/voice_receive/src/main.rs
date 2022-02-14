@@ -29,7 +29,7 @@ use serenity::{
 
 use songbird::{
     driver::DecodeMode,
-    model::payload::{ClientConnect, ClientDisconnect, Speaking},
+    model::payload::{ClientDisconnect, Speaking},
     Config,
     CoreEvent,
     Event,
@@ -86,7 +86,7 @@ impl VoiceEventHandler for Receiver {
             },
             Ctx::SpeakingUpdate(data) => {
                 // You can implement logic here which reacts to a user starting
-                // or stopping speaking.
+                // or stopping speaking, and to map their SSRC to User ID.
                 println!(
                     "Source {} has {} speaking.",
                     data.ssrc,
@@ -114,26 +114,13 @@ impl VoiceEventHandler for Receiver {
                 // containing the call statistics and reporting information.
                 println!("RTCP packet received: {:?}", data.packet);
             },
-            Ctx::ClientConnect(
-                ClientConnect {audio_ssrc, video_ssrc, user_id, ..}
-            ) => {
-                // You can implement your own logic here to handle a user who has joined the
-                // voice channel e.g., allocate structures, map their SSRC to User ID.
-
-                println!(
-                    "Client connected: user {:?} has audio SSRC {:?}, video SSRC {:?}",
-                    user_id,
-                    audio_ssrc,
-                    video_ssrc,
-                );
-            },
             Ctx::ClientDisconnect(
                 ClientDisconnect {user_id, ..}
             ) => {
                 // You can implement your own logic here to handle a user who has left the
                 // voice channel e.g., finalise processing of statistics etc.
                 // You will typically need to map the User ID to their SSRC; observed when
-                // speaking or connecting.
+                // first speaking.
 
                 println!("Client disconnected: user {:?}", user_id);
             },
@@ -221,11 +208,6 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
         handler.add_global_event(
             CoreEvent::RtcpPacket.into(),
-            Receiver::new(),
-        );
-
-        handler.add_global_event(
-            CoreEvent::ClientConnect.into(),
             Receiver::new(),
         );
 

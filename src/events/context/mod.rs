@@ -38,8 +38,19 @@ pub enum EventContext<'a> {
     VoicePacket(VoiceData<'a>),
     /// Telemetry/statistics packet, received from another stream.
     RtcpPacket(RtcpData<'a>),
-    /// Fired whenever a client connects to a call for the first time, allowing SSRC/UserID
-    /// matching.
+    #[deprecated(
+        since = "0.2.2",
+        note = "ClientConnect events are no longer sent by Discord. Please use SpeakingStateUpdate or Discord gateway events."
+    )]
+    /// Formerly fired whenever a client connects to a call for the first time, allowing SSRC/UserID
+    /// matching. This event no longer fires.
+    ///
+    /// To detect when a user connects, you must correlate gateway (e.g., VoiceStateUpdate) events
+    /// from the main part of your bot.
+    ///
+    /// To obtain a user's SSRC, you must use [`SpeakingStateUpdate`] events.
+    ///
+    /// [`SpeakingStateUpdate`]: Self::SpeakingStateUpdate
     ClientConnect(ClientConnect),
     /// Fired whenever a client disconnects.
     ClientDisconnect(ClientDisconnect),
@@ -114,6 +125,7 @@ impl<'a> CoreContext {
             SpeakingUpdate(evt) => EventContext::SpeakingUpdate(SpeakingUpdateData::from(evt)),
             VoicePacket(evt) => EventContext::VoicePacket(VoiceData::from(evt)),
             RtcpPacket(evt) => EventContext::RtcpPacket(RtcpData::from(evt)),
+            #[allow(deprecated)]
             ClientConnect(evt) => EventContext::ClientConnect(*evt),
             ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),
             DriverConnect(evt) => EventContext::DriverConnect(ConnectData::from(evt)),
@@ -140,6 +152,7 @@ impl EventContext<'_> {
             SpeakingUpdate(_) => Some(CoreEvent::SpeakingUpdate),
             VoicePacket(_) => Some(CoreEvent::VoicePacket),
             RtcpPacket(_) => Some(CoreEvent::RtcpPacket),
+            #[allow(deprecated)]
             ClientConnect(_) => Some(CoreEvent::ClientConnect),
             ClientDisconnect(_) => Some(CoreEvent::ClientDisconnect),
             DriverConnect(_) => Some(CoreEvent::DriverConnect),

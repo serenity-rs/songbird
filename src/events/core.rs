@@ -25,7 +25,19 @@ pub enum CoreEvent {
     /// Fires on receipt of an RTCP packet, containing various call stats
     /// such as latency reports.
     RtcpPacket,
-    /// Fires whenever a user connects to the same stream as the bot.
+    #[deprecated(
+        since = "0.2.2",
+        note = "ClientConnect events are no longer sent by Discord. Please use SpeakingStateUpdate or Discord gateway events."
+    )]
+    /// Formerly fired whenever a client connects to a call for the first time, allowing SSRC/UserID
+    /// matching. This event no longer fires.
+    ///
+    /// To detect when a user connects, you must correlate gateway (e.g., VoiceStateUpdate) events
+    /// from the main part of your bot.
+    ///
+    /// To obtain a user's SSRC, you must use [`SpeakingStateUpdate`] events.
+    ///
+    /// [`SpeakingStateUpdate`]: Self::SpeakingStateUpdate
     ClientConnect,
     /// Fires whenever a user disconnects from the same stream as the bot.
     ClientDisconnect,
