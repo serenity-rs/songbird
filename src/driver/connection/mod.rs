@@ -7,7 +7,6 @@ use super::{
 };
 use crate::{
     constants::*,
-    events::CoreContext,
     model::{
         payload::{Identify, Resume, SelectProtocol},
         Event as GatewayEvent,
@@ -210,10 +209,6 @@ impl Connection {
         interconnect
             .mixer
             .send(MixerMessage::SetConn(mix_conn, ready.ssrc))?;
-
-        let _ = interconnect
-            .events
-            .send(EventMessage::FireCoreEvent(CoreContext::SsrcKnown(ssrc)));
 
         spawn(ws_task::runner(
             interconnect.clone(),
