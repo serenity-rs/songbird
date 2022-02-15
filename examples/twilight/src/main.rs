@@ -81,8 +81,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
                 trackdata: Default::default(),
                 songbird,
                 standby: Standby::new(),
-            },
-        ))
+            }),
+        )
     };
 
     while let Some((_, event)) = events.next().await {
@@ -194,14 +194,8 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     if let Ok(metadata) = src.aux_metadata().await {
         let content = format!(
             "Playing **{:?}** by **{:?}**",
-            metadata
-                .track
-                .as_ref()
-                .unwrap_or(&"<UNKNOWN>".to_string()),
-            metadata
-                .artist
-                .as_ref()
-                .unwrap_or(&"<UNKNOWN>".to_string()),
+            metadata.track.as_ref().unwrap_or(&"<UNKNOWN>".to_string()),
+            metadata.artist.as_ref().unwrap_or(&"<UNKNOWN>".to_string()),
         );
 
         state
@@ -248,11 +242,11 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
             PlayMode::Play => {
                 let _success = handle.pause();
                 false
-            }
+            },
             _ => {
                 let _success = handle.play();
                 true
-            }
+            },
         };
 
         let action = if paused { "Unpaused" } else { "Paused" };

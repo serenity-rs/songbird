@@ -12,18 +12,14 @@ use serenity::{
     async_trait,
     client::{Client, Context, EventHandler},
     framework::{
-        StandardFramework,
         standard::{
             macros::{command, group},
-            Args, CommandResult,
+            Args,
+            CommandResult,
         },
+        StandardFramework,
     },
-    model::{
-        channel::Message,
-        gateway::Ready,
-        id::ChannelId,
-        misc::Mentionable
-    },
+    model::{channel::Message, gateway::Ready, id::ChannelId, misc::Mentionable},
     Result as SerenityResult,
 };
 
@@ -53,7 +49,7 @@ impl Receiver {
     pub fn new() -> Self {
         // You can manage state here, such as a buffer of audio packet bytes so
         // you can later store them in intervals.
-        Self { }
+        Self {}
     }
 }
 
@@ -63,9 +59,12 @@ impl VoiceEventHandler for Receiver {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
         use EventContext as Ctx;
         match ctx {
-            Ctx::SpeakingStateUpdate(
-                Speaking {speaking, ssrc, user_id, ..}
-            ) => {
+            Ctx::SpeakingStateUpdate(Speaking {
+                speaking,
+                ssrc,
+                user_id,
+                ..
+            }) => {
                 // Discord voice calls use RTP, where every sender uses a randomly allocated
                 // *Synchronisation Source* (SSRC) to allow receivers to tell which audio
                 // stream a received packet belongs to. As this number is not derived from
@@ -79,9 +78,7 @@ impl VoiceEventHandler for Receiver {
                 // to the user ID and handle their audio packets separately.
                 println!(
                     "Speaking state update: user {:?} has SSRC {:?}, using {:?}",
-                    user_id,
-                    ssrc,
-                    speaking,
+                    user_id, ssrc, speaking,
                 );
             },
             Ctx::SpeakingUpdate(data) => {
@@ -90,14 +87,17 @@ impl VoiceEventHandler for Receiver {
                 println!(
                     "Source {} has {} speaking.",
                     data.ssrc,
-                    if data.speaking {"started"} else {"stopped"},
+                    if data.speaking { "started" } else { "stopped" },
                 );
             },
             Ctx::VoicePacket(data) => {
                 // An event which fires for every received audio packet,
                 // containing the decoded data.
                 if let Some(audio) = data.audio {
-                    println!("Audio packet's first 5 samples: {:?}", audio.get(..5.min(audio.len())));
+                    println!(
+                        "Audio packet's first 5 samples: {:?}",
+                        audio.get(..5.min(audio.len()))
+                    );
                     println!(
                         "Audio packet sequence {:05} has {:04} bytes (decompressed from {}), SSRC {}",
                         data.packet.sequence.0,
@@ -114,9 +114,7 @@ impl VoiceEventHandler for Receiver {
                 // containing the call statistics and reporting information.
                 println!("RTCP packet received: {:?}", data.packet);
             },
-            Ctx::ClientDisconnect(
-                ClientDisconnect {user_id, ..}
-            ) => {
+            Ctx::ClientDisconnect(ClientDisconnect { user_id, .. }) => {
                 // You can implement your own logic here to handle a user who has left the
                 // voice channel e.g., finalise processing of statistics etc.
                 // You will typically need to map the User ID to their SSRC; observed when
@@ -127,7 +125,7 @@ impl VoiceEventHandler for Receiver {
             _ => {
                 // We won't be registering this struct for any more event classes.
                 unimplemented!()
-            }
+            },
         }
 
         None
@@ -141,21 +139,18 @@ struct General;
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
-    
+
     // Configure the client with your Discord bot token in the environment.
-    let token = env::var("DISCORD_TOKEN")
-        .expect("Expected a token in the environment");
+    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
     let framework = StandardFramework::new()
-        .configure(|c| c
-            .prefix("~"))
+        .configure(|c| c.prefix("~"))
         .group(&GENERAL_GROUP);
 
     // Here, we need to configure Songbird to decode all incoming voice packets.
     // If you want, you can do this on a per-call basis---here, we need it to
     // read the audio data that other people are sending us!
-    let songbird_config = Config::default()
-        .decode_mode(DecodeMode::Decode);
+    let songbird_config = Config::default().decode_mode(DecodeMode::Decode);
 
     let mut client = Client::builder(&token)
         .event_handler(Handler)
@@ -164,7 +159,10 @@ async fn main() {
         .await
         .expect("Err creating client");
 
-    let _ = client.start().await.map_err(|why| println!("Client ended: {:?}", why));
+    let _ = client
+        .start()
+        .await
+        .map_err(|why| println!("Client ended: {:?}", why));
 }
 
 #[command]
@@ -173,7 +171,10 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let connect_to = match args.single::<u64>() {
         Ok(id) => ChannelId(id),
         Err(_) => {
-            check_msg(msg.reply(ctx, "Requires a valid voice channel ID be given").await);
+            check_msg(
+                msg.reply(ctx, "Requires a valid voice channel ID be given")
+                    .await,
+            );
 
             return Ok(());
         },
@@ -182,8 +183,10 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).unwrap();
     let guild_id = guild.id;
 
-    let manager = songbird::get(ctx).await
-        .expect("Songbird Voice client placed in at initialisation.").clone();
+    let manager = songbird::get(ctx)
+        .await
+        .expect("Songbird Voice client placed in at initialisation.")
+        .clone();
 
     let (handler_lock, conn_result) = manager.join(guild_id, connect_to).await;
 
@@ -191,34 +194,27 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         // NOTE: this skips listening for the actual connection result.
         let mut handler = handler_lock.lock().await;
 
-        handler.add_global_event(
-            CoreEvent::SpeakingStateUpdate.into(),
-            Receiver::new(),
-        );
+        handler.add_global_event(CoreEvent::SpeakingStateUpdate.into(), Receiver::new());
 
-        handler.add_global_event(
-            CoreEvent::SpeakingUpdate.into(),
-            Receiver::new(),
-        );
+        handler.add_global_event(CoreEvent::SpeakingUpdate.into(), Receiver::new());
 
-        handler.add_global_event(
-            CoreEvent::VoicePacket.into(),
-            Receiver::new(),
-        );
+        handler.add_global_event(CoreEvent::VoicePacket.into(), Receiver::new());
 
-        handler.add_global_event(
-            CoreEvent::RtcpPacket.into(),
-            Receiver::new(),
-        );
+        handler.add_global_event(CoreEvent::RtcpPacket.into(), Receiver::new());
 
-        handler.add_global_event(
-            CoreEvent::ClientDisconnect.into(),
-            Receiver::new(),
-        );
+        handler.add_global_event(CoreEvent::ClientDisconnect.into(), Receiver::new());
 
-        check_msg(msg.channel_id.say(&ctx.http, &format!("Joined {}", connect_to.mention())).await);
+        check_msg(
+            msg.channel_id
+                .say(&ctx.http, &format!("Joined {}", connect_to.mention()))
+                .await,
+        );
     } else {
-        check_msg(msg.channel_id.say(&ctx.http, "Error joining the channel").await);
+        check_msg(
+            msg.channel_id
+                .say(&ctx.http, "Error joining the channel")
+                .await,
+        );
     }
 
     Ok(())
@@ -230,16 +226,22 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).unwrap();
     let guild_id = guild.id;
 
-    let manager = songbird::get(ctx).await
-        .expect("Songbird Voice client placed in at initialisation.").clone();
+    let manager = songbird::get(ctx)
+        .await
+        .expect("Songbird Voice client placed in at initialisation.")
+        .clone();
     let has_handler = manager.get(guild_id).is_some();
 
     if has_handler {
         if let Err(e) = manager.remove(guild_id).await {
-            check_msg(msg.channel_id.say(&ctx.http, format!("Failed: {:?}", e)).await);
+            check_msg(
+                msg.channel_id
+                    .say(&ctx.http, format!("Failed: {:?}", e))
+                    .await,
+            );
         }
 
-        check_msg(msg.channel_id.say(&ctx.http,"Left voice channel").await);
+        check_msg(msg.channel_id.say(&ctx.http, "Left voice channel").await);
     } else {
         check_msg(msg.reply(ctx, "Not in a voice channel").await);
     }
@@ -249,7 +251,7 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    check_msg(msg.channel_id.say(&ctx.http,"Pong!").await);
+    check_msg(msg.channel_id.say(&ctx.http, "Pong!").await);
 
     Ok(())
 }
