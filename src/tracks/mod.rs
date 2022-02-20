@@ -329,6 +329,12 @@ impl Track {
     pub fn uuid(&self) -> Uuid {
         self.uuid
     }
+
+    #[cfg(feature = "internals")]
+    /// Extracts this track's `source`, e.g., for benchmarking purposes.
+    pub fn take_source(&mut self) -> Option<Input> {
+        self.source.take()
+    }
 }
 
 /// Creates a [`Track`] object to pass into the audio context, and a [`TrackHandle`]

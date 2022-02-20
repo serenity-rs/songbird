@@ -61,8 +61,8 @@ pub struct Mixer {
     pub ws: Option<Sender<WsMessage>>,
 
     pub tracks: Vec<Track>,
-    full_inputs: Vec<InputState>,
-    input_states: Vec<LocalInput>,
+    pub full_inputs: Vec<InputState>,
+    pub input_states: Vec<LocalInput>,
 
     sample_buffer: SampleBuffer<f32>,
     symph_mix: AudioBuffer<f32>,
@@ -401,13 +401,7 @@ impl Mixer {
     fn add_track(&mut self, mut track: Track) -> Result<()> {
         // TODO: make this an error?
         if let Some(source) = track.source.take() {
-            let full_input = match source {
-                a @ Input::Lazy(_) => InputState::NotReady(a),
-                Input::Live(live, rec) => match live {
-                    LiveInput::Parsed(p) => InputState::Ready(p, rec),
-                    other => InputState::NotReady(Input::Live(other, rec)),
-                },
-            };
+            let full_input = InputState::from(source);
 
             self.full_inputs.push(full_input);
 
@@ -417,11 +411,7 @@ impl Mixer {
 
             self.tracks.push(track);
 
-            self.input_states.push(LocalInput {
-                inner_pos: 0,
-                resampler: None,
-                passthrough: Passthrough::Inactive,
-            });
+            self.input_states.push(Default::default());
 
             self.interconnect
                 .events
@@ -748,6 +738,18 @@ pub enum InputState {
     Ready(Parsed, Option<Box<dyn Compose>>),
 }
 
+impl From<Input> for InputState {
+    fn from(val: Input) -> Self {
+        match val {
+            a @ Input::Lazy(_) => InputState::NotReady(a),
+            Input::Live(live, rec) => match live {
+                LiveInput::Parsed(p) => InputState::Ready(p, rec),
+                other => InputState::NotReady(Input::Live(other, rec)),
+            },
+        }
+    }
+}
+
 pub struct PreparingInfo {
     #[allow(dead_code)]
     time: Instant,
@@ -768,8 +770,18 @@ impl LocalInput {
     }
 }
 
+impl Default for LocalInput {
+    fn default() -> Self {
+        Self {
+            inner_pos: 0,
+            resampler: None,
+            passthrough: Passthrough::Inactive,
+        }
+    }
+}
+
 #[inline]
-fn mix_symph_indiv(
+pub fn mix_symph_indiv(
     symph_mix: &mut AudioBuffer<f32>,
     resample_scratch: &mut AudioBuffer<f32>,
     input: &mut Parsed,
@@ -855,7 +867,6 @@ fn mix_symph_indiv(
                 let ratio = (resampled[0].len() as f32) / (resample_scratch.frames() as f32);
                 let out_samples = (ratio * (in_len as f32)).round() as usize;
 
-                // FIXME: actually mix.
                 mix_resampled(&resampled, symph_mix, samples_written, volume);
 
                 samples_written += out_samples;

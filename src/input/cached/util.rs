@@ -312,7 +312,7 @@ impl Read for ToAudioBytes {
                     num_chans,
                 );
 
-                buf = &mut buf[bytes_advanced * SAMPLE_LEN..];
+                buf = &mut buf[bytes_advanced..];
             }
         }
         Ok(orig_sz - buf.len())

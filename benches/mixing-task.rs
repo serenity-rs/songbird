@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use criterion::{
     black_box,
     criterion_group,
@@ -11,12 +13,17 @@ use flume::{Receiver, Sender, TryRecvError};
 use songbird::{
     constants::*,
     driver::{
-        bench_internals::{mixer::Mixer, task_message::*, CryptoState},
+        bench_internals::{
+            mixer::{InputState, Mixer},
+            task_message::*,
+            CryptoState,
+        },
         Bitrate,
     },
-    input::{cached::Compressed, Input},
+    input::{cached::Compressed, registry::*, Input, RawAdapter},
     tracks,
 };
+use std::io::Cursor;
 use tokio::runtime::{Handle, Runtime};
 use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher, KEY_SIZE};
 
@@ -80,12 +87,27 @@ fn mixer_float(
     let floats = utils::make_sine(10 * STEREO_FRAME_SIZE, true);
 
     let mut tracks = vec![];
+    let mut full_inputs = vec![];
+    let mut input_states = vec![];
+
     for i in 0..num_tracks {
-        let input = Input::float_pcm(true, floats.clone().into());
-        tracks.push(tracks::create_player(input).0.into());
+        let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
+        let promoted = match input {
+            Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+            _ => panic!("Failed to create a guaranteed source."),
+        };
+        let (mut track, _handle) = tracks::create_player(Input::Live(promoted.unwrap(), None));
+        let source = track.take_source().unwrap();
+        let full_input = InputState::from(source);
+
+        tracks.push(track);
+        full_inputs.push(full_input);
+        input_states.push(Default::default());
     }
 
     out.0.tracks = tracks;
+    out.0.full_inputs = full_inputs;
+    out.0.input_states = input_states;
 
     out
 }
@@ -105,13 +127,28 @@ fn mixer_float_drop(
     let mut out = dummied_mixer(handle);
 
     let mut tracks = vec![];
+    let mut full_inputs = vec![];
+    let mut input_states = vec![];
+
     for i in 0..num_tracks {
         let floats = utils::make_sine((i / 5) * STEREO_FRAME_SIZE, true);
-        let input = Input::float_pcm(true, floats.clone().into());
-        tracks.push(tracks::create_player(input).0.into());
+        let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
+        let promoted = match input {
+            Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+            _ => panic!("Failed to create a guaranteed source."),
+        };
+        let (mut track, _handle) = tracks::create_player(Input::Live(promoted.unwrap(), None));
+        let source = track.take_source().unwrap();
+        let full_input = InputState::from(source);
+
+        tracks.push(track);
+        full_inputs.push(full_input);
+        input_states.push(Default::default());
     }
 
     out.0.tracks = tracks;
+    out.0.full_inputs = full_inputs;
+    out.0.input_states = input_states;
 
     out
 }
@@ -129,22 +166,39 @@ fn mixer_opus(
 ) {
     // should add a single opus-based track.
     // make this fully loaded to prevent any perf cost there.
-    let mut out = dummied_mixer(handle);
+    let mut out = dummied_mixer(handle.clone());
 
     let floats = utils::make_sine(6 * STEREO_FRAME_SIZE, true);
 
     let mut tracks = vec![];
+    let mut full_inputs = vec![];
+    let mut input_states = vec![];
 
-    let mut src = Compressed::new(
-        Input::float_pcm(true, floats.clone().into()),
-        Bitrate::BitsPerSecond(128_000),
-    )
-    .expect("These parameters are well-defined.");
+    let input: Input = RawAdapter::new(Cursor::new(floats), 48_000, 2).into();
+
+    let mut src = handle.block_on(async move {
+        Compressed::new(input, Bitrate::BitsPerSecond(128_000))
+            .await
+            .expect("These parameters are well-defined.")
+    });
+
     src.raw.load_all();
 
-    tracks.push(tracks::create_player(src.into()).0.into());
+    let promoted = match src.into() {
+        Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+        _ => panic!("Failed to create a guaranteed source."),
+    };
+    let (mut track, _handle) = tracks::create_player(Input::Live(promoted.unwrap(), None));
+    let source = track.take_source().unwrap();
+    let full_input = InputState::from(source);
+
+    tracks.push(track);
+    full_inputs.push(full_input);
+    input_states.push(Default::default());
 
     out.0.tracks = tracks;
+    out.0.full_inputs = full_inputs;
+    out.0.input_states = input_states;
 
     out
 }

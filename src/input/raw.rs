@@ -1,3 +1,4 @@
+use super::{AudioStream, Input, LiveInput};
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::io::{ErrorKind as IoErrorKind, Read, Result as IoResult, Seek, SeekFrom, Write};
 use symphonia::core::{
@@ -276,5 +277,16 @@ impl<A: MediaSource> MediaSource for RawAdapter<A> {
 
     fn byte_len(&self) -> Option<u64> {
         self.inner.byte_len().map(|m| m + self.prepend.len() as u64)
+    }
+}
+
+impl<A: MediaSource + Send + Sync + 'static> From<RawAdapter<A>> for Input {
+    fn from(val: RawAdapter<A>) -> Self {
+        let live = LiveInput::Raw(AudioStream {
+            input: Box::new(val),
+            hint: None,
+        });
+
+        Input::Live(live, None)
     }
 }

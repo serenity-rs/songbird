@@ -153,7 +153,9 @@ features = ["std"]
 
 [dev-dependencies]
 criterion = "0.3"
+symphonia = { version = "0.5" }
 utils = { path = "utils" }
+tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 
 [features]
 # Core features
@@ -226,6 +228,7 @@ internals = []
 [[bench]]
 name = "base-mixing"
 path = "benches/base-mixing.rs"
+required-features = ["internals"]
 harness = false
 
 [[bench]]

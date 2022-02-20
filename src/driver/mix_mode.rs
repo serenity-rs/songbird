@@ -49,3 +49,15 @@ impl MixMode {
         }
     }
 }
+
+impl From<MixMode> for Layout {
+    fn from(val: MixMode) -> Self {
+        val.symph_layout()
+    }
+}
+
+impl From<MixMode> for Channels {
+    fn from(val: MixMode) -> Self {
+        val.to_opus()
+    }
+}

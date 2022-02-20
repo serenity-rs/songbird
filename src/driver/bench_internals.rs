@@ -1,4 +1,4 @@
-//! Various driver internals  which need to be exported for benchmarking.
+//! Various driver internals which need to be exported for benchmarking.
 //!
 //! Included if using the `"internals"` feature flag.
 //! You should not and/or cannot use these as part of a normal application.
