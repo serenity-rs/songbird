@@ -97,11 +97,6 @@ impl Compose for YoutubeDl {
 
         let out = req.create_async().await;
 
-        match &out {
-            Ok(_) => println!("Created okay."),
-            Err(e) => println!("Argh: {:?}", e),
-        }
-
         out
     }
 

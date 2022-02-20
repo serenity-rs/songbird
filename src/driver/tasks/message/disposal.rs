@@ -1,14 +1,10 @@
 #![allow(missing_docs)]
 
-use crate::{
-    driver::tasks::mixer::{InputState, LocalInput},
-    tracks::Track,
-};
+use crate::{driver::tasks::mixer::InternalTrack, tracks::TrackHandle};
 
 pub enum DisposalMessage {
-    Track(Track),
-    Local(LocalInput),
-    State(InputState),
+    Track(InternalTrack),
+    Handle(TrackHandle),
 
     Poison,
 }

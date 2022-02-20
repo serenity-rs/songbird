@@ -185,9 +185,9 @@ impl TrackQueue {
         // Attempts to start loading the next track before this one ends.
         // Idea is to provide as close to gapless playback as possible,
         // while minimising memory use.
-        let meta = match track.source.as_mut() {
-            Some(Input::Lazy(ref mut rec)) => rec.aux_metadata().await.ok(),
-            Some(Input::Live(_, Some(ref mut rec))) => rec.aux_metadata().await.ok(),
+        let meta = match track.source {
+            Input::Lazy(ref mut rec) => rec.aux_metadata().await.ok(),
+            Input::Live(_, Some(ref mut rec)) => rec.aux_metadata().await.ok(),
             _ => None,
         };
 
@@ -203,28 +203,20 @@ impl TrackQueue {
             track.pause();
         }
 
-        track
-            .events
-            .as_mut()
-            .expect("Queue inspecting EventStore on new Track: did not exist.")
-            .add_event(
-                EventData::new(Event::Track(TrackEvent::End), QueueHandler { remote_lock }),
-                track.position,
-            );
+        track.events.add_event(
+            EventData::new(Event::Track(TrackEvent::End), QueueHandler { remote_lock }),
+            track.position,
+        );
 
         if let Some(time) = time {
             let preload_time: Duration =
                 time.checked_sub(Duration::from_secs(5)).unwrap_or_default();
             let remote_lock = self.inner.clone();
 
-            track
-                .events
-                .as_mut()
-                .expect("Queue inspecting EventStore on new Track: did not exist.")
-                .add_event(
-                    EventData::new(Event::Delayed(preload_time), SongPreloader { remote_lock }),
-                    track.position,
-                );
+            track.events.add_event(
+                EventData::new(Event::Delayed(preload_time), SongPreloader { remote_lock }),
+                track.position,
+            );
         }
 
         inner.tracks.push_back(Queued(track_handle));

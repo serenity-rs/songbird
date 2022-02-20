@@ -80,7 +80,7 @@ pub struct Track {
     /// Underlying data access object.
     ///
     /// *Calling code is not expected to use this.*
-    pub(crate) source: Option<Input>,
+    pub(crate) source: Input,
 
     /// The current playback position in the track.
     pub(crate) position: Duration,
@@ -92,7 +92,7 @@ pub struct Track {
     ///
     /// This may be used to add additional events to a track
     /// before it is sent to the audio context for playing.
-    pub events: Option<EventStore>,
+    pub events: EventStore,
 
     /// Channel from which commands are received.
     ///
@@ -127,10 +127,10 @@ impl Track {
         Self {
             playing: Default::default(),
             volume: 1.0,
-            source: Some(source),
+            source,
             position: Default::default(),
             play_time: Default::default(),
-            events: Some(EventStore::new_local()),
+            events: EventStore::new_local(),
             commands,
             handle,
             loops: LoopState::Finite(0),
@@ -328,12 +328,6 @@ impl Track {
     /// Returns this track's unique identifier.
     pub fn uuid(&self) -> Uuid {
         self.uuid
-    }
-
-    #[cfg(feature = "internals")]
-    /// Extracts this track's `source`, e.g., for benchmarking purposes.
-    pub fn take_source(&mut self) -> Option<Input> {
-        self.source.take()
     }
 }
 

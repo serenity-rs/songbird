@@ -9,8 +9,9 @@ use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
     driver::MixMode,
+    events::EventStore,
     input::{Compose, Input, LiveInput, Parsed},
-    tracks::{PlayMode, Track},
+    tracks::{LoopState, PlayMode, Track, TrackCommand, TrackHandle, TrackState},
     Config,
 };
 use audiopus::{
@@ -27,7 +28,12 @@ use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
 use rubato::{FftFixedOut, Resampler};
 use spin_sleep::SpinSleeper;
-use std::{io::Write, result::Result as StdResult, sync::Arc, time::Instant};
+use std::{
+    io::Write,
+    result::Result as StdResult,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use symphonia_core::{
     audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal, SignalSpec},
     codecs::CODEC_TYPE_OPUS,
@@ -60,9 +66,8 @@ pub struct Mixer {
     thread_pool: BlockyTaskPool,
     pub ws: Option<Sender<WsMessage>>,
 
-    pub tracks: Vec<Track>,
-    pub full_inputs: Vec<InputState>,
-    pub input_states: Vec<LocalInput>,
+    pub tracks: Vec<InternalTrack>,
+    track_handles: Vec<TrackHandle>,
 
     sample_buffer: SampleBuffer<f32>,
     symph_mix: AudioBuffer<f32>,
@@ -100,8 +105,7 @@ impl Mixer {
         rtp.set_timestamp(random::<u32>().into());
 
         let tracks = Vec::with_capacity(1.max(config.preallocated_tracks));
-        let full_inputs = Vec::with_capacity(1.max(config.preallocated_tracks));
-        let input_states = Vec::with_capacity(1.max(config.preallocated_tracks));
+        let track_handles = Vec::with_capacity(1.max(config.preallocated_tracks));
 
         // Create an object disposal thread here.
         let (disposer, disposal_rx) = flume::unbounded();
@@ -153,8 +157,7 @@ impl Mixer {
             ws: None,
 
             tracks,
-            full_inputs,
-            input_states,
+            track_handles,
 
             sample_buffer,
             symph_mix,
@@ -398,27 +401,13 @@ impl Mixer {
     }
 
     #[inline]
-    fn add_track(&mut self, mut track: Track) -> Result<()> {
-        // TODO: make this an error?
-        if let Some(source) = track.source.take() {
-            let full_input = InputState::from(source);
-
-            self.full_inputs.push(full_input);
-
-            let evts = track.events.take().unwrap_or_default();
-            let state = track.state();
-            let handle = track.handle.clone();
-
-            self.tracks.push(track);
-
-            self.input_states.push(Default::default());
-
-            self.interconnect
-                .events
-                .send(EventMessage::AddTrack(evts, state, handle))?;
-        } else {
-            println!("WTF no track?");
-        }
+    pub fn add_track(&mut self, mut track: Track) -> Result<()> {
+        let (track, evts, state, handle) = InternalTrack::decompose_track(track);
+        self.tracks.push(track);
+        self.track_handles.push(handle.clone());
+        self.interconnect
+            .events
+            .send(EventMessage::AddTrack(evts, state, handle))?;
 
         Ok(())
     }
@@ -426,10 +415,10 @@ impl Mixer {
     // rebuilds the event thread's view of each track, in event of a full rebuild.
     #[inline]
     fn rebuild_tracks(&mut self) -> Result<()> {
-        for track in self.tracks.iter_mut() {
-            let evts = track.events.take().unwrap_or_default();
+        for (track, handle) in self.tracks.iter().zip(self.track_handles.iter()) {
+            let evts = Default::default();
             let state = track.state();
-            let handle = track.handle.clone();
+            let handle = handle.clone();
 
             self.interconnect
                 .events
@@ -450,7 +439,7 @@ impl Mixer {
             let (maybe_seek, ready_now) = track.process_commands(i, &self.interconnect);
 
             if let Some(time) = maybe_seek {
-                let full_input = &mut self.full_inputs[i];
+                let full_input = &mut track.source;
                 let time = Time::from(time.as_secs_f64());
                 let mut ts = SeekTo::Time {
                     time,
@@ -500,11 +489,7 @@ impl Mixer {
             }
 
             if ready_now {
-                let full_input = &mut self.full_inputs[i];
-                let local_state = &mut self.input_states[i];
                 let _ = get_or_ready_input(
-                    full_input,
-                    local_state,
                     track,
                     i,
                     &self.interconnect,
@@ -525,13 +510,11 @@ impl Mixer {
                 .expect("Tried to remove an illegal track index.");
 
             if track.playing.is_done() {
-                let p_state = track.playing();
+                let p_state = track.playing;
                 let to_drop = self.tracks.swap_remove(i);
                 let _ = self.disposer.send(DisposalMessage::Track(to_drop));
-                let to_drop = self.full_inputs.swap_remove(i);
-                let _ = self.disposer.send(DisposalMessage::State(to_drop));
-                let to_drop = self.input_states.swap_remove(i);
-                let _ = self.disposer.send(DisposalMessage::Local(to_drop));
+                let to_drop = self.track_handles.swap_remove(i);
+                let _ = self.disposer.send(DisposalMessage::Handle(to_drop));
 
                 to_remove.push(i);
                 self.fire_event(EventMessage::ChangeState(
@@ -588,8 +571,7 @@ impl Mixer {
                 &mut self.symph_mix,
                 &mut self.resample_scratch,
                 &mut self.tracks,
-                &mut self.full_inputs,
-                &mut self.input_states,
+                &mut self.track_handles,
                 &self.interconnect,
                 &self.thread_pool,
                 &self.config,
@@ -1177,9 +1159,8 @@ fn mix_tracks<'a>(
     opus_frame: &'a mut [u8],
     symph_mix: &mut AudioBuffer<f32>,
     symph_scratch: &mut AudioBuffer<f32>,
-    tracks: &mut Vec<Track>,
-    full_inputs: &mut Vec<InputState>,
-    input_states: &mut Vec<LocalInput>,
+    tracks: &mut Vec<InternalTrack>,
+    handles: &mut Vec<TrackHandle>,
     interconnect: &Interconnect,
     thread_pool: &BlockyTaskPool,
     config: &Arc<Config>,
@@ -1195,30 +1176,16 @@ fn mix_tracks<'a>(
         (track.volume - 1.0).abs() < f32::EPSILON
     };
 
-    for (((i, track), input), local_state) in tracks
-        .iter_mut()
-        .enumerate()
-        .zip(full_inputs.iter_mut())
-        .zip(input_states.iter_mut())
-    {
+    for (i, track) in tracks.iter_mut().enumerate() {
         let vol = track.volume;
 
         if track.playing != PlayMode::Play {
             continue;
         }
 
-        let input = get_or_ready_input(
-            input,
-            local_state,
-            track,
-            i,
-            interconnect,
-            thread_pool,
-            config,
-            prevent_events,
-        );
+        let input = get_or_ready_input(track, i, interconnect, thread_pool, config, prevent_events);
 
-        let input = match input {
+        let (input, mix_state) = match input {
             Ok(i) => i,
             Err(InputReadyingError::Waiting) => continue,
             // TODO: allow for retry in given time.
@@ -1235,14 +1202,28 @@ fn mix_tracks<'a>(
         };
 
         let (mix_type, _status) =
-            mix_symph_indiv(symph_mix, symph_scratch, input, local_state, vol, opus_slot);
+            mix_symph_indiv(symph_mix, symph_scratch, input, mix_state, vol, opus_slot);
+
+        let return_here = match mix_type {
+            MixType::MixedPcm(pcm_len) => {
+                len = len.max(pcm_len);
+                false
+            },
+            a => {
+                if mix_state.passthrough == Passthrough::Inactive {
+                    input.decoder.reset();
+                }
+                mix_state.passthrough = Passthrough::Active;
+                true
+            },
+        };
 
         // FIXME: allow Ended to trigger a seek/loop/revisit in the same mix cycle?
         // This is a straight port of old logic, maybe we could combine with MixStatus::Ended.
         if mix_type.contains_audio() {
             track.step_frame();
         } else if track.do_loop() {
-            let _ = track.handle.seek_time(Default::default());
+            let _ = handles[i].seek_time(Default::default());
             if !prevent_events {
                 // position update is sent out later, when the seek concludes.
                 let _ = interconnect.events.send(EventMessage::ChangeState(
@@ -1254,17 +1235,9 @@ fn mix_tracks<'a>(
             track.end();
         }
 
-        match mix_type {
-            MixType::MixedPcm(pcm_len) => {
-                len = len.max(pcm_len);
-            },
-            a => {
-                if local_state.passthrough == Passthrough::Inactive {
-                    input.decoder.reset();
-                }
-                local_state.passthrough = Passthrough::Active;
-                return a;
-            },
+        // This needs to happen here due to borrow checker shenanigans.
+        if return_here {
+            return mix_type;
         }
     }
 
@@ -1276,17 +1249,18 @@ fn mix_tracks<'a>(
 ///
 /// Returns the usable version of the audio if available, and whether the track should be deleted.
 #[allow(clippy::too_many_arguments)]
-fn get_or_ready_input<'a, 'b, 'c>(
-    input: &'a mut InputState,
-    local: &'b mut LocalInput,
-    track: &'c mut Track,
+fn get_or_ready_input<'a>(
+    track: &'a mut InternalTrack,
     id: usize,
     interconnect: &Interconnect,
     pool: &BlockyTaskPool,
     config: &Arc<Config>,
     prevent_events: bool,
-) -> StdResult<&'a mut Parsed, InputReadyingError> {
+) -> StdResult<(&'a mut Parsed, &'a mut LocalInput), InputReadyingError> {
     use InputReadyingError::*;
+
+    let input = &mut track.source;
+    let local = &mut track.mix_state;
 
     match input {
         InputState::NotReady(_) => {
@@ -1366,6 +1340,8 @@ fn get_or_ready_input<'a, 'b, 'c>(
                 Err(TryRecvError::Disconnected) => Err(Dropped),
             };
 
+            let orig_out = orig_out.map(|a| (a, &mut track.mix_state));
+
             match (orig_out, queued_seek) {
                 (Ok(v), Some(_time)) => {
                     warn!("Track was given seek command while busy: handling not impl'd yet.");
@@ -1374,7 +1350,7 @@ fn get_or_ready_input<'a, 'b, 'c>(
                 (a, _) => a,
             }
         },
-        InputState::Ready(parsed, _) => Ok(parsed),
+        InputState::Ready(parsed, _) => Ok((parsed, &mut track.mix_state)),
     }
 }
 
@@ -1409,4 +1385,150 @@ enum Passthrough {
     Active,
     Inactive,
     Block,
+}
+
+pub struct InternalTrack {
+    playing: PlayMode,
+    volume: f32,
+    source: InputState,
+    mix_state: LocalInput,
+    position: Duration,
+    play_time: Duration,
+    commands: Receiver<TrackCommand>,
+    loops: LoopState,
+}
+
+impl InternalTrack {
+    fn decompose_track(val: Track) -> (Self, EventStore, TrackState, TrackHandle) {
+        let state = val.state();
+
+        let out = InternalTrack {
+            playing: val.playing,
+            volume: val.volume,
+            source: InputState::from(val.source),
+            mix_state: Default::default(),
+            position: val.position,
+            play_time: val.play_time,
+            commands: val.commands,
+            loops: val.loops,
+        };
+
+        (out, val.events, state, val.handle)
+    }
+
+    fn state(&self) -> TrackState {
+        TrackState {
+            playing: self.playing,
+            volume: self.volume,
+            position: self.position,
+            play_time: self.play_time,
+            loops: self.loops,
+        }
+    }
+
+    fn process_commands(&mut self, index: usize, ic: &Interconnect) -> (Option<Duration>, bool) {
+        // Note: disconnection and an empty channel are both valid,
+        // and should allow the audio object to keep running as intended.
+
+        // We also need to export a target seek point to the mixer, if known.
+        let mut seek_point = None;
+        let mut to_ready = false;
+
+        // Note that interconnect failures are not currently errors.
+        // In correct operation, the event thread should never panic,
+        // but it receiving status updates is secondary do actually
+        // doing the work.
+        loop {
+            match self.commands.try_recv() {
+                Ok(cmd) => {
+                    use TrackCommand::*;
+                    match cmd {
+                        Play => {
+                            self.playing.change_to(PlayMode::Play);
+                            let _ = ic.events.send(EventMessage::ChangeState(
+                                index,
+                                TrackStateChange::Mode(self.playing),
+                            ));
+                        },
+                        Pause => {
+                            self.playing.change_to(PlayMode::Pause);
+                            let _ = ic.events.send(EventMessage::ChangeState(
+                                index,
+                                TrackStateChange::Mode(self.playing),
+                            ));
+                        },
+                        Stop => {
+                            self.playing.change_to(PlayMode::Stop);
+                            let _ = ic.events.send(EventMessage::ChangeState(
+                                index,
+                                TrackStateChange::Mode(self.playing),
+                            ));
+                        },
+                        Volume(vol) => {
+                            self.volume = vol;
+                            let _ = ic.events.send(EventMessage::ChangeState(
+                                index,
+                                TrackStateChange::Volume(self.volume),
+                            ));
+                        },
+                        Seek(time) => seek_point = Some(time),
+                        AddEvent(evt) => {
+                            let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
+                        },
+                        Do(action) => {
+                            // action(self);
+                            todo!();
+                            let _ = ic.events.send(EventMessage::ChangeState(
+                                index,
+                                TrackStateChange::Total(self.state()),
+                            ));
+                        },
+                        Request(tx) => {
+                            let _ = tx.send(self.state());
+                        },
+                        Loop(loops) => {
+                            self.loops = loops;
+                            let _ = ic.events.send(EventMessage::ChangeState(
+                                index,
+                                TrackStateChange::Loops(self.loops, true),
+                            ));
+                        },
+                        MakePlayable => to_ready = true,
+                    }
+                },
+                Err(TryRecvError::Disconnected) => {
+                    // this branch will never be visited.
+                    break;
+                },
+                Err(TryRecvError::Empty) => {
+                    break;
+                },
+            }
+        }
+
+        (seek_point, to_ready)
+    }
+
+    pub(crate) fn do_loop(&mut self) -> bool {
+        match self.loops {
+            LoopState::Infinite => true,
+            LoopState::Finite(0) => false,
+            LoopState::Finite(ref mut n) => {
+                *n -= 1;
+                true
+            },
+        }
+    }
+
+    /// Steps playback location forward by one frame.
+    pub(crate) fn step_frame(&mut self) {
+        self.position += TIMESTEP_LENGTH;
+        self.play_time += TIMESTEP_LENGTH;
+    }
+
+    pub(crate) fn end(&mut self) -> &mut Self {
+        self.playing.change_to(PlayMode::End);
+
+        self
+    }
 }
