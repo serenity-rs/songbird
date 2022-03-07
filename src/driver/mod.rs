@@ -281,10 +281,11 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn enqueue_source(&mut self, source: Input) {
-        let (mut track, _) = tracks::create_player(source);
-        self.queue.add_raw(&mut track);
-        self.play(track);
+    pub fn enqueue_source(&mut self, source: Input) -> TrackHandle {
+        let (track, handle) = tracks::create_player(source);
+        self.enqueue(track);
+
+        handle
     }
 
     /// Adds an existing [`Track`] to this driver's built-in queue.
