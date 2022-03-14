@@ -741,7 +741,7 @@ pub struct PreparingInfo {
 
 pub struct LocalInput {
     inner_pos: usize,
-    resampler: Option<(usize, FftFixedOut<f32>)>,
+    resampler: Option<(usize, FftFixedOut<f32>, Vec<Vec<f32>>)>,
     passthrough: Passthrough,
 }
 
@@ -827,9 +827,9 @@ pub fn mix_symph_indiv(
         if source_packet.is_none() {
             if buf_in_progress {
                 // fill up buf with zeroes, resample, mix
-                let (chan_c, resampler) = local_state.resampler.as_mut().unwrap();
+                let (chan_c, resampler, rs_out_buf) = local_state.resampler.as_mut().unwrap();
                 let in_len = resample_scratch.frames();
-                let to_render = resampler.nbr_frames_needed().saturating_sub(in_len);
+                let to_render = resampler.input_frames_next().saturating_sub(in_len);
 
                 if to_render != 0 {
                     resample_scratch.render_reserved(Some(to_render));
@@ -842,14 +842,14 @@ pub fn mix_symph_indiv(
 
                 // Luckily, we make use of the WHOLE input buffer here.
                 let resampled = resampler
-                    .process(&resample_scratch.planes().planes()[..*chan_c])
+                    .process_into_buffer(&resample_scratch.planes().planes()[..*chan_c], rs_out_buf, None)
                     .unwrap();
 
                 // Calculate true end position using sample rate math
-                let ratio = (resampled[0].len() as f32) / (resample_scratch.frames() as f32);
+                let ratio = (rs_out_buf[0].len() as f32) / (resample_scratch.frames() as f32);
                 let out_samples = (ratio * (in_len as f32)).round() as usize;
 
-                mix_resampled(&resampled, symph_mix, samples_written, volume);
+                mix_resampled(&rs_out_buf, symph_mix, samples_written, volume);
 
                 samples_written += out_samples;
             }
@@ -864,16 +864,21 @@ pub fn mix_symph_indiv(
         if in_rate != SAMPLE_RATE_RAW as u32 {
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels.count();
-            let (_, resampler) = local_state.resampler.get_or_insert_with(|| {
+            let (_, resampler, rs_out_buf) = local_state.resampler.get_or_insert_with(|| {
+                // TODO: integ. error handling here.
+                let resampler = FftFixedOut::new(
+                    in_rate as usize,
+                    SAMPLE_RATE_RAW,
+                    RESAMPLE_OUTPUT_FRAME_SIZE,
+                    4,
+                    chan_c,
+                ).expect("Failed to create resampler.");
+                let out_buf = resampler.output_buffer_allocate();
+
                 (
                     chan_c,
-                    FftFixedOut::new(
-                        in_rate as usize,
-                        SAMPLE_RATE_RAW,
-                        RESAMPLE_OUTPUT_FRAME_SIZE,
-                        4,
-                        chan_c,
-                    ),
+                    resampler,
+                    out_buf,
                 )
             });
 
@@ -884,7 +889,7 @@ pub fn mix_symph_indiv(
                 continue;
             }
 
-            let needed_in_frames = resampler.nbr_frames_needed();
+            let needed_in_frames = resampler.input_frames_next();
             let available_frames = pkt_frames - inner_pos;
 
             let force_copy = buf_in_progress || needed_in_frames > available_frames;
@@ -907,7 +912,9 @@ pub fn mix_symph_indiv(
                     local_state.inner_pos += needed_in_frames;
                     local_state.inner_pos %= pkt_frames;
 
-                    resampler.process(&*refs).unwrap()
+                    resampler
+                        .process_into_buffer(&*refs, rs_out_buf, None)
+                        .unwrap()
                 } else {
                     unreachable!()
                 }
@@ -936,7 +943,7 @@ pub fn mix_symph_indiv(
                     continue;
                 } else {
                     let out = resampler
-                        .process(&resample_scratch.planes().planes()[..chan_c])
+                        .process_into_buffer(&resample_scratch.planes().planes()[..chan_c], rs_out_buf, None)
                         .unwrap();
                     resample_scratch.clear();
                     buf_in_progress = false;
@@ -944,7 +951,7 @@ pub fn mix_symph_indiv(
                 }
             };
 
-            let samples_marched = mix_resampled(&resampled, symph_mix, samples_written, volume);
+            let samples_marched = mix_resampled(&rs_out_buf, symph_mix, samples_written, volume);
 
             samples_written += samples_marched;
         } else {

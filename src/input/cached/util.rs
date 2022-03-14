@@ -35,7 +35,7 @@ pub struct ToAudioBytes {
 
 struct ResampleState {
     /// Used to hold outputs from resampling, *ready to be used*.
-    resampled_data: Option<Vec<Vec<f32>>>,
+    resampled_data: Vec<Vec<f32>>,
     /// The actual resampler.
     resampler: FftFixedOut<f32>,
     /// Used to hold inputs to resampler across packet boundaries.
@@ -78,16 +78,19 @@ impl ToAudioBytes {
 
             let scratch = AudioBuffer::<f32>::new(MONO_FRAME_SIZE as u64, spec);
 
+            // TODO: integ. error handling here.
             let resampler = FftFixedOut::new(
                 sample_rate as usize,
                 SAMPLE_RATE_RAW,
                 RESAMPLE_OUTPUT_FRAME_SIZE,
                 4,
                 chan_count,
-            );
+            ).expect("Failed to create resampler.");
+
+            let resampled_data = resampler.output_buffer_allocate();
 
             Some(ResampleState {
-                resampled_data: None,
+                resampled_data,
                 resampler,
                 scratch,
                 resample_pos: 0..0,
@@ -147,24 +150,20 @@ impl Read for ToAudioBytes {
 
             // Clear out already produced resampled floats.
             if let Some(resample) = self.resample.as_mut() {
-                if let Some(data) = resample.resampled_data.as_mut() {
-                    if !buf.is_empty() && !resample.resample_pos.is_empty() {
-                        let bytes_advanced = write_resample_buffer(
-                            data,
-                            buf,
-                            &mut resample.resample_pos,
-                            &mut self.interrupted_samples,
-                            &mut self.interrupted_byte_pos,
-                            num_chans,
-                        );
+                if !buf.is_empty() && !resample.resample_pos.is_empty() {
+                    let bytes_advanced = write_resample_buffer(
+                        &resample.resampled_data,
+                        buf,
+                        &mut resample.resample_pos,
+                        &mut self.interrupted_samples,
+                        &mut self.interrupted_byte_pos,
+                        num_chans,
+                    );
 
-                        buf = &mut buf[bytes_advanced..];
-                    }
+                    buf = &mut buf[bytes_advanced..];
                 }
 
-                if resample.resample_pos.is_empty() {
-                    resample.resampled_data = None;
-                } else {
+                if !resample.resample_pos.is_empty() {
                     continue;
                 }
             }
@@ -195,9 +194,10 @@ impl Read for ToAudioBytes {
 
                 if let Some(resample) = self.resample.as_mut() {
                     if resample.scratch.frames() != 0 {
+                        let data = &mut resample.resampled_data;
                         let resampler = &mut resample.resampler;
                         let in_len = resample.scratch.frames();
-                        let to_render = resampler.nbr_frames_needed().saturating_sub(in_len);
+                        let to_render = resampler.input_frames_next().saturating_sub(in_len);
 
                         if to_render != 0 {
                             resample.scratch.render_reserved(Some(to_render));
@@ -209,16 +209,14 @@ impl Read for ToAudioBytes {
                         }
 
                         // Luckily, we make use of the WHOLE input buffer here.
-                        let resampled = resampler
-                            .process(resample.scratch.planes().planes())
+                        resampler
+                            .process_into_buffer(resample.scratch.planes().planes(), data, None)
                             .unwrap();
 
                         // Calculate true end position using sample rate math
                         let ratio =
-                            (resampled[0].len() as f32) / (resample.scratch.frames() as f32);
+                            (data[0].len() as f32) / (resample.scratch.frames() as f32);
                         let out_samples = (ratio * (in_len as f32)).round() as usize;
-
-                        resample.resampled_data = Some(resampled);
 
                         resample.scratch.clear();
                         resample.resample_pos = 0..out_samples;
@@ -241,13 +239,13 @@ impl Read for ToAudioBytes {
                     continue;
                 }
 
-                let needed_in_frames = resample.resampler.nbr_frames_needed();
+                let needed_in_frames = resample.resampler.input_frames_next();
                 let available_frames = self.inner_pos.len();
 
                 let force_copy =
                     resample.scratch.frames() != 0 || needed_in_frames > available_frames;
 
-                let resampled = if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_))
+                if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_))
                 {
                     // This is the only case where we can pull off a straight resample...
                     // I.e., skip scratch.
@@ -263,7 +261,9 @@ impl Read for ToAudioBytes {
 
                         self.inner_pos.start += needed_in_frames;
 
-                        resample.resampler.process(&*refs).unwrap()
+                        resample.resampler
+                            .process_into_buffer(&*refs, &mut resample.resampled_data, None)
+                            .unwrap()
                     } else {
                         unreachable!()
                     }
@@ -291,15 +291,14 @@ impl Read for ToAudioBytes {
                     } else {
                         let out = resample
                             .resampler
-                            .process(resample.scratch.planes().planes())
+                            .process_into_buffer(resample.scratch.planes().planes(), &mut resample.resampled_data, None)
                             .unwrap();
                         resample.scratch.clear();
                         out
                     }
-                };
+                }
 
-                resample.resample_pos = 0..resampled[0].len();
-                resample.resampled_data = Some(resampled);
+                resample.resample_pos = 0..resample.resampled_data[0].len();
             } else {
                 // Newest packet may be used straight away: just convert format
                 // to ensure it's f32.
