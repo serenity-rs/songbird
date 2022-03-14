@@ -163,9 +163,11 @@ impl TrackQueue {
     }
 
     /// Adds an audio source to the queue, to be played in the channel managed by `handler`.
-    pub async fn add_source(&self, source: Input, handler: &mut Driver) {
-        let (audio, _) = tracks::create_player(source);
+    pub async fn add_source(&self, source: Input, handler: &mut Driver) -> TrackHandle {
+        let (audio, handle) = tracks::create_player(source);
         self.add(audio, handler).await;
+
+        handle
     }
 
     /// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.
