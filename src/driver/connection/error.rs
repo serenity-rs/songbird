@@ -7,10 +7,7 @@ use crate::{
 use flume::SendError;
 use serde_json::Error as JsonError;
 use std::{error::Error as StdError, fmt, io::Error as IoError};
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::time::error::Elapsed;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::time::Elapsed;
 use xsalsa20poly1305::aead::Error as CryptoError;
 
 /// Errors encountered while connecting to a Discord voice server over the driver.

@@ -1,10 +1,7 @@
 use super::{codec::OpusDecoderState, error::DcaError, Codec, Container, Input, Metadata, Reader};
 use serde::Deserialize;
 use std::{ffi::OsStr, mem};
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{fs::File as TokioFile, io::AsyncReadExt};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{fs::File as TokioFile, io::AsyncReadExt};
 
 /// Creates a streamed audio source from a DCA file.
 /// Currently only accepts the [DCA1 format](https://github.com/bwmarrin/dca).

@@ -22,10 +22,7 @@ use serenity::{
     },
 };
 use std::sync::Arc;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::sync::Mutex;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::sync::Mutex;
 use tracing::debug;
 #[cfg(feature = "twilight")]
 use twilight_gateway::Cluster;
