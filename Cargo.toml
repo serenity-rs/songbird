@@ -30,13 +30,6 @@ features = ["tokio-runtime"]
 optional = true
 version = "0.14"
 
-[dependencies.async-tungstenite-compat]
-package = "async-tungstenite"
-default-features = false
-features = ["tokio-runtime"]
-optional = true
-version = "0.9"
-
 [dependencies.audiopus]
 optional = true
 version = "0.2"
@@ -95,12 +88,6 @@ version = "1"
 [dependencies.tokio]
 optional = true
 version = "1.0"
-default-features = false
-
-[dependencies.tokio-compat]
-optional = true
-package = "tokio"
-version = "0.2"
 default-features = false
 
 [dependencies.twilight-gateway]
@@ -194,32 +181,6 @@ serenity-deps = ["async-trait"]
 
 rustls-marker = []
 native-marker = []
-
-# Tokio 0.2 Compatibility features
-# These should probably be dropped around the same time as serenity drop them.
-rustls-tokio-02 = ["async-tungstenite-compat/tokio-rustls", "rustls-marker", "tokio-02-marker"]
-native-tokio-02 = ["async-tungstenite-compat/tokio-native-tls", "native-marker", "tokio-02-marker"]
-serenity-rustls-tokio-02 = ["serenity/rustls_tokio_0_2_backend", "rustls-tokio-02", "gateway-tokio-02", "serenity-deps"]
-serenity-native-tokio-02 = ["serenity/native_tls_tokio_0_2_backend", "native-tokio-02", "gateway-tokio-02", "serenity-deps"]
-gateway-tokio-02 = [
-    "gateway-core",
-    "tokio-02-marker",
-    "tokio-compat/sync",
-]
-driver-tokio-02 = [
-    "async-tungstenite-compat",
-    "driver-core",
-    "tokio-02-marker",
-    "tokio-compat/fs",
-    "tokio-compat/io-util",
-    "tokio-compat/macros",
-    "tokio-compat/net",
-    "tokio-compat/process",
-    "tokio-compat/rt-core",
-    "tokio-compat/sync",
-    "tokio-compat/time",
-]
-tokio-02-marker = []
 
 # Behaviour altering features.
 youtube-dlc = []

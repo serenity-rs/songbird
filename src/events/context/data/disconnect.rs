@@ -4,10 +4,7 @@ use crate::{
     model::{CloseCode as VoiceCloseCode, FromPrimitive},
     ws::Error as WsError,
 };
-#[cfg(not(feature = "tokio-02-marker"))]
 use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
-#[cfg(feature = "tokio-02-marker")]
-use async_tungstenite_compat::tungstenite::protocol::frame::coding::CloseCode;
 
 /// Voice connection details gathered at termination or failure.
 ///

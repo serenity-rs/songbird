@@ -11,10 +11,7 @@ mod ws;
 pub use self::{core::*, disposal::*, events::*, mixer::*, udp_rx::*, udp_tx::*, ws::*};
 
 use flume::Sender;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::spawn;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::spawn;
 use tracing::trace;
 
 #[derive(Clone, Debug)]

@@ -19,10 +19,7 @@ use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
 use spin_sleep::SpinSleeper;
 use std::time::Instant;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::runtime::Handle;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::runtime::Handle;
 use tracing::{debug, error, instrument};
 use xsalsa20poly1305::TAG_SIZE;
 

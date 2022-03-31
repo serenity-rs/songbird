@@ -16,10 +16,7 @@ use core::{
 };
 use flume::r#async::RecvFut;
 use pin_project::pin_project;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::time::{self, Timeout};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::time::{self, Timeout};
 
 #[cfg(feature = "driver-core")]
 /// Future for a call to [`Call::join`].

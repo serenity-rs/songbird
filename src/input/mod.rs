@@ -58,10 +58,7 @@ use audiopus::coder::GenericCtl;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use cached::OpusCompressor;
 use error::{Error, Result};
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::runtime::Handle;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::runtime::Handle;
 
 use std::{
     convert::TryFrom,
