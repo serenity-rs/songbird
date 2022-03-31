@@ -148,16 +148,10 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">codec::OpusDecoderState</span>, <span class="ident">error::DcaError</span>, <span class="ident">Codec</span>, <span class="ident">Container</span>, <span class="ident">Input</span>, <span class="ident">Metadata</span>, <span class="ident">Reader</span>};
 <span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi::OsStr</span>, <span class="ident">mem</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">fs::File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io::AsyncReadExt</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">fs::File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io::AsyncReadExt</span>};
 
 <span class="doccomment">/// Creates a streamed audio source from a DCA file.</span>
 <span class="doccomment">/// Currently only accepts the [DCA1 format](https://github.com/bwmarrin/dca).</span>
@@ -298,5 +292,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (e95b10ba4 2022-03-13)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (c5cf08d37 2022-03-30)" ></div>
 </body></html>

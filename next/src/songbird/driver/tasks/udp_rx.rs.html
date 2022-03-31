@@ -425,38 +425,6 @@
 <span id="418">418</span>
 <span id="419">419</span>
 <span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">message</span>::<span class="kw-2">*</span>,
@@ -481,10 +449,7 @@
 };
 <span class="kw">use</span> <span class="ident">flume::Receiver</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">sync::Arc</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">net::UdpSocket</span>, <span class="ident">select</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">net::udp::RecvHalf</span>, <span class="ident">select</span>};
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305::XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>;
 
@@ -700,10 +665,7 @@
     <span class="ident">packet_buffer</span>: [<span class="ident">u8</span>; <span class="ident">VOICE_PACKET_MAX</span>],
     <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
     <span class="ident">udp_socket</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">UdpSocket</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-    <span class="ident">udp_socket</span>: <span class="ident">RecvHalf</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">UdpRx</span> {
@@ -855,7 +817,6 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">interconnect</span>, <span class="ident">rx</span>, <span class="ident">cipher</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(
     <span class="kw-2">mut</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
@@ -880,35 +841,10 @@
     <span class="macro">trace!</span>(<span class="string">&quot;UDP receive handle stopped.&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">interconnect</span>, <span class="ident">rx</span>, <span class="ident">cipher</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(
-    <span class="kw-2">mut</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
-    <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
-    <span class="ident">cipher</span>: <span class="ident">Cipher</span>,
-    <span class="ident">config</span>: <span class="ident">Config</span>,
-    <span class="ident">udp_socket</span>: <span class="ident">RecvHalf</span>,
-) {
-    <span class="macro">trace!</span>(<span class="string">&quot;UDP receive handle started.&quot;</span>);
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">UdpRx</span> {
-        <span class="ident">cipher</span>,
-        <span class="ident">decoder_map</span>: <span class="ident">Default::default</span>(),
-        <span class="ident">config</span>,
-        <span class="ident">packet_buffer</span>: [<span class="number">0u8</span>; <span class="ident">VOICE_PACKET_MAX</span>],
-        <span class="ident">rx</span>,
-        <span class="ident">udp_socket</span>,
-    };
-
-    <span class="ident">state</span>.<span class="ident">run</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interconnect</span>).<span class="kw">await</span>;
-
-    <span class="macro">trace!</span>(<span class="string">&quot;UDP receive handle stopped.&quot;</span>);
-}
-
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">rtp_valid</span>(<span class="ident">packet</span>: <span class="ident">RtpPacket</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
     <span class="ident">packet</span>.<span class="ident">get_version</span>() <span class="op">==</span> <span class="ident">RTP_VERSION</span> <span class="op">&amp;&amp;</span> <span class="ident">packet</span>.<span class="ident">get_payload_type</span>() <span class="op">==</span> <span class="ident">RTP_PROFILE_TYPE</span>
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (e95b10ba4 2022-03-13)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (c5cf08d37 2022-03-30)" ></div>
 </body></html>
