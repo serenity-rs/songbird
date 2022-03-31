@@ -5,10 +5,7 @@ use crate::{
 };
 use flume::Sender;
 use std::{fmt, sync::Arc, time::Duration};
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::sync::RwLock;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::sync::RwLock;
 use typemap_rev::TypeMap;
 use uuid::Uuid;
 

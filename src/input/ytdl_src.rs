@@ -11,10 +11,7 @@ use std::{
     io::{BufRead, BufReader, Read},
     process::{Command, Stdio},
 };
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{process::Command as TokioCommand, task};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{process::Command as TokioCommand, task};
 use tracing::trace;
 
 const YOUTUBE_DL_COMMAND: &str = if cfg!(feature = "youtube-dlc") {

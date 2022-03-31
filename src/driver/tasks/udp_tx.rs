@@ -3,14 +3,8 @@ use crate::constants::*;
 use discortp::discord::MutableKeepalivePacket;
 use flume::Receiver;
 use std::sync::Arc;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{
     net::UdpSocket,
-    time::{timeout_at, Instant},
-};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{
-    net::udp::SendHalf,
     time::{timeout_at, Instant},
 };
 use tracing::{error, instrument, trace};
@@ -19,10 +13,7 @@ struct UdpTx {
     ssrc: u32,
     rx: Receiver<UdpTxMessage>,
 
-    #[cfg(not(feature = "tokio-02-marker"))]
     udp_tx: Arc<UdpSocket>,
-    #[cfg(feature = "tokio-02-marker")]
-    udp_tx: SendHalf,
 }
 
 impl UdpTx {
@@ -62,25 +53,8 @@ impl UdpTx {
     }
 }
 
-#[cfg(not(feature = "tokio-02-marker"))]
 #[instrument(skip(udp_msg_rx))]
 pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx: Arc<UdpSocket>) {
-    trace!("UDP transmit handle started.");
-
-    let mut txer = UdpTx {
-        ssrc,
-        rx: udp_msg_rx,
-        udp_tx,
-    };
-
-    txer.run().await;
-
-    trace!("UDP transmit handle stopped.");
-}
-
-#[cfg(feature = "tokio-02-marker")]
-#[instrument(skip(udp_msg_rx))]
-pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx: SendHalf) {
     trace!("UDP transmit handle started.");
 
     let mut txer = UdpTx {
