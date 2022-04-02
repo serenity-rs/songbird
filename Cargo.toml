@@ -18,7 +18,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
-symphonia-core = "0.2"
+symphonia-core = "0.5"
 
 [dependencies.async-trait]
 optional = true
@@ -28,7 +28,7 @@ version = "0.1"
 default-features = false
 features = ["tokio-runtime"]
 optional = true
-version = "0.14"
+version = "0.17"
 
 [dependencies.audiopus]
 optional = true
@@ -40,7 +40,7 @@ version = "1"
 
 [dependencies.dashmap]
 optional = true
-version = "4"
+version = "5"
 
 [dependencies.discortp]
 features = ["discord-full"]
@@ -56,7 +56,7 @@ version = "0.3"
 
 [dependencies.parking_lot]
 optional = true
-version = "0.11"
+version = "0.12"
 
 [dependencies.pin-project]
 optional = true
@@ -116,7 +116,7 @@ features = ["v4"]
 
 [dependencies.xsalsa20poly1305]
 optional = true
-version = "0.7"
+version = "0.8"
 features = ["std"]
 
 [dev-dependencies]
