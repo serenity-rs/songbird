@@ -28,7 +28,7 @@ version = "0.1"
 default-features = false
 features = ["tokio-runtime"]
 optional = true
-version = "0.16"
+version = "0.17"
 
 [dependencies.audiopus]
 optional = true
@@ -40,7 +40,7 @@ version = "1"
 
 [dependencies.dashmap]
 optional = true
-version = "4"
+version = "5"
 
 [dependencies.discortp]
 features = ["discord-full"]

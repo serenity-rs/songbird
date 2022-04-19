@@ -85,7 +85,8 @@ impl ToAudioBytes {
                 RESAMPLE_OUTPUT_FRAME_SIZE,
                 4,
                 chan_count,
-            ).expect("Failed to create resampler.");
+            )
+            .expect("Failed to create resampler.");
 
             let resampled_data = resampler.output_buffer_allocate();
 
@@ -214,8 +215,7 @@ impl Read for ToAudioBytes {
                             .unwrap();
 
                         // Calculate true end position using sample rate math
-                        let ratio =
-                            (data[0].len() as f32) / (resample.scratch.frames() as f32);
+                        let ratio = (data[0].len() as f32) / (resample.scratch.frames() as f32);
                         let out_samples = (ratio * (in_len as f32)).round() as usize;
 
                         resample.scratch.clear();
@@ -245,8 +245,7 @@ impl Read for ToAudioBytes {
                 let force_copy =
                     resample.scratch.frames() != 0 || needed_in_frames > available_frames;
 
-                if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_))
-                {
+                if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
                     // This is the only case where we can pull off a straight resample...
                     // I.e., skip scratch.
 
@@ -261,7 +260,8 @@ impl Read for ToAudioBytes {
 
                         self.inner_pos.start += needed_in_frames;
 
-                        resample.resampler
+                        resample
+                            .resampler
                             .process_into_buffer(&*refs, &mut resample.resampled_data, None)
                             .unwrap()
                     } else {
@@ -291,7 +291,11 @@ impl Read for ToAudioBytes {
                     } else {
                         let out = resample
                             .resampler
-                            .process_into_buffer(resample.scratch.planes().planes(), &mut resample.resampled_data, None)
+                            .process_into_buffer(
+                                resample.scratch.planes().planes(),
+                                &mut resample.resampled_data,
+                                None,
+                            )
                             .unwrap();
                         resample.scratch.clear();
                         out

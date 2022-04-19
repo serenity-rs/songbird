@@ -842,7 +842,11 @@ pub fn mix_symph_indiv(
 
                 // Luckily, we make use of the WHOLE input buffer here.
                 let resampled = resampler
-                    .process_into_buffer(&resample_scratch.planes().planes()[..*chan_c], rs_out_buf, None)
+                    .process_into_buffer(
+                        &resample_scratch.planes().planes()[..*chan_c],
+                        rs_out_buf,
+                        None,
+                    )
                     .unwrap();
 
                 // Calculate true end position using sample rate math
@@ -872,14 +876,11 @@ pub fn mix_symph_indiv(
                     RESAMPLE_OUTPUT_FRAME_SIZE,
                     4,
                     chan_c,
-                ).expect("Failed to create resampler.");
+                )
+                .expect("Failed to create resampler.");
                 let out_buf = resampler.output_buffer_allocate();
 
-                (
-                    chan_c,
-                    resampler,
-                    out_buf,
-                )
+                (chan_c, resampler, out_buf)
             });
 
             let inner_pos = local_state.inner_pos;
@@ -943,7 +944,11 @@ pub fn mix_symph_indiv(
                     continue;
                 } else {
                     let out = resampler
-                        .process_into_buffer(&resample_scratch.planes().planes()[..chan_c], rs_out_buf, None)
+                        .process_into_buffer(
+                            &resample_scratch.planes().planes()[..chan_c],
+                            rs_out_buf,
+                            None,
+                        )
                         .unwrap();
                     resample_scratch.clear();
                     buf_in_progress = false;
