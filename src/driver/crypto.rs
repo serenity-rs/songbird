@@ -90,14 +90,22 @@ impl CryptoMode {
 
     /// Extracts the byte slice in a packet used as the nonce, and the remaining mutable
     /// portion of the packet.
-    fn nonce_slice<'a>(self, header: &'a [u8], body: &'a mut [u8]) -> (&'a [u8], &'a mut [u8]) {
+    fn nonce_slice<'a>(
+        self,
+        header: &'a [u8],
+        body: &'a mut [u8],
+    ) -> Result<(&'a [u8], &'a mut [u8]), CryptoError> {
         use CryptoMode::*;
         match self {
-            Normal => (header, body),
+            Normal => Ok((header, body)),
             Suffix | Lite => {
                 let len = body.len();
-                let (body_left, nonce_loc) = body.split_at_mut(len - self.payload_suffix_len());
-                (&nonce_loc[..self.nonce_size()], body_left)
+                if len < self.payload_suffix_len() {
+                    Err(CryptoError)
+                } else {
+                    let (body_left, nonce_loc) = body.split_at_mut(len - self.payload_suffix_len());
+                    Ok((&nonce_loc[..self.nonce_size()], body_left))
+                }
             },
         }
     }
@@ -112,9 +120,11 @@ impl CryptoMode {
         packet: &mut impl MutablePacket,
         cipher: &Cipher,
     ) -> Result<(usize, usize), CryptoError> {
+        // FIXME on next: packet encrypt/decrypt should use an internal error
+        //  to denote "too small" vs. "opaque".
         let header_len = packet.packet().len() - packet.payload().len();
         let (header, body) = packet.packet_mut().split_at_mut(header_len);
-        let (slice_to_use, body_remaining) = self.nonce_slice(header, body);
+        let (slice_to_use, body_remaining) = self.nonce_slice(header, body)?;
 
         let mut nonce = Nonce::default();
         let nonce_slice = if slice_to_use.len() == NONCE_SIZE {
@@ -127,6 +137,10 @@ impl CryptoMode {
 
         let body_start = self.payload_prefix_len();
         let body_tail = self.payload_suffix_len();
+
+        if body_start > body_remaining.len() {
+            return Err(CryptoError);
+        }
 
         let (tag_bytes, data_bytes) = body_remaining.split_at_mut(body_start);
         let tag = Tag::from_slice(tag_bytes);
@@ -149,7 +163,7 @@ impl CryptoMode {
     ) -> Result<(), CryptoError> {
         let header_len = packet.packet().len() - packet.payload().len();
         let (header, body) = packet.packet_mut().split_at_mut(header_len);
-        let (slice_to_use, body_remaining) = self.nonce_slice(header, &mut body[..payload_len]);
+        let (slice_to_use, body_remaining) = self.nonce_slice(header, &mut body[..payload_len])?;
 
         let mut nonce = Nonce::default();
         let nonce_slice = if slice_to_use.len() == NONCE_SIZE {
@@ -221,5 +235,59 @@ impl CryptoState {
     /// Returns the underlying (stateless) type of the active crypto mode.
     pub fn kind(&self) -> CryptoMode {
         CryptoMode::from(*self)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use discortp::rtp::MutableRtpPacket;
+    use xsalsa20poly1305::{aead::NewAead, KEY_SIZE, TAG_SIZE};
+
+    #[test]
+    fn small_packet_decrypts_error() {
+        let mut buf = [0u8; MutableRtpPacket::minimum_packet_size() + 0];
+        let modes = [CryptoMode::Normal, CryptoMode::Suffix, CryptoMode::Lite];
+        let mut pkt = MutableRtpPacket::new(&mut buf[..]).unwrap();
+
+        let cipher = Cipher::new_from_slice(&[1u8; KEY_SIZE]).unwrap();
+
+        for mode in modes {
+            // AIM: should error, and not panic.
+            assert!(mode.decrypt_in_place(&mut pkt, &cipher).is_err());
+        }
+    }
+
+    #[test]
+    fn symmetric_encrypt_decrypt() {
+        const TRUE_PAYLOAD: [u8; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
+        let mut buf = [0u8; MutableRtpPacket::minimum_packet_size()
+            + TRUE_PAYLOAD.len()
+            + TAG_SIZE
+            + NONCE_SIZE];
+        let modes = [CryptoMode::Normal, CryptoMode::Lite, CryptoMode::Suffix];
+        let cipher = Cipher::new_from_slice(&[7u8; KEY_SIZE]).unwrap();
+
+        for mode in modes {
+            buf.fill(0);
+
+            let mut pkt = MutableRtpPacket::new(&mut buf[..]).unwrap();
+            let mut crypto_state = CryptoState::from(mode);
+            let payload = pkt.payload_mut();
+            (&mut payload[TAG_SIZE..TAG_SIZE + TRUE_PAYLOAD.len()])
+                .copy_from_slice(&TRUE_PAYLOAD[..]);
+
+            let final_payload_size =
+                crypto_state.write_packet_nonce(&mut pkt, TAG_SIZE + TRUE_PAYLOAD.len());
+
+            let enc_succ = mode.encrypt_in_place(&mut pkt, &cipher, final_payload_size);
+
+            assert!(enc_succ.is_ok());
+
+            let final_pkt_len = MutableRtpPacket::minimum_packet_size() + final_payload_size;
+            let mut pkt = MutableRtpPacket::new(&mut buf[..final_pkt_len]).unwrap();
+
+            assert!(mode.decrypt_in_place(&mut pkt, &cipher).is_ok());
+        }
     }
 }
