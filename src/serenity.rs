@@ -70,7 +70,7 @@ pub trait SerenityInit {
     fn register_songbird_from_config(self, config: Config) -> Self;
 }
 
-impl SerenityInit for ClientBuilder<'_> {
+impl SerenityInit for ClientBuilder {
     fn register_songbird(self) -> Self {
         register(self)
     }
