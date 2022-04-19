@@ -230,6 +230,74 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Encryption schemes supported by Discord&#39;s secure RTP negotiation.</span>
 <span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">NetworkEndian</span>, <span class="ident">WriteBytesExt</span>};
 <span class="kw">use</span> <span class="ident">discortp</span>::{<span class="ident">rtp::RtpPacket</span>, <span class="ident">MutablePacket</span>};
@@ -322,14 +390,22 @@
 
     <span class="doccomment">/// Extracts the byte slice in a packet used as the nonce, and the remaining mutable</span>
     <span class="doccomment">/// portion of the packet.</span>
-    <span class="kw">fn</span> <span class="ident">nonce_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
+    <span class="kw">fn</span> <span class="ident">nonce_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="self">self</span>,
+        <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
+        <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>],
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]), <span class="ident">CryptoError</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">CryptoMode</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Normal</span> =&gt; (<span class="ident">header</span>, <span class="ident">body</span>),
+            <span class="ident">Normal</span> =&gt; <span class="prelude-val">Ok</span>((<span class="ident">header</span>, <span class="ident">body</span>)),
             <span class="ident">Suffix</span> <span class="op">|</span> <span class="ident">Lite</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">len</span>();
-                <span class="kw">let</span> (<span class="ident">body_left</span>, <span class="ident">nonce_loc</span>) <span class="op">=</span> <span class="ident">body</span>.<span class="ident">split_at_mut</span>(<span class="ident">len</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">payload_suffix_len</span>());
-                (<span class="kw-2">&amp;</span><span class="ident">nonce_loc</span>[..<span class="self">self</span>.<span class="ident">nonce_size</span>()], <span class="ident">body_left</span>)
+                <span class="kw">if</span> <span class="ident">len</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">payload_suffix_len</span>() {
+                    <span class="prelude-val">Err</span>(<span class="ident">CryptoError</span>)
+                } <span class="kw">else</span> {
+                    <span class="kw">let</span> (<span class="ident">body_left</span>, <span class="ident">nonce_loc</span>) <span class="op">=</span> <span class="ident">body</span>.<span class="ident">split_at_mut</span>(<span class="ident">len</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">payload_suffix_len</span>());
+                    <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">nonce_loc</span>[..<span class="self">self</span>.<span class="ident">nonce_size</span>()], <span class="ident">body_left</span>))
+                }
             },
         }
     }
@@ -344,9 +420,11 @@
         <span class="ident">packet</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">MutablePacket</span>,
         <span class="ident">cipher</span>: <span class="kw-2">&amp;</span><span class="ident">Cipher</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>), <span class="ident">CryptoError</span><span class="op">&gt;</span> {
+        <span class="comment">// FIXME on next: packet encrypt/decrypt should use an internal error</span>
+        <span class="comment">//  to denote &quot;too small&quot; vs. &quot;opaque&quot;.</span>
         <span class="kw">let</span> <span class="ident">header_len</span> <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">packet</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">packet</span>.<span class="ident">payload</span>().<span class="ident">len</span>();
         <span class="kw">let</span> (<span class="ident">header</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">packet_mut</span>().<span class="ident">split_at_mut</span>(<span class="ident">header_len</span>);
-        <span class="kw">let</span> (<span class="ident">slice_to_use</span>, <span class="ident">body_remaining</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">nonce_slice</span>(<span class="ident">header</span>, <span class="ident">body</span>);
+        <span class="kw">let</span> (<span class="ident">slice_to_use</span>, <span class="ident">body_remaining</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">nonce_slice</span>(<span class="ident">header</span>, <span class="ident">body</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">Nonce::default</span>();
         <span class="kw">let</span> <span class="ident">nonce_slice</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">slice_to_use</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">NONCE_SIZE</span> {
@@ -359,6 +437,10 @@
 
         <span class="kw">let</span> <span class="ident">body_start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">payload_prefix_len</span>();
         <span class="kw">let</span> <span class="ident">body_tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">payload_suffix_len</span>();
+
+        <span class="kw">if</span> <span class="ident">body_start</span> <span class="op">&gt;</span> <span class="ident">body_remaining</span>.<span class="ident">len</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CryptoError</span>);
+        }
 
         <span class="kw">let</span> (<span class="ident">tag_bytes</span>, <span class="ident">data_bytes</span>) <span class="op">=</span> <span class="ident">body_remaining</span>.<span class="ident">split_at_mut</span>(<span class="ident">body_start</span>);
         <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">Tag::from_slice</span>(<span class="ident">tag_bytes</span>);
@@ -381,7 +463,7 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CryptoError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">header_len</span> <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">packet</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">packet</span>.<span class="ident">payload</span>().<span class="ident">len</span>();
         <span class="kw">let</span> (<span class="ident">header</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">packet_mut</span>().<span class="ident">split_at_mut</span>(<span class="ident">header_len</span>);
-        <span class="kw">let</span> (<span class="ident">slice_to_use</span>, <span class="ident">body_remaining</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">nonce_slice</span>(<span class="ident">header</span>, <span class="kw-2">&amp;mut</span> <span class="ident">body</span>[..<span class="ident">payload_len</span>]);
+        <span class="kw">let</span> (<span class="ident">slice_to_use</span>, <span class="ident">body_remaining</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">nonce_slice</span>(<span class="ident">header</span>, <span class="kw-2">&amp;mut</span> <span class="ident">body</span>[..<span class="ident">payload_len</span>])<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">Nonce::default</span>();
         <span class="kw">let</span> <span class="ident">nonce_slice</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">slice_to_use</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">NONCE_SIZE</span> {
@@ -455,6 +537,60 @@
         <span class="ident">CryptoMode::from</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
 }
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">test</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">discortp::rtp::MutableRtpPacket</span>;
+    <span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::{<span class="ident">aead::NewAead</span>, <span class="ident">KEY_SIZE</span>, <span class="ident">TAG_SIZE</span>};
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">small_packet_decrypts_error</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">MutableRtpPacket::minimum_packet_size</span>() <span class="op">+</span> <span class="number">0</span>];
+        <span class="kw">let</span> <span class="ident">modes</span> <span class="op">=</span> [<span class="ident">CryptoMode::Normal</span>, <span class="ident">CryptoMode::Suffix</span>, <span class="ident">CryptoMode::Lite</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pkt</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <span class="ident">Cipher::new_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="number">1u8</span>; <span class="ident">KEY_SIZE</span>]).<span class="ident">unwrap</span>();
+
+        <span class="kw">for</span> <span class="ident">mode</span> <span class="kw">in</span> <span class="ident">modes</span> {
+            <span class="comment">// AIM: should error, and not panic.</span>
+            <span class="macro">assert!</span>(<span class="ident">mode</span>.<span class="ident">decrypt_in_place</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pkt</span>, <span class="kw-2">&amp;</span><span class="ident">cipher</span>).<span class="ident">is_err</span>());
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">symmetric_encrypt_decrypt</span>() {
+        <span class="kw">const</span> <span class="ident">TRUE_PAYLOAD</span>: [<span class="ident">u8</span>; <span class="number">8</span>] <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">MutableRtpPacket::minimum_packet_size</span>()
+            <span class="op">+</span> <span class="ident">TRUE_PAYLOAD</span>.<span class="ident">len</span>()
+            <span class="op">+</span> <span class="ident">TAG_SIZE</span>
+            <span class="op">+</span> <span class="ident">NONCE_SIZE</span>];
+        <span class="kw">let</span> <span class="ident">modes</span> <span class="op">=</span> [<span class="ident">CryptoMode::Normal</span>, <span class="ident">CryptoMode::Lite</span>, <span class="ident">CryptoMode::Suffix</span>];
+        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <span class="ident">Cipher::new_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="number">7u8</span>; <span class="ident">KEY_SIZE</span>]).<span class="ident">unwrap</span>();
+
+        <span class="kw">for</span> <span class="ident">mode</span> <span class="kw">in</span> <span class="ident">modes</span> {
+            <span class="ident">buf</span>.<span class="ident">fill</span>(<span class="number">0</span>);
+
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pkt</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">crypto_state</span> <span class="op">=</span> <span class="ident">CryptoState::from</span>(<span class="ident">mode</span>);
+            <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">payload_mut</span>();
+            (<span class="kw-2">&amp;mut</span> <span class="ident">payload</span>[<span class="ident">TAG_SIZE</span>..<span class="ident">TAG_SIZE</span> <span class="op">+</span> <span class="ident">TRUE_PAYLOAD</span>.<span class="ident">len</span>()])
+                .<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">TRUE_PAYLOAD</span>[..]);
+
+            <span class="kw">let</span> <span class="ident">final_payload_size</span> <span class="op">=</span>
+                <span class="ident">crypto_state</span>.<span class="ident">write_packet_nonce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pkt</span>, <span class="ident">TAG_SIZE</span> <span class="op">+</span> <span class="ident">TRUE_PAYLOAD</span>.<span class="ident">len</span>());
+
+            <span class="kw">let</span> <span class="ident">enc_succ</span> <span class="op">=</span> <span class="ident">mode</span>.<span class="ident">encrypt_in_place</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pkt</span>, <span class="kw-2">&amp;</span><span class="ident">cipher</span>, <span class="ident">final_payload_size</span>);
+
+            <span class="macro">assert!</span>(<span class="ident">enc_succ</span>.<span class="ident">is_ok</span>());
+
+            <span class="kw">let</span> <span class="ident">final_pkt_len</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::minimum_packet_size</span>() <span class="op">+</span> <span class="ident">final_payload_size</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pkt</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="ident">final_pkt_len</span>]).<span class="ident">unwrap</span>();
+
+            <span class="macro">assert!</span>(<span class="ident">mode</span>.<span class="ident">decrypt_in_place</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pkt</span>, <span class="kw-2">&amp;</span><span class="ident">cipher</span>).<span class="ident">is_ok</span>());
+        }
+    }
+}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (eb82facb1 2022-04-01)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (311e2683e 2022-04-18)" ></div>
 </body></html>
