@@ -280,7 +280,7 @@ impl Driver {
     /// [`Input`]: crate::input::Input
     pub async fn enqueue_source(&mut self, source: Input) -> TrackHandle {
         let (track, handle) = super::create_player(source);
-        self.enqueue(track);
+        self.enqueue(track).await;
 
         handle
     }
