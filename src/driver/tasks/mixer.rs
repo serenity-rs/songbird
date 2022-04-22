@@ -17,7 +17,6 @@ use discortp::{
 };
 use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
-use spin_sleep::SpinSleeper;
 use std::time::Instant;
 use tokio::runtime::Handle;
 use tracing::{debug, error, instrument};
@@ -38,7 +37,6 @@ pub struct Mixer {
     pub prevent_events: bool,
     pub silence_frames: u8,
     pub skip_sleep: bool,
-    pub sleeper: SpinSleeper,
     pub soft_clip: SoftClip,
     pub tracks: Vec<Track>,
     pub ws: Option<Sender<WsMessage>>,
@@ -95,7 +93,6 @@ impl Mixer {
             prevent_events: false,
             silence_frames: 0,
             skip_sleep: false,
-            sleeper: Default::default(),
             soft_clip,
             tracks,
             ws: None,
@@ -402,9 +399,7 @@ impl Mixer {
             return;
         }
 
-        // FIXME: make choice of spin-sleep/imprecise sleep optional in next breaking.
-        self.sleeper
-            .sleep(self.deadline.saturating_duration_since(Instant::now()));
+        std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
         self.deadline += TIMESTEP_LENGTH;
     }
 

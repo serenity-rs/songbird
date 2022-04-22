@@ -77,10 +77,6 @@ features = ["voice", "gateway"]
 optional = true
 version = "0.1"
 
-[dependencies.spin_sleep]
-optional = true
-version = "1"
-
 [dependencies.streamcatcher]
 optional = true
 version = "1"
@@ -161,7 +157,6 @@ driver-core = [
     "parking_lot",
     "rand",
     "serenity-voice-model",
-    "spin_sleep",
     "streamcatcher",
     "typemap_rev",
     "url",
