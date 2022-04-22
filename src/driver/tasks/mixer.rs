@@ -399,7 +399,6 @@ impl Mixer {
             return;
         }
 
-        // FIXME: make choice of spin-sleep/imprecise sleep optional in next breaking.
         std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
         self.deadline += TIMESTEP_LENGTH;
     }
