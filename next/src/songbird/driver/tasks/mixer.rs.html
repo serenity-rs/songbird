@@ -633,11 +633,6 @@
 <span id="626">626</span>
 <span id="627">627</span>
 <span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">disposal</span>, <span class="ident">error::Result</span>, <span class="ident">message</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">constants</span>::<span class="kw-2">*</span>,
@@ -657,7 +652,6 @@
 };
 <span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>, <span class="ident">TryRecvError</span>};
 <span class="kw">use</span> <span class="ident">rand::random</span>;
-<span class="kw">use</span> <span class="ident">spin_sleep::SpinSleeper</span>;
 <span class="kw">use</span> <span class="ident">std::time::Instant</span>;
 <span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">error</span>, <span class="ident">instrument</span>};
@@ -678,7 +672,6 @@
     <span class="kw">pub</span> <span class="ident">prevent_events</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">silence_frames</span>: <span class="ident">u8</span>,
     <span class="kw">pub</span> <span class="ident">skip_sleep</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">sleeper</span>: <span class="ident">SpinSleeper</span>,
     <span class="kw">pub</span> <span class="ident">soft_clip</span>: <span class="ident">SoftClip</span>,
     <span class="kw">pub</span> <span class="ident">tracks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Track</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -735,7 +728,6 @@
             <span class="ident">prevent_events</span>: <span class="bool-val">false</span>,
             <span class="ident">silence_frames</span>: <span class="number">0</span>,
             <span class="ident">skip_sleep</span>: <span class="bool-val">false</span>,
-            <span class="ident">sleeper</span>: <span class="ident">Default::default</span>(),
             <span class="ident">soft_clip</span>,
             <span class="ident">tracks</span>,
             <span class="ident">ws</span>: <span class="prelude-val">None</span>,
@@ -1042,9 +1034,7 @@
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// FIXME: make choice of spin-sleep/imprecise sleep optional in next breaking.</span>
-        <span class="self">self</span>.<span class="ident">sleeper</span>
-            .<span class="ident">sleep</span>(<span class="self">self</span>.<span class="ident">deadline</span>.<span class="ident">saturating_duration_since</span>(<span class="ident">Instant::now</span>()));
+        <span class="ident">std::thread::sleep</span>(<span class="self">self</span>.<span class="ident">deadline</span>.<span class="ident">saturating_duration_since</span>(<span class="ident">Instant::now</span>()));
         <span class="self">self</span>.<span class="ident">deadline</span> <span class="op">+</span><span class="op">=</span> <span class="ident">TIMESTEP_LENGTH</span>;
     }
 
@@ -1272,5 +1262,5 @@
     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">mixer</span>.<span class="ident">disposer</span>.<span class="ident">send</span>(<span class="ident">DisposalMessage::Poison</span>);
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (311e2683e 2022-04-18)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (de1bc0008 2022-04-21)" ></div>
 </body></html>
