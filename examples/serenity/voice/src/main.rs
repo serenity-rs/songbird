@@ -27,6 +27,7 @@ use serenity::{
         },
     },
     model::{channel::Message, gateway::Ready},
+    prelude::GatewayIntents,
     Result as SerenityResult,
 };
 
@@ -56,7 +57,10 @@ async fn main() {
                    .prefix("~"))
         .group(&GENERAL_GROUP);
 
-    let mut client = Client::builder(&token)
+    let intents = GatewayIntents::non_privileged()
+        | GatewayIntents::MESSAGE_CONTENT;
+
+    let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
         .framework(framework)
         .register_songbird()

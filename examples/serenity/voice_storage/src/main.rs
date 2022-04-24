@@ -21,8 +21,8 @@ use serenity::{
             macros::{command, group},
         },
     },
-    model::{channel::Message, gateway::Ready, misc::Mentionable},
-    prelude::Mutex,
+    model::{channel::Message, gateway::Ready},
+    prelude::{GatewayIntents, Mentionable, Mutex},
     Result as SerenityResult,
 };
 
@@ -94,7 +94,10 @@ async fn main() {
                    .prefix("~"))
         .group(&GENERAL_GROUP);
 
-    let mut client = Client::builder(&token)
+    let intents = GatewayIntents::non_privileged()
+        | GatewayIntents::MESSAGE_CONTENT;
+
+    let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
         .framework(framework)
         .register_songbird()
