@@ -61,7 +61,7 @@ use error::{Error, Result};
 use tokio::runtime::Handle;
 
 use std::{
-    convert::TryFrom,
+    convert::{TryFrom, TryInto},
     io::{
         self,
         Error as IoError,
@@ -233,8 +233,8 @@ impl Input {
 
                         let samples = decoder
                             .decode_float(
-                                Some(&opus_data_buffer[..seen]),
-                                &mut decoder_state.current_frame[..],
+                                Some((&opus_data_buffer[..seen]).try_into().unwrap()),
+                                (&mut decoder_state.current_frame[..]).try_into().unwrap(),
                                 false,
                             )
                             .unwrap_or(0);
