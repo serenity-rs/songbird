@@ -662,7 +662,7 @@
 <span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">convert::TryFrom</span>,
+    <span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
     <span class="ident">io</span>::{
         <span class="self">self</span>,
         <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>,
@@ -834,8 +834,8 @@
 
                         <span class="kw">let</span> <span class="ident">samples</span> <span class="op">=</span> <span class="ident">decoder</span>
                             .<span class="ident">decode_float</span>(
-                                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">opus_data_buffer</span>[..<span class="ident">seen</span>]),
-                                <span class="kw-2">&amp;mut</span> <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>[..],
+                                <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">opus_data_buffer</span>[..<span class="ident">seen</span>]).<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                                (<span class="kw-2">&amp;mut</span> <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>[..]).<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
                                 <span class="bool-val">false</span>,
                             )
                             .<span class="ident">unwrap_or</span>(<span class="number">0</span>);

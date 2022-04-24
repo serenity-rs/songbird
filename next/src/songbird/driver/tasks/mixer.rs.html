@@ -652,7 +652,7 @@
 };
 <span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>, <span class="ident">TryRecvError</span>};
 <span class="kw">use</span> <span class="ident">rand::random</span>;
-<span class="kw">use</span> <span class="ident">std::time::Instant</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">time::Instant</span>};
 <span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">error</span>, <span class="ident">instrument</span>};
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305::TAG_SIZE</span>;
@@ -1061,7 +1061,7 @@
             )
         };
 
-        <span class="self">self</span>.<span class="ident">soft_clip</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;mut</span> <span class="ident">mix_buffer</span>[..])<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">soft_clip</span>.<span class="ident">apply</span>((<span class="kw-2">&amp;mut</span> <span class="ident">mix_buffer</span>[..]).<span class="ident">try_into</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">muted</span> {
             <span class="ident">mix_len</span> <span class="op">=</span> <span class="ident">MixType::MixedPcm</span>(<span class="number">0</span>);
