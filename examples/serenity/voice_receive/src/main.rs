@@ -22,8 +22,8 @@ use serenity::{
         channel::Message,
         gateway::Ready,
         id::ChannelId,
-        misc::Mentionable
     },
+    prelude::{GatewayIntents, Mentionable},
     Result as SerenityResult,
 };
 
@@ -151,13 +151,16 @@ async fn main() {
             .prefix("~"))
         .group(&GENERAL_GROUP);
 
+    let intents = GatewayIntents::non_privileged()
+        | GatewayIntents::MESSAGE_CONTENT;
+
     // Here, we need to configure Songbird to decode all incoming voice packets.
     // If you want, you can do this on a per-call basis---here, we need it to
     // read the audio data that other people are sending us!
     let songbird_config = Config::default()
         .decode_mode(DecodeMode::Decode);
 
-    let mut client = Client::builder(&token)
+    let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
         .framework(framework)
         .register_songbird_from_config(songbird_config)
