@@ -17,7 +17,7 @@ use discortp::{
 };
 use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
-use std::time::Instant;
+use std::{convert::TryInto, time::Instant};
 use tokio::runtime::Handle;
 use tracing::{debug, error, instrument};
 use xsalsa20poly1305::TAG_SIZE;
@@ -426,7 +426,7 @@ impl Mixer {
             )
         };
 
-        self.soft_clip.apply(&mut mix_buffer[..])?;
+        self.soft_clip.apply((&mut mix_buffer[..]).try_into()?)?;
 
         if self.muted {
             mix_len = MixType::MixedPcm(0);

@@ -6,7 +6,10 @@ use crate::{
 };
 use audiopus::{coder::Decoder, Bitrate, Channels, SampleRate};
 use byteorder::{LittleEndian, ReadBytesExt};
-use std::io::{Cursor, Read};
+use std::{
+    convert::TryInto,
+    io::{Cursor, Read},
+};
 
 #[tokio::test]
 async fn streamcatcher_preserves_file() {
@@ -51,7 +54,11 @@ fn compressed_triggers_valid_passthrough() {
 
     let mut decoder = Decoder::new(SampleRate::Hz48000, Channels::Stereo).unwrap();
     decoder
-        .decode(Some(&opus_buf[..opus_len]), &mut signal_buf[..], false)
+        .decode(
+            Some((&opus_buf[..opus_len]).try_into().unwrap()),
+            (&mut signal_buf[..]).try_into().unwrap(),
+            false,
+        )
         .unwrap();
 }
 
@@ -73,7 +80,11 @@ fn run_through_dca(mut src: impl Read) {
         let pkt_len = src.read(&mut pkt_space[..frame_len as usize]).unwrap();
 
         decoder
-            .decode(Some(&pkt_space[..pkt_len]), &mut signals[..], false)
+            .decode(
+                Some((&pkt_space[..pkt_len]).try_into().unwrap()),
+                (&mut signals[..]).try_into().unwrap(),
+                false,
+            )
             .unwrap();
     }
 }
