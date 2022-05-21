@@ -78,11 +78,11 @@ version = "0.2"
 
 [dependencies.rubato]
 optional = true
-version = "0.11"
+version = "0.12"
 
 [dependencies.rusty_pool]
 optional = true
-version = "0.6"
+version = "0.7"
 
 [dependencies.serenity]
 optional = true
@@ -116,7 +116,7 @@ default-features = false
 
 [dependencies.tokio-util]
 optional = true
-version = "0.6"
+version = "0.7"
 features = ["io"]
 
 [dependencies.twilight-gateway]
@@ -139,7 +139,7 @@ version = "2"
 
 [dependencies.uuid]
 optional = true
-version = "0.8"
+version = "1"
 features = ["v4"]
 
 [dependencies.xsalsa20poly1305]
