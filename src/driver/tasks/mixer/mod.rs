@@ -1456,21 +1456,21 @@ impl InternalTrack {
                     use TrackCommand::*;
                     match cmd {
                         Play => {
-                            self.playing.change_to(PlayMode::Play);
+                            self.playing = self.playing.change_to(PlayMode::Play);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Mode(self.playing),
                             ));
                         },
                         Pause => {
-                            self.playing.change_to(PlayMode::Pause);
+                            self.playing = self.playing.change_to(PlayMode::Pause);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Mode(self.playing),
                             ));
                         },
                         Stop => {
-                            self.playing.change_to(PlayMode::Stop);
+                            self.playing = self.playing.change_to(PlayMode::Stop);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Mode(self.playing),
