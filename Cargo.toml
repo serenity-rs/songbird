@@ -96,10 +96,6 @@ optional = true
 git = "https://github.com/serenity-rs/serenity"
 branch = "next"
 
-[dependencies.spin_sleep]
-optional = true
-version = "1"
-
 [dependencies.streamcatcher]
 optional = true
 version = "1"
@@ -185,7 +181,6 @@ driver = [
     "ringbuf",
     "rubato",
     "serenity-voice-model",
-    "spin_sleep",
     "streamcatcher",
     "symphonia",
     "symphonia-core",
