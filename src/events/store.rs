@@ -183,9 +183,9 @@ impl GlobalEvents {
 
     pub(crate) async fn tick(
         &mut self,
-        events: &mut Vec<EventStore>,
-        states: &mut Vec<TrackState>,
-        handles: &mut Vec<TrackHandle>,
+        events: &mut [EventStore],
+        states: &mut [TrackState],
+        handles: &mut [TrackHandle],
     ) {
         // Global timed events
         self.time += TIMESTEP_LENGTH;

@@ -246,7 +246,7 @@ impl<A: MediaSource> Seek for RawAdapter<A> {
             let target_pos = match pos {
                 SeekFrom::Start(p) => p,
                 SeekFrom::End(_) => return Err(IoErrorKind::Unsupported.into()),
-                SeekFrom::Current(p) if p.abs() as u64 > self.pos =>
+                SeekFrom::Current(p) if p.unsigned_abs() > self.pos =>
                     return Err(IoErrorKind::InvalidInput.into()),
                 SeekFrom::Current(p) => (self.pos as i64 + p) as u64,
             };
