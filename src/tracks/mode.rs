@@ -16,10 +16,12 @@ pub enum PlayMode {
 
 impl PlayMode {
     /// Returns whether the track has irreversibly stopped.
+    #[must_use]
     pub fn is_done(self) -> bool {
         matches!(self, PlayMode::Stop | PlayMode::End)
     }
 
+    #[must_use]
     pub(crate) fn change_to(self, other: Self) -> PlayMode {
         use PlayMode::*;
 
@@ -32,6 +34,7 @@ impl PlayMode {
         }
     }
 
+    #[must_use]
     pub(crate) fn as_track_event(self) -> TrackEvent {
         use PlayMode::*;
         match self {

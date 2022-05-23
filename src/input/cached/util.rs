@@ -289,7 +289,7 @@ impl Read for ToAudioBytes {
                     if resample.scratch.frames() != needed_in_frames {
                         continue;
                     } else {
-                        let out = resample
+                        resample
                             .resampler
                             .process_into_buffer(
                                 resample.scratch.planes().planes(),
@@ -298,7 +298,6 @@ impl Read for ToAudioBytes {
                             )
                             .unwrap();
                         resample.scratch.clear();
-                        out
                     }
                 }
 

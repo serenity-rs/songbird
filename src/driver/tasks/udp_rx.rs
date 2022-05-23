@@ -22,7 +22,7 @@ use discortp::{
     PacketSize,
 };
 use flume::Receiver;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, convert::TryInto, sync::Arc};
 use tokio::{net::UdpSocket, select};
 use tracing::{error, instrument, trace, warn};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
@@ -197,17 +197,11 @@ impl SsrcState {
             // This should scan up to find the "correct" size that a source is using,
             // and then remember that.
             loop {
-                let frame_in_check = (&data[start..])
-                    .try_into()
-                    .map_err(|_| Error::IllegalVoicePacket)?;
-                let dest_samples = (&mut out[..])
-                    .try_into()
-                    .expect("Decode logic will cap decode buffer size at i32::MAX.");
-
-                let tried_audio_len =
-                    self.decoder
-                        .decode(Some(frame_in_check), dest_samples, false);
-
+                let tried_audio_len = self.decoder.decode(
+                    Some((&data[start..]).try_into()?),
+                    (&mut out[..]).try_into()?,
+                    false,
+                );
                 match tried_audio_len {
                     Ok(audio_len) => {
                         // Decoding to stereo: audio_len refers to sample count irrespective of channel count.

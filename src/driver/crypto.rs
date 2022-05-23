@@ -258,7 +258,7 @@ mod test {
 
     #[test]
     fn small_packet_decrypts_error() {
-        let mut buf = [0u8; MutableRtpPacket::minimum_packet_size() + 0];
+        let mut buf = [0u8; MutableRtpPacket::minimum_packet_size()];
         let modes = [CryptoMode::Normal, CryptoMode::Suffix, CryptoMode::Lite];
         let mut pkt = MutableRtpPacket::new(&mut buf[..]).unwrap();
 

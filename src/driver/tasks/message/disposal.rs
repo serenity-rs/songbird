@@ -3,7 +3,7 @@
 use crate::{driver::tasks::mixer::InternalTrack, tracks::TrackHandle};
 
 pub enum DisposalMessage {
-    Track(InternalTrack),
+    Track(Box<InternalTrack>),
     Handle(TrackHandle),
 
     Poison,

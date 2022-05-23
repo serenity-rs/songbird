@@ -27,7 +27,6 @@ use discortp::{
 use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
 use rubato::{FftFixedOut, Resampler};
-use spin_sleep::SpinSleeper;
 use std::{
     io::Write,
     result::Result as StdResult,
@@ -61,7 +60,6 @@ pub struct Mixer {
     pub prevent_events: bool,
     pub silence_frames: u8,
     pub skip_sleep: bool,
-    pub sleeper: SpinSleeper,
     pub soft_clip: SoftClip,
     thread_pool: BlockyTaskPool,
     pub ws: Option<Sender<WsMessage>>,
@@ -151,7 +149,6 @@ impl Mixer {
             prevent_events: false,
             silence_frames: 0,
             skip_sleep: false,
-            sleeper: Default::default(),
             soft_clip,
             thread_pool,
             ws: None,
@@ -401,7 +398,7 @@ impl Mixer {
     }
 
     #[inline]
-    pub fn add_track(&mut self, mut track: Track) -> Result<()> {
+    pub fn add_track(&mut self, track: Track) -> Result<()> {
         let (track, evts, state, handle) = InternalTrack::decompose_track(track);
         self.tracks.push(track);
         self.track_handles.push(handle.clone());
@@ -512,7 +509,9 @@ impl Mixer {
             if track.playing.is_done() {
                 let p_state = track.playing;
                 let to_drop = self.tracks.swap_remove(i);
-                let _ = self.disposer.send(DisposalMessage::Track(to_drop));
+                let _ = self
+                    .disposer
+                    .send(DisposalMessage::Track(Box::new(to_drop)));
                 let to_drop = self.track_handles.swap_remove(i);
                 let _ = self.disposer.send(DisposalMessage::Handle(to_drop));
 
@@ -543,9 +542,7 @@ impl Mixer {
             return;
         }
 
-        // FIXME: make choice of spin-sleep/imprecise sleep optional in next breaking.
-        self.sleeper
-            .sleep(self.deadline.saturating_duration_since(Instant::now()));
+        std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
         self.deadline += TIMESTEP_LENGTH;
     }
 
@@ -841,7 +838,7 @@ pub fn mix_symph_indiv(
                 }
 
                 // Luckily, we make use of the WHOLE input buffer here.
-                let resampled = resampler
+                resampler
                     .process_into_buffer(
                         &resample_scratch.planes().planes()[..*chan_c],
                         rs_out_buf,
@@ -853,7 +850,7 @@ pub fn mix_symph_indiv(
                 let ratio = (rs_out_buf[0].len() as f32) / (resample_scratch.frames() as f32);
                 let out_samples = (ratio * (in_len as f32)).round() as usize;
 
-                mix_resampled(&rs_out_buf, symph_mix, samples_written, volume);
+                mix_resampled(rs_out_buf, symph_mix, samples_written, volume);
 
                 samples_written += out_samples;
             }
@@ -895,7 +892,7 @@ pub fn mix_symph_indiv(
 
             let force_copy = buf_in_progress || needed_in_frames > available_frames;
             // println!("Frame processing state: chan_c {}, inner_pos {}, pkt_frames {}, needed {}, available {}, force_copy {}.", chan_c, inner_pos, pkt_frames, needed_in_frames, available_frames, force_copy);
-            let resampled = if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
+            if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
                 // This is the only case where we can pull off a straight resample...
                 // I would really like if this could be a slice of slices,
                 // but the technology just isn't there yet. And I don't feel like
@@ -943,7 +940,7 @@ pub fn mix_symph_indiv(
                     buf_in_progress = true;
                     continue;
                 } else {
-                    let out = resampler
+                    resampler
                         .process_into_buffer(
                             &resample_scratch.planes().planes()[..chan_c],
                             rs_out_buf,
@@ -952,11 +949,10 @@ pub fn mix_symph_indiv(
                         .unwrap();
                     resample_scratch.clear();
                     buf_in_progress = false;
-                    out
                 }
             };
 
-            let samples_marched = mix_resampled(&rs_out_buf, symph_mix, samples_written, volume);
+            let samples_marched = mix_resampled(rs_out_buf, symph_mix, samples_written, volume);
 
             samples_written += samples_marched;
         } else {
@@ -1172,7 +1168,7 @@ fn mix_tracks<'a>(
     symph_mix: &mut AudioBuffer<f32>,
     symph_scratch: &mut AudioBuffer<f32>,
     tracks: &mut Vec<InternalTrack>,
-    handles: &mut Vec<TrackHandle>,
+    handles: &mut [TrackHandle],
     interconnect: &Interconnect,
     thread_pool: &BlockyTaskPool,
     config: &Arc<Config>,
@@ -1221,7 +1217,7 @@ fn mix_tracks<'a>(
                 len = len.max(pcm_len);
                 false
             },
-            a => {
+            _ => {
                 if mix_state.passthrough == Passthrough::Inactive {
                     input.decoder.reset();
                 }
@@ -1539,7 +1535,7 @@ impl InternalTrack {
     }
 
     pub(crate) fn end(&mut self) -> &mut Self {
-        self.playing.change_to(PlayMode::End);
+        self.playing = self.playing.change_to(PlayMode::End);
 
         self
     }
