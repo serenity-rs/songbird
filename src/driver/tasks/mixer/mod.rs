@@ -509,7 +509,9 @@ impl Mixer {
             if track.playing.is_done() {
                 let p_state = track.playing;
                 let to_drop = self.tracks.swap_remove(i);
-                let _ = self.disposer.send(DisposalMessage::Track(Box::new(to_drop)));
+                let _ = self
+                    .disposer
+                    .send(DisposalMessage::Track(Box::new(to_drop)));
                 let to_drop = self.track_handles.swap_remove(i);
                 let _ = self.disposer.send(DisposalMessage::Handle(to_drop));
 
