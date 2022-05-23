@@ -77,7 +77,7 @@ pub use self::{
 
 pub use symphonia_core as core;
 
-use std::io::Result as IoResult;
+use std::io::{Cursor, Result as IoResult};
 use symphonia_core::{
     codecs::{CodecRegistry, Decoder},
     errors::Error as SymphError,
@@ -112,6 +112,17 @@ pub enum Input {
         /// backward seeking, if present.
         Option<Box<dyn Compose>>,
     ),
+}
+
+impl<T: AsRef<[u8]> + Send + Sync + 'static> From<T> for Input {
+    fn from(val: T) -> Self {
+        let raw_src = LiveInput::Raw(AudioStream {
+            input: Box::new(Cursor::new(val)),
+            hint: None,
+        });
+
+        Input::Live(raw_src, None)
+    }
 }
 
 /// An initialised audio source.
