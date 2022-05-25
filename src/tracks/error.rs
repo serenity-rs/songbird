@@ -24,8 +24,9 @@ impl fmt::Display for TrackError {
         write!(f, "failed to operate on track (handle): ")?;
         match self {
             TrackError::Finished => write!(f, "track ended"),
-            TrackError::InvalidTrackEvent =>
-                write!(f, "given event listener can't be fired on a track"),
+            TrackError::InvalidTrackEvent => {
+                write!(f, "given event listener can't be fired on a track")
+            },
             TrackError::SeekUnsupported => write!(f, "track did not support seeking"),
         }
     }
