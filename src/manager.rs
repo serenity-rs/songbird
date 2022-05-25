@@ -108,8 +108,7 @@ impl Songbird {
                 shard_count: cluster
                     .config()
                     .shard_scheme()
-                    .total()
-                    .unwrap_or_else(|| cluster.shards().len() as u64),
+                    .total(),
                 initialised: true,
                 user_id: user_id.into(),
             }),
