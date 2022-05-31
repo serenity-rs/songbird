@@ -355,7 +355,7 @@ async fn play_fade(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
 
         // This handler object will allow you to, as needed,
         // control the audio track via events and further commands.
-        let song = handler.play_source(src.into());
+        let song = handler.play_input(src.into());
         let send_http = ctx.http.clone();
         let chan_id = msg.channel_id;
 
@@ -477,7 +477,7 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         // for decoding, playback on tracks which aren't actually live yet.
         let src = YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
 
-        handler.enqueue_source(src.into()).await;
+        handler.enqueue_input(src.into()).await;
 
         check_msg(
             msg.channel_id

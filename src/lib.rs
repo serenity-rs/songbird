@@ -77,7 +77,6 @@ use utils as test_utils;
 pub use crate::{
     driver::Driver,
     events::{CoreEvent, Event, EventContext, EventHandler, TrackEvent},
-    tracks::create_player,
 };
 
 #[cfg(feature = "gateway")]

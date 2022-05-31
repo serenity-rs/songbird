@@ -22,7 +22,7 @@ impl PlayMode {
     }
 
     #[must_use]
-    pub(crate) fn change_to(self, other: Self) -> PlayMode {
+    pub(crate) fn next_state(self, other: Self) -> PlayMode {
         use PlayMode::*;
 
         // Idea: a finished track cannot be restarted -- this action is final.
@@ -32,6 +32,10 @@ impl PlayMode {
             Play | Pause => other,
             state => state,
         }
+    }
+
+    pub(crate) fn change_to(&mut self, other: Self) {
+        *self = self.next_state(other);
     }
 
     #[must_use]

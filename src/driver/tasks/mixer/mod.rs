@@ -11,7 +11,7 @@ use crate::{
     driver::MixMode,
     events::EventStore,
     input::{Compose, Input, LiveInput, Parsed},
-    tracks::{LoopState, PlayMode, Track, TrackCommand, TrackHandle, TrackState},
+    tracks::{Action, LoopState, PlayMode, TrackCommand, TrackHandle, TrackState, View},
     Config,
 };
 use audiopus::{
@@ -398,7 +398,7 @@ impl Mixer {
     }
 
     #[inline]
-    pub fn add_track(&mut self, track: Track) -> Result<()> {
+    pub fn add_track(&mut self, track: TrackContext) -> Result<()> {
         let (track, evts, state, handle) = InternalTrack::decompose_track(track);
         self.tracks.push(track);
         self.track_handles.push(handle.clone());
@@ -433,10 +433,10 @@ impl Mixer {
             // but if the event thread has died then we'll certainly
             // detect that on the tick later.
             // Changes to play state etc. MUST all be handled.
-            let (maybe_seek, ready_now) = track.process_commands(i, &self.interconnect);
+            let action = track.process_commands(i, &self.interconnect);
 
-            if let Some(time) = maybe_seek {
-                let full_input = &mut track.source;
+            if let Some(time) = action.seek_point {
+                let full_input = &mut track.input;
                 let time = Time::from(time.as_secs_f64());
                 let mut ts = SeekTo::Time {
                     time,
@@ -485,7 +485,7 @@ impl Mixer {
                 }
             }
 
-            if ready_now {
+            if action.make_playable {
                 let _ = get_or_ready_input(
                     track,
                     i,
@@ -736,20 +736,20 @@ pub struct PreparingInfo {
     callback: Receiver<MixerInputResultMessage>,
 }
 
-pub struct LocalInput {
+pub struct MixState {
     inner_pos: usize,
     resampler: Option<(usize, FftFixedOut<f32>, Vec<Vec<f32>>)>,
     passthrough: Passthrough,
 }
 
-impl LocalInput {
+impl MixState {
     fn reset(&mut self) {
         self.inner_pos = 0;
         self.resampler = None;
     }
 }
 
-impl Default for LocalInput {
+impl Default for MixState {
     fn default() -> Self {
         Self {
             inner_pos: 0,
@@ -764,7 +764,7 @@ pub fn mix_symph_indiv(
     symph_mix: &mut AudioBuffer<f32>,
     resample_scratch: &mut AudioBuffer<f32>,
     input: &mut Parsed,
-    local_state: &mut LocalInput,
+    local_state: &mut MixState,
     volume: f32,
     mut opus_slot: Option<&mut [u8]>,
 ) -> (MixType, MixStatus) {
@@ -1264,10 +1264,10 @@ fn get_or_ready_input<'a>(
     pool: &BlockyTaskPool,
     config: &Arc<Config>,
     prevent_events: bool,
-) -> StdResult<(&'a mut Parsed, &'a mut LocalInput), InputReadyingError> {
+) -> StdResult<(&'a mut Parsed, &'a mut MixState), InputReadyingError> {
     use InputReadyingError::*;
 
-    let input = &mut track.source;
+    let input = &mut track.input;
     let local = &mut track.mix_state;
 
     match input {
@@ -1398,30 +1398,35 @@ enum Passthrough {
 pub struct InternalTrack {
     playing: PlayMode,
     volume: f32,
-    source: InputState,
-    mix_state: LocalInput,
+    input: InputState,
+    mix_state: MixState,
     position: Duration,
     play_time: Duration,
     commands: Receiver<TrackCommand>,
     loops: LoopState,
 }
 
-impl InternalTrack {
-    fn decompose_track(val: Track) -> (Self, EventStore, TrackState, TrackHandle) {
-        let state = val.state();
-
+impl<'a> InternalTrack {
+    fn decompose_track(val: TrackContext) -> (Self, EventStore, TrackState, TrackHandle) {
+        let TrackContext {
+            handle,
+            track,
+            receiver,
+        } = val;
         let out = InternalTrack {
-            playing: val.playing,
-            volume: val.volume,
-            source: InputState::from(val.source),
+            playing: track.playing,
+            volume: track.volume,
+            input: InputState::from(track.input),
             mix_state: Default::default(),
-            position: val.position,
-            play_time: val.play_time,
-            commands: val.commands,
-            loops: val.loops,
+            position: Default::default(),
+            play_time: Default::default(),
+            commands: receiver,
+            loops: track.loops,
         };
 
-        (out, val.events, state, val.handle)
+        let state = out.state();
+
+        (out, track.events, state, handle)
     }
 
     fn state(&self) -> TrackState {
@@ -1434,13 +1439,24 @@ impl InternalTrack {
         }
     }
 
-    fn process_commands(&mut self, index: usize, ic: &Interconnect) -> (Option<Duration>, bool) {
+    fn view(&'a mut self) -> View<'a> {
+        View {
+            position: &self.position,
+            play_time: &self.play_time,
+            volume: &mut self.volume,
+            // FIXME: not meta, wrong types.
+            meta: &(),
+            playing: &mut self.playing,
+            loops: &mut self.loops,
+        }
+    }
+
+    fn process_commands(&mut self, index: usize, ic: &Interconnect) -> Action {
         // Note: disconnection and an empty channel are both valid,
         // and should allow the audio object to keep running as intended.
 
         // We also need to export a target seek point to the mixer, if known.
-        let mut seek_point = None;
-        let mut to_ready = false;
+        let mut action = Action::default();
 
         // Note that interconnect failures are not currently errors.
         // In correct operation, the event thread should never panic,
@@ -1452,21 +1468,21 @@ impl InternalTrack {
                     use TrackCommand::*;
                     match cmd {
                         Play => {
-                            self.playing = self.playing.change_to(PlayMode::Play);
+                            self.playing.change_to(PlayMode::Play);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Mode(self.playing),
                             ));
                         },
                         Pause => {
-                            self.playing = self.playing.change_to(PlayMode::Pause);
+                            self.playing.change_to(PlayMode::Pause);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Mode(self.playing),
                             ));
                         },
                         Stop => {
-                            self.playing = self.playing.change_to(PlayMode::Stop);
+                            self.playing.change_to(PlayMode::Stop);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Mode(self.playing),
@@ -1479,13 +1495,15 @@ impl InternalTrack {
                                 TrackStateChange::Volume(self.volume),
                             ));
                         },
-                        Seek(time) => seek_point = Some(time),
+                        Seek(time) => action.seek_point = Some(time),
                         AddEvent(evt) => {
                             let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
                         },
-                        Do(action) => {
-                            // action(self);
-                            todo!();
+                        Do(func) => {
+                            if let Some(indiv_action) = func(self.view()) {
+                                action.combine(indiv_action);
+                            }
+
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
                                 TrackStateChange::Total(self.state()),
@@ -1501,7 +1519,7 @@ impl InternalTrack {
                                 TrackStateChange::Loops(self.loops, true),
                             ));
                         },
-                        MakePlayable => to_ready = true,
+                        MakePlayable => action.make_playable = true,
                     }
                 },
                 Err(TryRecvError::Disconnected) => {
@@ -1514,7 +1532,7 @@ impl InternalTrack {
             }
         }
 
-        (seek_point, to_ready)
+        action
     }
 
     pub(crate) fn do_loop(&mut self) -> bool {
@@ -1535,7 +1553,7 @@ impl InternalTrack {
     }
 
     pub(crate) fn end(&mut self) -> &mut Self {
-        self.playing = self.playing.change_to(PlayMode::End);
+        self.playing.change_to(PlayMode::End);
 
         self
     }

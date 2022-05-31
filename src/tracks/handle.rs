@@ -113,14 +113,15 @@ impl TrackHandle {
 
     /// Perform an arbitrary synchronous action on a raw [`Track`] object.
     ///
+    /// This will give access to a [`View`] of the current track state and metadata,
+    /// which can be used to take an [`Action`].
+    ///
     /// Users **must** ensure that no costly work or blocking occurs
     /// within the supplied function or closure. *Taking excess time could prevent
     /// timely sending of packets, causing audio glitches and delays*.
-    ///
-    /// [`Track`]: Track
     pub fn action<F>(&self, action: F) -> TrackResult<()>
     where
-        F: FnOnce(&mut Track) + Send + Sync + 'static,
+        F: FnOnce(View) -> Option<Action> + Send + Sync + 'static,
     {
         self.send(TrackCommand::Do(Box::new(action)))
     }

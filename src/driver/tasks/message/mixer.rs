@@ -1,11 +1,10 @@
 #![allow(missing_docs)]
 
-use super::{Interconnect, UdpRxMessage, UdpTxMessage, WsMessage};
+use super::{Interconnect, TrackContext, UdpRxMessage, UdpTxMessage, WsMessage};
 
 use crate::{
     driver::{Bitrate, Config, CryptoState},
     input::{AudioStreamError, Compose, Parsed},
-    tracks::Track,
 };
 use flume::Sender;
 use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
@@ -26,8 +25,8 @@ impl Drop for MixerConnection {
 }
 
 pub enum MixerMessage {
-    AddTrack(Track),
-    SetTrack(Option<Track>),
+    AddTrack(TrackContext),
+    SetTrack(Option<TrackContext>),
 
     SetBitrate(Bitrate),
     SetConfig(Config),

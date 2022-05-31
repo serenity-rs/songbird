@@ -47,7 +47,7 @@ pub struct RawReader {
 impl FormatReader for RawReader {
     fn try_new(mut source: MediaSourceStream, _options: &FormatOptions) -> SymphResult<Self> {
         let mut magic = [0u8; 8];
-        source.read_buf_exact(&mut magic[..])?;
+        ReadBytes::read_buf_exact(&mut source, &mut magic[..])?;
 
         match &magic {
             b"SbirdRaw" => {},

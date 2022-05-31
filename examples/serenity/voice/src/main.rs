@@ -32,8 +32,6 @@ use serenity::{
     Result as SerenityResult,
 };
 
-use songbird::input::Compose;
-
 struct Handler;
 
 #[async_trait]
@@ -259,10 +257,10 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let mut src =
+        let src =
             songbird::input::YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
 
-        handler.play_source(src.into());
+        handler.play_input(src.into());
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {

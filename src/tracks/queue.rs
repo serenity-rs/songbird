@@ -1,8 +1,8 @@
 use crate::{
     driver::Driver,
-    events::{Event, EventContext, EventData, EventHandler, TrackEvent},
+    events::{Event, EventContext, EventHandler, TrackEvent},
     input::Input,
-    tracks::{self, Track, TrackHandle, TrackResult},
+    tracks::{Track, TrackHandle, TrackResult},
 };
 use async_trait::async_trait;
 use parking_lot::Mutex;
@@ -29,7 +29,7 @@ use tracing::{info, warn};
 ///     driver::Driver,
 ///     id::GuildId,
 ///     input::File,
-///     tracks::{create_player, TrackQueue},
+///     tracks::TrackQueue,
 /// };
 /// use std::collections::HashMap;
 ///
@@ -162,66 +162,72 @@ impl TrackQueue {
         }
     }
 
-    /// Adds an audio source to the queue, to be played in the channel managed by `handler`.
-    pub async fn add_source(&self, source: Input, handler: &mut Driver) -> TrackHandle {
-        let (audio, handle) = tracks::create_player(source);
-        self.add(audio, handler).await;
-
-        handle
+    /// Adds an audio source to the queue, to be played in the channel managed by `driver`.
+    pub async fn add_source(&self, input: Input, driver: &mut Driver) -> TrackHandle {
+        self.add(input.into(), driver).await
     }
 
-    /// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.
+    /// Adds a [`Track`] object to the queue, to be played in the channel managed by `driver`.
     ///
-    /// This is used with [`create_player`] if additional configuration or event handlers
-    /// are required before enqueueing the audio track.
-    ///
-    /// [`Track`]: Track
-    /// [`create_player`]: super::create_player
-    pub async fn add(&self, mut track: Track, handler: &mut Driver) {
-        self.add_raw(&mut track).await;
-        handler.play(track);
+    /// This allows additional configuration or event handlers to be added
+    /// before enqueueing the audio track. [`Track`]s will be paused pre-emptively.
+    pub async fn add(&self, mut track: Track, driver: &mut Driver) -> TrackHandle {
+        let preload_time = Self::get_preload_time(&mut track).await;
+        let handle = driver.play(track.pause());
+        self.add_raw(handle, preload_time).await
     }
 
-    #[inline]
-    pub(crate) async fn add_raw(&self, track: &mut Track) {
-        // Attempts to start loading the next track before this one ends.
-        // Idea is to provide as close to gapless playback as possible,
-        // while minimising memory use.
-        let meta = match track.source {
+    pub(crate) async fn get_preload_time(track: &mut Track) -> Option<Duration> {
+        let meta = match track.input {
             Input::Lazy(ref mut rec) => rec.aux_metadata().await.ok(),
             Input::Live(_, Some(ref mut rec)) => rec.aux_metadata().await.ok(),
             _ => None,
         };
 
-        let time: Option<Duration> = meta.and_then(|meta| meta.duration);
+        meta.and_then(|meta| meta.duration)
+    }
 
+    #[inline]
+    pub(crate) async fn add_raw(
+        &self,
+        handle: TrackHandle,
+        preload_time: Option<Duration>,
+    ) -> TrackHandle {
+        // Attempts to start loading the next track before this one ends.
+        // Idea is to provide as close to gapless playback as possible,
+        // while minimising memory use.
         info!("Track added to queue.");
+
         let remote_lock = self.inner.clone();
-        let mut inner = self.inner.lock();
+        let should_play = {
+            let mut inner = self.inner.lock();
 
-        let track_handle = track.handle.clone();
+            let track_handle = handle.clone();
 
-        if !inner.tracks.is_empty() {
-            track.pause();
+            let _ =
+                track_handle.add_event(Event::Track(TrackEvent::End), QueueHandler { remote_lock });
+
+            if let Some(time) = preload_time {
+                let preload_time: Duration =
+                    time.checked_sub(Duration::from_secs(5)).unwrap_or_default();
+                let remote_lock = self.inner.clone();
+
+                let _ = track_handle
+                    .add_event(Event::Delayed(preload_time), SongPreloader { remote_lock });
+            }
+
+            let out = inner.tracks.is_empty();
+
+            inner.tracks.push_back(Queued(track_handle));
+
+            out
+        };
+
+        if should_play {
+            let _ = handle.play();
         }
 
-        track.events.add_event(
-            EventData::new(Event::Track(TrackEvent::End), QueueHandler { remote_lock }),
-            track.position,
-        );
-
-        if let Some(time) = time {
-            let preload_time: Duration =
-                time.checked_sub(Duration::from_secs(5)).unwrap_or_default();
-            let remote_lock = self.inner.clone();
-
-            track.events.add_event(
-                EventData::new(Event::Delayed(preload_time), SongPreloader { remote_lock }),
-                track.position,
-            );
-        }
-
-        inner.tracks.push_back(Queued(track_handle));
+        handle
     }
 
     /// Returns a handle to the currently playing track.
