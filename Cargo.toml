@@ -122,12 +122,12 @@ features = ["io"]
 
 [dependencies.twilight-gateway]
 optional = true
-version = ">=0.9.0, <0.11.0"
+version = "0.11.0"
 default-features = false
 
 [dependencies.twilight-model]
 optional = true
-version = ">=0.9.0, <0.11.0"
+version = "0.11.0"
 default-features = false
 
 [dependencies.typemap_rev]

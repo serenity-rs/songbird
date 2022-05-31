@@ -105,11 +105,7 @@ impl Songbird {
     {
         Self {
             client_data: PRwLock::new(ClientData {
-                shard_count: cluster
-                    .config()
-                    .shard_scheme()
-                    .total()
-                    .unwrap_or_else(|| cluster.shards().len() as u64),
+                shard_count: cluster.config().shard_scheme().total(),
                 initialised: true,
                 user_id: user_id.into(),
             }),
