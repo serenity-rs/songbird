@@ -87,6 +87,14 @@ use symphonia_core::{
 };
 
 /// A possibly lazy audio source.
+///
+/// This can be created from a wide variety of sources:
+/// * TODO: enumerate -- in-memory via AsRef<[u8]>,
+/// * Files, HTTP sources, ...
+///
+/// # Example
+///
+/// TODO: show use of diff sources?
 pub enum Input {
     /// A byte source which is not yet initialised.
     ///
@@ -112,6 +120,23 @@ pub enum Input {
         /// backward seeking, if present.
         Option<Box<dyn Compose>>,
     ),
+}
+
+impl Input {
+    /// Requests auxiliary metadata which can be accessed without parsing the file.
+    ///
+    /// This method will never be called by songbird but allows, for instance, access to metadata
+    /// which might only be visible to a web crawler, e.g., uploader or source URL.
+    ///
+    /// This requires that the [`Input`] has a [`Compose`] available to use, otherwise it
+    /// will always fail with [`AudioStreamError::Unsupported`].
+    pub async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
+        match self {
+            Self::Lazy(ref mut composer) => composer.aux_metadata().await,
+            Self::Live(_, Some(ref mut composer)) => composer.aux_metadata().await,
+            _ => Err(AudioStreamError::Unsupported),
+        }
+    }
 }
 
 impl<T: AsRef<[u8]> + Send + Sync + 'static> From<T> for Input {
