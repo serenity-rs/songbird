@@ -10,7 +10,7 @@ use crate::{
     constants::*,
     driver::MixMode,
     events::EventStore,
-    input::{Compose, Input, LiveInput, Parsed},
+    input::{Compose, Input, LiveInput, Metadata, Parsed},
     tracks::{Action, LoopState, PlayMode, TrackCommand, TrackHandle, TrackState, View},
     Config,
 };
@@ -715,6 +715,16 @@ pub enum InputState {
     NotReady(Input),
     Preparing(PreparingInfo),
     Ready(Parsed, Option<Box<dyn Compose>>),
+}
+
+impl InputState {
+    fn metadata(&mut self) -> Option<Metadata> {
+        if let Self::Ready(parsed, _) = self {
+            Some(parsed.into())
+        } else {
+            None
+        }
+    }
 }
 
 impl From<Input> for InputState {
@@ -1444,8 +1454,7 @@ impl<'a> InternalTrack {
             position: &self.position,
             play_time: &self.play_time,
             volume: &mut self.volume,
-            // FIXME: not meta, wrong types.
-            meta: &(),
+            meta: self.input.metadata(),
             playing: &mut self.playing,
             loops: &mut self.loops,
         }

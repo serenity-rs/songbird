@@ -69,7 +69,7 @@ pub use self::{
     error::*,
     file::*,
     http::*,
-    metadata::AuxMetadata,
+    metadata::*,
     opus::*,
     raw::*,
     ytdl::*,
@@ -135,6 +135,17 @@ impl Input {
             Self::Lazy(ref mut composer) => composer.aux_metadata().await,
             Self::Live(_, Some(ref mut composer)) => composer.aux_metadata().await,
             _ => Err(AudioStreamError::Unsupported),
+        }
+    }
+
+    /// Tries to get any information about this audio stream acquired during parsing.
+    ///
+    /// Only exists when this input is both [`Self::Live`] and has been fully parsed.
+    pub fn metadata(&mut self) -> Option<Metadata> {
+        if let Self::Live(live, _) = self {
+            live.metadata()
+        } else {
+            None
         }
     }
 }
@@ -234,6 +245,17 @@ impl LiveInput {
         }
 
         Ok(out)
+    }
+
+    /// Tries to get any information about this audio stream acquired during parsing.
+    ///
+    /// Only exists when this input is [`LiveInput::Parsed`].
+    pub fn metadata(&mut self) -> Option<Metadata> {
+        if let Self::Parsed(parsed) = self {
+            Some(parsed.into())
+        } else {
+            None
+        }
     }
 }
 

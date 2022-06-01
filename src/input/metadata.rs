@@ -1,6 +1,12 @@
 use crate::constants::*;
 use serde_json::Value;
+use symphonia_core::{
+    meta::Metadata as ContainerMetadata,
+    probe::ProbedMetadata,
+};
 use std::time::Duration;
+
+use super::Parsed;
 
 /// Extra information about an [`Input`] source which is acquired without
 /// parsing the file itself (e.g., from a webpage).
@@ -191,6 +197,27 @@ impl AuxMetadata {
             source_url: self.source_url.take(),
             title: self.title.take(),
             thumbnail: self.thumbnail.take(),
+        }
+    }
+}
+
+/// Information about an [`Input`] acquired by parsing an audio file.
+///
+/// [`Input`]: crate::input::Input
+pub struct Metadata<'a> {
+    /// Metadata found while probing for the format of an [`Input`] (e.g., ID3 tags).
+    ///
+    /// [`Input`]: crate::input::Input
+    pub probe: &'a mut ProbedMetadata,
+    /// Metadata found inside the format/container of an audio stream.
+    pub format: ContainerMetadata<'a>,
+}
+
+impl<'a> From<&'a mut Parsed> for Metadata<'a> {
+    fn from(val: &'a mut Parsed) -> Self {
+        Metadata {
+            probe: &mut val.meta,
+            format: val.format.metadata(),
         }
     }
 }
