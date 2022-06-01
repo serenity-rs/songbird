@@ -11,7 +11,16 @@ use crate::{
     driver::MixMode,
     events::EventStore,
     input::{Compose, Input, LiveInput, Metadata, Parsed},
-    tracks::{Action, LoopState, PlayMode, TrackCommand, TrackHandle, TrackState, View},
+    tracks::{
+        Action,
+        LoopState,
+        PlayMode,
+        ReadyState,
+        TrackCommand,
+        TrackHandle,
+        TrackState,
+        View,
+    },
     Config,
 };
 use audiopus::{
@@ -739,6 +748,18 @@ impl From<Input> for InputState {
     }
 }
 
+impl From<&InputState> for ReadyState {
+    fn from(val: &InputState) -> Self {
+        use InputState::*;
+
+        match val {
+            NotReady(_) => Self::Uninitialised,
+            Preparing(_) => Self::Preparing,
+            Ready(_, _) => Self::Playable,
+        }
+    }
+}
+
 pub struct PreparingInfo {
     #[allow(dead_code)]
     time: Instant,
@@ -1450,11 +1471,14 @@ impl<'a> InternalTrack {
     }
 
     fn view(&'a mut self) -> View<'a> {
+        let ready = (&self.input).into();
+
         View {
             position: &self.position,
             play_time: &self.play_time,
             volume: &mut self.volume,
             meta: self.input.metadata(),
+            ready,
             playing: &mut self.playing,
             loops: &mut self.loops,
         }

@@ -10,5 +10,6 @@ pub struct View<'a> {
     pub volume: &'a mut f32,
     pub meta: Option<Metadata<'a>>,
     pub playing: &'a mut PlayMode,
+    pub ready: ReadyState,
     pub loops: &'a mut LoopState,
 }

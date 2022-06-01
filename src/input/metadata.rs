@@ -1,10 +1,7 @@
 use crate::constants::*;
 use serde_json::Value;
-use symphonia_core::{
-    meta::Metadata as ContainerMetadata,
-    probe::ProbedMetadata,
-};
 use std::time::Duration;
+use symphonia_core::{meta::Metadata as ContainerMetadata, probe::ProbedMetadata};
 
 use super::Parsed;
 

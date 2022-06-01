@@ -21,6 +21,7 @@ mod handle;
 mod looping;
 mod mode;
 mod queue;
+mod ready;
 mod state;
 mod view;
 
@@ -32,6 +33,7 @@ pub use self::{
     looping::*,
     mode::*,
     queue::*,
+    ready::*,
     state::*,
     view::*,
 };
