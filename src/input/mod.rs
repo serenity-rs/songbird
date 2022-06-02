@@ -77,7 +77,10 @@ pub use self::{
 
 pub use symphonia_core as core;
 
-use std::io::{Cursor, Result as IoResult};
+use std::{
+    error::Error,
+    io::{Cursor, Result as IoResult},
+};
 use symphonia_core::{
     codecs::{CodecRegistry, Decoder},
     errors::Error as SymphError,
@@ -85,6 +88,7 @@ use symphonia_core::{
     io::{MediaSource, MediaSourceStream},
     probe::{Hint, Probe, ProbedMetadata},
 };
+use tokio::runtime::Handle as TokioHandle;
 
 /// A possibly lazy audio source.
 ///
@@ -141,9 +145,108 @@ impl Input {
     /// Tries to get any information about this audio stream acquired during parsing.
     ///
     /// Only exists when this input is both [`Self::Live`] and has been fully parsed.
-    pub fn metadata(&mut self) -> Option<Metadata> {
+    /// In general, you probably want to use [`Self::aux_metadata`].
+    pub fn metadata(&mut self) -> Result<Metadata, MetadataError> {
         if let Self::Live(live, _) = self {
             live.metadata()
+        } else {
+            Err(MetadataError::NotLive)
+        }
+    }
+
+    #[allow(missing_docs)]
+    pub fn make_live(self, handle: TokioHandle) -> Result<Self, AudioStreamError> {
+        use Input::*;
+
+        let out = match self {
+            Lazy(mut lazy) => {
+                let (created, lazy) = if lazy.should_create_async() {
+                    let (tx, rx) = flume::bounded(1);
+                    handle.spawn(async move {
+                        let out = lazy.create_async().await;
+                        let _ = tx.send_async((out, lazy));
+                    });
+                    rx.recv().map_err(|_| {
+                        let err_msg: Box<dyn Error + Send + Sync> =
+                            "async Input create handler panicked".into();
+                        AudioStreamError::Fail(err_msg)
+                    })?
+                } else {
+                    (lazy.create(), lazy)
+                };
+
+                Live(LiveInput::Raw(created?), Some(lazy))
+            },
+            other => other,
+        };
+
+        Ok(out)
+    }
+
+    #[allow(missing_docs)]
+    pub async fn make_live_async(self) -> Result<Self, AudioStreamError> {
+        use Input::*;
+
+        let out = match self {
+            Lazy(mut lazy) => {
+                let (created, lazy) = if lazy.should_create_async() {
+                    (lazy.create_async().await, lazy)
+                } else {
+                    tokio::task::spawn_blocking(move || (lazy.create(), lazy))
+                        .await
+                        .map_err(|_| {
+                            let err_msg: Box<dyn Error + Send + Sync> =
+                                "synchronous Input create handler panicked".into();
+                            AudioStreamError::Fail(err_msg)
+                        })?
+                };
+
+                Live(LiveInput::Raw(created?), Some(lazy))
+            },
+            other => other,
+        };
+
+        Ok(out)
+    }
+
+    #[allow(missing_docs)]
+    pub fn make_playable(
+        self,
+        codecs: &CodecRegistry,
+        probe: &Probe,
+        handle: TokioHandle,
+    ) -> Result<Self, MakePlayableError> {
+        let out = self.make_live(handle)?;
+        match out {
+            Self::Lazy(_) => unreachable!(),
+            Self::Live(input, lazy) => {
+                let promoted = input.promote(codecs, probe)?;
+                Ok(Self::Live(promoted, lazy))
+            },
+        }
+    }
+
+    #[allow(missing_docs)]
+    pub fn is_playable(&self) -> bool {
+        match self {
+            Self::Live(input, _) => input.is_playable(),
+            _ => false,
+        }
+    }
+
+    #[allow(missing_docs)]
+    pub fn parsed(&self) -> Option<&Parsed> {
+        if let Self::Live(input, _) = self {
+            input.parsed()
+        } else {
+            None
+        }
+    }
+
+    #[allow(missing_docs)]
+    pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
+        if let Self::Live(input, _) = self {
+            input.parsed_mut()
         } else {
             None
         }
@@ -247,14 +350,37 @@ impl LiveInput {
         Ok(out)
     }
 
+    #[allow(missing_docs)]
+    pub fn parsed(&self) -> Option<&Parsed> {
+        if let Self::Parsed(parsed) = self {
+            Some(parsed)
+        } else {
+            None
+        }
+    }
+
+    #[allow(missing_docs)]
+    pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
+        if let Self::Parsed(parsed) = self {
+            Some(parsed)
+        } else {
+            None
+        }
+    }
+
+    #[allow(missing_docs)]
+    pub fn is_playable(&self) -> bool {
+        self.parsed().is_some()
+    }
+
     /// Tries to get any information about this audio stream acquired during parsing.
     ///
     /// Only exists when this input is [`LiveInput::Parsed`].
-    pub fn metadata(&mut self) -> Option<Metadata> {
-        if let Self::Parsed(parsed) = self {
-            Some(parsed.into())
+    pub fn metadata(&mut self) -> Result<Metadata, MetadataError> {
+        if let Some(parsed) = self.parsed_mut() {
+            Ok(parsed.into())
         } else {
-            None
+            Err(MetadataError::NotParsed)
         }
     }
 }

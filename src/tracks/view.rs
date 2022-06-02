@@ -4,6 +4,7 @@ use super::*;
 use crate::input::Metadata;
 use std::time::Duration;
 
+#[non_exhaustive]
 pub struct View<'a> {
     pub position: &'a Duration,
     pub play_time: &'a Duration,

@@ -1,4 +1,5 @@
 use std::{error::Error, fmt::Display, time::Duration};
+use symphonia_core::errors::Error as SymphError;
 
 /// Errors encountered when creating an [`AudioStream`] or requesting metadata
 /// from a [`Compose`].
@@ -38,4 +39,35 @@ impl Error for AudioStreamError {
     fn cause(&self) -> Option<&dyn Error> {
         self.source()
     }
+}
+
+// TODO: display
+
+#[allow(missing_docs)]
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum MakePlayableError {
+    Create(AudioStreamError),
+    Parse(SymphError),
+}
+
+impl From<AudioStreamError> for MakePlayableError {
+    fn from(val: AudioStreamError) -> Self {
+        Self::Create(val)
+    }
+}
+
+impl From<SymphError> for MakePlayableError {
+    fn from(val: SymphError) -> Self {
+        Self::Parse(val)
+    }
+}
+
+#[allow(missing_docs)]
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum MetadataError {
+    NotLive,
+    NotParsed,
+    Fail(AudioStreamError),
 }
