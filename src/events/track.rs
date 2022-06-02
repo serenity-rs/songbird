@@ -22,4 +22,6 @@ pub enum TrackEvent {
     End,
     /// The attached track has looped.
     Loop,
+    /// The attached track has encountered a runtime or initialisation error.
+    Error,
 }

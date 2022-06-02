@@ -15,7 +15,7 @@ pub enum AudioStreamError {
     /// after this time has passed.
     RetryIn(Duration),
     /// The operation failed, and should not be retried.
-    Fail(Box<dyn Error + Send>),
+    Fail(Box<dyn Error + Send + Sync>),
     /// The operation was not supported, and will never succeed.
     Unsupported,
 }

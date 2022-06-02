@@ -97,15 +97,13 @@ impl TrackHandle {
 
     /// Attach an event handler to an audio track. These will receive [`EventContext::Track`].
     ///
-    /// Events which can only be fired by the global context return [`TrackError::InvalidTrackEvent`]
+    /// Events which can only be fired by the global context return [`ControlError::InvalidTrackEvent`]
     ///
-    /// [`Track`]: Track
     /// [`EventContext::Track`]: crate::events::EventContext::Track
-    /// [`TrackError::InvalidTrackEvent`]: TrackError::InvalidTrackEvent
     pub fn add_event<F: EventHandler + 'static>(&self, event: Event, action: F) -> TrackResult<()> {
         let cmd = TrackCommand::AddEvent(EventData::new(event, action));
         if event.is_global_only() {
-            Err(TrackError::InvalidTrackEvent)
+            Err(ControlError::InvalidTrackEvent)
         } else {
             self.send(cmd)
         }
@@ -131,7 +129,7 @@ impl TrackHandle {
         let (tx, rx) = flume::bounded(1);
         self.send(TrackCommand::Request(tx))?;
 
-        rx.recv_async().await.map_err(|_| TrackError::Finished)
+        rx.recv_async().await.map_err(|_| ControlError::Finished)
     }
 
     /// Set an audio track to loop indefinitely.
@@ -189,6 +187,6 @@ impl TrackHandle {
         self.inner
             .command_channel
             .send(cmd)
-            .map_err(|_e| TrackError::Finished)
+            .map_err(|_e| ControlError::Finished)
     }
 }

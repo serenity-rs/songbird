@@ -495,14 +495,18 @@ impl Mixer {
             }
 
             if action.make_playable {
-                let _ = get_or_ready_input(
+                if let Err(e) = get_or_ready_input(
                     track,
                     i,
                     &self.interconnect,
                     &self.thread_pool,
                     &self.config,
                     self.prevent_events,
-                );
+                ) {
+                    if let Some(fail) = e.into_user() {
+                        track.playing = PlayMode::Errored(fail);
+                    }
+                }
             }
         }
 
@@ -516,7 +520,7 @@ impl Mixer {
                 .expect("Tried to remove an illegal track index.");
 
             if track.playing.is_done() {
-                let p_state = track.playing;
+                let p_state = track.playing.clone();
                 let to_drop = self.tracks.swap_remove(i);
                 let _ = self
                     .disposer
@@ -1218,7 +1222,7 @@ fn mix_tracks<'a>(
     for (i, track) in tracks.iter_mut().enumerate() {
         let vol = track.volume;
 
-        if track.playing != PlayMode::Play {
+        if !track.playing.is_playing() {
             continue;
         }
 
@@ -1228,8 +1232,10 @@ fn mix_tracks<'a>(
             Ok(i) => i,
             Err(InputReadyingError::Waiting) => continue,
             // TODO: allow for retry in given time.
-            Err(_e) => {
-                track.end();
+            Err(e) => {
+                if let Some(fail) = e.into_user() {
+                    track.playing = PlayMode::Errored(fail);
+                }
                 continue;
             },
         };
@@ -1462,7 +1468,7 @@ impl<'a> InternalTrack {
 
     fn state(&self) -> TrackState {
         TrackState {
-            playing: self.playing,
+            playing: self.playing.clone(),
             volume: self.volume,
             position: self.position,
             play_time: self.play_time,
@@ -1504,21 +1510,21 @@ impl<'a> InternalTrack {
                             self.playing.change_to(PlayMode::Play);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
-                                TrackStateChange::Mode(self.playing),
+                                TrackStateChange::Mode(self.playing.clone()),
                             ));
                         },
                         Pause => {
                             self.playing.change_to(PlayMode::Pause);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
-                                TrackStateChange::Mode(self.playing),
+                                TrackStateChange::Mode(self.playing.clone()),
                             ));
                         },
                         Stop => {
                             self.playing.change_to(PlayMode::Stop);
                             let _ = ic.events.send(EventMessage::ChangeState(
                                 index,
-                                TrackStateChange::Mode(self.playing),
+                                TrackStateChange::Mode(self.playing.clone()),
                             ));
                         },
                         Volume(vol) => {

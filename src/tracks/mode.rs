@@ -1,7 +1,8 @@
+use super::PlayError;
 use crate::events::TrackEvent;
 
 /// Playback status of a track.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum PlayMode {
     /// The track is currently playing.
@@ -12,13 +13,21 @@ pub enum PlayMode {
     Stop,
     /// The track has naturally ended, and cannot be restarted.
     End,
+    /// The track has encountered a runtime or initialisation error, and cannot be restarted.
+    Errored(PlayError),
 }
 
 impl PlayMode {
     /// Returns whether the track has irreversibly stopped.
     #[must_use]
-    pub fn is_done(self) -> bool {
-        matches!(self, PlayMode::Stop | PlayMode::End)
+    pub fn is_done(&self) -> bool {
+        matches!(self, PlayMode::Stop | PlayMode::End | PlayMode::Errored(_))
+    }
+
+    /// Returns whether the track has irreversibly stopped.
+    #[must_use]
+    pub(crate) fn is_playing(&self) -> bool {
+        matches!(self, PlayMode::Play)
     }
 
     #[must_use]
@@ -35,16 +44,17 @@ impl PlayMode {
     }
 
     pub(crate) fn change_to(&mut self, other: Self) {
-        *self = self.next_state(other);
+        *self = self.clone().next_state(other);
     }
 
     #[must_use]
-    pub(crate) fn as_track_event(self) -> TrackEvent {
+    pub(crate) fn as_track_event(&self) -> TrackEvent {
         use PlayMode::*;
         match self {
             Play => TrackEvent::Play,
             Pause => TrackEvent::Pause,
             Stop | End => TrackEvent::End,
+            Errored(_) => TrackEvent::Error,
         }
     }
 }
@@ -54,3 +64,11 @@ impl Default for PlayMode {
         PlayMode::Play
     }
 }
+
+impl PartialEq for PlayMode {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_track_event() == other.as_track_event()
+    }
+}
+
+impl Eq for PlayMode {}

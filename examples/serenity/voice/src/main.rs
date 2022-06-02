@@ -13,6 +13,14 @@ use std::env;
 // The voice client can be retrieved in any command using `songbird::get(ctx).await`.
 use songbird::SerenityInit;
 
+// Event related imports to detect track creation failures.
+use songbird::events::{
+    Event,
+    EventContext,
+    EventHandler as VoiceEventHandler,
+    TrackEvent,
+};
+
 // Import the `Context` to handle commands.
 use serenity::client::Context;
 
@@ -141,9 +149,28 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
-    let _handler = manager.join(guild_id, connect_to).await;
+    let (handler_lock, _success) = manager.join(guild_id, connect_to).await;
+
+    // Attach an event handler to see notifications of all track errors.
+    let mut handler = handler_lock.lock().await;
+    handler.add_global_event(TrackEvent::Error.into(), TrackErrorNotifier);
 
     Ok(())
+}
+
+struct TrackErrorNotifier;
+
+#[async_trait]
+impl VoiceEventHandler for TrackErrorNotifier {
+    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
+        if let EventContext::Track(track_list) = ctx {
+            for (state, handle) in *track_list {
+                println!("Track {:?} encountered an error: {:?}", handle.uuid(), state.playing);
+            }
+        }
+
+        None
+    }
 }
 
 #[command]

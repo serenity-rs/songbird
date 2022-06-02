@@ -5,7 +5,7 @@ use super::*;
 ///
 /// [`Track`]: Track
 /// [`TrackHandle::get_info`]: TrackHandle::get_info
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct TrackState {
     /// Play status (e.g., active, paused, stopped) of this track.
     pub playing: PlayMode,
