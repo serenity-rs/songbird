@@ -90,7 +90,8 @@ optional = true
 default-features = false
 features = ["voice", "gateway"]
 git = "https://github.com/serenity-rs/serenity"
-branch = "next"
+# branch = "next"
+rev = "8d8ff3c6b6543182d3d679773c81a81fc60da74b"
 
 [dependencies.serenity-voice-model]
 optional = true
