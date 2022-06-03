@@ -14,6 +14,7 @@ use crate::{
     tracks::{
         Action,
         LoopState,
+        PlayError,
         PlayMode,
         ReadyState,
         TrackCommand,
@@ -846,8 +847,8 @@ pub fn mix_symph_indiv(
                 .decoder
                 .decode(&pkt)
                 .map_err(|e| {
-                    track_status = MixStatus::Errored;
-                    e
+                    track_status = e.into();
+                    ()
                 })
                 .ok()
         } else {
@@ -1246,7 +1247,7 @@ fn mix_tracks<'a>(
             None
         };
 
-        let (mix_type, _status) =
+        let (mix_type, status) =
             mix_symph_indiv(symph_mix, symph_scratch, input, mix_state, vol, opus_slot);
 
         let return_here = match mix_type {
@@ -1264,20 +1265,24 @@ fn mix_tracks<'a>(
         };
 
         // FIXME: allow Ended to trigger a seek/loop/revisit in the same mix cycle?
-        // This is a straight port of old logic, maybe we could combine with MixStatus::Ended.
-        if mix_type.contains_audio() {
-            track.step_frame();
-        } else if track.do_loop() {
-            let _ = handles[i].seek_time(Default::default());
-            if !prevent_events {
-                // position update is sent out later, when the seek concludes.
-                let _ = interconnect.events.send(EventMessage::ChangeState(
-                    i,
-                    TrackStateChange::Loops(track.loops, false),
-                ));
-            }
-        } else {
-            track.end();
+        // Would this be possible with special-casing to mark some inputs as fast
+        // to recreate? Probably not doable in the general case.
+        match status {
+            MixStatus::Live => track.step_frame(),
+            MixStatus::Errored(e) => track.playing = PlayMode::Errored(PlayError::Decode(e.into())),
+            MixStatus::Ended if track.do_loop() => {
+                let _ = handles[i].seek_time(Default::default());
+                if !prevent_events {
+                    // position update is sent out later, when the seek concludes.
+                    let _ = interconnect.events.send(EventMessage::ChangeState(
+                        i,
+                        TrackStateChange::Loops(track.loops, false),
+                    ));
+                }
+            },
+            _ => {
+                track.end();
+            },
         }
 
         // This needs to happen here due to borrow checker shenanigans.

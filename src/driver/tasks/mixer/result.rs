@@ -8,20 +8,16 @@ pub enum MixType {
     MixedPcm(usize),
 }
 
-impl MixType {
-    pub fn contains_audio(&self) -> bool {
-        use MixType::*;
-
-        match self {
-            Passthrough(a) | MixedPcm(a) => *a != 0,
-        }
-    }
-}
-
 pub enum MixStatus {
     Live,
     Ended,
-    Errored,
+    Errored(SymphoniaError),
+}
+
+impl From<SymphoniaError> for MixStatus {
+    fn from(e: SymphoniaError) -> Self {
+        Self::Errored(e)
+    }
 }
 
 #[derive(Debug)]
