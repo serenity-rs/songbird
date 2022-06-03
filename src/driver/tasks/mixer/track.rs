@@ -4,7 +4,7 @@ pub struct InternalTrack {
     pub(crate) playing: PlayMode,
     pub(crate) volume: f32,
     pub(crate) input: InputState,
-    pub(crate) mix_state: MixState,
+    pub(crate) mix_state: DecodeState,
     pub(crate) position: Duration,
     pub(crate) play_time: Duration,
     pub(crate) commands: Receiver<TrackCommand>,
@@ -177,7 +177,7 @@ impl<'a> InternalTrack {
         pool: &BlockyTaskPool,
         config: &Arc<Config>,
         prevent_events: bool,
-    ) -> StdResult<(&'a mut Parsed, &'a mut MixState), InputReadyingError> {
+    ) -> StdResult<(&'a mut Parsed, &'a mut DecodeState), InputReadyingError> {
         use InputReadyingError::*;
 
         let input = &mut self.input;
