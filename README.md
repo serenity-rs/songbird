@@ -19,6 +19,25 @@ The library offers:
 ## Intents
 Songbird's gateway functionality requires you to specify the `GUILD_VOICE_STATES` intent.
 
+## Codec support
+Songbird supports all [codecs and formats provided by Symphonia] (pure-Rust), with Opus support
+provided by [audiopus] (an FFI wrapper for libopus).
+
+**By default, *Songbird will not request any codecs from Symphonia*.** To change this, in your own
+project you will need to depend on Symphonia as well.
+
+```toml
+# Including songbird alone give you support for Opus via the DCA file format.
+[dependencies.songbird]
+features = ["builtin-queue"]
+
+# To get additional codecs, you *must* add Symphonia yourself.
+# This includes the default formats (MKV/WebM, Ogg, Wave) and codecs (FLAC, PCM, Vorbis)...
+[dependencies.symphonia]
+version = "0.5"
+features = ["aac", "mp3", "isomp4", "alac"] # ...as well as any extras you need!
+```
+
 ## Dependencies
 Songbird needs a few system dependencies before you can use it.
 
@@ -30,16 +49,11 @@ Again, these can be installed with `apt install build-essential autoconf automak
 
 This is a required dependency. Songbird cannot work without it.
 
-- FFmpeg - Audio/Video conversion tool.
-You can install the tool with `apt install ffmpeg` on Ubuntu or `pacman -S ffmpeg` on Arch Linux.
-
-This is an optional, but recommended dependency. It allows Songbird to convert from, for instance, .mp4 files to the audio format Discord uses.
-
-- youtube-dl - Audio/Video download tool.
+- youtube-dl / yt-dlp / (similar forks) - Audio/Video download tool.
 You can install the tool with Python's package manager, pip, which we recommend for youtube-dl. You can do it with the command `pip install youtube_dl`.
 Alternatively, you can install it with your system's package manager, `apt install youtube-dl` on Ubuntu or `pacman -S youtube-dl` on Arch Linux.
 
-This is an optional dependency. It allows Songbird to download an audio source from the Internet, which will be converted to the audio format Discord uses.
+This is an optional dependency. It allows Songbird to download audio/video sources from the Internet from a variety of webpages, which it will convert to the Opus audio format Discord uses.
 
 ## Examples
 Full examples showing various types of functionality and integrations can be found in [this crate's examples directory].
@@ -56,6 +70,8 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [lavalink]: https://github.com/freyacodes/Lavalink
 [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
 [our contributor guidelines]: CONTRIBUTING.md
+[codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
+[audiopus]: https://github.com/lakelezz/audiopus
 
 [build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/CI?style=flat-square
 [build]: https://github.com/serenity-rs/songbird/actions

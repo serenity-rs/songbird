@@ -25,6 +25,25 @@
 //! Full examples showing various types of functionality and integrations can be found
 //! in [this crate's examples directory].
 //!
+//! ## Codec support
+//! Songbird supports all [codecs and formats provided by Symphonia] (pure-Rust), with Opus support
+//! provided by [audiopus] (an FFI wrapper for libopus).
+//!
+//! **By default, *Songbird will not request any codecs from Symphonia*.** To change this, in your own
+//! project you will need to depend on Symphonia as well.
+//!
+//! ```toml
+//! ## Including songbird alone give you support for Opus via the DCA file format.
+//! [dependencies.songbird]
+//! features = ["builtin-queue"]
+//! 
+//! ## To get additional codecs, you *must* add Symphonia yourself.
+//! ## This includes the default formats (MKV/WebM, Ogg, Wave) and codecs (FLAC, PCM, Vorbis)...
+//! [dependencies.symphonia]
+//! version = "0.5"
+//! features = ["aac", "mp3", "isomp4", "alac"] # ...as well as any extras you need!
+//! ```
+//!
 //! ## Attribution
 //!
 //! Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"] by George Gorgas White.
@@ -36,6 +55,8 @@
 //! ["Black-Capped Chickadee"]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
 //! [`ConnectionInfo`]: struct@ConnectionInfo
 //! [lavalink]: https://github.com/freyacodes/Lavalink
+//! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
+//! [audiopus]: https://github.com/lakelezz/audiopus
 
 mod config;
 pub mod constants;
