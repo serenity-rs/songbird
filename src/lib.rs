@@ -36,7 +36,7 @@
 //! ## Including songbird alone give you support for Opus via the DCA file format.
 //! [dependencies.songbird]
 //! features = ["builtin-queue"]
-//! 
+//!
 //! ## To get additional codecs, you *must* add Symphonia yourself.
 //! ## This includes the default formats (MKV/WebM, Ogg, Wave) and codecs (FLAC, PCM, Vorbis)...
 //! [dependencies.symphonia]
