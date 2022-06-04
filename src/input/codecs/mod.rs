@@ -1,6 +1,10 @@
 //! Codec registries extending Symphonia's probe and registry formats with Opus and DCA support.
 
-use super::{DcaReader, OpusDecoder, RawReader};
+pub(crate) mod dca;
+mod opus;
+mod raw;
+
+pub use self::{dca::DcaReader, opus::OpusDecoder, raw::*};
 use lazy_static::lazy_static;
 use symphonia::{
     core::{codecs::CodecRegistry, probe::Probe},

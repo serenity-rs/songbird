@@ -1,4 +1,11 @@
-use super::{AsyncAdapterStream, AsyncMediaSource, AudioStream, AudioStreamError, Compose, Input};
+use crate::input::{
+    AsyncAdapterStream,
+    AsyncMediaSource,
+    AudioStream,
+    AudioStreamError,
+    Compose,
+    Input,
+};
 use async_trait::async_trait;
 use futures::TryStreamExt;
 use pin_project::pin_project;

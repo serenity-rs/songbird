@@ -5,7 +5,7 @@ use songbird::{
         bench_internals::mixer::{self, LocalInput},
         MixMode,
     },
-    input::{registry::*, Input, LiveInput, Parsed},
+    input::{codecs::*, Input, LiveInput, Parsed},
 };
 use std::io::Cursor;
 use symphonia_core::audio::{AudioBuffer, Layout, SampleBuffer, Signal, SignalSpec};

@@ -6,10 +6,11 @@
 //!
 //! Songbird adds support for the Opus codec to symphonia via [`OpusDecoder`],
 //! the [DCA1] file format via [`DcaReader`], and a simple PCM adapter via [`RawReader`];
-//! the format and codec registries in [`registry::*`] install these on top of those
+//! the [format] and [codec registries] in [`codecs`] install these on top of those
 //! enabled in your `Cargo.toml` when you include symphonia.
 //!
 //! ## Common sources
+//! * Any owned byte slice: `&'static [u8]`, `Bytes`, or `Vec<u8>`,
 //! * [`File`] offers a lazy way to open local audio files,
 //! * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,
 //! * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape
@@ -45,49 +46,38 @@
 //! [DCA1]: https://github.com/bwmarrin/dca
 //! [`registry::*`]: registry
 //! [`cached::*`]: cached
+//! [`OpusDecoder`]: codecs::OpusDecoder
+//! [`DcaReader`]: codecs::DcaReader
+//! [`RawReader`]: codecs::RawReader
+//! [format]: static@codecs::PROBE
+//! [codec registries]: static@codecs::CODEC_REGISTRY
 
-mod adapter;
-pub mod cached;
-mod child;
+mod adapters;
+mod audiostream;
+pub mod codecs;
 mod compose;
-mod dca;
 mod error;
-mod file;
-mod http;
+mod live_input;
 mod metadata;
-mod opus;
-mod raw;
-pub mod registry;
+mod parsed;
+mod sources;
 pub mod utils;
-mod ytdl;
 
 pub use self::{
-    adapter::*,
-    child::*,
+    adapters::*,
+    audiostream::*,
     compose::*,
-    dca::DcaReader,
     error::*,
-    file::*,
-    http::*,
+    live_input::*,
     metadata::*,
-    opus::*,
-    raw::*,
-    ytdl::*,
+    parsed::*,
+    sources::*,
 };
 
 pub use symphonia_core as core;
 
-use std::{
-    error::Error,
-    io::{Cursor, Result as IoResult},
-};
-use symphonia_core::{
-    codecs::{CodecRegistry, Decoder},
-    errors::Error as SymphError,
-    formats::FormatReader,
-    io::{MediaSource, MediaSourceStream},
-    probe::{Hint, Probe, ProbedMetadata},
-};
+use std::{error::Error, io::Cursor};
+use symphonia_core::{codecs::CodecRegistry, probe::Probe};
 use tokio::runtime::Handle as TokioHandle;
 
 /// A possibly lazy audio source.
@@ -262,157 +252,4 @@ impl<T: AsRef<[u8]> + Send + Sync + 'static> From<T> for Input {
 
         Input::Live(raw_src, None)
     }
-}
-
-/// An initialised audio source.
-///
-/// This type's variants reflect files at different stages of readiness for use by
-/// symphonia. [`Parsed`] file streams are ready for playback.
-///
-/// [`Parsed`]: Self::Parsed
-pub enum LiveInput {
-    /// An unread, raw file stream.
-    Raw(AudioStream<Box<dyn MediaSource>>),
-    /// An unread file which has been wrapped with a large read-ahead buffer.
-    Wrapped(AudioStream<MediaSourceStream>),
-    /// An audio file which has had its headers parsed and decoder state built.
-    Parsed(Parsed),
-}
-
-impl LiveInput {
-    /// Converts this audio source into a [`Parsed`] object using the supplied format and codec
-    /// registries.
-    ///
-    /// Where applicable, this will convert [`Raw`] -> [`Wrapped`] -> [`Parsed`], and will
-    /// play the default track (or the first encountered track if this is not available) if a
-    /// container holds multiple audio streams.
-    ///
-    /// *This is a blocking operation. Symphonia uses standard library I/O (e.g., [`Read`], [`Seek`]).
-    /// If you wish to use this from an async task, you must do so within `spawn_blocking`.*
-    ///
-    /// [`Parsed`]: Self::Parsed
-    /// [`Raw`]: Self::Raw
-    /// [`Wrapped`]: Self::Wrapped
-    /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
-    /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
-    pub fn promote(self, codecs: &CodecRegistry, probe: &Probe) -> Result<Self, SymphError> {
-        let mut out = self;
-
-        if let LiveInput::Raw(r) = out {
-            // TODO: allow passing in of MSS options?
-            let mss = MediaSourceStream::new(r.input, Default::default());
-            out = LiveInput::Wrapped(AudioStream {
-                input: mss,
-                hint: r.hint,
-            });
-        }
-
-        if let LiveInput::Wrapped(w) = out {
-            let hint = w.hint.unwrap_or_default();
-            let input = w.input;
-
-            let probe_data =
-                probe.format(&hint, input, &Default::default(), &Default::default())?;
-            let format = probe_data.format;
-            let meta = probe_data.metadata;
-
-            let mut default_track_id = format.default_track().map(|track| track.id);
-            let mut decoder: Option<Box<dyn Decoder>> = None;
-
-            // Take default track (if it exists), take first track to be found otherwise.
-            for track in format.tracks() {
-                if decoder.is_some() {
-                    break;
-                }
-
-                if default_track_id.is_some() && Some(track.id) != default_track_id {
-                    continue;
-                }
-
-                let this_decoder = codecs.make(&track.codec_params, &Default::default())?;
-
-                decoder = Some(this_decoder);
-                default_track_id = Some(track.id);
-            }
-
-            let track_id = default_track_id.unwrap();
-
-            let p = Parsed {
-                format,
-                decoder: decoder.unwrap(),
-                track_id,
-                meta,
-            };
-
-            out = LiveInput::Parsed(p);
-        }
-
-        Ok(out)
-    }
-
-    #[allow(missing_docs)]
-    pub fn parsed(&self) -> Option<&Parsed> {
-        if let Self::Parsed(parsed) = self {
-            Some(parsed)
-        } else {
-            None
-        }
-    }
-
-    #[allow(missing_docs)]
-    pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
-        if let Self::Parsed(parsed) = self {
-            Some(parsed)
-        } else {
-            None
-        }
-    }
-
-    #[allow(missing_docs)]
-    pub fn is_playable(&self) -> bool {
-        self.parsed().is_some()
-    }
-
-    /// Tries to get any information about this audio stream acquired during parsing.
-    ///
-    /// Only exists when this input is [`LiveInput::Parsed`].
-    pub fn metadata(&mut self) -> Result<Metadata, MetadataError> {
-        if let Some(parsed) = self.parsed_mut() {
-            Ok(parsed.into())
-        } else {
-            Err(MetadataError::NotParsed)
-        }
-    }
-}
-
-/// An unread byte stream for an audio file.
-pub struct AudioStream<T: Send> {
-    /// The wrapped file stream.
-    ///
-    /// An input stream *must not* have been read into past the start of the
-    /// audio container's header.
-    pub input: T,
-    /// Extension and MIME type information which may help guide format selection.
-    pub hint: Option<Hint>,
-}
-
-/// An audio file which has had its headers parsed and decoder state built.
-pub struct Parsed {
-    /// Audio packet, seeking, and state access for all tracks in a file.
-    ///
-    /// This may be used to access packets one at a time from the input file.
-    /// Additionally, this exposes container-level and per track metadata which
-    /// have been extracted.
-    pub format: Box<dyn FormatReader>,
-    /// Decoder state for the chosen track.
-    pub decoder: Box<dyn Decoder>,
-    /// The chosen track's ID.
-    ///
-    /// This is required to identify the correct packet stream inside the container.
-    pub track_id: u32,
-    /// Metadata extracted by symphonia while detecting a file's format.
-    ///
-    /// Typically, this detects metadata *outside* the file's core format (i.e.,
-    /// ID3 tags in MP3 and WAV files).
-    pub meta: ProbedMetadata,
 }

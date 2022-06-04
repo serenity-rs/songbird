@@ -1,7 +1,12 @@
 use super::{compressed_cost_per_sec, default_config, CodecCacheError, ToAudioBytes};
 use crate::{
     constants::*,
-    input::{dca::*, registry::*, AudioStream, Input, LiveInput},
+    input::{
+        codecs::{dca::*, CODEC_REGISTRY, PROBE},
+        AudioStream,
+        Input,
+        LiveInput,
+    },
 };
 use audiopus::{
     coder::{Encoder as OpusEncoder, GenericCtl},

@@ -20,7 +20,7 @@ use songbird::{
         },
         Bitrate,
     },
-    input::{cached::Compressed, registry::*, Input, RawAdapter},
+    input::{cached::Compressed, codecs::*, Input, RawAdapter},
     tracks,
 };
 use std::io::Cursor;

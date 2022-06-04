@@ -1,7 +1,7 @@
 #[cfg(feature = "driver")]
 use super::{
     driver::{retry::Retry, CryptoMode, DecodeMode, MixMode},
-    input::registry::*,
+    input::codecs::*,
 };
 
 #[cfg(feature = "driver")]

@@ -1,5 +1,4 @@
-use super::{AudioStream, AudioStreamError, Compose, Input};
-
+use crate::input::{AudioStream, AudioStreamError, Compose, Input};
 use std::{error::Error, path::Path};
 use symphonia_core::{io::MediaSource, probe::Hint};
 

@@ -1,3 +1,4 @@
+use crate::input::AudioStreamError;
 use async_trait::async_trait;
 use flume::{Receiver, RecvError, Sender, TryRecvError};
 use futures::{future::Either, stream::FuturesUnordered, FutureExt, StreamExt};
@@ -22,8 +23,6 @@ use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt},
     sync::Notify,
 };
-
-use super::AudioStreamError;
 
 struct AsyncAdapterSink {
     bytes_in: Producer<u8>,
