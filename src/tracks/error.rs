@@ -19,10 +19,6 @@ pub enum ControlError {
     /// The supplied event listener can never be fired by a track, and should
     /// be attached to the driver instead.
     InvalidTrackEvent,
-    /// The track's underlying [`Input`] doesn't support seeking operations.
-    ///
-    /// [`Input`]: crate::input::Input
-    SeekUnsupported,
 }
 
 impl Display for ControlError {
@@ -33,7 +29,6 @@ impl Display for ControlError {
             ControlError::InvalidTrackEvent => {
                 write!(f, "given event listener can't be fired on a track")
             },
-            ControlError::SeekUnsupported => write!(f, "track did not support seeking"),
         }
     }
 }
