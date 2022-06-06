@@ -1,5 +1,9 @@
 use crate::input::AudioStreamError;
-use std::{error::Error, fmt, sync::Arc};
+use std::{
+    error::Error,
+    fmt::{self, Display},
+    sync::Arc,
+};
 use symphonia_core::errors::Error as SymphoniaError;
 
 /// Errors associated with control and manipulation of tracks.
@@ -21,7 +25,7 @@ pub enum ControlError {
     SeekUnsupported,
 }
 
-impl fmt::Display for ControlError {
+impl Display for ControlError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "failed to operate on track (handle): ")?;
         match self {
@@ -41,18 +45,54 @@ impl Error for ControlError {}
 /// [`TrackHandle`]: super::TrackHandle
 pub type TrackResult<T> = Result<T, ControlError>;
 
-#[allow(missing_docs)]
+/// Errors reported by the mixer while attempting to play (or ready) a [`Track`].
+///
+/// [`Track`]: super::Track
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum PlayError {
+    /// Failed to create a live bytestream from the lazy [`Compose`].
+    ///
+    /// [`Compose`]: crate::input::Compose
     Create(Arc<AudioStreamError>),
+    /// Failed to read headers, codecs, or a valid stream from an [`Input`].
+    ///
+    /// [`Input`]: crate::input::Input
     Parse(Arc<SymphoniaError>),
+    /// Failed to decode a frame received from an [`Input`].
+    ///
+    /// [`Input`]: crate::input::Input
     Decode(Arc<SymphoniaError>),
+    /// Failed to seek to the requested location.
     Seek(Arc<SymphoniaError>),
 }
 
-// impl Error for PlayError {
-//     fn source(&self) -> Option<&(dyn Error + 'static)> {
-//         None
-//     }
-// }
+impl Display for PlayError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("runtime error while playing track: ")?;
+        match self {
+            Self::Create(c) => {
+                f.write_str("input creation [")?;
+                f.write_fmt(format_args!("{}", &c))?;
+                f.write_str("]")
+            },
+            Self::Parse(p) => {
+                f.write_str("parsing formats/codecs [")?;
+                f.write_fmt(format_args!("{}", &p))?;
+                f.write_str("]")
+            },
+            Self::Decode(d) => {
+                f.write_str("decoding packets [")?;
+                f.write_fmt(format_args!("{}", &d))?;
+                f.write_str("]")
+            },
+            Self::Seek(s) => {
+                f.write_str("seeking along input [")?;
+                f.write_fmt(format_args!("{}", &s))?;
+                f.write_str("]")
+            },
+        }
+    }
+}
+
+impl Error for PlayError {}

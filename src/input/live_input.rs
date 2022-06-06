@@ -93,7 +93,8 @@ impl LiveInput {
         Ok(out)
     }
 
-    #[allow(missing_docs)]
+    /// Returns a reference to the data parsed from this input stream, if it has
+    /// been made available via [`Self::promote`].
     pub fn parsed(&self) -> Option<&Parsed> {
         if let Self::Parsed(parsed) = self {
             Some(parsed)
@@ -102,7 +103,8 @@ impl LiveInput {
         }
     }
 
-    #[allow(missing_docs)]
+    /// Returns a mutable reference to the data parsed from this input stream, if it
+    /// has been made available via [`Self::promote`].
     pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
         if let Self::Parsed(parsed) = self {
             Some(parsed)
@@ -111,7 +113,8 @@ impl LiveInput {
         }
     }
 
-    #[allow(missing_docs)]
+    /// Returns whether this stream's headers have been fully parsed, and so whether
+    /// the track can be played or have its metadata read.
     pub fn is_playable(&self) -> bool {
         self.parsed().is_some()
     }

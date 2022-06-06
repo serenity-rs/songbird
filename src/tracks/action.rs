@@ -1,7 +1,9 @@
-#![allow(missing_docs)]
-
 use std::time::Duration;
 
+/// Actions for the mixer to take after inspecting track state via
+/// [`TrackHandle::action`].
+///
+/// [`TrackHandle::action`]: super::[`TrackHandle::action`]
 #[derive(Copy, Clone, Default)]
 pub struct Action {
     pub(crate) make_playable: bool,
@@ -9,6 +11,7 @@ pub struct Action {
 }
 
 impl Action {
+    /// Requests a seek to the given time for this track.
     #[must_use]
     pub fn seek(mut self, time: Duration) -> Self {
         self.seek_point = Some(time);
@@ -16,6 +19,7 @@ impl Action {
         self
     }
 
+    /// Readies the track to be playable, if this is not already the case.
     #[must_use]
     pub fn make_playable(mut self) -> Self {
         self.make_playable = true;

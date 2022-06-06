@@ -80,7 +80,7 @@ use std::{error::Error, io::Cursor};
 use symphonia_core::{codecs::CodecRegistry, probe::Probe};
 use tokio::runtime::Handle as TokioHandle;
 
-/// A possibly lazy audio source.
+/// An audio source, which can be live or lazily initialised.
 ///
 /// This can be created from a wide variety of sources:
 /// * TODO: enumerate -- in-memory via AsRef<[u8]>,
@@ -142,7 +142,15 @@ impl Input {
         }
     }
 
-    #[allow(missing_docs)]
+    /// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the current thread.
+    ///
+    /// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.
+    ///
+    /// *This is a blocking operation. If you wish to use this from an async task, you
+    /// must do so via [`Self::make_live_async`].*
+    ///
+    /// This is a no-op for an [`Input::Live`].
     pub fn make_live(self, handle: TokioHandle) -> Result<Self, AudioStreamError> {
         use Input::*;
 
@@ -171,7 +179,10 @@ impl Input {
         Ok(out)
     }
 
-    #[allow(missing_docs)]
+    /// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the a `spawn_blocking` executor.
+    ///
+    /// This is a no-op for an [`Input::Live`].
     pub async fn make_live_async(self) -> Result<Self, AudioStreamError> {
         use Input::*;
 
@@ -197,7 +208,17 @@ impl Input {
         Ok(out)
     }
 
-    #[allow(missing_docs)]
+    /// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the current thread.
+    ///
+    /// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.
+    /// If you can't access one, then consider manually using [`LiveInput::promote`].
+    ///
+    /// *This is a blocking operation. Symphonia uses standard library I/O (e.g., [`Read`], [`Seek`]).
+    /// If you wish to use this from an async task, you must do so within `spawn_blocking`.*
+    ///
+    /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+    /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
     pub fn make_playable(
         self,
         codecs: &CodecRegistry,
@@ -214,7 +235,8 @@ impl Input {
         }
     }
 
-    #[allow(missing_docs)]
+    /// Returns whether this audio stream is full initialised, parsed, and
+    /// ready to play (e.g., `Self::Live(LiveInput::Parsed(p), _)`).
     pub fn is_playable(&self) -> bool {
         match self {
             Self::Live(input, _) => input.is_playable(),
@@ -222,7 +244,8 @@ impl Input {
         }
     }
 
-    #[allow(missing_docs)]
+    /// Returns a reference to the data parsed from this input stream, if it has
+    /// been made available via [`Self::make_playable`] or [`LiveInput::promote`].
     pub fn parsed(&self) -> Option<&Parsed> {
         if let Self::Live(input, _) = self {
             input.parsed()
@@ -231,7 +254,8 @@ impl Input {
         }
     }
 
-    #[allow(missing_docs)]
+    /// Returns a mutable reference to the data parsed from this input stream, if it
+    /// has been made available via [`Self::make_playable`] or [`LiveInput::promote`].
     pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
         if let Self::Live(input, _) = self {
             input.parsed_mut()
