@@ -121,11 +121,12 @@ impl Input {
     ///
     /// This requires that the [`Input`] has a [`Compose`] available to use, otherwise it
     /// will always fail with [`AudioStreamError::Unsupported`].
-    pub async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
+    pub async fn aux_metadata(&mut self) -> Result<AuxMetadata, AuxMetadataError> {
         match self {
-            Self::Lazy(ref mut composer) => composer.aux_metadata().await,
-            Self::Live(_, Some(ref mut composer)) => composer.aux_metadata().await,
-            _ => Err(AudioStreamError::Unsupported),
+            Self::Lazy(ref mut composer) => composer.aux_metadata().await.map_err(Into::into),
+            Self::Live(_, Some(ref mut composer)) =>
+                composer.aux_metadata().await.map_err(Into::into),
+            _ => Err(AuxMetadataError::NoCompose),
         }
     }
 

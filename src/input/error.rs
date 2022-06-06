@@ -158,3 +158,9 @@ impl Error for AuxMetadataError {
         None
     }
 }
+
+impl From<AudioStreamError> for AuxMetadataError {
+    fn from(val: AudioStreamError) -> Self {
+        Self::Retrieve(val)
+    }
+}
