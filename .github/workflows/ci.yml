@@ -74,6 +74,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libopus-dev
 
+      - name: Install yt-dlp (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          sudo wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp
+          sudo chmod a+rx /usr/local/bin/yt-dlp
+
+      - name: Install yt-dlp (Windows)
+        if: runner.os == 'Windows'
+        run: choco install yt-dlp
+
       - name: Setup cache
         if: runner.os != 'macOS'
         uses: actions/cache@v2

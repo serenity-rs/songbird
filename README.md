@@ -49,11 +49,12 @@ Again, these can be installed with `apt install build-essential autoconf automak
 
 This is a required dependency. Songbird cannot work without it.
 
-- youtube-dl / yt-dlp / (similar forks) - Audio/Video download tool.
-You can install the tool with Python's package manager, pip, which we recommend for youtube-dl. You can do it with the command `pip install youtube_dl`.
+- yt-dlp / youtube-dl / (similar forks) - Audio/Video download tool.
+yt-dlp can be installed [according to the installation instructions on the main repo].
+You can install youtube-dl with Python's package manager, pip, which we recommend for youtube-dl. You can do it with the command `pip install youtube_dl`.
 Alternatively, you can install it with your system's package manager, `apt install youtube-dl` on Ubuntu or `pacman -S youtube-dl` on Arch Linux.
 
-This is an optional dependency. It allows Songbird to download audio/video sources from the Internet from a variety of webpages, which it will convert to the Opus audio format Discord uses.
+This is an optional dependency for users, but is required as a dev-dependency. It allows Songbird to download audio/video sources from the Internet from a variety of webpages, which it will convert to the Opus audio format Discord uses.
 
 ## Examples
 Full examples showing various types of functionality and integrations can be found in [this crate's examples directory].
@@ -72,6 +73,7 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [our contributor guidelines]: CONTRIBUTING.md
 [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
 [audiopus]: https://github.com/lakelezz/audiopus
+[according to the installation instructions on the main repo]: https://github.com/yt-dlp/yt-dlp#installation
 
 [build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/CI?style=flat-square
 [build]: https://github.com/serenity-rs/songbird/actions
