@@ -14,7 +14,8 @@ use songbird::{
     constants::*,
     driver::{
         bench_internals::{
-            mixer::{InputState, Mixer},
+            self,
+            mixer::{state::InputState, Mixer},
             task_message::*,
             CryptoState,
         },
@@ -92,8 +93,9 @@ fn mixer_float(
             Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
             _ => panic!("Failed to create a guaranteed source."),
         };
-        let (mut track, _handle) = tracks::create_player(Input::Live(promoted.unwrap(), None));
-        out.0.add_track(track);
+        let (handle, mut ctx) =
+            bench_internals::track_context(Input::Live(promoted.unwrap(), None).into());
+        out.0.add_track(ctx);
     }
 
     out
@@ -120,8 +122,9 @@ fn mixer_float_drop(
             Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
             _ => panic!("Failed to create a guaranteed source."),
         };
-        let (mut track, _handle) = tracks::create_player(Input::Live(promoted.unwrap(), None));
-        out.0.add_track(track);
+        let (handle, mut ctx) =
+            bench_internals::track_context(Input::Live(promoted.unwrap(), None).into());
+        out.0.add_track(ctx);
     }
 
     out
@@ -158,9 +161,10 @@ fn mixer_opus(
         Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
         _ => panic!("Failed to create a guaranteed source."),
     };
-    let (mut track, _handle) = tracks::create_player(Input::Live(promoted.unwrap(), None));
+    let (handle, mut ctx) =
+        bench_internals::track_context(Input::Live(promoted.unwrap(), None).into());
 
-    out.0.add_track(track);
+    out.0.add_track(ctx);
 
     out
 }

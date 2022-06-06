@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, BatchSize, Benchmark
 use songbird::{
     constants::*,
     driver::{
-        bench_internals::mixer::{self, LocalInput},
+        bench_internals::mixer::{mix_logic, state::DecodeState},
         MixMode,
     },
     input::{codecs::*, Input, LiveInput, Parsed},
@@ -38,7 +38,7 @@ pub fn mix_one_frame(c: &mut Criterion) {
                         symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
                         resample_scratch.clear();
 
-                        black_box(mixer::mix_symph_indiv(
+                        black_box(mix_logic::mix_symph_indiv(
                             &mut symph_mix,
                             &mut resample_scratch,
                             input,
@@ -63,7 +63,7 @@ pub fn mix_one_frame(c: &mut Criterion) {
                         symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
                         resample_scratch.clear();
 
-                        black_box(mixer::mix_symph_indiv(
+                        black_box(mix_logic::mix_symph_indiv(
                             &mut symph_mix,
                             &mut resample_scratch,
                             input,
@@ -81,7 +81,7 @@ pub fn mix_one_frame(c: &mut Criterion) {
     group.finish();
 }
 
-fn make_src(src: &Vec<u8>, chans: u32, hz: u32) -> (Parsed, LocalInput) {
+fn make_src(src: &Vec<u8>, chans: u32, hz: u32) -> (Parsed, DecodeState) {
     let local_input = Default::default();
 
     let adapted: Input =

@@ -1,8 +1,8 @@
-mod mix_logic;
+pub mod mix_logic;
 mod pool;
 mod result;
-mod state;
-mod track;
+pub mod state;
+pub mod track;
 mod util;
 
 use pool::*;
