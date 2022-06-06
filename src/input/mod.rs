@@ -83,12 +83,85 @@ use tokio::runtime::Handle as TokioHandle;
 /// An audio source, which can be live or lazily initialised.
 ///
 /// This can be created from a wide variety of sources:
-/// * TODO: enumerate -- in-memory via AsRef<[u8]>,
-/// * Files, HTTP sources, ...
+/// * Any owned byte slice: `&'static [u8]`, `Bytes`, or `Vec<u8>`,
+/// * [`File`] offers a lazy way to open local audio files,
+/// * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,
+/// * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape
+///   a target URL for a usable audio stream, before opening an [`HttpRequest`].
 ///
 /// # Example
 ///
-/// TODO: show use of diff sources?
+/// ```
+/// # use tokio::runtime;
+/// #
+/// # let basic_rt = runtime::Builder::new_current_thread().enable_io().build().unwrap();
+/// # basic_rt.block_on(async {
+/// use songbird::{
+///     driver::Driver,
+///     input::{codecs::*, Compose, Input, MetadataError, YoutubeDl},
+///     tracks::Track,
+/// };
+/// // Inputs are played using a `Driver`, or `Call`.
+/// let mut driver = Driver::new(Default::default());
+///
+/// // Lazy inputs take very little resources, and don't occupy any resources until we
+/// // need to play them (by default).
+/// let mut lazy = YoutubeDl::new(
+///     reqwest::Client::new(),
+///     // Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+///     "https://cloudkicker.bandcamp.com/track/94-days".to_string(),
+/// );
+/// let lazy_c = lazy.clone();
+///
+/// // With sources like `YoutubeDl`, we can get metadata from, e.g., a track's page.
+/// let aux_metadata = lazy.aux_metadata().await.unwrap();
+/// assert_eq!(aux_metadata.track, Some("94 Days".to_string()));
+///
+/// // Once we pass an `Input` to the `Driver`, we can only remotely control it via
+/// // a `TrackHandle`.
+/// let handle = driver.play_input(lazy.into());
+///
+/// // We can also modify some of its initial state via `Track`s.
+/// let handle = driver.play(Track::new(lazy_c.into()).volume(0.5).pause());
+///
+/// // In-memory sources like `Vec<u8>`, or `&'static [u8]` are easy to use, and only take a
+/// // little time for the mixer to parse their headers.
+/// // You can also use the adapters in `songbird::input::cached::*`to keep a source
+/// // from the Internet, HTTP, or a File in-memory *and* share it among calls.
+/// let in_memory = include_bytes!("../../resources/ting.mp3");
+/// let mut in_memory_input = in_memory.into();
+///
+/// // This source is live...
+/// assert!(matches!(in_memory_input, Input::Live(..)));
+/// // ...but not yet playable, and we can't access its `Metadata`.
+/// assert!(!in_memory_input.is_playable());
+/// assert!(matches!(in_memory_input.metadata(), Err(MetadataError::NotParsed)));
+///
+/// // If we want to inspect metadata (and we can't use AuxMetadata for any reason), we have
+/// // to parse the track ourselves.
+/// in_memory_input = in_memory_input
+///     .make_playable_async(&CODEC_REGISTRY, &PROBE)
+///     .await
+///     .expect("WAV support is included, and this file is good!");
+///
+/// // Symphonia's metadata can be difficult to use: prefer `AuxMetadata` when you can!
+/// use symphonia_core::meta::{StandardTagKey, Value};
+/// let mut metadata = in_memory_input.metadata();
+/// let meta = metadata.as_mut().unwrap();
+/// let mut probed = meta.probe.get().unwrap();
+///
+/// let track_name = probed
+///     .current().unwrap()
+///     .tags().iter().filter(|v| v.std_key == Some(StandardTagKey::TrackTitle))
+///     .next().unwrap();
+/// if let Value::String(s) = &track_name.value {
+///     assert_eq!(s, "Ting!");
+/// } else { panic!() };
+///
+/// // ...and these are played like any other input.
+/// let handle = driver.play_input(in_memory_input);
+/// # });
+/// ```
 pub enum Input {
     /// A byte source which is not yet initialised.
     ///
@@ -235,6 +308,25 @@ impl Input {
         }
     }
 
+    /// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on a tokio blocking thread.
+    pub async fn make_playable_async(
+        self,
+        codecs: &'static CodecRegistry,
+        probe: &'static Probe,
+    ) -> Result<Self, MakePlayableError> {
+        let out = self.make_live_async().await?;
+        match out {
+            Self::Lazy(_) => unreachable!(),
+            Self::Live(input, lazy) => {
+                let promoted = tokio::task::spawn_blocking(move || input.promote(codecs, probe))
+                    .await
+                    .map_err(|_| MakePlayableError::Panicked)??;
+                Ok(Self::Live(promoted, lazy))
+            },
+        }
+    }
+
     /// Returns whether this audio stream is full initialised, parsed, and
     /// ready to play (e.g., `Self::Live(LiveInput::Parsed(p), _)`).
     pub fn is_playable(&self) -> bool {
@@ -244,24 +336,36 @@ impl Input {
         }
     }
 
-    /// Returns a reference to the data parsed from this input stream, if it has
-    /// been made available via [`Self::make_playable`] or [`LiveInput::promote`].
-    pub fn parsed(&self) -> Option<&Parsed> {
+    /// Returns a reference to the live input, if it has been created via
+    /// [`Self::make_live`] or [`Self::make_live_async`].
+    pub fn live(&self) -> Option<&LiveInput> {
         if let Self::Live(input, _) = self {
-            input.parsed()
+            Some(input)
         } else {
             None
         }
     }
 
-    /// Returns a mutable reference to the data parsed from this input stream, if it
-    /// has been made available via [`Self::make_playable`] or [`LiveInput::promote`].
-    pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
-        if let Self::Live(input, _) = self {
-            input.parsed_mut()
+    /// Returns a mutable reference to the live input, if it been created via
+    /// [`Self::make_live`] or [`Self::make_live_async`].
+    pub fn live_mut(&mut self) -> Option<&mut LiveInput> {
+        if let Self::Live(ref mut input, _) = self {
+            Some(input)
         } else {
             None
         }
+    }
+
+    /// Returns a reference to the data parsed from this input stream, if it has
+    /// been made available via [`Self::make_playable`] or [`LiveInput::promote`].
+    pub fn parsed(&self) -> Option<&Parsed> {
+        self.live().and_then(|v| v.parsed())
+    }
+
+    /// Returns a mutable reference to the data parsed from this input stream, if it
+    /// has been made available via [`Self::make_playable`] or [`LiveInput::promote`].
+    pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
+        self.live_mut().and_then(|v| v.parsed_mut())
     }
 }
 

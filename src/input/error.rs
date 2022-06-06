@@ -52,6 +52,8 @@ pub enum MakePlayableError {
     ///
     /// [`LiveInput`]: super::LiveInput
     Parse(SymphError),
+    /// A blocking thread panicked or failed to return a parsed input.
+    Panicked,
 }
 
 impl Display for MakePlayableError {
@@ -68,6 +70,7 @@ impl Display for MakePlayableError {
                 f.write_fmt(format_args!("{}", &p))?;
                 f.write_str("]")
             },
+            Self::Panicked => f.write_str("panic during blocking I/O in parse"),
         }
     }
 }

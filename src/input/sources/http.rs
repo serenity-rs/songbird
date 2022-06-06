@@ -23,8 +23,8 @@ use symphonia_core::{io::MediaSource, probe::Hint};
 use tokio::io::{AsyncRead, AsyncSeek, ReadBuf};
 use tokio_util::io::StreamReader;
 
-#[derive(Clone, Debug)]
 /// A lazily instantiated HTTP request.
+#[derive(Clone, Debug)]
 pub struct HttpRequest {
     /// A reqwest client instance used to send the HTTP GET request.
     pub client: Client,

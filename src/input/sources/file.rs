@@ -3,6 +3,7 @@ use std::{error::Error, path::Path};
 use symphonia_core::{io::MediaSource, probe::Hint};
 
 /// A lazily instantiated local file.
+#[derive(Clone, Debug)]
 pub struct File<P: AsRef<Path>> {
     path: P,
 }

@@ -15,6 +15,7 @@ const YOUTUBE_DL_COMMAND: &str = "yt-dlp";
 /// Opus frame passthrough).
 ///
 /// [`HttpRequest`]: super::HttpRequest
+#[derive(Clone, Debug)]
 pub struct YoutubeDl {
     program: &'static str,
     client: Client,
