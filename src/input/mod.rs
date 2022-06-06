@@ -94,9 +94,6 @@ pub enum Input {
     ///
     /// When a parent track is either played or explicitly readied, the inner [`Compose`]
     /// is used to create an [`Input::Live`].
-    ///
-    /// [`Compose`]: Compose
-    /// [`Input::Live`]: Input::Live
     Lazy(
         /// A trait object which can be used to (re)create a usable byte stream.
         Box<dyn Compose>,

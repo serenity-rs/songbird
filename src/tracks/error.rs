@@ -50,3 +50,9 @@ pub enum PlayError {
     Decode(Arc<SymphoniaError>),
     Seek(Arc<SymphoniaError>),
 }
+
+// impl Error for PlayError {
+//     fn source(&self) -> Option<&(dyn Error + 'static)> {
+//         None
+//     }
+// }
