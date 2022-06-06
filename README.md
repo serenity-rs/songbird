@@ -42,8 +42,9 @@ features = ["aac", "mp3", "isomp4", "alac"] # ...as well as any extras you need!
 Songbird needs a few system dependencies before you can use it.
 
 - Opus - Audio codec that Discord uses.
-If you are on Windows and you are using the MSVC toolchain, a prebuilt DLL is provided for you, you do not have to do anything.
-On other platforms, you will have to install it. You can install the library with `apt install libopus-dev` on Ubuntu or `pacman -S opus` on Arch Linux.
+[audiopus] will use installed libopus binaries if available via pkgconf on Linux/MacOS, otherwise you will need to install cmake to build opus from source.
+This is always the case on Windows.
+For Unix systems, you can install the library with `apt install libopus-dev` on Ubuntu or `pacman -S opus` on Arch Linux.
 If you do not have it installed it will be built for you. However, you will need a C compiler and the GNU autotools installed.
 Again, these can be installed with `apt install build-essential autoconf automake libtool m4` on Ubuntu or `pacman -S base-devel` on Arch Linux.
 
