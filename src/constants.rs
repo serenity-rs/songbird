@@ -30,6 +30,9 @@ pub const DEFAULT_BITRATE: Bitrate = Bitrate::BitsPerSecond(128_000);
 /// Number of output samples at 48kHZ to produced when resampling subframes.
 pub(crate) const RESAMPLE_OUTPUT_FRAME_SIZE: usize = MONO_FRAME_SIZE / 2;
 
+/// The maximum number of bad frames to allow in an Opus source before blocking passthrough.
+pub(crate) const OPUS_PASSTHROUGH_STRIKE_LIMIT: u8 = 3;
+
 /// Number of samples in one complete frame of audio per channel.
 ///
 /// This is equally the number of stereo (joint) samples in an audio frame.

@@ -1,4 +1,5 @@
 use crate::{
+    constants::OPUS_PASSTHROUGH_STRIKE_LIMIT,
     driver::tasks::message::*,
     input::{Compose, Input, LiveInput, Metadata, Parsed},
     tracks::ReadyState,
@@ -59,12 +60,22 @@ pub struct DecodeState {
     pub inner_pos: usize,
     pub resampler: Option<(usize, FftFixedOut<f32>, Vec<Vec<f32>>)>,
     pub passthrough: Passthrough,
+    pub passthrough_violations: u8,
 }
 
 impl DecodeState {
     pub fn reset(&mut self) {
         self.inner_pos = 0;
         self.resampler = None;
+    }
+
+    pub fn is_this_passthrough_strike_final(&mut self, fatal: bool) -> bool {
+        self.passthrough_violations = self.passthrough_violations.saturating_add(1);
+        let blocked = fatal || self.passthrough_violations > OPUS_PASSTHROUGH_STRIKE_LIMIT;
+        if blocked {
+            self.passthrough = Passthrough::Block;
+        }
+        blocked
     }
 }
 
@@ -74,6 +85,7 @@ impl Default for DecodeState {
             inner_pos: 0,
             resampler: None,
             passthrough: Passthrough::Inactive,
+            passthrough_violations: 0,
         }
     }
 }

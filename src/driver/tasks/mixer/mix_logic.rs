@@ -33,17 +33,20 @@ pub fn mix_symph_indiv(
                         .try_into()
                         .and_then(|buf| audiopus::packet::nb_samples(buf, SAMPLE_RATE));
 
-                    match sample_ct {
-                        Ok(MONO_FRAME_SIZE) if buf.len() <= slot.len() => {
-                            slot.write_all(buf).expect(
-                                "Bounds check performed, and failure will block passthrough.",
-                            );
+                    // We don't actually block passthrough until a few violations are
+                    // seen. The main one is that most Opus tracks end on a sub-20ms
+                    // frame, particularly on Youtube.
+                    // However, a frame that's bigger than the target buffer is an instant block.
+                    let buf_size_fatal = buf.len() <= slot.len();
 
-                            return (MixType::Passthrough(buf.len()), MixStatus::Live);
-                        },
-                        _ => {
-                            local_state.passthrough = Passthrough::Block;
-                        },
+                    if match sample_ct {
+                        Ok(MONO_FRAME_SIZE) => true,
+                        _ => !local_state.is_this_passthrough_strike_final(buf_size_fatal),
+                    } {
+                        slot.write_all(buf)
+                            .expect("Bounds check performed, and failure will block passthrough.");
+
+                        return (MixType::Passthrough(buf.len()), MixStatus::Live);
                     }
                 }
             }
