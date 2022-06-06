@@ -69,7 +69,7 @@ impl DecodeState {
         self.resampler = None;
     }
 
-    pub fn is_this_passthrough_strike_final(&mut self, fatal: bool) -> bool {
+    pub fn record_and_check_passthrough_strike_final(&mut self, fatal: bool) -> bool {
         self.passthrough_violations = self.passthrough_violations.saturating_add(1);
         let blocked = fatal || self.passthrough_violations > OPUS_PASSTHROUGH_STRIKE_LIMIT;
         if blocked {

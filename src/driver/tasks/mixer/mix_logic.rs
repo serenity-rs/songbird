@@ -41,7 +41,7 @@ pub fn mix_symph_indiv(
 
                     if match sample_ct {
                         Ok(MONO_FRAME_SIZE) => true,
-                        _ => !local_state.is_this_passthrough_strike_final(buf_size_fatal),
+                        _ => !local_state.record_and_check_passthrough_strike_final(buf_size_fatal),
                     } {
                         slot.write_all(buf)
                             .expect("Bounds check performed, and failure will block passthrough.");
