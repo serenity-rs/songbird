@@ -119,12 +119,12 @@ impl BlockyTaskPool {
         let pool = self.pool.read();
 
         pool.execute(move || {
-            let res = input
+            let seek_result = input
                 .format
                 .seek(SeekMode::Coarse, copy_seek_to(&seek_time));
 
             let backseek_needed = matches!(
-                res,
+                seek_result,
                 Err(SymphoniaError::SeekError(SeekErrorKind::ForwardOnly))
             );
 
@@ -134,7 +134,7 @@ impl BlockyTaskPool {
                 },
                 _ => {
                     input.decoder.reset();
-                    drop(callback.send(MixerInputResultMessage::Seek(input, rec, res)));
+                    drop(callback.send(MixerInputResultMessage::Seek(input, rec, seek_result)));
                 },
             }
         });

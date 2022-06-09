@@ -243,8 +243,6 @@ fn create_metadata(
         Bitrate::Max => Some(510_000),
     };
 
-    let vbr = opus.vbr()?;
-
     let mode = match opus.application()? {
         Application::Voip => "voip",
         Application::Audio => "music",
@@ -259,7 +257,7 @@ fn create_metadata(
         sample_rate,
         frame_size: MONO_FRAME_BYTE_SIZE as u64,
         abr,
-        vbr,
+        vbr: opus.vbr()?,
         channels: channels.min(2),
     };
 
