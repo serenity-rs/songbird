@@ -5,7 +5,7 @@ use super::{
 };
 use crate::{
     constants::*,
-    driver::DecodeMode,
+    driver::{DecodeMode, CryptoMode},
     events::{internal_data::*, CoreContext},
 };
 use audiopus::{
@@ -300,7 +300,7 @@ impl UdpRx {
 
                 let (rtp_body_start, rtp_body_tail, decrypted) = packet_data.unwrap_or_else(|| {
                     (
-                        crypto_mode.payload_prefix_len(),
+                        CryptoMode::payload_prefix_len(),
                         crypto_mode.payload_suffix_len(),
                         false,
                     )
@@ -365,7 +365,7 @@ impl UdpRx {
 
                 let (start, tail) = packet_data.unwrap_or_else(|| {
                     (
-                        crypto_mode.payload_prefix_len(),
+                        CryptoMode::payload_prefix_len(),
                         crypto_mode.payload_suffix_len(),
                     )
                 });

@@ -68,7 +68,7 @@ impl CryptoMode {
     /// Returns the number of bytes occupied by the encryption scheme
     /// which fall before the payload.
     #[must_use]
-    pub fn payload_prefix_len(self) -> usize {
+    pub fn payload_prefix_len() -> usize {
         TAG_SIZE
     }
 
@@ -86,7 +86,7 @@ impl CryptoMode {
     /// to an unencrypted payload.
     #[must_use]
     pub fn payload_overhead(self) -> usize {
-        self.payload_prefix_len() + self.payload_suffix_len()
+        Self::payload_prefix_len() + self.payload_suffix_len()
     }
 
     /// Extracts the byte slice in a packet used as the nonce, and the remaining mutable
@@ -135,7 +135,7 @@ impl CryptoMode {
             &nonce
         };
 
-        let body_start = self.payload_prefix_len();
+        let body_start = Self::payload_prefix_len();
         let body_tail = self.payload_suffix_len();
 
         if body_start > body_remaining.len() {
