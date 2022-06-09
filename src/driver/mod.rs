@@ -285,7 +285,7 @@ impl Drop for Driver {
     /// Leaves the current connected voice channel, if connected to one, and
     /// forgets all configurations relevant to this Handler.
     fn drop(&mut self) {
-        let _ = self.sender.send(CoreMessage::Poison);
+        drop(self.sender.send(CoreMessage::Poison));
     }
 }
 

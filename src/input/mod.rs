@@ -231,7 +231,7 @@ impl Input {
                     let (tx, rx) = flume::bounded(1);
                     handle.spawn(async move {
                         let out = lazy.create_async().await;
-                        let _ = tx.send_async((out, lazy));
+                        drop(tx.send_async((out, lazy)));
                     });
                     rx.recv().map_err(|_| {
                         let err_msg: Box<dyn Error + Send + Sync> =

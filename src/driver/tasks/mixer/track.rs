@@ -75,55 +75,55 @@ impl<'a> InternalTrack {
             match cmd {
                 TrackCommand::Play => {
                     self.playing.change_to(PlayMode::Play);
-                    let _ = ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
-                    ));
+                    )));
                 },
                 TrackCommand::Pause => {
                     self.playing.change_to(PlayMode::Pause);
-                    let _ = ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
-                    ));
+                    )));
                 },
                 TrackCommand::Stop => {
                     self.playing.change_to(PlayMode::Stop);
-                    let _ = ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
-                    ));
+                    )));
                 },
                 TrackCommand::Volume(vol) => {
                     self.volume = vol;
-                    let _ = ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Volume(self.volume),
-                    ));
+                    )));
                 },
                 TrackCommand::Seek(time) => action.seek_point = Some(time),
                 TrackCommand::AddEvent(evt) => {
-                    let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
+                    drop(ic.events.send(EventMessage::AddTrackEvent(index, evt)));
                 },
                 TrackCommand::Do(func) => {
                     if let Some(indiv_action) = func(self.view()) {
                         action.combine(indiv_action);
                     }
 
-                    let _ = ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Total(self.state()),
-                    ));
+                    )));
                 },
                 TrackCommand::Request(tx) => {
-                    let _ = tx.send(self.state());
+                    drop(tx.send(self.state()));
                 },
                 TrackCommand::Loop(loops) => {
                     self.loops = loops;
-                    let _ = ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Loops(self.loops, true),
-                    ));
+                    )));
                 },
                 TrackCommand::MakePlayable => action.make_playable = true,
             }
@@ -223,10 +223,10 @@ impl<'a> InternalTrack {
                                 self.position = std::time::Duration::from_secs_f64(time_in_float);
 
                                 if !prevent_events {
-                                    let _ = interconnect.events.send(EventMessage::ChangeState(
+                                    drop(interconnect.events.send(EventMessage::ChangeState(
                                         id,
                                         TrackStateChange::Position(self.position),
-                                    ));
+                                    )));
                                 }
 
                                 local.reset();

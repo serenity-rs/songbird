@@ -515,11 +515,12 @@ impl Mixer {
             if track.playing.is_done() {
                 let p_state = track.playing.clone();
                 let to_drop = self.tracks.swap_remove(i);
-                let _ = self
-                    .disposer
-                    .send(DisposalMessage::Track(Box::new(to_drop)));
+                drop(
+                    self.disposer
+                        .send(DisposalMessage::Track(Box::new(to_drop))),
+                );
                 let to_drop = self.track_handles.swap_remove(i);
-                let _ = self.disposer.send(DisposalMessage::Handle(to_drop));
+                drop(self.disposer.send(DisposalMessage::Handle(to_drop)));
 
                 to_remove.push(i);
                 self.fire_event(EventMessage::ChangeState(
@@ -596,7 +597,7 @@ impl Mixer {
                     // A full reconnect might cause an inner closed connection.
                     // It's safer to leave the central task to clean this up and
                     // pass the mixer a new channel.
-                    let _ = ws.send(WsMessage::Speaking(false));
+                    drop(ws.send(WsMessage::Speaking(false)));
                 }
 
                 self.march_deadline();
@@ -785,10 +786,10 @@ impl Mixer {
                     let _ = self.track_handles[i].seek_time(Duration::default());
                     if !self.prevent_events {
                         // position update is sent out later, when the seek concludes.
-                        let _ = self.interconnect.events.send(EventMessage::ChangeState(
+                        drop(self.interconnect.events.send(EventMessage::ChangeState(
                             i,
                             TrackStateChange::Loops(track.loops, false),
-                        ));
+                        )));
                     }
                 },
                 _ => {
@@ -821,5 +822,5 @@ pub(crate) fn runner(
 
     mixer.run();
 
-    let _ = mixer.disposer.send(DisposalMessage::Poison);
+    drop(mixer.disposer.send(DisposalMessage::Poison));
 }

@@ -111,7 +111,7 @@ impl Compose for YoutubeDl {
             return Ok(meta.clone());
         }
 
-        let _ = self.query().await?;
+        self.query().await?;
 
         self.metadata.clone().ok_or_else(|| {
             let msg: Box<dyn Error + Send + Sync + 'static> =

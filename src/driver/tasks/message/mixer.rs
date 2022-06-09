@@ -19,8 +19,8 @@ pub struct MixerConnection {
 
 impl Drop for MixerConnection {
     fn drop(&mut self) {
-        let _ = self.udp_rx.send(UdpRxMessage::Poison);
-        let _ = self.udp_tx.send(UdpTxMessage::Poison);
+        drop(self.udp_rx.send(UdpRxMessage::Poison));
+        drop(self.udp_tx.send(UdpTxMessage::Poison));
     }
 }
 

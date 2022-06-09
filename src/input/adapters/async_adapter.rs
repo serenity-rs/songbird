@@ -53,7 +53,7 @@ impl AsyncAdapterSink {
                     if let Ok(n) = self.stream.read(&mut inner_buf).await {
                         read_region = 0..n;
                         if n == 0 {
-                            let _ = self.resp_tx.send_async(AdapterResponse::ReadZero).await;
+                            drop(self.resp_tx.send_async(AdapterResponse::ReadZero).await);
                             hit_end = true;
                         }
                         seen_bytes += n as u64;
@@ -104,22 +104,24 @@ impl AsyncAdapterSink {
             match msg {
                 AdapterRequest::Wake => blocked = false,
                 AdapterRequest::ByteLen => {
-                    let _ = self
-                        .resp_tx
-                        .send_async(AdapterResponse::ByteLen(self.stream.byte_len().await))
-                        .await;
+                    drop(
+                        self.resp_tx
+                            .send_async(AdapterResponse::ByteLen(self.stream.byte_len().await))
+                            .await,
+                    );
                 },
                 AdapterRequest::Seek(pos) => {
                     pause_buf_moves = true;
-                    let _ = self.resp_tx.send_async(AdapterResponse::SeekClear).await;
+                    drop(self.resp_tx.send_async(AdapterResponse::SeekClear).await);
                     seek_res = Some(self.stream.seek(pos).await);
                 },
                 AdapterRequest::SeekCleared => {
                     if let Some(res) = seek_res.take() {
-                        let _ = self
-                            .resp_tx
-                            .send_async(AdapterResponse::SeekResult(res))
-                            .await;
+                        drop(
+                            self.resp_tx
+                                .send_async(AdapterResponse::SeekResult(res))
+                                .await,
+                        );
                     }
                     pause_buf_moves = false;
                 },
@@ -216,7 +218,7 @@ impl Read for AsyncAdapterStream {
         // This needs to remain blocking or spin loopy
         // Mainly because this is at odds with "keep CPU low."
         loop {
-            let _ = self.handle_messages(false);
+            drop(self.handle_messages(false));
 
             match self.bytes_out.read(buf) {
                 Ok(n) => {

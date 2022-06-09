@@ -5,7 +5,7 @@ use super::{
 };
 use crate::{
     constants::*,
-    driver::{DecodeMode, CryptoMode},
+    driver::{CryptoMode, DecodeMode},
     events::{internal_data::*, CoreContext},
 };
 use audiopus::{
@@ -320,32 +320,32 @@ impl UdpRx {
                 ) {
                     match delta {
                         SpeakingDelta::Start => {
-                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                            drop(interconnect.events.send(EventMessage::FireCoreEvent(
                                 CoreContext::SpeakingUpdate(InternalSpeakingUpdate {
                                     ssrc: rtp.get_ssrc(),
                                     speaking: true,
                                 }),
-                            ));
+                            )));
                         },
                         SpeakingDelta::Stop => {
-                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                            drop(interconnect.events.send(EventMessage::FireCoreEvent(
                                 CoreContext::SpeakingUpdate(InternalSpeakingUpdate {
                                     ssrc: rtp.get_ssrc(),
                                     speaking: false,
                                 }),
-                            ));
+                            )));
                         },
                         _ => {},
                     }
 
-                    let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                    drop(interconnect.events.send(EventMessage::FireCoreEvent(
                         CoreContext::VoicePacket(InternalVoicePacket {
                             audio,
                             packet: rtp.from_packet(),
                             payload_offset: rtp_body_start,
                             payload_end_pad: rtp_body_tail,
                         }),
-                    ));
+                    )));
                 } else {
                     warn!("RTP decoding/processing failed.");
                 }
@@ -370,16 +370,13 @@ impl UdpRx {
                     )
                 });
 
-                let _ =
-                    interconnect
-                        .events
-                        .send(EventMessage::FireCoreEvent(CoreContext::RtcpPacket(
-                            InternalRtcpPacket {
-                                packet: rtcp.from_packet(),
-                                payload_offset: start,
-                                payload_end_pad: tail,
-                            },
-                        )));
+                drop(interconnect.events.send(EventMessage::FireCoreEvent(
+                    CoreContext::RtcpPacket(InternalRtcpPacket {
+                        packet: rtcp.from_packet(),
+                        payload_offset: start,
+                        payload_end_pad: tail,
+                    }),
+                )));
             },
             DemuxedMut::FailedParse(t) => {
                 warn!("Failed to parse message of type {:?}.", t);

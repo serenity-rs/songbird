@@ -74,7 +74,7 @@ impl BlockyTaskPool {
                 self.parse(config, callback, LiveInput::Raw(o), Some(rec), seek_time);
             },
             Err(e) => {
-                let _ = callback.send(MixerInputResultMessage::CreateErr(e));
+                drop(callback.send(MixerInputResultMessage::CreateErr(e)));
             },
         }
     }
@@ -96,11 +96,11 @@ impl BlockyTaskPool {
                     if let Some(seek_time) = seek_time {
                         pool_clone.seek(callback, parsed, rec, seek_time, false, config);
                     } else {
-                        let _ = callback.send(MixerInputResultMessage::Built(parsed, rec));
+                        drop(callback.send(MixerInputResultMessage::Built(parsed, rec)));
                     },
                 Ok(_) => unreachable!(),
                 Err(e) => {
-                    let _ = callback.send(MixerInputResultMessage::ParseErr(e));
+                    drop(callback.send(MixerInputResultMessage::ParseErr(e)));
                 },
             },
         );
@@ -134,7 +134,7 @@ impl BlockyTaskPool {
                 },
                 _ => {
                     input.decoder.reset();
-                    let _ = callback.send(MixerInputResultMessage::Seek(input, rec, res));
+                    drop(callback.send(MixerInputResultMessage::Seek(input, rec, res)));
                 },
             }
         });

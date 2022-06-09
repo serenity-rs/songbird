@@ -136,7 +136,7 @@ impl Call {
         match &self.connection {
             Some((ConnectionProgress::Complete(c), Return::Info(tx))) => {
                 // It's okay if the receiver hung up.
-                let _ = tx.send(c.clone());
+                drop(tx.send(c.clone()));
             },
             #[cfg(feature = "driver")]
             Some((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) => {
@@ -190,7 +190,7 @@ impl Call {
                 self.leave().await?;
                 true
             } else if conn.0.channel_id() == channel_id {
-                let _ = tx.send(completion_generator(self));
+                drop(tx.send(completion_generator(self)));
                 false
             } else {
                 // not in progress, and/or a channel change.
