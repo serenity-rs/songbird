@@ -170,9 +170,9 @@ impl TrackHandle {
         self.inner.uuid
     }
 
-    /// Allows access to this track's attached TypeMap.
+    /// Allows access to this track's attached [`TypeMap`].
     ///
-    /// TypeMaps allow additional, user-defined data shared by all handles
+    /// [`TypeMap`]s allow additional, user-defined data shared by all handles
     /// to be attached to any track.
     ///
     /// Driver code will never attempt to lock access to this map,

@@ -11,9 +11,10 @@ use serenity::{
 use std::sync::Arc;
 
 /// Zero-size type used to retrieve the registered [`Songbird`] instance
-/// from serenity's inner TypeMap.
+/// from serenity's inner [`TypeMap`].
 ///
 /// [`Songbird`]: Songbird
+/// [`TypeMap`]: serenity::prelude::TypeMap
 pub struct SongbirdKey;
 
 impl TypeMapKey for SongbirdKey {

@@ -12,7 +12,7 @@ use xsalsa20poly1305::{
     TAG_SIZE,
 };
 
-/// Variants of the XSalsa20Poly1305 encryption scheme.
+/// Variants of the `XSalsa20Poly1305` encryption scheme.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum CryptoMode {
@@ -183,7 +183,7 @@ impl CryptoMode {
     }
 }
 
-/// State used in nonce generation for the XSalsa20Poly1305 encryption variants
+/// State used in nonce generation for the `XSalsa20Poly1305` encryption variants
 /// in [`CryptoMode`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]

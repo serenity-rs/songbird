@@ -76,7 +76,8 @@
     clippy::similar_names,
     clippy::needless_pass_by_value,
     clippy::match_wildcard_for_single_variants,
-    clippy::redundant_closure_for_method_calls
+    clippy::redundant_closure_for_method_calls,
+    clippy::doc_markdown
 )]
 
 mod config;

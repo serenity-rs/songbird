@@ -61,7 +61,7 @@ impl SeekAccel {
     }
 }
 
-/// [DCA[0/1]](https://github.com/bwmarrin/dca) Format reader for Symphonia.
+/// [DCA\[0/1\]](https://github.com/bwmarrin/dca) Format reader for Symphonia.
 pub struct DcaReader {
     source: MediaSourceStream,
     track: Option<Track>,

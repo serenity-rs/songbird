@@ -11,7 +11,7 @@ const YOUTUBE_DL_COMMAND: &str = "yt-dlp";
 /// A lazily instantiated call to download a file, finding its URL via youtube-dl.
 ///
 /// By default, this uses yt-dlp and is backed by an [`HttpRequest`]. This handler
-/// attempts to find the best audio-only source (typically WebM, enabling low-cost
+/// attempts to find the best audio-only source (typically `WebM`, enabling low-cost
 /// Opus frame passthrough).
 ///
 /// [`HttpRequest`]: super::HttpRequest

@@ -8,7 +8,7 @@ use super::Parsed;
 /// Extra information about an [`Input`] which is acquired without
 /// parsing the file itself (e.g., from a webpage).
 ///
-/// YOu can access this via [`Input::aux_metadata`] and [`Compose::aux_metadata`].
+/// You can access this via [`Input::aux_metadata`] and [`Compose::aux_metadata`].
 ///
 /// [`Input`]: crate::input::Input
 /// [`Input::aux_metadata`]: crate::input::Input::aux_metadata
