@@ -58,6 +58,8 @@
 //! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
 //! [audiopus]: https://github.com/lakelezz/audiopus
 
+#![warn(clippy::must_use_candidate)]
+
 mod config;
 pub mod constants;
 #[cfg(feature = "driver")]

@@ -24,6 +24,7 @@ pub struct EventStore {
 
 impl EventStore {
     /// Creates a new event store to be used globally.
+    #[must_use]
     pub fn new() -> Self {
         Default::default()
     }
@@ -34,6 +35,7 @@ impl EventStore {
     /// a track has been registered.
     ///
     /// [`Track`]: crate::tracks::Track
+    #[must_use]
     pub fn new_local() -> Self {
         EventStore {
             local_only: true,

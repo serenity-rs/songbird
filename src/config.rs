@@ -138,36 +138,42 @@ impl Default for Config {
 #[cfg(feature = "driver")]
 impl Config {
     /// Sets this `Config`'s chosen cryptographic tagging scheme.
+    #[must_use]
     pub fn crypto_mode(mut self, crypto_mode: CryptoMode) -> Self {
         self.crypto_mode = crypto_mode;
         self
     }
 
     /// Sets this `Config`'s received packet decryption/decoding behaviour.
+    #[must_use]
     pub fn decode_mode(mut self, decode_mode: DecodeMode) -> Self {
         self.decode_mode = decode_mode;
         self
     }
 
     /// Sets this `Config`'s audio mixing channel count.
+    #[must_use]
     pub fn mix_mode(mut self, mix_mode: MixMode) -> Self {
         self.mix_mode = mix_mode;
         self
     }
 
     /// Sets this `Config`'s number of tracks to preallocate.
+    #[must_use]
     pub fn preallocated_tracks(mut self, preallocated_tracks: usize) -> Self {
         self.preallocated_tracks = preallocated_tracks;
         self
     }
 
     /// Sets this `Config`'s timeout for establishing a voice connection.
+    #[must_use]
     pub fn driver_timeout(mut self, driver_timeout: Option<Duration>) -> Self {
         self.driver_timeout = driver_timeout;
         self
     }
 
     /// Sets this `Config`'s voice connection retry configuration.
+    #[must_use]
     pub fn driver_retry(mut self, driver_retry: Retry) -> Self {
         self.driver_retry = driver_retry;
         self
@@ -184,6 +190,7 @@ impl Config {
 #[cfg(feature = "gateway")]
 impl Config {
     /// Sets this `Config`'s timeout for joining a voice channel.
+    #[must_use]
     pub fn gateway_timeout(mut self, gateway_timeout: Option<Duration>) -> Self {
         self.gateway_timeout = gateway_timeout;
         self

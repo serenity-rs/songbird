@@ -80,6 +80,7 @@ impl<'a> CoreContext {
 impl EventContext<'_> {
     /// Retreive the event class for an event (i.e., when matching)
     /// an event against the registered listeners.
+    #[must_use]
     pub fn to_core_event(&self) -> Option<CoreEvent> {
         use EventContext::*;
 

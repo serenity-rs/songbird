@@ -43,6 +43,7 @@ impl TrackHandle {
     /// the underlying [`Input`] supports seek operations.
     ///
     /// [`Input`]: crate::input::Input
+    #[must_use]
     pub fn new(command_channel: Sender<TrackCommand>, uuid: Uuid) -> Self {
         let inner = Arc::new(InnerHandle {
             command_channel,
@@ -164,6 +165,7 @@ impl TrackHandle {
     }
 
     /// Returns this handle's (and track's) unique identifier.
+    #[must_use]
     pub fn uuid(&self) -> Uuid {
         self.inner.uuid
     }
@@ -175,6 +177,7 @@ impl TrackHandle {
     ///
     /// Driver code will never attempt to lock access to this map,
     /// preventing deadlock/stalling.
+    #[must_use]
     pub fn typemap(&self) -> &RwLock<TypeMap> {
         &self.inner.typemap
     }

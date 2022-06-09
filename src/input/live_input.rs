@@ -95,6 +95,7 @@ impl LiveInput {
 
     /// Returns a reference to the data parsed from this input stream, if it has
     /// been made available via [`Self::promote`].
+    #[must_use]
     pub fn parsed(&self) -> Option<&Parsed> {
         if let Self::Parsed(parsed) = self {
             Some(parsed)
@@ -115,6 +116,7 @@ impl LiveInput {
 
     /// Returns whether this stream's headers have been fully parsed, and so whether
     /// the track can be played or have its metadata read.
+    #[must_use]
     pub fn is_playable(&self) -> bool {
         self.parsed().is_some()
     }

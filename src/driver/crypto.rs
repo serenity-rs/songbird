@@ -46,6 +46,7 @@ impl From<CryptoState> for CryptoMode {
 
 impl CryptoMode {
     /// Returns the name of a mode as it will appear during negotiation.
+    #[must_use]
     pub fn to_request_str(self) -> &'static str {
         use CryptoMode::*;
         match self {
@@ -57,6 +58,7 @@ impl CryptoMode {
 
     /// Returns the number of bytes each nonce is stored as within
     /// a packet.
+    #[must_use]
     pub fn nonce_size(self) -> usize {
         use CryptoMode::*;
         match self {
@@ -68,12 +70,14 @@ impl CryptoMode {
 
     /// Returns the number of bytes occupied by the encryption scheme
     /// which fall before the payload.
+    #[must_use]
     pub fn payload_prefix_len(self) -> usize {
         TAG_SIZE
     }
 
     /// Returns the number of bytes occupied by the encryption scheme
     /// which fall after the payload.
+    #[must_use]
     pub fn payload_suffix_len(self) -> usize {
         use CryptoMode::*;
         match self {
@@ -84,6 +88,7 @@ impl CryptoMode {
 
     /// Calculates the number of additional bytes required compared
     /// to an unencrypted payload.
+    #[must_use]
     pub fn payload_overhead(self) -> usize {
         self.payload_prefix_len() + self.payload_suffix_len()
     }

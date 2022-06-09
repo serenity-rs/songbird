@@ -148,6 +148,7 @@ pub struct AsyncAdapterStream {
 impl AsyncAdapterStream {
     /// Wrap and pull from an async file stream, with an intermediate ring-buffer of size `buf_len`
     /// between the async and sync halves.
+    #[must_use]
     pub fn new(stream: Box<dyn AsyncMediaSource>, buf_len: usize) -> AsyncAdapterStream {
         let (bytes_in, bytes_out) = RingBuffer::new(buf_len).split();
         let (resp_tx, resp_rx) = flume::unbounded();

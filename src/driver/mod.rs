@@ -65,6 +65,7 @@ impl Driver {
     ///
     /// This will create the core voice tasks in the background.
     #[inline]
+    #[must_use]
     pub fn new(config: Config) -> Self {
         let sender = Self::start_inner(config.clone());
 
@@ -252,6 +253,7 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     /// Queue additions should be made via [`Driver::enqueue`] and
     /// [`Driver::enqueue_input`].
+    #[must_use]
     pub fn queue(&self) -> &TrackQueue {
         &self.queue
     }

@@ -329,6 +329,7 @@ impl Input {
 
     /// Returns whether this audio stream is full initialised, parsed, and
     /// ready to play (e.g., `Self::Live(LiveInput::Parsed(p), _)`).
+    #[must_use]
     pub fn is_playable(&self) -> bool {
         match self {
             Self::Live(input, _) => input.is_playable(),
@@ -338,6 +339,7 @@ impl Input {
 
     /// Returns a reference to the live input, if it has been created via
     /// [`Self::make_live`] or [`Self::make_live_async`].
+    #[must_use]
     pub fn live(&self) -> Option<&LiveInput> {
         if let Self::Live(input, _) = self {
             Some(input)
@@ -358,6 +360,7 @@ impl Input {
 
     /// Returns a reference to the data parsed from this input stream, if it has
     /// been made available via [`Self::make_playable`] or [`LiveInput::promote`].
+    #[must_use]
     pub fn parsed(&self) -> Option<&Parsed> {
         self.live().and_then(|v| v.parsed())
     }

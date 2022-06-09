@@ -75,6 +75,7 @@ impl Deref for Queued {
 
 impl Queued {
     /// Clones the inner handle
+    #[must_use]
     pub fn handle(&self) -> TrackHandle {
         self.0.clone()
     }
@@ -154,6 +155,7 @@ impl EventHandler for SongPreloader {
 
 impl TrackQueue {
     /// Create a new, empty, track queue.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             inner: Arc::new(Mutex::new(TrackQueueCore {
@@ -231,6 +233,7 @@ impl TrackQueue {
     }
 
     /// Returns a handle to the currently playing track.
+    #[must_use]
     pub fn current(&self) -> Option<TrackHandle> {
         let inner = self.inner.lock();
 
@@ -242,11 +245,13 @@ impl TrackQueue {
     /// The returned entry can be readded to *this* queue via [`modify_queue`].
     ///
     /// [`modify_queue`]: TrackQueue::modify_queue
+    #[must_use]
     pub fn dequeue(&self, index: usize) -> Option<Queued> {
         self.modify_queue(|vq| vq.remove(index))
     }
 
     /// Returns the number of tracks currently in the queue.
+    #[must_use]
     pub fn len(&self) -> usize {
         let inner = self.inner.lock();
 
@@ -254,6 +259,7 @@ impl TrackQueue {
     }
 
     /// Returns whether there are no tracks currently in the queue.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         let inner = self.inner.lock();
 
@@ -319,6 +325,7 @@ impl TrackQueue {
     /// Use [`modify_queue`] for direct modification of the queue.
     ///
     /// [`modify_queue`]: TrackQueue::modify_queue
+    #[must_use]
     pub fn current_queue(&self) -> Vec<TrackHandle> {
         let inner = self.inner.lock();
 

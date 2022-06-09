@@ -57,6 +57,7 @@ impl Songbird {
     /// This must be [registered] after creation.
     ///
     /// [registered]: crate::serenity::register_with
+    #[must_use]
     pub fn serenity() -> Arc<Self> {
         Self::serenity_from_config(Default::default())
     }
@@ -67,6 +68,7 @@ impl Songbird {
     /// This must be [registered] after creation.
     ///
     /// [registered]: crate::serenity::register_with
+    #[must_use]
     pub fn serenity_from_config(config: Config) -> Arc<Self> {
         Arc::new(Self {
             client_data: Default::default(),

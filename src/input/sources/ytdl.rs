@@ -28,6 +28,7 @@ impl YoutubeDl {
     ///
     /// This requires a reqwest client: ideally, one should be created and shared between
     /// all requests.
+    #[must_use]
     pub fn new(client: Client, url: String) -> Self {
         Self::new_ytdl_like(YOUTUBE_DL_COMMAND, client, url)
     }
@@ -35,6 +36,7 @@ impl YoutubeDl {
     /// Creates a lazy request to select an audio stream from `url` as in [`new`], using `program`.
     ///
     /// [`new`]: Self::new
+    #[must_use]
     pub fn new_ytdl_like(program: &'static str, client: Client, url: String) -> Self {
         Self {
             program,
