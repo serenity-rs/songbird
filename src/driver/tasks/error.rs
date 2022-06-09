@@ -30,12 +30,7 @@ pub enum Error {
 
 impl Error {
     pub(crate) fn should_trigger_connect(&self) -> bool {
-        matches!(
-            self,
-            Error::InterconnectFailure(Recipient::AuxNetwork)
-                | Error::InterconnectFailure(Recipient::UdpRx)
-                | Error::InterconnectFailure(Recipient::UdpTx)
-        )
+        matches!(self, Error::InterconnectFailure(Recipient::AuxNetwork | Recipient::UdpRx | Recipient::UdpTx))
     }
 
     pub(crate) fn should_trigger_interconnect_rebuild(&self) -> bool {
