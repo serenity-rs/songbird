@@ -184,12 +184,12 @@ impl AuxMetadata {
     }
 
     /// Move all fields from a `Metadata` object into a new one.
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             track: self.track.take(),
             artist: self.artist.take(),
             date: self.date.take(),
-
             channels: self.channels.take(),
             channel: self.channel.take(),
             start_time: self.start_time.take(),

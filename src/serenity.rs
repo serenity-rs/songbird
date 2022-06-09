@@ -63,10 +63,13 @@ pub trait SerenityInit {
     /// access via [`get`].
     ///
     /// [`get`]: get
+    #[must_use]
     fn register_songbird(self) -> Self;
     /// Registers a given Songbird voice system with serenity, as above.
+    #[must_use]
     fn register_songbird_with(self, voice: Arc<Songbird>) -> Self;
     /// Registers a Songbird voice system serenity, based on the given configuration.
+    #[must_use]
     fn register_songbird_from_config(self, config: Config) -> Self;
 }
 

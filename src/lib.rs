@@ -63,7 +63,8 @@
     clippy::default_trait_access,
     clippy::match_same_arms,
     clippy::semicolon_if_nothing_returned,
-    clippy::enum_glob_use
+    clippy::enum_glob_use,
+    clippy::return_self_not_must_use
 )]
 
 mod config;
