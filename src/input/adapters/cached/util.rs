@@ -67,7 +67,7 @@ impl ToAudioBytes {
 
         let chan_limit = chan_limit.unwrap_or(chan_count);
 
-        let resample = if sample_rate != SAMPLE_RATE_RAW as u32 {
+        let resample = (sample_rate != SAMPLE_RATE_RAW as u32).then(|| {
             let spec = if let Some(chans) = maybe_chans {
                 SignalSpec::new(SAMPLE_RATE_RAW as u32, chans)
             } else if let Some(layout) = maybe_layout {
@@ -90,15 +90,13 @@ impl ToAudioBytes {
 
             let resampled_data = resampler.output_buffer_allocate();
 
-            Some(ResampleState {
+            ResampleState {
                 resampled_data,
                 resampler,
                 scratch,
                 resample_pos: 0..0,
-            })
-        } else {
-            None
-        };
+            }
+        });
 
         Self {
             chan_count,
@@ -284,9 +282,7 @@ impl Read for ToAudioBytes {
 
                     self.inner_pos.start += frames_to_take;
 
-                    if resample.scratch.frames() != needed_in_frames {
-                        continue;
-                    } else {
+                    if resample.scratch.frames() == needed_in_frames {
                         resample
                             .resampler
                             .process_into_buffer(
@@ -296,6 +292,8 @@ impl Read for ToAudioBytes {
                             )
                             .unwrap();
                         resample.scratch.clear();
+                    } else {
+                        continue;
                     }
                 }
 

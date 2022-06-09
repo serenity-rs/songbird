@@ -394,10 +394,9 @@ impl Mixer {
         // it's responsible for not forcibly recreating said context repeatedly.
         if !self.prevent_events {
             self.interconnect.events.send(event)?;
-            Ok(())
-        } else {
-            Ok(())
         }
+
+        Ok(())
     }
 
     #[inline]

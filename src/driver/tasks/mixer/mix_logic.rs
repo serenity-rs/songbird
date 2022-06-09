@@ -105,7 +105,21 @@ pub fn mix_symph_indiv(
 
         let in_rate = source_packet.spec().rate;
 
-        if in_rate != SAMPLE_RATE_RAW as u32 {
+        if in_rate == SAMPLE_RATE_RAW as u32 {
+            // No need to resample: mix as standard.
+            let samples_marched = mix_over_ref(
+                &source_packet,
+                symph_mix,
+                local_state.inner_pos,
+                samples_written,
+                volume,
+            );
+
+            samples_written += samples_marched;
+
+            local_state.inner_pos += samples_marched;
+            local_state.inner_pos %= source_packet.frames();
+        } else {
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels.count();
             let (_, resampler, rs_out_buf) = local_state.resampler.get_or_insert_with(|| {
@@ -178,11 +192,7 @@ pub fn mix_symph_indiv(
                 local_state.inner_pos += frames_to_take;
                 local_state.inner_pos %= pkt_frames;
 
-                if resample_scratch.frames() != needed_in_frames {
-                    // Not enough data to fill the resampler: fetch more.
-                    buf_in_progress = true;
-                    continue;
-                } else {
+                if resample_scratch.frames() == needed_in_frames {
                     resampler
                         .process_into_buffer(
                             &resample_scratch.planes().planes()[..chan_c],
@@ -192,26 +202,16 @@ pub fn mix_symph_indiv(
                         .unwrap();
                     resample_scratch.clear();
                     buf_in_progress = false;
+                } else {
+                    // Not enough data to fill the resampler: fetch more.
+                    buf_in_progress = true;
+                    continue;
                 }
             };
 
             let samples_marched = mix_resampled(rs_out_buf, symph_mix, samples_written, volume);
 
             samples_written += samples_marched;
-        } else {
-            // No need to resample: mix as standard.
-            let samples_marched = mix_over_ref(
-                &source_packet,
-                symph_mix,
-                local_state.inner_pos,
-                samples_written,
-                volume,
-            );
-
-            samples_written += samples_marched;
-
-            local_state.inner_pos += samples_marched;
-            local_state.inner_pos %= source_packet.frames();
         }
     }
 

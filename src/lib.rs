@@ -68,7 +68,8 @@
     clippy::unused_self,
     clippy::trivially_copy_pass_by_ref,
     clippy::let_underscore_drop,
-    clippy::map_unwrap_or
+    clippy::map_unwrap_or,
+    clippy::if_not_else,
 )]
 
 mod config;

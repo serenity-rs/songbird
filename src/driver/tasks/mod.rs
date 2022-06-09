@@ -128,12 +128,12 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                 // (i.e., prevent users from mistakenly trying to reconnect for an *old* dead conn).
                 // if it *is* a match, the conn needs to die!
                 // (as the WS channel has truly given up the ghost).
-                if ws_idx != attempt_idx {
-                    reason = None;
-                } else {
+                if ws_idx == attempt_idx {
                     connection = None;
                     drop(interconnect.mixer.send(MixerMessage::DropConn));
                     drop(interconnect.mixer.send(MixerMessage::RebuildEncoder));
+                } else {
+                    reason = None;
                 }
 
                 drop(interconnect.events.send(EventMessage::FireCoreEvent(
