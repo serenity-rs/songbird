@@ -74,7 +74,8 @@
     clippy::single_match_else,
     clippy::mut_mut,
     clippy::similar_names,
-    clippy::needless_pass_by_value
+    clippy::needless_pass_by_value,
+    clippy::match_wildcard_for_single_variants
 )]
 
 mod config;

@@ -336,7 +336,7 @@ impl UdpRx {
                                 }),
                             )));
                         },
-                        _ => {},
+                        SpeakingDelta::Same => {},
                     }
 
                     drop(interconnect.events.send(EventMessage::FireCoreEvent(
@@ -382,7 +382,7 @@ impl UdpRx {
             DemuxedMut::FailedParse(t) => {
                 warn!("Failed to parse message of type {:?}.", t);
             },
-            _ => {
+            DemuxedMut::TooSmall => {
                 warn!("Illegal UDP packet from voice server.");
             },
         }

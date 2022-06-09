@@ -788,7 +788,7 @@ impl Mixer {
                         )));
                     }
                 },
-                _ => {
+                MixStatus::Ended => {
                     track.end();
                 },
             }

@@ -199,7 +199,7 @@ impl Input {
             Self::Lazy(ref mut composer) => composer.aux_metadata().await.map_err(Into::into),
             Self::Live(_, Some(ref mut composer)) =>
                 composer.aux_metadata().await.map_err(Into::into),
-            _ => Err(AuxMetadataError::NoCompose),
+            Self::Live(_, None) => Err(AuxMetadataError::NoCompose),
         }
     }
 
@@ -225,29 +225,26 @@ impl Input {
     ///
     /// This is a no-op for an [`Input::Live`].
     pub fn make_live(self, handle: &TokioHandle) -> Result<Self, AudioStreamError> {
-        let out = match self {
-            Self::Lazy(mut lazy) => {
-                let (created, lazy) = if lazy.should_create_async() {
-                    let (tx, rx) = flume::bounded(1);
-                    handle.spawn(async move {
-                        let out = lazy.create_async().await;
-                        drop(tx.send_async((out, lazy)));
-                    });
-                    rx.recv().map_err(|_| {
-                        let err_msg: Box<dyn Error + Send + Sync> =
-                            "async Input create handler panicked".into();
-                        AudioStreamError::Fail(err_msg)
-                    })?
-                } else {
-                    (lazy.create(), lazy)
-                };
+        if let Self::Lazy(mut lazy) = self {
+            let (created, lazy) = if lazy.should_create_async() {
+                let (tx, rx) = flume::bounded(1);
+                handle.spawn(async move {
+                    let out = lazy.create_async().await;
+                    drop(tx.send_async((out, lazy)));
+                });
+                rx.recv().map_err(|_| {
+                    let err_msg: Box<dyn Error + Send + Sync> =
+                        "async Input create handler panicked".into();
+                    AudioStreamError::Fail(err_msg)
+                })?
+            } else {
+                (lazy.create(), lazy)
+            };
 
-                Self::Live(LiveInput::Raw(created?), Some(lazy))
-            },
-            other => other,
-        };
-
-        Ok(out)
+            Ok(Self::Live(LiveInput::Raw(created?), Some(lazy)))
+        } else {
+            Ok(self)
+        }
     }
 
     /// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],
@@ -255,26 +252,23 @@ impl Input {
     ///
     /// This is a no-op for an [`Input::Live`].
     pub async fn make_live_async(self) -> Result<Self, AudioStreamError> {
-        let out = match self {
-            Self::Lazy(mut lazy) => {
-                let (created, lazy) = if lazy.should_create_async() {
-                    (lazy.create_async().await, lazy)
-                } else {
-                    tokio::task::spawn_blocking(move || (lazy.create(), lazy))
-                        .await
-                        .map_err(|_| {
-                            let err_msg: Box<dyn Error + Send + Sync> =
-                                "synchronous Input create handler panicked".into();
-                            AudioStreamError::Fail(err_msg)
-                        })?
-                };
+        if let Self::Lazy(mut lazy) = self {
+            let (created, lazy) = if lazy.should_create_async() {
+                (lazy.create_async().await, lazy)
+            } else {
+                tokio::task::spawn_blocking(move || (lazy.create(), lazy))
+                    .await
+                    .map_err(|_| {
+                        let err_msg: Box<dyn Error + Send + Sync> =
+                            "synchronous Input create handler panicked".into();
+                        AudioStreamError::Fail(err_msg)
+                    })?
+            };
 
-                Self::Live(LiveInput::Raw(created?), Some(lazy))
-            },
-            other => other,
-        };
-
-        Ok(out)
+            Ok(Self::Live(LiveInput::Raw(created?), Some(lazy)))
+        } else {
+            Ok(self)
+        }
     }
 
     /// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],
@@ -327,9 +321,10 @@ impl Input {
     /// ready to play (e.g., `Self::Live(LiveInput::Parsed(p), _)`).
     #[must_use]
     pub fn is_playable(&self) -> bool {
-        match self {
-            Self::Live(input, _) => input.is_playable(),
-            _ => false,
+        if let Self::Live(input, _) = self {
+            input.is_playable()
+        } else {
+            false
         }
     }
 

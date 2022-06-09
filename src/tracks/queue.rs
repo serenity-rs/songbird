@@ -183,7 +183,7 @@ impl TrackQueue {
         let meta = match track.input {
             Input::Lazy(ref mut rec) => rec.aux_metadata().await.ok(),
             Input::Live(_, Some(ref mut rec)) => rec.aux_metadata().await.ok(),
-            _ => None,
+            Input::Live(_, None) => None,
         };
 
         meta.and_then(|meta| meta.duration)

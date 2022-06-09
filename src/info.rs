@@ -18,9 +18,10 @@ impl ConnectionProgress {
     }
 
     pub(crate) fn get_connection_info(&self) -> Option<&ConnectionInfo> {
-        match self {
-            Self::Complete(c) => Some(c),
-            _ => None,
+        if let Self::Complete(c) = self {
+            Some(c)
+        } else {
+            None
         }
     }
 
@@ -52,10 +53,7 @@ impl ConnectionProgress {
     }
 
     pub(crate) fn info(&self) -> Option<ConnectionInfo> {
-        match self {
-            ConnectionProgress::Complete(conn_info) => Some(conn_info.clone()),
-            _ => None,
-        }
+        self.get_connection_info().cloned()
     }
 
     pub(crate) fn apply_state_update(&mut self, session_id: String, channel_id: ChannelId) -> bool {
