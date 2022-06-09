@@ -84,7 +84,7 @@ enum SpeakingDelta {
 }
 
 impl SsrcState {
-    fn new(pkt: RtpPacket<'_>) -> Self {
+    fn new(pkt: &RtpPacket<'_>) -> Self {
         Self {
             silent_frame_count: 5, // We do this to make the first speech packet fire an event.
             decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
@@ -96,7 +96,7 @@ impl SsrcState {
 
     fn process(
         &mut self,
-        pkt: RtpPacket<'_>,
+        pkt: &RtpPacket<'_>,
         data_offset: usize,
         data_trailer: usize,
         decode_mode: DecodeMode,
@@ -279,7 +279,7 @@ impl UdpRx {
 
         match demux::demux_mut(packet) {
             DemuxedMut::Rtp(mut rtp) => {
-                if !rtp_valid(rtp.to_immutable()) {
+                if !rtp_valid(&rtp.to_immutable()) {
                     error!("Illegal RTP message received.");
                     return;
                 }
@@ -298,6 +298,7 @@ impl UdpRx {
                     None
                 };
 
+                let rtp = rtp.to_immutable();
                 let (rtp_body_start, rtp_body_tail, decrypted) = packet_data.unwrap_or_else(|| {
                     (
                         CryptoMode::payload_prefix_len(),
@@ -309,10 +310,10 @@ impl UdpRx {
                 let entry = self
                     .decoder_map
                     .entry(rtp.get_ssrc())
-                    .or_insert_with(|| SsrcState::new(rtp.to_immutable()));
+                    .or_insert_with(|| SsrcState::new(&rtp));
 
                 if let Ok((delta, audio)) = entry.process(
-                    rtp.to_immutable(),
+                    &rtp,
                     rtp_body_start,
                     rtp_body_tail,
                     self.config.decode_mode,
@@ -413,6 +414,6 @@ pub(crate) async fn runner(
 }
 
 #[inline]
-fn rtp_valid(packet: RtpPacket<'_>) -> bool {
+fn rtp_valid(packet: &RtpPacket<'_>) -> bool {
     packet.get_version() == RTP_VERSION && packet.get_payload_type() == RTP_PROFILE_TYPE
 }

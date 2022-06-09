@@ -73,7 +73,8 @@
     clippy::unnested_or_patterns,
     clippy::single_match_else,
     clippy::mut_mut,
-    clippy::similar_names
+    clippy::similar_names,
+    clippy::needless_pass_by_value
 )]
 
 mod config;

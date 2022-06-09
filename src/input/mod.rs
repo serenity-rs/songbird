@@ -224,7 +224,7 @@ impl Input {
     /// must do so via [`Self::make_live_async`].*
     ///
     /// This is a no-op for an [`Input::Live`].
-    pub fn make_live(self, handle: TokioHandle) -> Result<Self, AudioStreamError> {
+    pub fn make_live(self, handle: &TokioHandle) -> Result<Self, AudioStreamError> {
         let out = match self {
             Self::Lazy(mut lazy) => {
                 let (created, lazy) = if lazy.should_create_async() {
@@ -292,7 +292,7 @@ impl Input {
         self,
         codecs: &CodecRegistry,
         probe: &Probe,
-        handle: TokioHandle,
+        handle: &TokioHandle,
     ) -> Result<Self, MakePlayableError> {
         let out = self.make_live(handle)?;
         match out {
