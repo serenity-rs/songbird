@@ -418,7 +418,7 @@ impl Mixer {
     #[inline]
     fn rebuild_tracks(&mut self) -> Result<()> {
         for (track, handle) in self.tracks.iter().zip(self.track_handles.iter()) {
-            let evts = Default::default();
+            let evts = EventStore::default();
             let state = track.state();
             let handle = handle.clone();
 
@@ -784,7 +784,7 @@ impl Mixer {
                 MixStatus::Errored(e) =>
                     track.playing = PlayMode::Errored(PlayError::Decode(e.into())),
                 MixStatus::Ended if track.do_loop() => {
-                    let _ = self.track_handles[i].seek_time(Default::default());
+                    let _ = self.track_handles[i].seek_time(Duration::default());
                     if !self.prevent_events {
                         // position update is sent out later, when the seek concludes.
                         let _ = self.interconnect.events.send(EventMessage::ChangeState(

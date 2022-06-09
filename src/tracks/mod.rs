@@ -119,7 +119,7 @@ impl Track {
     #[must_use]
     pub fn new_with_uuid(input: Input, uuid: Uuid) -> Self {
         Self {
-            playing: Default::default(),
+            playing: PlayMode::default(),
             volume: 1.0,
             input,
             events: EventStore::new_local(),

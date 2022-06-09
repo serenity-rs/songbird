@@ -28,7 +28,7 @@ pub struct Retry {
 impl Default for Retry {
     fn default() -> Self {
         Self {
-            strategy: Strategy::Backoff(Default::default()),
+            strategy: Strategy::Backoff(ExponentialBackoff::default()),
             retry_limit: Some(5),
         }
     }

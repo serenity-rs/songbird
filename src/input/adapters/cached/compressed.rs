@@ -66,7 +66,7 @@ impl Default for Config {
         Self {
             codec_registry: &CODEC_REGISTRY,
             format_registry: &PROBE,
-            streamcatcher: Default::default(),
+            streamcatcher: ScConfig::default(),
         }
     }
 }
@@ -358,7 +358,7 @@ impl OpusCompressor {
             last_frame: Vec::with_capacity(4000),
             stereo_input,
             frame_pos: 0,
-            audio_bytes: Default::default(),
+            audio_bytes: AtomicUsize::default(),
         }
     }
 }

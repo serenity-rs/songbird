@@ -24,9 +24,9 @@ impl<'a> InternalTrack {
             playing: track.playing,
             volume: track.volume,
             input: InputState::from(track.input),
-            mix_state: Default::default(),
-            position: Default::default(),
-            play_time: Default::default(),
+            mix_state: DecodeState::default(),
+            position: Duration::default(),
+            play_time: Duration::default(),
             commands: receiver,
             loops: track.loops,
         };

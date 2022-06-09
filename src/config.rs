@@ -124,7 +124,7 @@ impl Default for Config {
             #[cfg(feature = "driver")]
             preallocated_tracks: 1,
             #[cfg(feature = "driver")]
-            driver_retry: Default::default(),
+            driver_retry: Retry::default(),
             #[cfg(feature = "driver")]
             driver_timeout: Some(Duration::from_secs(10)),
             #[cfg(feature = "driver")]

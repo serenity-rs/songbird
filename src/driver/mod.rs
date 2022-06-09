@@ -74,7 +74,7 @@ impl Driver {
             self_mute: false,
             sender,
             #[cfg(feature = "builtin-queue")]
-            queue: Default::default(),
+            queue: TrackQueue::default(),
         }
     }
 
@@ -277,7 +277,7 @@ impl Driver {
 
 impl Default for Driver {
     fn default() -> Self {
-        Self::new(Default::default())
+        Self::new(Config::default())
     }
 }
 

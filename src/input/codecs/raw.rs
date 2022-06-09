@@ -86,7 +86,7 @@ impl FormatReader for RawReader {
                 language: None,
                 codec_params,
             },
-            meta: Default::default(),
+            meta: MetadataLog::default(),
             curr_ts: 0,
             max_ts: None,
         })

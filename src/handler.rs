@@ -73,12 +73,7 @@ impl Call {
         G: Into<GuildId> + Debug,
         U: Into<UserId> + Debug,
     {
-        Self::new_raw_cfg(
-            guild_id.into(),
-            Some(ws),
-            user_id.into(),
-            Default::default(),
-        )
+        Self::new_raw_cfg(guild_id.into(), Some(ws), user_id.into(), Config::default())
     }
 
     /// Creates a new Call, configuring the driver as specified.
@@ -107,7 +102,7 @@ impl Call {
         G: Into<GuildId> + Debug,
         U: Into<UserId> + Debug,
     {
-        Self::new_raw_cfg(guild_id.into(), None, user_id.into(), Default::default())
+        Self::new_raw_cfg(guild_id.into(), None, user_id.into(), Config::default())
     }
 
     /// Creates a new standalone Call from the given configuration file.

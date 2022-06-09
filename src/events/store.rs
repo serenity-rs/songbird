@@ -26,7 +26,7 @@ impl EventStore {
     /// Creates a new event store to be used globally.
     #[must_use]
     pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
     /// Creates a new event store to be used within a [`Track`].

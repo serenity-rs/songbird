@@ -406,7 +406,7 @@ pub(crate) async fn runner(
 
     let mut state = UdpRx {
         cipher,
-        decoder_map: Default::default(),
+        decoder_map: HashMap::new(),
         config,
         packet_buffer: [0u8; VOICE_PACKET_MAX],
         rx,
