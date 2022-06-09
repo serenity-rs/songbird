@@ -71,73 +71,62 @@ impl<'a> InternalTrack {
         // In correct operation, the event thread should never panic,
         // but it receiving status updates is secondary do actually
         // doing the work.
-        loop {
-            match self.commands.try_recv() {
-                Ok(cmd) => {
-                    use TrackCommand::*;
-                    match cmd {
-                        Play => {
-                            self.playing.change_to(PlayMode::Play);
-                            let _ = ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Mode(self.playing.clone()),
-                            ));
-                        },
-                        Pause => {
-                            self.playing.change_to(PlayMode::Pause);
-                            let _ = ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Mode(self.playing.clone()),
-                            ));
-                        },
-                        Stop => {
-                            self.playing.change_to(PlayMode::Stop);
-                            let _ = ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Mode(self.playing.clone()),
-                            ));
-                        },
-                        Volume(vol) => {
-                            self.volume = vol;
-                            let _ = ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Volume(self.volume),
-                            ));
-                        },
-                        Seek(time) => action.seek_point = Some(time),
-                        AddEvent(evt) => {
-                            let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
-                        },
-                        Do(func) => {
-                            if let Some(indiv_action) = func(self.view()) {
-                                action.combine(indiv_action);
-                            }
-
-                            let _ = ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Total(self.state()),
-                            ));
-                        },
-                        Request(tx) => {
-                            let _ = tx.send(self.state());
-                        },
-                        Loop(loops) => {
-                            self.loops = loops;
-                            let _ = ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Loops(self.loops, true),
-                            ));
-                        },
-                        MakePlayable => action.make_playable = true,
+        while let Ok(cmd) = self.commands.try_recv() {
+            use TrackCommand::*;
+            match cmd {
+                Play => {
+                    self.playing.change_to(PlayMode::Play);
+                    let _ = ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Mode(self.playing.clone()),
+                    ));
+                },
+                Pause => {
+                    self.playing.change_to(PlayMode::Pause);
+                    let _ = ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Mode(self.playing.clone()),
+                    ));
+                },
+                Stop => {
+                    self.playing.change_to(PlayMode::Stop);
+                    let _ = ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Mode(self.playing.clone()),
+                    ));
+                },
+                Volume(vol) => {
+                    self.volume = vol;
+                    let _ = ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Volume(self.volume),
+                    ));
+                },
+                Seek(time) => action.seek_point = Some(time),
+                AddEvent(evt) => {
+                    let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
+                },
+                Do(func) => {
+                    if let Some(indiv_action) = func(self.view()) {
+                        action.combine(indiv_action);
                     }
+
+                    let _ = ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Total(self.state()),
+                    ));
                 },
-                Err(TryRecvError::Disconnected) => {
-                    // this branch will never be visited.
-                    break;
+                Request(tx) => {
+                    let _ = tx.send(self.state());
                 },
-                Err(TryRecvError::Empty) => {
-                    break;
+                Loop(loops) => {
+                    self.loops = loops;
+                    let _ = ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Loops(self.loops, true),
+                    ));
                 },
+                MakePlayable => action.make_playable = true,
             }
         }
 

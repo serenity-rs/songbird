@@ -116,19 +116,19 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Error::AttemptDiscarded => None,
+            Error::AttemptDiscarded
+            | Error::CryptoModeInvalid
+            | Error::CryptoModeUnavailable
+            | Error::EndpointUrl
+            | Error::ExpectedHandshake
+            | Error::IllegalDiscoveryResponse
+            | Error::IllegalIp
+            | Error::InterconnectFailure(_)
+            | Error::Ws(_)
+            | Error::TimedOut => None,
             Error::Crypto(e) => e.source(),
-            Error::CryptoModeInvalid => None,
-            Error::CryptoModeUnavailable => None,
-            Error::EndpointUrl => None,
-            Error::ExpectedHandshake => None,
-            Error::IllegalDiscoveryResponse => None,
-            Error::IllegalIp => None,
             Error::Io(e) => e.source(),
             Error::Json(e) => e.source(),
-            Error::InterconnectFailure(_) => None,
-            Error::Ws(_) => None,
-            Error::TimedOut => None,
         }
     }
 }

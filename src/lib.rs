@@ -58,7 +58,11 @@
 //! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
 //! [audiopus]: https://github.com/lakelezz/audiopus
 
-#![warn(clippy::must_use_candidate, clippy::default_trait_access)]
+#![warn(
+    clippy::must_use_candidate,
+    clippy::default_trait_access,
+    clippy::match_same_arms
+)]
 
 mod config;
 pub mod constants;
