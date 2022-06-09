@@ -37,7 +37,7 @@ struct SeekAccel {
 }
 
 impl SeekAccel {
-    fn new(options: &FormatOptions, first_frame_byte_pos: u64) -> Self {
+    fn new(options: FormatOptions, first_frame_byte_pos: u64) -> Self {
         let per_s = options.seek_index_fill_rate;
         let next_ts = (per_s as u64) * (SAMPLE_RATE_RAW as u64);
 
@@ -176,7 +176,7 @@ impl FormatReader for DcaReader {
                 codec_params,
             }),
             metas,
-            seek_accel: SeekAccel::new(options, bytes_read),
+            seek_accel: SeekAccel::new(*options, bytes_read),
             curr_ts: 0,
             max_ts: None,
             held_packet: None,

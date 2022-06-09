@@ -243,8 +243,8 @@ impl CryptoState {
     }
 
     /// Returns the underlying (stateless) type of the active crypto mode.
-    pub fn kind(&self) -> CryptoMode {
-        CryptoMode::from(*self)
+    pub fn kind(self) -> CryptoMode {
+        CryptoMode::from(self)
     }
 }
 

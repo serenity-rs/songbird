@@ -66,6 +66,7 @@
     clippy::enum_glob_use,
     clippy::return_self_not_must_use,
     clippy::unused_self,
+    clippy::trivially_copy_pass_by_ref
 )]
 
 mod config;
