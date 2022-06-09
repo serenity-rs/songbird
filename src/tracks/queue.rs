@@ -237,7 +237,7 @@ impl TrackQueue {
     pub fn current(&self) -> Option<TrackHandle> {
         let inner = self.inner.lock();
 
-        inner.tracks.front().map(|h| h.handle())
+        inner.tracks.front().map(Queued::handle)
     }
 
     /// Attempts to remove a track from the specified index.
@@ -329,7 +329,7 @@ impl TrackQueue {
     pub fn current_queue(&self) -> Vec<TrackHandle> {
         let inner = self.inner.lock();
 
-        inner.tracks.iter().map(|q| q.handle()).collect()
+        inner.tracks.iter().map(Queued::handle).collect()
     }
 }
 

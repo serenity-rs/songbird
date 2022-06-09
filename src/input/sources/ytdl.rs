@@ -85,7 +85,7 @@ impl Compose for YoutubeDl {
         let url = stdout
             .as_object()
             .and_then(|top| top.get("url"))
-            .and_then(|url| url.as_str())
+            .and_then(Value::as_str)
             .ok_or_else(|| {
                 let msg: Box<dyn Error + Send + Sync + 'static> =
                     "URL field not found on youtube-dl output.".into();

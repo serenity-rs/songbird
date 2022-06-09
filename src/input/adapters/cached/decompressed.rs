@@ -5,7 +5,7 @@ use crate::{
 };
 use std::io::{Read, Seek};
 use streamcatcher::Catcher;
-use symphonia_core::io::MediaSource;
+use symphonia_core::{audio::Channels, io::MediaSource};
 
 /// A wrapper around an existing [`Input`] which caches
 /// the decoded and converted audio data locally in memory
@@ -85,7 +85,7 @@ impl Decompressed {
         let track_info = parsed.decoder.codec_params();
         let chan_count = track_info
             .channels
-            .map(|v| v.count())
+            .map(Channels::count)
             .ok_or(CodecCacheError::UnknownChannelCount)?;
         let sample_rate = SAMPLE_RATE_RAW as u32;
 

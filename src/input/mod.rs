@@ -353,13 +353,13 @@ impl Input {
     /// been made available via [`Self::make_playable`] or [`LiveInput::promote`].
     #[must_use]
     pub fn parsed(&self) -> Option<&Parsed> {
-        self.live().and_then(|v| v.parsed())
+        self.live().and_then(LiveInput::parsed)
     }
 
     /// Returns a mutable reference to the data parsed from this input stream, if it
     /// has been made available via [`Self::make_playable`] or [`LiveInput::promote`].
     pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
-        self.live_mut().and_then(|v| v.parsed_mut())
+        self.live_mut().and_then(LiveInput::parsed_mut)
     }
 }
 

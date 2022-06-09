@@ -79,7 +79,7 @@ impl AuxMetadata {
         let stream = value
             .as_object()
             .and_then(|m| m.get("streams"))
-            .and_then(|v| v.as_array())
+            .and_then(Value::as_array)
             .and_then(|v| {
                 v.iter()
                     .find(|line| line.get("codec_type").and_then(Value::as_str) == Some("audio"))

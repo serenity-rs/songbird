@@ -33,6 +33,7 @@ use streamcatcher::{
     TxCatcher,
 };
 use symphonia_core::{
+    audio::Channels as SChannels,
     codecs::CodecRegistry,
     io::MediaSource,
     meta::{MetadataRevision, StandardTagKey, Value},
@@ -163,7 +164,7 @@ impl Compressed {
         // }
 
         let track_info = parsed.decoder.codec_params();
-        let chan_count = track_info.channels.map_or(2, |v| v.count());
+        let chan_count = track_info.channels.map_or(2, SChannels::count);
 
         let (channels, stereo) = if chan_count >= 2 {
             (Channels::Stereo, true)
