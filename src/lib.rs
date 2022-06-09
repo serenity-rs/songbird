@@ -70,7 +70,8 @@
     clippy::let_underscore_drop,
     clippy::map_unwrap_or,
     clippy::if_not_else,
-    clippy::unnested_or_patterns
+    clippy::unnested_or_patterns,
+    clippy::single_match_else,
 )]
 
 mod config;

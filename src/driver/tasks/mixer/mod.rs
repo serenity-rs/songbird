@@ -760,18 +760,15 @@ impl Mixer {
                 opus_slot,
             );
 
-            let return_here = match mix_type {
-                MixType::MixedPcm(pcm_len) => {
-                    len = len.max(pcm_len);
-                    false
-                },
-                _ => {
-                    if mix_state.passthrough == Passthrough::Inactive {
-                        input.decoder.reset();
-                    }
-                    mix_state.passthrough = Passthrough::Active;
-                    true
-                },
+            let return_here = if let MixType::MixedPcm(pcm_len) = mix_type {
+                len = len.max(pcm_len);
+                false
+            } else {
+                if mix_state.passthrough == Passthrough::Inactive {
+                    input.decoder.reset();
+                }
+                mix_state.passthrough = Passthrough::Active;
+                true
             };
 
             // FIXME: allow Ended to trigger a seek/loop/revisit in the same mix cycle?

@@ -69,17 +69,19 @@ impl Sharder {
 impl Sharder {
     #[allow(unreachable_patterns)]
     pub(crate) fn register_shard_handle(&self, shard_id: u64, sender: Sender<InterMessage>) {
-        match self {
-            Sharder::Serenity(s) => s.register_shard_handle(shard_id, sender),
-            _ => error!("Called serenity management function on a non-serenity Songbird instance."),
+        if let Sharder::Serenity(s) = self {
+            s.register_shard_handle(shard_id, sender);
+        } else {
+            error!("Called serenity management function on a non-serenity Songbird instance.");
         }
     }
 
     #[allow(unreachable_patterns)]
     pub(crate) fn deregister_shard_handle(&self, shard_id: u64) {
-        match self {
-            Sharder::Serenity(s) => s.deregister_shard_handle(shard_id),
-            _ => error!("Called serenity management function on a non-serenity Songbird instance."),
+        if let Sharder::Serenity(s) = self {
+            s.deregister_shard_handle(shard_id);
+        } else {
+            error!("Called serenity management function on a non-serenity Songbird instance.");
         }
     }
 }
