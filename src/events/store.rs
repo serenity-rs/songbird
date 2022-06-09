@@ -213,7 +213,7 @@ impl GlobalEvents {
             }
         }
 
-        for (evt, indices) in self.awaiting_tick.iter() {
+        for (evt, indices) in &self.awaiting_tick {
             let untimed = (*evt).into();
 
             if !indices.is_empty() {
@@ -221,7 +221,7 @@ impl GlobalEvents {
             }
 
             // Local untimed track events.
-            for &i in indices.iter() {
+            for &i in indices {
                 let event_store = events
                     .get_mut(i)
                     .expect("Missing store index for Tick (local untimed).");
@@ -264,7 +264,7 @@ impl GlobalEvents {
         }
 
         // Now drain vecs.
-        for (_evt, indices) in self.awaiting_tick.iter_mut() {
+        for indices in self.awaiting_tick.values_mut() {
             indices.clear();
         }
     }
