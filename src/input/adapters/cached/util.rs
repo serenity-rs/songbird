@@ -120,11 +120,9 @@ impl ToAudioBytes {
     fn is_done(&self) -> bool {
         self.done
             && self.inner_pos.is_empty()
-            && self
-                .resample
-                .as_ref()
-                .map(|v| v.scratch.frames() == 0 && v.resample_pos.is_empty())
-                .unwrap_or(true)
+            && self.resample.as_ref().map_or(true, |v| {
+                v.scratch.frames() == 0 && v.resample_pos.is_empty()
+            })
             && self.interrupted_byte_pos.is_empty()
     }
 }

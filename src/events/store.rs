@@ -106,15 +106,12 @@ impl EventStore {
 
     /// Processes all events due up to and including `now`.
     pub(crate) fn timed_event_ready(&self, now: Duration) -> bool {
-        self.timed
-            .peek()
-            .map(|evt| {
-                evt.fire_time
-                    .as_ref()
-                    .expect("Timed event must have a fire_time.")
-                    <= &now
-            })
-            .unwrap_or(false)
+        self.timed.peek().map_or(false, |evt| {
+            evt.fire_time
+                .as_ref()
+                .expect("Timed event must have a fire_time.")
+                <= &now
+        })
     }
 
     /// Processes all events attached to the given track event.

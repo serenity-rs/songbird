@@ -84,11 +84,7 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     config
                 };
 
-                if connection
-                    .as_ref()
-                    .map(|conn| conn.info != info)
-                    .unwrap_or(true)
-                {
+                if connection.as_ref().map_or(true, |conn| conn.info != info) {
                     // Only *actually* reconnect if the conn info changed, or we don't have an
                     // active connection.
                     // This allows the gateway component to keep sending join requests independent

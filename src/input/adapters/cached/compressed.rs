@@ -163,7 +163,7 @@ impl Compressed {
         // }
 
         let track_info = parsed.decoder.codec_params();
-        let chan_count = track_info.channels.map(|v| v.count()).unwrap_or(2);
+        let chan_count = track_info.channels.map_or(2, |v| v.count());
 
         let (channels, stereo) = if chan_count >= 2 {
             (Channels::Stereo, true)
