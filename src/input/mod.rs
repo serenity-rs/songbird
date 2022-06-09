@@ -225,10 +225,8 @@ impl Input {
     ///
     /// This is a no-op for an [`Input::Live`].
     pub fn make_live(self, handle: TokioHandle) -> Result<Self, AudioStreamError> {
-        use Input::*;
-
         let out = match self {
-            Lazy(mut lazy) => {
+            Self::Lazy(mut lazy) => {
                 let (created, lazy) = if lazy.should_create_async() {
                     let (tx, rx) = flume::bounded(1);
                     handle.spawn(async move {
@@ -244,7 +242,7 @@ impl Input {
                     (lazy.create(), lazy)
                 };
 
-                Live(LiveInput::Raw(created?), Some(lazy))
+                Self::Live(LiveInput::Raw(created?), Some(lazy))
             },
             other => other,
         };
@@ -257,10 +255,8 @@ impl Input {
     ///
     /// This is a no-op for an [`Input::Live`].
     pub async fn make_live_async(self) -> Result<Self, AudioStreamError> {
-        use Input::*;
-
         let out = match self {
-            Lazy(mut lazy) => {
+            Self::Lazy(mut lazy) => {
                 let (created, lazy) = if lazy.should_create_async() {
                     (lazy.create_async().await, lazy)
                 } else {
@@ -273,7 +269,7 @@ impl Input {
                         })?
                 };
 
-                Live(LiveInput::Raw(created?), Some(lazy))
+                Self::Live(LiveInput::Raw(created?), Some(lazy))
             },
             other => other,
         };

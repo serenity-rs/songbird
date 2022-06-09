@@ -53,27 +53,25 @@ enum PacketDecodeSize {
 
 impl PacketDecodeSize {
     fn bump_up(self) -> Self {
-        use PacketDecodeSize::*;
         match self {
-            TwentyMillis => ThirtyMillis,
-            ThirtyMillis => FortyMillis,
-            FortyMillis => SixtyMillis,
-            SixtyMillis | Max => Max,
+            Self::TwentyMillis => Self::ThirtyMillis,
+            Self::ThirtyMillis => Self::FortyMillis,
+            Self::FortyMillis => Self::SixtyMillis,
+            Self::SixtyMillis | Self::Max => Self::Max,
         }
     }
 
     fn can_bump_up(self) -> bool {
-        self != PacketDecodeSize::Max
+        self != Self::Max
     }
 
     fn len(self) -> usize {
-        use PacketDecodeSize::*;
         match self {
-            TwentyMillis => STEREO_FRAME_SIZE,
-            ThirtyMillis => (STEREO_FRAME_SIZE / 2) * 3,
-            FortyMillis => 2 * STEREO_FRAME_SIZE,
-            SixtyMillis => 3 * STEREO_FRAME_SIZE,
-            Max => 6 * STEREO_FRAME_SIZE,
+            Self::TwentyMillis => STEREO_FRAME_SIZE,
+            Self::ThirtyMillis => (STEREO_FRAME_SIZE / 2) * 3,
+            Self::FortyMillis => 2 * STEREO_FRAME_SIZE,
+            Self::SixtyMillis => 3 * STEREO_FRAME_SIZE,
+            Self::Max => 6 * STEREO_FRAME_SIZE,
         }
     }
 }
@@ -254,15 +252,14 @@ impl UdpRx {
                     self.process_udp_message(interconnect, len);
                 }
                 msg = self.rx.recv_async() => {
-                    use UdpRxMessage::*;
                     match msg {
-                        Ok(ReplaceInterconnect(i)) => {
+                        Ok(UdpRxMessage::ReplaceInterconnect(i)) => {
                             *interconnect = i;
                         },
-                        Ok(SetConfig(c)) => {
+                        Ok(UdpRxMessage::SetConfig(c)) => {
                             self.config = c;
                         },
-                        Ok(Poison) | Err(_) => break,
+                        Ok(UdpRxMessage::Poison) | Err(_) => break,
                     }
                 }
             }

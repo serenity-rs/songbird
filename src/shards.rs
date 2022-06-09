@@ -120,7 +120,7 @@ impl SerenitySharder {
     }
 }
 
-#[derive(Derivative)]
+#[derive(Derivative, Clone)]
 #[derivative(Debug)]
 #[non_exhaustive]
 /// A reference to an individual websocket connection.
@@ -136,22 +136,6 @@ pub enum Shard {
     TwilightShard(Arc<TwilightShard>),
     /// Handle to a generic shard instance.
     Generic(#[derivative(Debug = "ignore")] Arc<dyn VoiceUpdate + Send + Sync>),
-}
-
-impl Clone for Shard {
-    fn clone(&self) -> Self {
-        use Shard::*;
-
-        match self {
-            #[cfg(feature = "serenity")]
-            Serenity(handle) => Serenity(Arc::clone(handle)),
-            #[cfg(feature = "twilight")]
-            TwilightCluster(handle, id) => TwilightCluster(Arc::clone(handle), *id),
-            #[cfg(feature = "twilight")]
-            TwilightShard(handle) => TwilightShard(Arc::clone(handle)),
-            Generic(handle) => Generic(Arc::clone(handle)),
-        }
-    }
 }
 
 #[async_trait]

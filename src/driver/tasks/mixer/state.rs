@@ -39,12 +39,10 @@ impl From<Input> for InputState {
 
 impl From<&InputState> for ReadyState {
     fn from(val: &InputState) -> Self {
-        use InputState::*;
-
         match val {
-            NotReady(_) => Self::Uninitialised,
-            Preparing(_) => Self::Preparing,
-            Ready(_, _) => Self::Playable,
+            InputState::NotReady(_) => Self::Uninitialised,
+            InputState::Preparing(_) => Self::Preparing,
+            InputState::Ready(_, _) => Self::Playable,
         }
     }
 }

@@ -259,11 +259,9 @@ impl Mixer {
         let mut conn_failure = false;
         let mut should_exit = false;
 
-        use MixerMessage::*;
-
         let error = match msg {
-            AddTrack(t) => self.add_track(t),
-            SetTrack(t) => {
+            MixerMessage::AddTrack(t) => self.add_track(t),
+            MixerMessage::SetTrack(t) => {
                 self.tracks.clear();
 
                 let mut out = self.fire_event(EventMessage::RemoveAllTracks);
@@ -278,18 +276,18 @@ impl Mixer {
 
                 out
             },
-            SetBitrate(b) => {
+            MixerMessage::SetBitrate(b) => {
                 self.bitrate = b;
                 if let Err(e) = self.set_bitrate(b) {
                     error!("Failed to update bitrate {:?}", e);
                 }
                 Ok(())
             },
-            SetMute(m) => {
+            MixerMessage::SetMute(m) => {
                 self.muted = m;
                 Ok(())
             },
-            SetConn(conn, ssrc) => {
+            MixerMessage::SetConn(conn, ssrc) => {
                 self.conn_active = Some(conn);
                 let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
                     "Too few bytes in self.packet for RTP header.\
@@ -301,11 +299,11 @@ impl Mixer {
                 self.deadline = Instant::now();
                 Ok(())
             },
-            DropConn => {
+            MixerMessage::DropConn => {
                 self.conn_active = None;
                 Ok(())
             },
-            ReplaceInterconnect(i) => {
+            MixerMessage::ReplaceInterconnect(i) => {
                 self.prevent_events = false;
                 if let Some(ws) = &self.ws {
                     conn_failure |= ws.send(WsMessage::ReplaceInterconnect(i.clone())).is_err();
@@ -321,7 +319,7 @@ impl Mixer {
 
                 self.rebuild_tracks()
             },
-            SetConfig(new_config) => {
+            MixerMessage::SetConfig(new_config) => {
                 if new_config.mix_mode != self.config.mix_mode {
                     self.soft_clip = SoftClip::new(new_config.mix_mode.to_opus());
                     if let Ok(enc) = new_encoder(self.bitrate, new_config.mix_mode) {
@@ -359,7 +357,7 @@ impl Mixer {
 
                 Ok(())
             },
-            RebuildEncoder => match new_encoder(self.bitrate, self.config.mix_mode) {
+            MixerMessage::RebuildEncoder => match new_encoder(self.bitrate, self.config.mix_mode) {
                 Ok(encoder) => {
                     self.encoder = encoder;
                     Ok(())
@@ -372,11 +370,11 @@ impl Mixer {
                     Ok(())
                 },
             },
-            Ws(new_ws_handle) => {
+            MixerMessage::Ws(new_ws_handle) => {
                 self.ws = new_ws_handle;
                 Ok(())
             },
-            Poison => {
+            MixerMessage::Poison => {
                 should_exit = true;
                 Ok(())
             },

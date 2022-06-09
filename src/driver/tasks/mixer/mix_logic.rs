@@ -226,19 +226,17 @@ fn mix_over_ref(
     dest_pos: usize,
     volume: f32,
 ) -> usize {
-    use AudioBufferRef::*;
-
     match source {
-        U8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        U16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        U24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        U32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        S8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        S16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        S24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        S32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        F32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        F64(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::U8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::U16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::U24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::U32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::S8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::S16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::S24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::S32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::F32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::F64(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
     }
 }
 
@@ -361,19 +359,17 @@ fn copy_into_resampler(
     dest_pos: usize,
     len: usize,
 ) -> usize {
-    use AudioBufferRef::*;
-
     match source {
-        U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
     }
 }
 

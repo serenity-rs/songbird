@@ -18,9 +18,8 @@ impl ConnectionProgress {
     }
 
     pub(crate) fn get_connection_info(&self) -> Option<&ConnectionInfo> {
-        use ConnectionProgress::*;
         match self {
-            Complete(c) => Some(c),
+            Self::Complete(c) => Some(c),
             _ => None,
         }
     }
@@ -65,26 +64,24 @@ impl ConnectionProgress {
             *self = ConnectionProgress::new(self.guild_id(), self.user_id(), channel_id);
         }
 
-        use ConnectionProgress::*;
         match self {
-            Complete(c) => {
+            Self::Complete(c) => {
                 let should_reconn = c.session_id != session_id;
                 c.session_id = session_id;
                 should_reconn
             },
-            Incomplete(i) => i
+            Self::Incomplete(i) => i
                 .apply_state_update(session_id, channel_id)
                 .map(|info| {
-                    *self = Complete(info);
+                    *self = Self::Complete(info);
                 })
                 .is_some(),
         }
     }
 
     pub(crate) fn apply_server_update(&mut self, endpoint: String, token: String) -> bool {
-        use ConnectionProgress::*;
         match self {
-            Complete(c) => {
+            Self::Complete(c) => {
                 let should_reconn = c.endpoint != endpoint || c.token != token;
 
                 c.endpoint = endpoint;
@@ -92,10 +89,10 @@ impl ConnectionProgress {
 
                 should_reconn
             },
-            Incomplete(i) => i
+            Self::Incomplete(i) => i
                 .apply_server_update(endpoint, token)
                 .map(|info| {
-                    *self = Complete(info);
+                    *self = Self::Complete(info);
                 })
                 .is_some(),
         }

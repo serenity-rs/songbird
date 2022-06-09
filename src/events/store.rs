@@ -55,21 +55,20 @@ impl EventStore {
             return;
         }
 
-        use Event::*;
         match evt.event {
-            Core(c) => {
+            Event::Core(c) => {
                 self.untimed
                     .entry(c.into())
                     .or_insert_with(Vec::new)
                     .push(evt);
             },
-            Track(t) => {
+            Event::Track(t) => {
                 self.untimed
                     .entry(t.into())
                     .or_insert_with(Vec::new)
                     .push(evt);
             },
-            Delayed(_) | Periodic(_, _) => {
+            Event::Delayed(_) | Event::Periodic(_, _) => {
                 self.timed.push(evt);
             },
             _ => {

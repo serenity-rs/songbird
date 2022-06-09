@@ -72,41 +72,40 @@ impl<'a> InternalTrack {
         // but it receiving status updates is secondary do actually
         // doing the work.
         while let Ok(cmd) = self.commands.try_recv() {
-            use TrackCommand::*;
             match cmd {
-                Play => {
+                TrackCommand::Play => {
                     self.playing.change_to(PlayMode::Play);
                     let _ = ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
                     ));
                 },
-                Pause => {
+                TrackCommand::Pause => {
                     self.playing.change_to(PlayMode::Pause);
                     let _ = ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
                     ));
                 },
-                Stop => {
+                TrackCommand::Stop => {
                     self.playing.change_to(PlayMode::Stop);
                     let _ = ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
                     ));
                 },
-                Volume(vol) => {
+                TrackCommand::Volume(vol) => {
                     self.volume = vol;
                     let _ = ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Volume(self.volume),
                     ));
                 },
-                Seek(time) => action.seek_point = Some(time),
-                AddEvent(evt) => {
+                TrackCommand::Seek(time) => action.seek_point = Some(time),
+                TrackCommand::AddEvent(evt) => {
                     let _ = ic.events.send(EventMessage::AddTrackEvent(index, evt));
                 },
-                Do(func) => {
+                TrackCommand::Do(func) => {
                     if let Some(indiv_action) = func(self.view()) {
                         action.combine(indiv_action);
                     }
@@ -116,17 +115,17 @@ impl<'a> InternalTrack {
                         TrackStateChange::Total(self.state()),
                     ));
                 },
-                Request(tx) => {
+                TrackCommand::Request(tx) => {
                     let _ = tx.send(self.state());
                 },
-                Loop(loops) => {
+                TrackCommand::Loop(loops) => {
                     self.loops = loops;
                     let _ = ic.events.send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Loops(self.loops, true),
                     ));
                 },
-                MakePlayable => action.make_playable = true,
+                TrackCommand::MakePlayable => action.make_playable = true,
             }
         }
 
@@ -167,8 +166,6 @@ impl<'a> InternalTrack {
         config: &Arc<Config>,
         prevent_events: bool,
     ) -> StdResult<(&'a mut Parsed, &'a mut DecodeState), InputReadyingError> {
-        use InputReadyingError::*;
-
         let input = &mut self.input;
         let local = &mut self.mix_state;
 
@@ -194,7 +191,7 @@ impl<'a> InternalTrack {
                     _ => unreachable!(),
                 }
 
-                Err(Waiting)
+                Err(InputReadyingError::Waiting)
             },
             InputState::Preparing(info) => {
                 let queued_seek = info.queued_seek.take();
@@ -241,13 +238,14 @@ impl<'a> InternalTrack {
                                     unreachable!()
                                 }
                             },
-                            Err(e) => Err(Seeking(e)),
+                            Err(e) => Err(InputReadyingError::Seeking(e)),
                         }
                     },
-                    Err(TryRecvError::Empty) => Err(Waiting),
-                    Ok(MixerInputResultMessage::CreateErr(e)) => Err(Creation(e)),
-                    Ok(MixerInputResultMessage::ParseErr(e)) => Err(Parsing(e)),
-                    Err(TryRecvError::Disconnected) => Err(Dropped),
+                    Ok(MixerInputResultMessage::CreateErr(e)) =>
+                        Err(InputReadyingError::Creation(e)),
+                    Ok(MixerInputResultMessage::ParseErr(e)) => Err(InputReadyingError::Parsing(e)),
+                    Err(TryRecvError::Disconnected) => Err(InputReadyingError::Dropped),
+                    Err(TryRecvError::Empty) => Err(InputReadyingError::Waiting),
                 };
 
                 let orig_out = orig_out.map(|a| (a, &mut self.mix_state));
