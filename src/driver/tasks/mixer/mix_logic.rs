@@ -278,7 +278,7 @@ where
     } else if target_mono {
         let vol_adj = 1.0 / (source_chans as f32);
         let mut t_planes = target.planes_mut();
-        let d_plane = &mut t_planes.planes()[0];
+        let d_plane = &mut *t_planes.planes()[0];
         for s_plane in source_raw_planes[..].iter() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
@@ -331,7 +331,7 @@ fn mix_resampled(
     } else if target_mono {
         let vol_adj = 1.0 / (source_chans as f32);
         let mut t_planes = target.planes_mut();
-        let d_plane = &mut t_planes.planes()[0];
+        let d_plane = &mut *t_planes.planes()[0];
         for s_plane in source[..].iter() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
                 *d += volume * vol_adj * s;
