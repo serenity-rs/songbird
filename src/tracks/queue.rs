@@ -187,8 +187,10 @@ impl TrackQueue {
         meta.and_then(|meta| meta.duration)
     }
 
+    /// Add a raw [`TrackHandle`] to the queue.
+    /// preload_time can be specified for gapless playback
     #[inline]
-    pub(crate) async fn add_raw(
+    pub async fn add_raw(
         &self,
         handle: TrackHandle,
         preload_time: Option<Duration>,
