@@ -189,20 +189,20 @@ impl Driver {
     /// Alternatively, `Auto` and `Max` remain available.
     #[instrument(skip(self))]
     pub fn set_bitrate(&mut self, bitrate: Bitrate) {
-        self.send(CoreMessage::SetBitrate(bitrate))
+        self.send(CoreMessage::SetBitrate(bitrate));
     }
 
     /// Stops playing audio from all sources, if any are set.
     #[instrument(skip(self))]
     pub fn stop(&mut self) {
-        self.send(CoreMessage::SetTrack(None))
+        self.send(CoreMessage::SetTrack(None));
     }
 
     /// Sets the configuration for this driver (and parent `Call`, if applicable).
     #[instrument(skip(self))]
     pub fn set_config(&mut self, config: Config) {
         self.config = config.clone();
-        self.send(CoreMessage::SetConfig(config))
+        self.send(CoreMessage::SetConfig(config));
     }
 
     /// Returns a view of this driver's configuration.

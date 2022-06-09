@@ -414,7 +414,7 @@ impl Call {
     where
         C: Into<ChannelId> + Debug,
     {
-        self._update_state(session_id, channel_id.map(|c| c.into()))
+        self._update_state(session_id, channel_id.map(|c| c.into()));
     }
 
     fn _update_state(&mut self, session_id: String, channel_id: Option<ChannelId>) {

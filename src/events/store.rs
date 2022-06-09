@@ -263,7 +263,7 @@ impl GlobalEvents {
 
                 self.store
                     .process_untimed(self.time, untimed, EventContext::Track(&global_ctx[..]))
-                    .await
+                    .await;
             }
         }
 

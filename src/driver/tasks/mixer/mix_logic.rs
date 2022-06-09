@@ -155,7 +155,7 @@ pub fn mix_symph_indiv(
 
                     resampler
                         .process_into_buffer(&*refs, rs_out_buf, None)
-                        .unwrap()
+                        .unwrap();
                 } else {
                     unreachable!()
                 }

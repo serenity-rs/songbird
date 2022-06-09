@@ -263,7 +263,7 @@ impl Read for ToAudioBytes {
                         resample
                             .resampler
                             .process_into_buffer(&*refs, &mut resample.resampled_data, None)
-                            .unwrap()
+                            .unwrap();
                     } else {
                         unreachable!()
                     }
