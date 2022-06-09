@@ -58,27 +58,19 @@
 //! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
 //! [audiopus]: https://github.com/lakelezz/audiopus
 
-#![warn(
-    clippy::must_use_candidate,
-    clippy::default_trait_access,
-    clippy::match_same_arms,
-    clippy::semicolon_if_nothing_returned,
-    clippy::enum_glob_use,
-    clippy::return_self_not_must_use,
-    clippy::unused_self,
-    clippy::trivially_copy_pass_by_ref,
-    clippy::let_underscore_drop,
-    clippy::map_unwrap_or,
-    clippy::if_not_else,
-    clippy::unnested_or_patterns,
-    clippy::single_match_else,
-    clippy::mut_mut,
-    clippy::similar_names,
-    clippy::needless_pass_by_value,
-    clippy::match_wildcard_for_single_variants,
-    clippy::redundant_closure_for_method_calls,
-    clippy::doc_markdown,
-    clippy::explicit_iter_loop
+#![warn(clippy::pedantic)]
+#![allow(
+    // Allowed as they are too pedantic
+    clippy::module_name_repetitions,
+    clippy::wildcard_imports,
+    clippy::too_many_lines,
+    clippy::cast_lossless,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    // Allowed because I can't write docs
+    clippy::missing_errors_doc,
 )]
 
 mod config;

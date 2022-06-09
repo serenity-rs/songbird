@@ -40,6 +40,7 @@ impl LiveInput {
     /// [`Wrapped`]: Self::Wrapped
     /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
     /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
+    #[allow(clippy::missing_panics_doc)] // Logic ensures panic doesn't occur
     pub fn promote(self, codecs: &CodecRegistry, probe: &Probe) -> Result<Self, SymphError> {
         let mut out = self;
 

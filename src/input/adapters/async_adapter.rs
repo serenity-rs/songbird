@@ -230,10 +230,10 @@ impl Read for AsyncAdapterStream {
                     self.notify_tx.notify_one();
                     if self.finalised.load(Ordering::Relaxed) {
                         return Ok(0);
-                    } else {
-                        self.check_dropped()?;
-                        std::hint::spin_loop();
                     }
+
+                    self.check_dropped()?;
+                    std::hint::spin_loop();
                 },
                 a => {
                     println!("Misc err {:?}", a);
