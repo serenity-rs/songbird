@@ -47,13 +47,10 @@ impl FormatReader for RawReader {
         let mut magic = [0u8; 8];
         ReadBytes::read_buf_exact(&mut source, &mut magic[..])?;
 
-        match &magic {
-            b"SbirdRaw" => {},
-            _ => {
-                source.seek_buffered_rel(-(magic.len() as isize));
-                return symph_err::decode_error("rawf32: illegal magic byte sequence.");
-            },
-        };
+        if &magic != b"SbirdRaw" {
+            source.seek_buffered_rel(-(magic.len() as isize));
+            return symph_err::decode_error("rawf32: illegal magic byte sequence.");
+        }
 
         let sample_rate = source.read_u32()?;
         let n_chans = source.read_u32()?;
@@ -86,7 +83,7 @@ impl FormatReader for RawReader {
                 language: None,
                 codec_params,
             },
-            meta: Default::default(),
+            meta: MetadataLog::default(),
             curr_ts: 0,
             max_ts: None,
         })

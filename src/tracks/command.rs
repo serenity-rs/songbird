@@ -36,21 +36,20 @@ pub enum TrackCommand {
 
 impl std::fmt::Debug for TrackCommand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        use TrackCommand::*;
         write!(
             f,
             "TrackCommand::{}",
             match self {
-                Play => "Play".to_string(),
-                Pause => "Pause".to_string(),
-                Stop => "Stop".to_string(),
-                Volume(vol) => format!("Volume({})", vol),
-                Seek(d) => format!("Seek({:?})", d),
-                AddEvent(evt) => format!("AddEvent({:?})", evt),
-                Do(_f) => "Do([function])".to_string(),
-                Request(tx) => format!("Request({:?})", tx),
-                Loop(loops) => format!("Loop({:?})", loops),
-                MakePlayable => "MakePlayable".to_string(),
+                Self::Play => "Play".to_string(),
+                Self::Pause => "Pause".to_string(),
+                Self::Stop => "Stop".to_string(),
+                Self::Volume(vol) => format!("Volume({})", vol),
+                Self::Seek(d) => format!("Seek({:?})", d),
+                Self::AddEvent(evt) => format!("AddEvent({:?})", evt),
+                Self::Do(_f) => "Do([function])".to_string(),
+                Self::Request(tx) => format!("Request({:?})", tx),
+                Self::Loop(loops) => format!("Loop({:?})", loops),
+                Self::MakePlayable => "MakePlayable".to_string(),
             }
         )
     }

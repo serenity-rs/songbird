@@ -151,13 +151,13 @@ impl AuxNetwork {
                 self.dont_send = true;
 
                 if should_reconnect {
-                    let _ = interconnect.core.send(CoreMessage::Reconnect);
+                    drop(interconnect.core.send(CoreMessage::Reconnect));
                 } else {
-                    let _ = interconnect.core.send(CoreMessage::SignalWsClosure(
+                    drop(interconnect.core.send(CoreMessage::SignalWsClosure(
                         self.attempt_idx,
                         self.info.clone(),
                         ws_reason,
-                    ));
+                    )));
                     break;
                 }
             }
@@ -186,17 +186,17 @@ impl AuxNetwork {
     fn process_ws(&mut self, interconnect: &Interconnect, value: GatewayEvent) {
         match value {
             GatewayEvent::Speaking(ev) => {
-                let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                drop(interconnect.events.send(EventMessage::FireCoreEvent(
                     CoreContext::SpeakingStateUpdate(ev),
-                ));
+                )));
             },
             GatewayEvent::ClientConnect(ev) => {
                 debug!("Received discontinued ClientConnect: {:?}", ev);
             },
             GatewayEvent::ClientDisconnect(ev) => {
-                let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                drop(interconnect.events.send(EventMessage::FireCoreEvent(
                     CoreContext::ClientDisconnect(ev),
-                ));
+                )));
             },
             GatewayEvent::HeartbeatAck(ev) => {
                 if let Some(nonce) = self.last_heartbeat_nonce.take() {

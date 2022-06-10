@@ -1,3 +1,5 @@
+#[cfg(feature = "serenity")]
+use crate::shards::SerenitySharder;
 use crate::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
@@ -57,8 +59,9 @@ impl Songbird {
     /// This must be [registered] after creation.
     ///
     /// [registered]: crate::serenity::register_with
+    #[must_use]
     pub fn serenity() -> Arc<Self> {
-        Self::serenity_from_config(Default::default())
+        Self::serenity_from_config(Config::default())
     }
 
     #[cfg(feature = "serenity")]
@@ -67,11 +70,12 @@ impl Songbird {
     /// This must be [registered] after creation.
     ///
     /// [registered]: crate::serenity::register_with
+    #[must_use]
     pub fn serenity_from_config(config: Config) -> Arc<Self> {
         Arc::new(Self {
-            client_data: Default::default(),
-            calls: Default::default(),
-            sharder: Sharder::Serenity(Default::default()),
+            client_data: PRwLock::new(ClientData::default()),
+            calls: DashMap::new(),
+            sharder: Sharder::Serenity(SerenitySharder::default()),
             config: Some(config).into(),
         })
     }
@@ -88,7 +92,7 @@ impl Songbird {
     where
         U: Into<UserId>,
     {
-        Self::twilight_from_config(cluster, user_id, Default::default())
+        Self::twilight_from_config(cluster, user_id, Config::default())
     }
 
     #[cfg(feature = "twilight")]
@@ -109,7 +113,7 @@ impl Songbird {
                 initialised: true,
                 user_id: user_id.into(),
             }),
-            calls: Default::default(),
+            calls: DashMap::new(),
             sharder: Sharder::TwilightCluster(cluster),
             config: Some(config).into(),
         }

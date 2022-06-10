@@ -65,6 +65,7 @@ impl Driver {
     ///
     /// This will create the core voice tasks in the background.
     #[inline]
+    #[must_use]
     pub fn new(config: Config) -> Self {
         let sender = Self::start_inner(config.clone());
 
@@ -73,7 +74,7 @@ impl Driver {
             self_mute: false,
             sender,
             #[cfg(feature = "builtin-queue")]
-            queue: Default::default(),
+            queue: TrackQueue::default(),
         }
     }
 
@@ -188,20 +189,20 @@ impl Driver {
     /// Alternatively, `Auto` and `Max` remain available.
     #[instrument(skip(self))]
     pub fn set_bitrate(&mut self, bitrate: Bitrate) {
-        self.send(CoreMessage::SetBitrate(bitrate))
+        self.send(CoreMessage::SetBitrate(bitrate));
     }
 
     /// Stops playing audio from all sources, if any are set.
     #[instrument(skip(self))]
     pub fn stop(&mut self) {
-        self.send(CoreMessage::SetTrack(None))
+        self.send(CoreMessage::SetTrack(None));
     }
 
     /// Sets the configuration for this driver (and parent `Call`, if applicable).
     #[instrument(skip(self))]
     pub fn set_config(&mut self, config: Config) {
         self.config = config.clone();
-        self.send(CoreMessage::SetConfig(config))
+        self.send(CoreMessage::SetConfig(config));
     }
 
     /// Returns a view of this driver's configuration.
@@ -252,6 +253,7 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     /// Queue additions should be made via [`Driver::enqueue`] and
     /// [`Driver::enqueue_input`].
+    #[must_use]
     pub fn queue(&self) -> &TrackQueue {
         &self.queue
     }
@@ -275,7 +277,7 @@ impl Driver {
 
 impl Default for Driver {
     fn default() -> Self {
-        Self::new(Default::default())
+        Self::new(Config::default())
     }
 }
 
@@ -283,7 +285,7 @@ impl Drop for Driver {
     /// Leaves the current connected voice channel, if connected to one, and
     /// forgets all configurations relevant to this Handler.
     fn drop(&mut self) {
-        let _ = self.sender.send(CoreMessage::Poison);
+        drop(self.sender.send(CoreMessage::Poison));
     }
 }
 

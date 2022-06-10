@@ -67,7 +67,7 @@ impl ToAudioBytes {
 
         let chan_limit = chan_limit.unwrap_or(chan_count);
 
-        let resample = if sample_rate != SAMPLE_RATE_RAW as u32 {
+        let resample = (sample_rate != SAMPLE_RATE_RAW as u32).then(|| {
             let spec = if let Some(chans) = maybe_chans {
                 SignalSpec::new(SAMPLE_RATE_RAW as u32, chans)
             } else if let Some(layout) = maybe_layout {
@@ -90,15 +90,13 @@ impl ToAudioBytes {
 
             let resampled_data = resampler.output_buffer_allocate();
 
-            Some(ResampleState {
+            ResampleState {
                 resampled_data,
                 resampler,
                 scratch,
                 resample_pos: 0..0,
-            })
-        } else {
-            None
-        };
+            }
+        });
 
         Self {
             chan_count,
@@ -120,11 +118,9 @@ impl ToAudioBytes {
     fn is_done(&self) -> bool {
         self.done
             && self.inner_pos.is_empty()
-            && self
-                .resample
-                .as_ref()
-                .map(|v| v.scratch.frames() == 0 && v.resample_pos.is_empty())
-                .unwrap_or(true)
+            && self.resample.as_ref().map_or(true, |v| {
+                v.scratch.frames() == 0 && v.resample_pos.is_empty()
+            })
             && self.interrupted_byte_pos.is_empty()
     }
 }
@@ -263,7 +259,7 @@ impl Read for ToAudioBytes {
                         resample
                             .resampler
                             .process_into_buffer(&*refs, &mut resample.resampled_data, None)
-                            .unwrap()
+                            .unwrap();
                     } else {
                         unreachable!()
                     }
@@ -286,9 +282,7 @@ impl Read for ToAudioBytes {
 
                     self.inner_pos.start += frames_to_take;
 
-                    if resample.scratch.frames() != needed_in_frames {
-                        continue;
-                    } else {
+                    if resample.scratch.frames() == needed_in_frames {
                         resample
                             .resampler
                             .process_into_buffer(
@@ -298,6 +292,8 @@ impl Read for ToAudioBytes {
                             )
                             .unwrap();
                         resample.scratch.clear();
+                    } else {
+                        continue;
                     }
                 }
 
@@ -346,19 +342,27 @@ fn write_out(
     spill_range: &mut Range<usize>,
     num_chans: usize,
 ) -> usize {
-    use AudioBufferRef::*;
-
     match source {
-        U8(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        U16(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        U24(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        U32(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        S8(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        S16(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        S24(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        S32(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        F32(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        F64(v) => write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::U8(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::U16(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::U24(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::U32(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::S8(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::S16(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::S24(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::S32(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::F32(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::F64(v) =>
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
     }
 }
 
@@ -462,19 +466,17 @@ fn copy_into_resampler(
     dest_pos: usize,
     len: usize,
 ) -> usize {
-    use AudioBufferRef::*;
-
     match source {
-        U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
     }
 }
 

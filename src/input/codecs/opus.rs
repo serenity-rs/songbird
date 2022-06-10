@@ -119,7 +119,7 @@ impl Decoder for OpusDecoder {
     }
 
     fn finalize(&mut self) -> FinalizeResult {
-        Default::default()
+        FinalizeResult::default()
     }
 
     fn last_decoded(&self) -> AudioBufferRef {

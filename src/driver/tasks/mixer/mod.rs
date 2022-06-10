@@ -259,11 +259,9 @@ impl Mixer {
         let mut conn_failure = false;
         let mut should_exit = false;
 
-        use MixerMessage::*;
-
         let error = match msg {
-            AddTrack(t) => self.add_track(t),
-            SetTrack(t) => {
+            MixerMessage::AddTrack(t) => self.add_track(t),
+            MixerMessage::SetTrack(t) => {
                 self.tracks.clear();
 
                 let mut out = self.fire_event(EventMessage::RemoveAllTracks);
@@ -278,18 +276,18 @@ impl Mixer {
 
                 out
             },
-            SetBitrate(b) => {
+            MixerMessage::SetBitrate(b) => {
                 self.bitrate = b;
                 if let Err(e) = self.set_bitrate(b) {
                     error!("Failed to update bitrate {:?}", e);
                 }
                 Ok(())
             },
-            SetMute(m) => {
+            MixerMessage::SetMute(m) => {
                 self.muted = m;
                 Ok(())
             },
-            SetConn(conn, ssrc) => {
+            MixerMessage::SetConn(conn, ssrc) => {
                 self.conn_active = Some(conn);
                 let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
                     "Too few bytes in self.packet for RTP header.\
@@ -301,11 +299,11 @@ impl Mixer {
                 self.deadline = Instant::now();
                 Ok(())
             },
-            DropConn => {
+            MixerMessage::DropConn => {
                 self.conn_active = None;
                 Ok(())
             },
-            ReplaceInterconnect(i) => {
+            MixerMessage::ReplaceInterconnect(i) => {
                 self.prevent_events = false;
                 if let Some(ws) = &self.ws {
                     conn_failure |= ws.send(WsMessage::ReplaceInterconnect(i.clone())).is_err();
@@ -321,7 +319,7 @@ impl Mixer {
 
                 self.rebuild_tracks()
             },
-            SetConfig(new_config) => {
+            MixerMessage::SetConfig(new_config) => {
                 if new_config.mix_mode != self.config.mix_mode {
                     self.soft_clip = SoftClip::new(new_config.mix_mode.to_opus());
                     if let Ok(enc) = new_encoder(self.bitrate, new_config.mix_mode) {
@@ -359,7 +357,7 @@ impl Mixer {
 
                 Ok(())
             },
-            RebuildEncoder => match new_encoder(self.bitrate, self.config.mix_mode) {
+            MixerMessage::RebuildEncoder => match new_encoder(self.bitrate, self.config.mix_mode) {
                 Ok(encoder) => {
                     self.encoder = encoder;
                     Ok(())
@@ -372,11 +370,11 @@ impl Mixer {
                     Ok(())
                 },
             },
-            Ws(new_ws_handle) => {
+            MixerMessage::Ws(new_ws_handle) => {
                 self.ws = new_ws_handle;
                 Ok(())
             },
-            Poison => {
+            MixerMessage::Poison => {
                 should_exit = true;
                 Ok(())
             },
@@ -396,10 +394,9 @@ impl Mixer {
         // it's responsible for not forcibly recreating said context repeatedly.
         if !self.prevent_events {
             self.interconnect.events.send(event)?;
-            Ok(())
-        } else {
-            Ok(())
         }
+
+        Ok(())
     }
 
     #[inline]
@@ -418,7 +415,7 @@ impl Mixer {
     #[inline]
     fn rebuild_tracks(&mut self) -> Result<()> {
         for (track, handle) in self.tracks.iter().zip(self.track_handles.iter()) {
-            let evts = Default::default();
+            let evts = EventStore::default();
             let state = track.state();
             let handle = handle.clone();
 
@@ -517,11 +514,12 @@ impl Mixer {
             if track.playing.is_done() {
                 let p_state = track.playing.clone();
                 let to_drop = self.tracks.swap_remove(i);
-                let _ = self
-                    .disposer
-                    .send(DisposalMessage::Track(Box::new(to_drop)));
+                drop(
+                    self.disposer
+                        .send(DisposalMessage::Track(Box::new(to_drop))),
+                );
                 let to_drop = self.track_handles.swap_remove(i);
-                let _ = self.disposer.send(DisposalMessage::Handle(to_drop));
+                drop(self.disposer.send(DisposalMessage::Handle(to_drop)));
 
                 to_remove.push(i);
                 self.fire_event(EventMessage::ChangeState(
@@ -598,7 +596,7 @@ impl Mixer {
                     // A full reconnect might cause an inner closed connection.
                     // It's safer to leave the central task to clean this up and
                     // pass the mixer a new channel.
-                    let _ = ws.send(WsMessage::Speaking(false));
+                    drop(ws.send(WsMessage::Speaking(false)));
                 }
 
                 self.march_deadline();
@@ -762,18 +760,15 @@ impl Mixer {
                 opus_slot,
             );
 
-            let return_here = match mix_type {
-                MixType::MixedPcm(pcm_len) => {
-                    len = len.max(pcm_len);
-                    false
-                },
-                _ => {
-                    if mix_state.passthrough == Passthrough::Inactive {
-                        input.decoder.reset();
-                    }
-                    mix_state.passthrough = Passthrough::Active;
-                    true
-                },
+            let return_here = if let MixType::MixedPcm(pcm_len) = mix_type {
+                len = len.max(pcm_len);
+                false
+            } else {
+                if mix_state.passthrough == Passthrough::Inactive {
+                    input.decoder.reset();
+                }
+                mix_state.passthrough = Passthrough::Active;
+                true
             };
 
             // FIXME: allow Ended to trigger a seek/loop/revisit in the same mix cycle?
@@ -784,16 +779,16 @@ impl Mixer {
                 MixStatus::Errored(e) =>
                     track.playing = PlayMode::Errored(PlayError::Decode(e.into())),
                 MixStatus::Ended if track.do_loop() => {
-                    let _ = self.track_handles[i].seek_time(Default::default());
+                    let _ = self.track_handles[i].seek_time(Duration::default());
                     if !self.prevent_events {
                         // position update is sent out later, when the seek concludes.
-                        let _ = self.interconnect.events.send(EventMessage::ChangeState(
+                        drop(self.interconnect.events.send(EventMessage::ChangeState(
                             i,
                             TrackStateChange::Loops(track.loops, false),
-                        ));
+                        )));
                     }
                 },
-                _ => {
+                MixStatus::Ended => {
                     track.end();
                 },
             }
@@ -823,5 +818,5 @@ pub(crate) fn runner(
 
     mixer.run();
 
-    let _ = mixer.disposer.send(DisposalMessage::Poison);
+    drop(mixer.disposer.send(DisposalMessage::Poison));
 }

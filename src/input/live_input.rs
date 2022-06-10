@@ -1,9 +1,11 @@
 use super::{AudioStream, Metadata, MetadataError, Parsed};
 
 use symphonia_core::{
-    codecs::{CodecRegistry, Decoder},
+    codecs::{CodecRegistry, Decoder, DecoderOptions},
     errors::Error as SymphError,
-    io::{MediaSource, MediaSourceStream},
+    formats::FormatOptions,
+    io::{MediaSource, MediaSourceStream, MediaSourceStreamOptions},
+    meta::MetadataOptions,
     probe::Probe,
 };
 
@@ -38,12 +40,13 @@ impl LiveInput {
     /// [`Wrapped`]: Self::Wrapped
     /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
     /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
+    #[allow(clippy::missing_panics_doc)] // Logic ensures panic doesn't occur
     pub fn promote(self, codecs: &CodecRegistry, probe: &Probe) -> Result<Self, SymphError> {
         let mut out = self;
 
         if let LiveInput::Raw(r) = out {
             // TODO: allow passing in of MSS options?
-            let mss = MediaSourceStream::new(r.input, Default::default());
+            let mss = MediaSourceStream::new(r.input, MediaSourceStreamOptions::default());
             out = LiveInput::Wrapped(AudioStream {
                 input: mss,
                 hint: r.hint,
@@ -54,8 +57,12 @@ impl LiveInput {
             let hint = w.hint.unwrap_or_default();
             let input = w.input;
 
-            let probe_data =
-                probe.format(&hint, input, &Default::default(), &Default::default())?;
+            let probe_data = probe.format(
+                &hint,
+                input,
+                &FormatOptions::default(),
+                &MetadataOptions::default(),
+            )?;
             let format = probe_data.format;
             let meta = probe_data.metadata;
 
@@ -72,7 +79,7 @@ impl LiveInput {
                     continue;
                 }
 
-                let this_decoder = codecs.make(&track.codec_params, &Default::default())?;
+                let this_decoder = codecs.make(&track.codec_params, &DecoderOptions::default())?;
 
                 decoder = Some(this_decoder);
                 default_track_id = Some(track.id);
@@ -95,6 +102,7 @@ impl LiveInput {
 
     /// Returns a reference to the data parsed from this input stream, if it has
     /// been made available via [`Self::promote`].
+    #[must_use]
     pub fn parsed(&self) -> Option<&Parsed> {
         if let Self::Parsed(parsed) = self {
             Some(parsed)
@@ -115,6 +123,7 @@ impl LiveInput {
 
     /// Returns whether this stream's headers have been fully parsed, and so whether
     /// the track can be played or have its metadata read.
+    #[must_use]
     pub fn is_playable(&self) -> bool {
         self.parsed().is_some()
     }

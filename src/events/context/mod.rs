@@ -62,17 +62,17 @@ pub enum CoreContext {
 
 impl<'a> CoreContext {
     pub(crate) fn to_user_context(&'a self) -> EventContext<'a> {
-        use CoreContext::*;
-
         match self {
-            SpeakingStateUpdate(evt) => EventContext::SpeakingStateUpdate(*evt),
-            SpeakingUpdate(evt) => EventContext::SpeakingUpdate(SpeakingUpdateData::from(evt)),
-            VoicePacket(evt) => EventContext::VoicePacket(VoiceData::from(evt)),
-            RtcpPacket(evt) => EventContext::RtcpPacket(RtcpData::from(evt)),
-            ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),
-            DriverConnect(evt) => EventContext::DriverConnect(ConnectData::from(evt)),
-            DriverReconnect(evt) => EventContext::DriverReconnect(ConnectData::from(evt)),
-            DriverDisconnect(evt) => EventContext::DriverDisconnect(DisconnectData::from(evt)),
+            Self::SpeakingStateUpdate(evt) => EventContext::SpeakingStateUpdate(*evt),
+            Self::SpeakingUpdate(evt) =>
+                EventContext::SpeakingUpdate(SpeakingUpdateData::from(evt)),
+            Self::VoicePacket(evt) => EventContext::VoicePacket(VoiceData::from(evt)),
+            Self::RtcpPacket(evt) => EventContext::RtcpPacket(RtcpData::from(evt)),
+            Self::ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),
+            Self::DriverConnect(evt) => EventContext::DriverConnect(ConnectData::from(evt)),
+            Self::DriverReconnect(evt) => EventContext::DriverReconnect(ConnectData::from(evt)),
+            Self::DriverDisconnect(evt) =>
+                EventContext::DriverDisconnect(DisconnectData::from(evt)),
         }
     }
 }
@@ -80,18 +80,17 @@ impl<'a> CoreContext {
 impl EventContext<'_> {
     /// Retreive the event class for an event (i.e., when matching)
     /// an event against the registered listeners.
+    #[must_use]
     pub fn to_core_event(&self) -> Option<CoreEvent> {
-        use EventContext::*;
-
         match self {
-            SpeakingStateUpdate(_) => Some(CoreEvent::SpeakingStateUpdate),
-            SpeakingUpdate(_) => Some(CoreEvent::SpeakingUpdate),
-            VoicePacket(_) => Some(CoreEvent::VoicePacket),
-            RtcpPacket(_) => Some(CoreEvent::RtcpPacket),
-            ClientDisconnect(_) => Some(CoreEvent::ClientDisconnect),
-            DriverConnect(_) => Some(CoreEvent::DriverConnect),
-            DriverReconnect(_) => Some(CoreEvent::DriverReconnect),
-            DriverDisconnect(_) => Some(CoreEvent::DriverDisconnect),
+            Self::SpeakingStateUpdate(_) => Some(CoreEvent::SpeakingStateUpdate),
+            Self::SpeakingUpdate(_) => Some(CoreEvent::SpeakingUpdate),
+            Self::VoicePacket(_) => Some(CoreEvent::VoicePacket),
+            Self::RtcpPacket(_) => Some(CoreEvent::RtcpPacket),
+            Self::ClientDisconnect(_) => Some(CoreEvent::ClientDisconnect),
+            Self::DriverConnect(_) => Some(CoreEvent::DriverConnect),
+            Self::DriverReconnect(_) => Some(CoreEvent::DriverReconnect),
+            Self::DriverDisconnect(_) => Some(CoreEvent::DriverDisconnect),
             _ => None,
         }
     }

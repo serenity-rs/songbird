@@ -25,7 +25,6 @@ impl UdpTx {
         let mut ka_time = Instant::now() + UDP_KEEPALIVE_GAP;
 
         loop {
-            use UdpTxMessage::*;
             match timeout_at(ka_time, self.rx.recv_async()).await {
                 Err(_) => {
                     trace!("Sending UDP Keepalive.");
@@ -35,7 +34,7 @@ impl UdpTx {
                     }
                     ka_time += UDP_KEEPALIVE_GAP;
                 },
-                Ok(Ok(Packet(p))) =>
+                Ok(Ok(UdpTxMessage::Packet(p))) =>
                     if let Err(e) = self.udp_tx.send(&p[..]).await {
                         error!("Fatal UDP packet send error: {:?}.", e);
                         break;
@@ -44,7 +43,7 @@ impl UdpTx {
                     error!("Fatal UDP packet receive error: {:?}.", e);
                     break;
                 },
-                Ok(Ok(Poison)) => {
+                Ok(Ok(UdpTxMessage::Poison)) => {
                     break;
                 },
             }

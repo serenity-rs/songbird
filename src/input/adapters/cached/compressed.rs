@@ -33,6 +33,7 @@ use streamcatcher::{
     TxCatcher,
 };
 use symphonia_core::{
+    audio::Channels as SChannels,
     codecs::CodecRegistry,
     io::MediaSource,
     meta::{MetadataRevision, StandardTagKey, Value},
@@ -66,7 +67,7 @@ impl Default for Config {
         Self {
             codec_registry: &CODEC_REGISTRY,
             format_registry: &PROBE,
-            streamcatcher: Default::default(),
+            streamcatcher: ScConfig::default(),
         }
     }
 }
@@ -163,7 +164,7 @@ impl Compressed {
         // }
 
         let track_info = parsed.decoder.codec_params();
-        let chan_count = track_info.channels.map(|v| v.count()).unwrap_or(2);
+        let chan_count = track_info.channels.map_or(2, SChannels::count);
 
         let (channels, stereo) = if chan_count >= 2 {
             (Channels::Stereo, true)
@@ -212,6 +213,7 @@ impl Compressed {
 
     /// Acquire a new handle to this object, creating a new
     /// view of the existing cached data from the beginning.
+    #[must_use]
     pub fn new_handle(&self) -> Self {
         Self {
             raw: self.raw.new_handle(),
@@ -242,8 +244,6 @@ fn create_metadata(
         Bitrate::Max => Some(510_000),
     };
 
-    let vbr = opus.vbr()?;
-
     let mode = match opus.application()? {
         Application::Voip => "voip",
         Application::Audio => "music",
@@ -258,7 +258,7 @@ fn create_metadata(
         sample_rate,
         frame_size: MONO_FRAME_BYTE_SIZE as u64,
         abr,
-        vbr,
+        vbr: opus.vbr()?,
         channels: channels.min(2),
     };
 
@@ -357,7 +357,7 @@ impl OpusCompressor {
             last_frame: Vec::with_capacity(4000),
             stereo_input,
             frame_pos: 0,
-            audio_bytes: Default::default(),
+            audio_bytes: AtomicUsize::default(),
         }
     }
 }

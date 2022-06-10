@@ -28,7 +28,7 @@ pub struct Retry {
 impl Default for Retry {
     fn default() -> Self {
         Self {
-            strategy: Strategy::Backoff(Default::default()),
+            strategy: Strategy::Backoff(ExponentialBackoff::default()),
             retry_limit: Some(5),
         }
     }
@@ -40,7 +40,7 @@ impl Retry {
         last_wait: Option<Duration>,
         attempts: usize,
     ) -> Option<Duration> {
-        if self.retry_limit.map(|a| attempts < a).unwrap_or(true) {
+        if self.retry_limit.map_or(true, |a| attempts < a) {
             Some(self.strategy.retry_in(last_wait))
         } else {
             None

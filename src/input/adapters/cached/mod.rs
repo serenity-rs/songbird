@@ -18,6 +18,7 @@ use std::{mem, time::Duration};
 use streamcatcher::{Config, GrowthStrategy};
 
 /// Estimates the cost, in B/s, of audio data compressed at the given bitrate.
+#[must_use]
 pub fn compressed_cost_per_sec(bitrate: Bitrate) -> usize {
     let framing_cost_per_sec = AUDIO_FRAME_RATE * mem::size_of::<u16>();
 
@@ -31,6 +32,7 @@ pub fn compressed_cost_per_sec(bitrate: Bitrate) -> usize {
 }
 
 /// Calculates the cost, in B/s, of raw floating-point audio data.
+#[must_use]
 pub fn raw_cost_per_sec(stereo: bool) -> usize {
     utils::timestamp_to_byte_count(Duration::from_secs(1), stereo)
 }
@@ -41,6 +43,7 @@ pub fn raw_cost_per_sec(stereo: bool) -> usize {
 /// a constant chunk size of 5s worth of audio at the given bitrate estimate.
 ///
 /// [`streamcatcher`]: https://docs.rs/streamcatcher/0.1.0/streamcatcher/struct.Config.html
+#[must_use]
 pub fn default_config(cost_per_sec: usize) -> Config {
     Config::new().chunk_size(GrowthStrategy::Constant(5 * cost_per_sec))
 }

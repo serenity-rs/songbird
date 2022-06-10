@@ -58,6 +58,21 @@
 //! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
 //! [audiopus]: https://github.com/lakelezz/audiopus
 
+#![warn(clippy::pedantic)]
+#![allow(
+    // Allowed as they are too pedantic
+    clippy::module_name_repetitions,
+    clippy::wildcard_imports,
+    clippy::too_many_lines,
+    clippy::cast_lossless,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    // TODO: would require significant rewriting of all existing docs
+    clippy::missing_errors_doc,
+)]
+
 mod config;
 pub mod constants;
 #[cfg(feature = "driver")]

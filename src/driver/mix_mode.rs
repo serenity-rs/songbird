@@ -18,34 +18,30 @@ pub enum MixMode {
 
 impl MixMode {
     pub(crate) const fn to_opus(self) -> Channels {
-        use MixMode::*;
         match self {
-            Mono => Channels::Mono,
-            Stereo => Channels::Stereo,
+            Self::Mono => Channels::Mono,
+            Self::Stereo => Channels::Stereo,
         }
     }
 
     pub(crate) const fn sample_count_in_frame(self) -> usize {
-        use MixMode::*;
         match self {
-            Mono => MONO_FRAME_SIZE,
-            Stereo => STEREO_FRAME_SIZE,
+            Self::Mono => MONO_FRAME_SIZE,
+            Self::Stereo => STEREO_FRAME_SIZE,
         }
     }
 
     pub(crate) const fn channels(self) -> usize {
-        use MixMode::*;
         match self {
-            Mono => 1,
-            Stereo => 2,
+            Self::Mono => 1,
+            Self::Stereo => 2,
         }
     }
 
     pub(crate) const fn symph_layout(self) -> Layout {
-        use MixMode::*;
         match self {
-            Mono => Layout::Mono,
-            Stereo => Layout::Stereo,
+            Self::Mono => Layout::Mono,
+            Self::Stereo => Layout::Stereo,
         }
     }
 }

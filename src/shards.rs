@@ -69,17 +69,19 @@ impl Sharder {
 impl Sharder {
     #[allow(unreachable_patterns)]
     pub(crate) fn register_shard_handle(&self, shard_id: u64, sender: Sender<InterMessage>) {
-        match self {
-            Sharder::Serenity(s) => s.register_shard_handle(shard_id, sender),
-            _ => error!("Called serenity management function on a non-serenity Songbird instance."),
+        if let Sharder::Serenity(s) = self {
+            s.register_shard_handle(shard_id, sender);
+        } else {
+            error!("Called serenity management function on a non-serenity Songbird instance.");
         }
     }
 
     #[allow(unreachable_patterns)]
     pub(crate) fn deregister_shard_handle(&self, shard_id: u64) {
-        match self {
-            Sharder::Serenity(s) => s.deregister_shard_handle(shard_id),
-            _ => error!("Called serenity management function on a non-serenity Songbird instance."),
+        if let Sharder::Serenity(s) = self {
+            s.deregister_shard_handle(shard_id);
+        } else {
+            error!("Called serenity management function on a non-serenity Songbird instance.");
         }
     }
 }
@@ -120,7 +122,7 @@ impl SerenitySharder {
     }
 }
 
-#[derive(Derivative)]
+#[derive(Derivative, Clone)]
 #[derivative(Debug)]
 #[non_exhaustive]
 /// A reference to an individual websocket connection.
@@ -136,22 +138,6 @@ pub enum Shard {
     TwilightShard(Arc<TwilightShard>),
     /// Handle to a generic shard instance.
     Generic(#[derivative(Debug = "ignore")] Arc<dyn VoiceUpdate + Send + Sync>),
-}
-
-impl Clone for Shard {
-    fn clone(&self) -> Self {
-        use Shard::*;
-
-        match self {
-            #[cfg(feature = "serenity")]
-            Serenity(handle) => Serenity(Arc::clone(handle)),
-            #[cfg(feature = "twilight")]
-            TwilightCluster(handle, id) => TwilightCluster(Arc::clone(handle), *id),
-            #[cfg(feature = "twilight")]
-            TwilightShard(handle) => TwilightShard(Arc::clone(handle)),
-            Generic(handle) => Generic(Arc::clone(handle)),
-        }
-    }
 }
 
 #[async_trait]
