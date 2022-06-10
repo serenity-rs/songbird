@@ -69,7 +69,7 @@
     clippy::cast_possible_wrap,
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    // Allowed because I can't write docs
+    // TODO: would require significant rewriting of all existing docs
     clippy::missing_errors_doc,
 )]
 
