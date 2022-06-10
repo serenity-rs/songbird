@@ -1,5 +1,5 @@
 use crate::input::{AudioStream, AudioStreamError, Compose, Input};
-use std::{error::Error, path::Path};
+use std::{error::Error, ffi::OsStr, path::Path};
 use symphonia_core::{io::MediaSource, probe::Hint};
 
 /// A lazily instantiated local file.
@@ -41,7 +41,7 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
         let input = Box::new(file.into_std().await);
 
         let mut hint = Hint::default();
-        if let Some(ext) = self.path.as_ref().extension().and_then(|s| s.to_str()) {
+        if let Some(ext) = self.path.as_ref().extension().and_then(OsStr::to_str) {
             hint.with_extension(ext);
         }
 

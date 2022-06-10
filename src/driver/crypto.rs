@@ -12,7 +12,7 @@ use xsalsa20poly1305::{
     TAG_SIZE,
 };
 
-/// Variants of the XSalsa20Poly1305 encryption scheme.
+/// Variants of the `XSalsa20Poly1305` encryption scheme.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum CryptoMode {
@@ -35,57 +35,58 @@ pub enum CryptoMode {
 
 impl From<CryptoState> for CryptoMode {
     fn from(val: CryptoState) -> Self {
-        use CryptoState::*;
         match val {
-            Normal => CryptoMode::Normal,
-            Suffix => CryptoMode::Suffix,
-            Lite(_) => CryptoMode::Lite,
+            CryptoState::Normal => Self::Normal,
+            CryptoState::Suffix => Self::Suffix,
+            CryptoState::Lite(_) => Self::Lite,
         }
     }
 }
 
 impl CryptoMode {
     /// Returns the name of a mode as it will appear during negotiation.
+    #[must_use]
     pub fn to_request_str(self) -> &'static str {
-        use CryptoMode::*;
         match self {
-            Normal => "xsalsa20_poly1305",
-            Suffix => "xsalsa20_poly1305_suffix",
-            Lite => "xsalsa20_poly1305_lite",
+            Self::Normal => "xsalsa20_poly1305",
+            Self::Suffix => "xsalsa20_poly1305_suffix",
+            Self::Lite => "xsalsa20_poly1305_lite",
         }
     }
 
     /// Returns the number of bytes each nonce is stored as within
     /// a packet.
+    #[must_use]
     pub fn nonce_size(self) -> usize {
-        use CryptoMode::*;
         match self {
-            Normal => RtpPacket::minimum_packet_size(),
-            Suffix => NONCE_SIZE,
-            Lite => 4,
+            Self::Normal => RtpPacket::minimum_packet_size(),
+            Self::Suffix => NONCE_SIZE,
+            Self::Lite => 4,
         }
     }
 
     /// Returns the number of bytes occupied by the encryption scheme
     /// which fall before the payload.
-    pub fn payload_prefix_len(self) -> usize {
+    #[must_use]
+    pub fn payload_prefix_len() -> usize {
         TAG_SIZE
     }
 
     /// Returns the number of bytes occupied by the encryption scheme
     /// which fall after the payload.
+    #[must_use]
     pub fn payload_suffix_len(self) -> usize {
-        use CryptoMode::*;
         match self {
-            Normal => 0,
-            Suffix | Lite => self.nonce_size(),
+            Self::Normal => 0,
+            Self::Suffix | Self::Lite => self.nonce_size(),
         }
     }
 
     /// Calculates the number of additional bytes required compared
     /// to an unencrypted payload.
+    #[must_use]
     pub fn payload_overhead(self) -> usize {
-        self.payload_prefix_len() + self.payload_suffix_len()
+        Self::payload_prefix_len() + self.payload_suffix_len()
     }
 
     /// Extracts the byte slice in a packet used as the nonce, and the remaining mutable
@@ -95,10 +96,9 @@ impl CryptoMode {
         header: &'a [u8],
         body: &'a mut [u8],
     ) -> Result<(&'a [u8], &'a mut [u8]), CryptoError> {
-        use CryptoMode::*;
         match self {
-            Normal => Ok((header, body)),
-            Suffix | Lite => {
+            Self::Normal => Ok((header, body)),
+            Self::Suffix | Self::Lite => {
                 let len = body.len();
                 if len < self.payload_suffix_len() {
                     Err(CryptoError)
@@ -135,7 +135,7 @@ impl CryptoMode {
             &nonce
         };
 
-        let body_start = self.payload_prefix_len();
+        let body_start = Self::payload_prefix_len();
         let body_tail = self.payload_suffix_len();
 
         if body_start > body_remaining.len() {
@@ -183,7 +183,7 @@ impl CryptoMode {
     }
 }
 
-/// State used in nonce generation for the XSalsa20Poly1305 encryption variants
+/// State used in nonce generation for the `XSalsa20Poly1305` encryption variants
 /// in [`CryptoMode`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
@@ -206,11 +206,10 @@ pub enum CryptoState {
 
 impl From<CryptoMode> for CryptoState {
     fn from(val: CryptoMode) -> Self {
-        use CryptoMode::*;
         match val {
-            Normal => CryptoState::Normal,
-            Suffix => CryptoState::Suffix,
-            Lite => CryptoState::Lite(Wrapping(rand::random::<u32>())),
+            CryptoMode::Normal => CryptoState::Normal,
+            CryptoMode::Suffix => CryptoState::Suffix,
+            CryptoMode::Lite => CryptoState::Lite(Wrapping(rand::random::<u32>())),
         }
     }
 }
@@ -225,12 +224,11 @@ impl CryptoState {
         let mode = self.kind();
         let endpoint = payload_end + mode.payload_suffix_len();
 
-        use CryptoState::*;
         match self {
-            Suffix => {
+            Self::Suffix => {
                 rand::thread_rng().fill(&mut packet.payload_mut()[payload_end..endpoint]);
             },
-            Lite(mut i) => {
+            Self::Lite(mut i) => {
                 (&mut packet.payload_mut()[payload_end..endpoint])
                     .write_u32::<NetworkEndian>(i.0)
                     .expect(
@@ -245,8 +243,8 @@ impl CryptoState {
     }
 
     /// Returns the underlying (stateless) type of the active crypto mode.
-    pub fn kind(&self) -> CryptoMode {
-        CryptoMode::from(*self)
+    pub fn kind(self) -> CryptoMode {
+        CryptoMode::from(self)
     }
 }
 

@@ -26,6 +26,7 @@ pub enum DecodeMode {
 
 impl DecodeMode {
     /// Returns whether this mode will decrypt received packets.
+    #[must_use]
     pub fn should_decrypt(self) -> bool {
         self != DecodeMode::Pass
     }

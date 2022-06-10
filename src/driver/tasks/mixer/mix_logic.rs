@@ -105,7 +105,21 @@ pub fn mix_symph_indiv(
 
         let in_rate = source_packet.spec().rate;
 
-        if in_rate != SAMPLE_RATE_RAW as u32 {
+        if in_rate == SAMPLE_RATE_RAW as u32 {
+            // No need to resample: mix as standard.
+            let samples_marched = mix_over_ref(
+                &source_packet,
+                symph_mix,
+                local_state.inner_pos,
+                samples_written,
+                volume,
+            );
+
+            samples_written += samples_marched;
+
+            local_state.inner_pos += samples_marched;
+            local_state.inner_pos %= source_packet.frames();
+        } else {
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels.count();
             let (_, resampler, rs_out_buf) = local_state.resampler.get_or_insert_with(|| {
@@ -155,7 +169,7 @@ pub fn mix_symph_indiv(
 
                     resampler
                         .process_into_buffer(&*refs, rs_out_buf, None)
-                        .unwrap()
+                        .unwrap();
                 } else {
                     unreachable!()
                 }
@@ -178,11 +192,7 @@ pub fn mix_symph_indiv(
                 local_state.inner_pos += frames_to_take;
                 local_state.inner_pos %= pkt_frames;
 
-                if resample_scratch.frames() != needed_in_frames {
-                    // Not enough data to fill the resampler: fetch more.
-                    buf_in_progress = true;
-                    continue;
-                } else {
+                if resample_scratch.frames() == needed_in_frames {
                     resampler
                         .process_into_buffer(
                             &resample_scratch.planes().planes()[..chan_c],
@@ -192,26 +202,16 @@ pub fn mix_symph_indiv(
                         .unwrap();
                     resample_scratch.clear();
                     buf_in_progress = false;
+                } else {
+                    // Not enough data to fill the resampler: fetch more.
+                    buf_in_progress = true;
+                    continue;
                 }
             };
 
             let samples_marched = mix_resampled(rs_out_buf, symph_mix, samples_written, volume);
 
             samples_written += samples_marched;
-        } else {
-            // No need to resample: mix as standard.
-            let samples_marched = mix_over_ref(
-                &source_packet,
-                symph_mix,
-                local_state.inner_pos,
-                samples_written,
-                volume,
-            );
-
-            samples_written += samples_marched;
-
-            local_state.inner_pos += samples_marched;
-            local_state.inner_pos %= source_packet.frames();
         }
     }
 
@@ -226,19 +226,17 @@ fn mix_over_ref(
     dest_pos: usize,
     volume: f32,
 ) -> usize {
-    use AudioBufferRef::*;
-
     match source {
-        U8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        U16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        U24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        U32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        S8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        S16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        S24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        S32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        F32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        F64(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::U8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::U16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::U24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::U32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::S8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::S16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::S24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::S32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::F32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        AudioBufferRef::F64(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
     }
 }
 
@@ -280,7 +278,7 @@ where
     } else if target_mono {
         let vol_adj = 1.0 / (source_chans as f32);
         let mut t_planes = target.planes_mut();
-        let d_plane = &mut t_planes.planes()[0];
+        let d_plane = &mut *t_planes.planes()[0];
         for s_plane in source_raw_planes[..].iter() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
@@ -333,7 +331,7 @@ fn mix_resampled(
     } else if target_mono {
         let vol_adj = 1.0 / (source_chans as f32);
         let mut t_planes = target.planes_mut();
-        let d_plane = &mut t_planes.planes()[0];
+        let d_plane = &mut *t_planes.planes()[0];
         for s_plane in source[..].iter() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
                 *d += volume * vol_adj * s;
@@ -361,19 +359,17 @@ fn copy_into_resampler(
     dest_pos: usize,
     len: usize,
 ) -> usize {
-    use AudioBufferRef::*;
-
     match source {
-        U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        AudioBufferRef::F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
     }
 }
 

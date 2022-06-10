@@ -69,6 +69,7 @@ impl Memory {
 
     /// Acquire a new handle to this object, creating a new
     /// view of the existing cached data from the beginning.
+    #[must_use]
     pub fn new_handle(&self) -> Self {
         Self {
             raw: self.raw.new_handle(),

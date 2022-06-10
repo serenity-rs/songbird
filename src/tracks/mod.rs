@@ -108,6 +108,7 @@ pub struct Track {
 
 impl Track {
     /// Create a new track directly from an [`Input`] and a random [`Uuid`].
+    #[must_use]
     pub fn new(input: Input) -> Self {
         let uuid = Uuid::new_v4();
 
@@ -115,9 +116,10 @@ impl Track {
     }
 
     /// Create a new track directly from an [`Input`] with a custom [`Uuid`].
+    #[must_use]
     pub fn new_with_uuid(input: Input, uuid: Uuid) -> Self {
         Self {
-            playing: Default::default(),
+            playing: PlayMode::default(),
             volume: 1.0,
             input,
             events: EventStore::new_local(),

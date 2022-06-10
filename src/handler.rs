@@ -73,12 +73,7 @@ impl Call {
         G: Into<GuildId> + Debug,
         U: Into<UserId> + Debug,
     {
-        Self::new_raw_cfg(
-            guild_id.into(),
-            Some(ws),
-            user_id.into(),
-            Default::default(),
-        )
+        Self::new_raw_cfg(guild_id.into(), Some(ws), user_id.into(), Config::default())
     }
 
     /// Creates a new Call, configuring the driver as specified.
@@ -107,7 +102,7 @@ impl Call {
         G: Into<GuildId> + Debug,
         U: Into<UserId> + Debug,
     {
-        Self::new_raw_cfg(guild_id.into(), None, user_id.into(), Default::default())
+        Self::new_raw_cfg(guild_id.into(), None, user_id.into(), Config::default())
     }
 
     /// Creates a new standalone Call from the given configuration file.
@@ -141,7 +136,7 @@ impl Call {
         match &self.connection {
             Some((ConnectionProgress::Complete(c), Return::Info(tx))) => {
                 // It's okay if the receiver hung up.
-                let _ = tx.send(c.clone());
+                drop(tx.send(c.clone()));
             },
             #[cfg(feature = "driver")]
             Some((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) => {
@@ -195,7 +190,7 @@ impl Call {
                 self.leave().await?;
                 true
             } else if conn.0.channel_id() == channel_id {
-                let _ = tx.send(completion_generator(self));
+                drop(tx.send(completion_generator(self)));
                 false
             } else {
                 // not in progress, and/or a channel change.
@@ -419,7 +414,7 @@ impl Call {
     where
         C: Into<ChannelId> + Debug,
     {
-        self._update_state(session_id, channel_id.map(|c| c.into()))
+        self._update_state(session_id, channel_id.map(Into::into));
     }
 
     fn _update_state(&mut self, session_id: String, channel_id: Option<ChannelId>) {

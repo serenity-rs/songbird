@@ -53,7 +53,7 @@ impl AsyncAdapterSink {
                     if let Ok(n) = self.stream.read(&mut inner_buf).await {
                         read_region = 0..n;
                         if n == 0 {
-                            let _ = self.resp_tx.send_async(AdapterResponse::ReadZero).await;
+                            drop(self.resp_tx.send_async(AdapterResponse::ReadZero).await);
                             hit_end = true;
                         }
                         seen_bytes += n as u64;
@@ -104,22 +104,24 @@ impl AsyncAdapterSink {
             match msg {
                 AdapterRequest::Wake => blocked = false,
                 AdapterRequest::ByteLen => {
-                    let _ = self
-                        .resp_tx
-                        .send_async(AdapterResponse::ByteLen(self.stream.byte_len().await))
-                        .await;
+                    drop(
+                        self.resp_tx
+                            .send_async(AdapterResponse::ByteLen(self.stream.byte_len().await))
+                            .await,
+                    );
                 },
                 AdapterRequest::Seek(pos) => {
                     pause_buf_moves = true;
-                    let _ = self.resp_tx.send_async(AdapterResponse::SeekClear).await;
+                    drop(self.resp_tx.send_async(AdapterResponse::SeekClear).await);
                     seek_res = Some(self.stream.seek(pos).await);
                 },
                 AdapterRequest::SeekCleared => {
                     if let Some(res) = seek_res.take() {
-                        let _ = self
-                            .resp_tx
-                            .send_async(AdapterResponse::SeekResult(res))
-                            .await;
+                        drop(
+                            self.resp_tx
+                                .send_async(AdapterResponse::SeekResult(res))
+                                .await,
+                        );
                     }
                     pause_buf_moves = false;
                 },
@@ -148,6 +150,7 @@ pub struct AsyncAdapterStream {
 impl AsyncAdapterStream {
     /// Wrap and pull from an async file stream, with an intermediate ring-buffer of size `buf_len`
     /// between the async and sync halves.
+    #[must_use]
     pub fn new(stream: Box<dyn AsyncMediaSource>, buf_len: usize) -> AsyncAdapterStream {
         let (bytes_in, bytes_out) = RingBuffer::new(buf_len).split();
         let (resp_tx, resp_rx) = flume::unbounded();
@@ -215,7 +218,7 @@ impl Read for AsyncAdapterStream {
         // This needs to remain blocking or spin loopy
         // Mainly because this is at odds with "keep CPU low."
         loop {
-            let _ = self.handle_messages(false);
+            drop(self.handle_messages(false));
 
             match self.bytes_out.read(buf) {
                 Ok(n) => {
@@ -227,10 +230,10 @@ impl Read for AsyncAdapterStream {
                     self.notify_tx.notify_one();
                     if self.finalised.load(Ordering::Relaxed) {
                         return Ok(0);
-                    } else {
-                        self.check_dropped()?;
-                        std::hint::spin_loop();
                     }
+
+                    self.check_dropped()?;
+                    std::hint::spin_loop();
                 },
                 a => {
                     println!("Misc err {:?}", a);

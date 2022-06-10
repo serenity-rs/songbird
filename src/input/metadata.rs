@@ -8,7 +8,7 @@ use super::Parsed;
 /// Extra information about an [`Input`] which is acquired without
 /// parsing the file itself (e.g., from a webpage).
 ///
-/// YOu can access this via [`Input::aux_metadata`] and [`Compose::aux_metadata`].
+/// You can access this via [`Input::aux_metadata`] and [`Compose::aux_metadata`].
 ///
 /// [`Input`]: crate::input::Input
 /// [`Input::aux_metadata`]: crate::input::Input::aux_metadata
@@ -79,7 +79,7 @@ impl AuxMetadata {
         let stream = value
             .as_object()
             .and_then(|m| m.get("streams"))
-            .and_then(|v| v.as_array())
+            .and_then(Value::as_array)
             .and_then(|v| {
                 v.iter()
                     .find(|line| line.get("codec_type").and_then(Value::as_str) == Some("audio"))
@@ -184,12 +184,12 @@ impl AuxMetadata {
     }
 
     /// Move all fields from a `Metadata` object into a new one.
+    #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             track: self.track.take(),
             artist: self.artist.take(),
             date: self.date.take(),
-
             channels: self.channels.take(),
             channel: self.channel.take(),
             start_time: self.start_time.take(),
