@@ -17,6 +17,8 @@ mod decode_mode;
 mod mix_mode;
 pub mod retry;
 pub(crate) mod tasks;
+#[cfg(test)]
+pub mod test_config;
 
 use connection::error::{Error, Result};
 pub use crypto::CryptoMode;
