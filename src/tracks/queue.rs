@@ -348,7 +348,7 @@ impl TrackQueueCore {
 mod tests {
     use super::*;
     use crate::{
-        driver::{Driver, TickStyle},
+        driver::Driver,
         input::File,
         tracks::PlayMode,
         Config,

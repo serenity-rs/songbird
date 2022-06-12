@@ -352,7 +352,7 @@ fn mix_resampled(
 }
 
 #[inline]
-fn copy_into_resampler(
+pub(crate) fn copy_into_resampler(
     source: &AudioBufferRef,
     target: &mut AudioBuffer<f32>,
     source_pos: usize,
