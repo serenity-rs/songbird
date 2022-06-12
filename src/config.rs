@@ -191,6 +191,20 @@ impl Config {
         self
     }
 
+    /// Sets this `Config`'s symphonia codec registry.
+    #[must_use]
+    pub fn codec_registry(mut self, codec_registry: &'static CODEC_REGISTRY) -> Self {
+        self.codec_registry = codec_registry;
+        self
+    }
+
+    /// Sets this `Config`'s symphonia format registry/probe set.
+    #[must_use]
+    pub fn format_registry(mut self, format_registry: &'static PROBE) -> Self {
+        self.format_registry = format_registry;
+        self
+    }
+
     /// This is used to prevent changes which would invalidate the current session.
     pub(crate) fn make_safe(&mut self, previous: &Config, connected: bool) {
         if connected {
