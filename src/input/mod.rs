@@ -89,6 +89,9 @@ use tokio::runtime::Handle as TokioHandle;
 /// * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape
 ///   a target URL for a usable audio stream, before opening an [`HttpRequest`].
 ///
+/// Any [`Input`] (or struct with `impl Into<Input>`) can also be made into a [`Track`] via
+/// `From`/`Into`.
+///
 /// # Example
 ///
 /// ```
@@ -122,7 +125,7 @@ use tokio::runtime::Handle as TokioHandle;
 /// let handle = driver.play_input(lazy.into());
 ///
 /// // We can also modify some of its initial state via `Track`s.
-/// let handle = driver.play(Track::new(lazy_c.into()).volume(0.5).pause());
+/// let handle = driver.play(Track::from(lazy_c).volume(0.5).pause());
 ///
 /// // In-memory sources like `Vec<u8>`, or `&'static [u8]` are easy to use, and only take a
 /// // little time for the mixer to parse their headers.
@@ -162,6 +165,8 @@ use tokio::runtime::Handle as TokioHandle;
 /// let handle = driver.play_input(in_memory_input);
 /// # });
 /// ```
+///
+/// [`Track`]: crate::tracks::Track
 pub enum Input {
     /// A byte source which is not yet initialised.
     ///
