@@ -27,8 +27,9 @@ provided by [audiopus] (an FFI wrapper for libopus).
 project you will need to depend on Symphonia as well.
 
 ```toml
-# Including songbird alone give you support for Opus via the DCA file format.
+# Including songbird alone gives you support for Opus via the DCA file format.
 [dependencies.songbird]
+version = "0.3"
 features = ["builtin-queue"]
 
 # To get additional codecs, you *must* add Symphonia yourself.
