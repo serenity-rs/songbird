@@ -79,3 +79,16 @@ pub const RTP_VERSION: u8 = 2;
 #[cfg(feature = "driver")]
 /// Profile type used by Discord's Opus audio traffic.
 pub const RTP_PROFILE_TYPE: RtpType = RtpType::Dynamic(120);
+
+#[cfg(test)]
+pub mod test_data {
+    /// URL for a source which YTDL must extract.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    pub const YTDL_TARGET: &str = "https://cloudkicker.bandcamp.com/track/94-days";
+
+    /// URL for a source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    pub const HTTP_TARGET: &str = "https://github.com/serenity-rs/songbird/raw/current/examples/serenity/voice_storage/Cloudkicker_-_Loops_-_22_2011_07.mp3";
+}

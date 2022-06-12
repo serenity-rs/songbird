@@ -9,11 +9,34 @@ pub enum TickStyle {
     UntimedWithExecLimit(Receiver<u64>),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum OutputMessage {
     Passthrough(Vec<u8>),
     Mixed(Vec<f32>),
     Silent,
+}
+
+#[allow(dead_code)]
+impl OutputMessage {
+    pub fn is_passthrough(&self) -> bool {
+        matches!(self, Self::Passthrough(_))
+    }
+
+    pub fn is_mixed(&self) -> bool {
+        matches!(self, Self::Mixed(_))
+    }
+
+    pub fn is_mixed_with_nonzero_signal(&self) -> bool {
+        if let Self::Mixed(data) = self {
+            data.iter().any(|v| *v != 0.0f32)
+        } else {
+            false
+        }
+    }
+
+    pub fn is_explicit_silence(&self) -> bool {
+        *self == Self::Silent
+    }
 }
 
 #[allow(dead_code)]
@@ -57,11 +80,22 @@ impl From<TickMessage<Vec<u8>>> for OutputPacket {
 }
 
 #[cfg(test)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum OutputPacket {
     Raw(OutputMessage),
     Rtp(Vec<u8>),
     Empty,
+}
+
+#[cfg(test)]
+impl OutputPacket {
+    pub fn raw(&self) -> Option<&OutputMessage> {
+        if let Self::Raw(o) = self {
+            Some(o)
+        } else {
+            None
+        }
+    }
 }
 
 #[cfg(test)]

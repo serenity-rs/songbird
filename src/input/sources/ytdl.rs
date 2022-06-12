@@ -120,3 +120,37 @@ impl Compose for YoutubeDl {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{constants::test_data::YTDL_TARGET, driver::Driver, Config};
+    use std::time::Duration;
+
+    #[tokio::test]
+    async fn ytdl_track_plays() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file = YoutubeDl::new(reqwest::Client::new(), YTDL_TARGET.into());
+
+        let _h = driver.play(file.into());
+
+        // TODO: add Ready/Playable event, rely on this instead in a 1-tick loop.
+        // Get h in place, playing. Wait for IO to ready.
+        t_handle.tick(1);
+        tokio::time::sleep(Duration::from_secs(5)).await;
+        t_handle.wait(1);
+
+        t_handle.tick(5);
+        t_handle.wait(5);
+
+        // post-conditions:
+        // 1) track produces a packet.
+        // 2) that packet is mixed audio.
+        // 3) that packet is non-zero.
+        let pkt = t_handle.recv();
+        let pkt = pkt.raw().unwrap();
+        assert!(pkt.is_mixed_with_nonzero_signal());
+    }
+}
