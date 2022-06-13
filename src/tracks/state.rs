@@ -20,6 +20,9 @@ pub struct TrackState {
     pub play_time: Duration,
     /// Remaining loops on this track.
     pub loops: LoopState,
+    /// Whether this track has been made live, is being processed, or is
+    /// currently uninitialised.
+    pub ready: ReadyState,
 }
 
 impl TrackState {

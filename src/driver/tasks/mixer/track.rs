@@ -1,3 +1,5 @@
+use crate::tracks::ReadyState;
+
 use super::*;
 
 pub struct InternalTrack {
@@ -37,12 +39,15 @@ impl<'a> InternalTrack {
     }
 
     pub(crate) fn state(&self) -> TrackState {
+        let ready = (&self.input).into();
+
         TrackState {
             playing: self.playing.clone(),
             volume: self.volume,
             position: self.position,
             play_time: self.play_time,
             loops: self.loops,
+            ready,
         }
     }
 
@@ -191,6 +196,13 @@ impl<'a> InternalTrack {
                     _ => unreachable!(),
                 }
 
+                if !prevent_events {
+                    drop(interconnect.events.send(EventMessage::ChangeState(
+                        id,
+                        TrackStateChange::Ready(ReadyState::Preparing),
+                    )));
+                }
+
                 Err(InputReadyingError::Waiting)
             },
             InputState::Preparing(info) => {
@@ -200,6 +212,15 @@ impl<'a> InternalTrack {
                     Ok(MixerInputResultMessage::Built(parsed, rec)) => {
                         *input = InputState::Ready(parsed, rec);
                         local.reset();
+
+                        // TODO: set position to the true track position here?
+
+                        if !prevent_events {
+                            drop(interconnect.events.send(EventMessage::ChangeState(
+                                id,
+                                TrackStateChange::Ready(ReadyState::Playable),
+                            )));
+                        }
 
                         if let InputState::Ready(ref mut parsed, _) = input {
                             Ok(parsed)
@@ -226,6 +247,11 @@ impl<'a> InternalTrack {
                                     drop(interconnect.events.send(EventMessage::ChangeState(
                                         id,
                                         TrackStateChange::Position(self.position),
+                                    )));
+
+                                    drop(interconnect.events.send(EventMessage::ChangeState(
+                                        id,
+                                        TrackStateChange::Ready(ReadyState::Playable),
                                     )));
                                 }
 

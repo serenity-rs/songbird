@@ -1,7 +1,7 @@
 use super::message::*;
 use crate::{
     events::{EventStore, GlobalEvents, TrackEvent},
-    tracks::{TrackHandle, TrackState},
+    tracks::{ReadyState, TrackHandle, TrackState},
 };
 use flume::Receiver;
 use tracing::{debug, info, instrument, trace};
@@ -86,6 +86,19 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
                     TrackStateChange::Total(new) => {
                         // Massive, unprecedented state changes.
                         *state = new;
+                    },
+                    TrackStateChange::Ready(ready_state) => {
+                        state.ready = ready_state;
+
+                        match ready_state {
+                            ReadyState::Playable => {
+                                global.fire_track_event(TrackEvent::Playable, i);
+                            },
+                            ReadyState::Preparing => {
+                                global.fire_track_event(TrackEvent::Preparing, i);
+                            },
+                            ReadyState::Uninitialised => {},
+                        }
                     },
                 }
             },

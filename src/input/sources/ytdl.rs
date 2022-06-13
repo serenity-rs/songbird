@@ -125,7 +125,6 @@ impl Compose for YoutubeDl {
 mod tests {
     use super::*;
     use crate::{constants::test_data::YTDL_TARGET, driver::Driver, Config};
-    use std::time::Duration;
 
     #[tokio::test]
     async fn ytdl_track_plays() {
@@ -134,16 +133,9 @@ mod tests {
 
         let file = YoutubeDl::new(reqwest::Client::new(), YTDL_TARGET.into());
 
-        let _h = driver.play(file.into());
-
-        // TODO: add Ready/Playable event, rely on this instead in a 1-tick loop.
-        // Get h in place, playing. Wait for IO to ready.
+        // Get input in place, playing. Wait for IO to ready.
+        t_handle.ready_track(&driver.play(file.into()), None).await;
         t_handle.tick(1);
-        tokio::time::sleep(Duration::from_secs(5)).await;
-        t_handle.wait(1);
-
-        t_handle.tick(5);
-        t_handle.wait(5);
 
         // post-conditions:
         // 1) track produces a packet.

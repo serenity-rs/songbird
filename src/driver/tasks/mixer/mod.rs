@@ -571,7 +571,7 @@ impl Mixer {
                 {
                     if self.remaining_loops.is_none() {
                         if let Ok(new_val) = _rx.recv() {
-                            self.remaining_loops = Some(new_val);
+                            self.remaining_loops = Some(new_val.wrapping_sub(1));
                         }
                     }
 

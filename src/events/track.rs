@@ -14,7 +14,8 @@ pub enum TrackEvent {
     ///
     /// This event will not fire when a track first starts,
     /// but will fire when a track changes from, e.g., paused to playing.
-    /// This is most relevant for queue users.
+    /// This is most relevant for queue users: queued tracks placed into a
+    /// non-empty queue are initlally paused, and are later moved to `Play`.
     Play,
     /// The attached track has been paused.
     Pause,
@@ -22,6 +23,10 @@ pub enum TrackEvent {
     End,
     /// The attached track has looped.
     Loop,
+    /// The attached track is being readied or recreated.
+    Preparing,
+    /// The attached track has become playable.
+    Playable,
     /// The attached track has encountered a runtime or initialisation error.
     Error,
 }

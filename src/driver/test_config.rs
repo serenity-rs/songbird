@@ -2,6 +2,11 @@
 
 use flume::{Receiver, Sender};
 
+#[cfg(test)]
+use crate::{tracks::TrackHandle, Event, EventContext, EventHandler, TrackEvent};
+#[cfg(test)]
+use std::time::Duration;
+
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub enum TickStyle {
@@ -120,9 +125,30 @@ impl DriverTestHandle {
         }
     }
 
+    pub fn len(&self) -> usize {
+        match &self.rx {
+            OutputReceiver::Raw(rx) => rx.len(),
+            OutputReceiver::Rtp(rx) => rx.len(),
+        }
+    }
+
     pub fn wait(&self, n_ticks: u64) {
         for _i in 0..n_ticks {
             drop(self.recv());
+        }
+    }
+
+    pub fn wait_noisy(&self, n_ticks: u64) {
+        for _i in 0..n_ticks {
+            match self.recv() {
+                OutputPacket::Empty => eprintln!("pkt: Nothing"),
+                OutputPacket::Rtp(p) => eprintln!("pkt: RTP[{}B]", p.len()),
+                OutputPacket::Raw(OutputMessage::Silent) => eprintln!("pkt: Raw-Silent"),
+                OutputPacket::Raw(OutputMessage::Passthrough(p)) =>
+                    eprintln!("pkt: Raw-Passthrough[{}B]", p.len()),
+                OutputPacket::Raw(OutputMessage::Mixed(p)) =>
+                    eprintln!("pkt: Raw-Mixed[{}B]", p.len()),
+            }
         }
     }
 
@@ -131,5 +157,41 @@ impl DriverTestHandle {
             panic!("Number of ticks to advance driver/mixer must be >= 1.");
         }
         self.tx.send(n_ticks).unwrap();
+    }
+
+    pub async fn ready_track(&self, handle: &TrackHandle, tick_wait: Option<Duration>) {
+        let (tx, rx) = flume::bounded(1);
+        struct SongPlayable {
+            tx: Sender<()>,
+        }
+
+        let uuid = handle.uuid();
+
+        #[async_trait::async_trait]
+        impl EventHandler for SongPlayable {
+            async fn act(&self, ctx: &crate::EventContext<'_>) -> Option<Event> {
+                if let EventContext::Track(&[(state, _)]) = ctx {
+                    drop(self.tx.send(()));
+                }
+
+                None
+            }
+        }
+
+        handle
+            .add_event(Event::Track(TrackEvent::Playable), SongPlayable { tx })
+            .expect("Adding track evt should not fail before any ticks.");
+
+        loop {
+            self.tick(1);
+            tokio::time::sleep(tick_wait.unwrap_or_else(|| Duration::from_millis(20))).await;
+            self.wait(1);
+
+            match rx.try_recv() {
+                Ok(_) => break,
+                Err(flume::TryRecvError::Disconnected) => panic!(),
+                Err(flume::TryRecvError::Empty) => {},
+            }
+        }
     }
 }

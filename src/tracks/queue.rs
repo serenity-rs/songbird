@@ -362,30 +362,27 @@ mod tests {
         let h2 = driver.enqueue_input(file2.into()).await;
 
         // Get h1 in place, playing. Wait for IO to ready.
-        t_handle.tick(1);
-        tokio::time::sleep(Duration::from_millis(10)).await;
-        t_handle.wait(1);
+        // Fast wait here since it's all local I/O, no network.
+        t_handle
+            .ready_track(&h1, Some(Duration::from_millis(1)))
+            .await;
+        t_handle
+            .ready_track(&h2, Some(Duration::from_millis(1)))
+            .await;
 
         // playout
-        t_handle.tick(120);
-        t_handle.wait(120);
-
-        // allow ready of h2 to happen
         t_handle.tick(1);
-        tokio::time::sleep(Duration::from_millis(10)).await;
         t_handle.wait(1);
 
         let h1a = h1.get_info();
         let h2a = h2.get_info();
 
         // allow get_info to fire for h2.
-        t_handle.tick(1);
-        t_handle.wait(1);
+        t_handle.tick(2);
 
         // post-conditions:
         // 1) track 1 is done & dropped (commands fail).
         // 2) track 2 is playing.
-
         assert!(h1a.await.is_err());
         assert_eq!(h2a.await.unwrap().playing, PlayMode::Play);
     }
