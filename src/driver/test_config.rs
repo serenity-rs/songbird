@@ -3,7 +3,13 @@
 use flume::{Receiver, Sender};
 
 #[cfg(test)]
-use crate::{tracks::TrackHandle, Event, EventContext, EventHandler, TrackEvent};
+use crate::{
+    tracks::{PlayMode, TrackHandle},
+    Event,
+    EventContext,
+    EventHandler,
+    TrackEvent,
+};
 #[cfg(test)]
 use std::time::Duration;
 
@@ -161,20 +167,35 @@ impl DriverTestHandle {
 
     pub async fn ready_track(&self, handle: &TrackHandle, tick_wait: Option<Duration>) {
         let (tx, rx) = flume::bounded(1);
+        let (err_tx, err_rx) = flume::bounded(1);
+
         struct SongPlayable {
             tx: Sender<()>,
         }
 
-        let uuid = handle.uuid();
-
         #[async_trait::async_trait]
         impl EventHandler for SongPlayable {
             async fn act(&self, ctx: &crate::EventContext<'_>) -> Option<Event> {
-                if let EventContext::Track(&[(state, _)]) = ctx {
+                if let EventContext::Track(&[(_, _)]) = ctx {
                     drop(self.tx.send(()));
                 }
 
-                None
+                Some(Event::Cancel)
+            }
+        }
+
+        struct SongErred {
+            tx: Sender<PlayMode>,
+        }
+
+        #[async_trait::async_trait]
+        impl EventHandler for SongErred {
+            async fn act(&self, ctx: &crate::EventContext<'_>) -> Option<Event> {
+                if let EventContext::Track(&[(state, _)]) = ctx {
+                    drop(self.tx.send(state.playing.clone()));
+                }
+
+                Some(Event::Cancel)
             }
         }
 
@@ -182,10 +203,19 @@ impl DriverTestHandle {
             .add_event(Event::Track(TrackEvent::Playable), SongPlayable { tx })
             .expect("Adding track evt should not fail before any ticks.");
 
+        handle
+            .add_event(Event::Track(TrackEvent::Error), SongErred { tx: err_tx })
+            .expect("Adding track evt should not fail before any ticks.");
+
         loop {
             self.tick(1);
             tokio::time::sleep(tick_wait.unwrap_or_else(|| Duration::from_millis(20))).await;
             self.wait(1);
+
+            match err_rx.try_recv() {
+                Ok(e) => panic!("Error reported on track: {:?}", e),
+                Err(flume::TryRecvError::Empty | flume::TryRecvError::Disconnected) => {},
+            }
 
             match rx.try_recv() {
                 Ok(_) => break,
