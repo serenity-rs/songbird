@@ -68,6 +68,11 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
                         std::mem::swap(&mut state.playing, &mut mode);
                         if state.playing != mode {
                             global.fire_track_event(state.playing.as_track_event(), i);
+                            if let Some(other_evts) = state.playing.also_fired_track_events() {
+                                for evt in other_evts {
+                                    global.fire_track_event(evt, i);
+                                }
+                            }
                         }
                     },
                     TrackStateChange::Volume(vol) => {

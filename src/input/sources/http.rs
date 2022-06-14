@@ -33,6 +33,12 @@ pub struct HttpRequest {
 }
 
 impl HttpRequest {
+    #[must_use]
+    /// Create a lazy HTTP request.
+    pub fn new(client: Client, request: String) -> Self {
+        HttpRequest { client, request }
+    }
+
     async fn create_stream(
         &mut self,
         offset: Option<u64>,

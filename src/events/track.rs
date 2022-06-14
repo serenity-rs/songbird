@@ -1,3 +1,6 @@
+// TODO: Could this be a bitset? Could accelerate lookups,
+// allow easy joint subscription & remove Vecs for related evt handling?
+
 /// Track events correspond to certain actions or changes
 /// of state, such as a track finishing, looping, or being
 /// manually stopped. Voice core events occur on receipt of

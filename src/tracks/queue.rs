@@ -347,7 +347,13 @@ impl TrackQueueCore {
 #[cfg(all(test, feature = "builtin-queue"))]
 mod tests {
     use super::*;
-    use crate::{driver::Driver, input::File, tracks::PlayMode, Config};
+    use crate::{
+        driver::Driver,
+        input::{File, HttpRequest},
+        tracks::PlayMode,
+        Config,
+    };
+    use reqwest::Client;
     use std::time::Duration;
 
     #[tokio::test]
@@ -366,6 +372,87 @@ mod tests {
         t_handle
             .ready_track(&h1, Some(Duration::from_millis(1)))
             .await;
+        t_handle
+            .ready_track(&h2, Some(Duration::from_millis(1)))
+            .await;
+
+        // playout
+        t_handle.tick(1);
+        t_handle.wait(1);
+
+        let h1a = h1.get_info();
+        let h2a = h2.get_info();
+
+        // allow get_info to fire for h2.
+        t_handle.tick(2);
+
+        // post-conditions:
+        // 1) track 1 is done & dropped (commands fail).
+        // 2) track 2 is playing.
+        assert!(h1a.await.is_err());
+        assert_eq!(h2a.await.unwrap().playing, PlayMode::Play);
+    }
+
+    #[tokio::test]
+    async fn next_track_plays_on_skip() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file1 = File::new("resources/ting.wav");
+        let file2 = file1.clone();
+
+        let h1 = driver.enqueue_input(file1.into()).await;
+        let h2 = driver.enqueue_input(file2.into()).await;
+
+        // Get h1 in place, playing. Wait for IO to ready.
+        // Fast wait here since it's all local I/O, no network.
+        t_handle
+            .ready_track(&h1, Some(Duration::from_millis(1)))
+            .await;
+
+        assert!(driver.queue().skip().is_ok());
+
+        t_handle
+            .ready_track(&h2, Some(Duration::from_millis(1)))
+            .await;
+
+        // playout
+        t_handle.tick(1);
+        t_handle.wait(1);
+
+        let h1a = h1.get_info();
+        let h2a = h2.get_info();
+
+        // allow get_info to fire for h2.
+        t_handle.tick(2);
+
+        // post-conditions:
+        // 1) track 1 is done & dropped (commands fail).
+        // 2) track 2 is playing.
+        assert!(h1a.await.is_err());
+        assert_eq!(h2a.await.unwrap().playing, PlayMode::Play);
+    }
+
+    #[tokio::test]
+    async fn next_track_plays_on_err() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        // File 1 is HTML with no valid audio -- this will fail to play.
+        let file1 = HttpRequest::new(
+            Client::new(),
+            "http://github.com/serenity-rs/songbird/".into(),
+        );
+        let file2 = File::new("resources/ting.wav");
+
+        let h1 = driver.enqueue_input(file1.into()).await;
+        let h2 = driver.enqueue_input(file2.into()).await;
+
+        // Get h1 in place, playing. Wait for IO to ready.
+        // Fast wait here since it's all local I/O, no network.
+        // t_handle
+        //     .ready_track(&h1, Some(Duration::from_millis(1)))
+        //     .await;
         t_handle
             .ready_track(&h2, Some(Duration::from_millis(1)))
             .await;

@@ -54,6 +54,17 @@ impl PlayMode {
             Self::Errored(_) => TrackEvent::Error,
         }
     }
+
+    // The above COULD just return a Vec, but the below means we only allocate a Vec
+    // in the rare error case.
+    // Also, see discussion on bitsets in src/events/track.rs
+    #[must_use]
+    pub(crate) fn also_fired_track_events(&self) -> Option<Vec<TrackEvent>> {
+        match self {
+            Self::Errored(_) => Some(vec![TrackEvent::End]),
+            _ => None,
+        }
+    }
 }
 
 impl Default for PlayMode {
