@@ -27,6 +27,13 @@ pub struct OpusDecoder {
     rawbuf: Vec<f32>,
 }
 
+/// # SAFETY
+/// The underlying Opus decoder (currently) requires only a `&self` parameter
+/// to decode given packets, which is likely a mistaken decision.
+///
+/// This struct makes stronger assumptions and only touches FFI decoder state with a
+/// `&mut self`, preventing data races via `&OpusDecoder` as required by `impl Sync`.
+/// No access to other internal state relies on unsafety or crosses FFI.
 unsafe impl Sync for OpusDecoder {}
 
 impl OpusDecoder {
