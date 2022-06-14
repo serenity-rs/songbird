@@ -417,8 +417,7 @@ mod tests {
             .await;
 
         // playout
-        t_handle.tick(1);
-        t_handle.wait(1);
+        t_handle.skip(1).await;
 
         let h1a = h1.get_info();
         let h2a = h2.get_info();

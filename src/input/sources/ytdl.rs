@@ -170,7 +170,7 @@ mod tests {
         t_handle.ready_track(&handle, None).await;
 
         // post-conditions:
-        // 1) track's is readied
+        // 1) track is readied
         // 2) track's position is approx 30s
         // 3) track's play time is considerably less (O(5s))
         let state = handle.get_info();
@@ -200,15 +200,14 @@ mod tests {
         // Accelerated playout -- 4 seconds worth.
         let n_secs = 4;
         let n_ticks = 50 * n_secs;
-        t_handle.tick(n_ticks);
-        t_handle.wait(n_ticks);
+        t_handle.skip(n_ticks).await;
 
         let target_time = Duration::from_secs(1);
         assert!(handle.seek_time(target_time).is_ok());
         t_handle.ready_track(&handle, None).await;
 
         // post-conditions:
-        // 1) track's is readied
+        // 1) track is readied
         // 2) track's position is approx 1s
         // 3) track's play time is preserved (About 4s)
         let state = handle.get_info();

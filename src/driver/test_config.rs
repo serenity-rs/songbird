@@ -117,6 +117,7 @@ pub enum OutputReceiver {
 }
 
 #[cfg(test)]
+#[derive(Clone)]
 pub struct DriverTestHandle {
     pub rx: OutputReceiver,
     pub tx: Sender<u64>,
@@ -128,6 +129,13 @@ impl DriverTestHandle {
         match &self.rx {
             OutputReceiver::Raw(rx) => rx.recv().unwrap().into(),
             OutputReceiver::Rtp(rx) => rx.recv().unwrap().into(),
+        }
+    }
+
+    pub async fn recv_async(&self) -> OutputPacket {
+        match &self.rx {
+            OutputReceiver::Raw(rx) => rx.recv_async().await.unwrap().into(),
+            OutputReceiver::Rtp(rx) => rx.recv_async().await.unwrap().into(),
         }
     }
 
@@ -144,6 +152,12 @@ impl DriverTestHandle {
         }
     }
 
+    pub async fn wait_async(&self, n_ticks: u64) {
+        for _i in 0..n_ticks {
+            drop(self.recv_async().await);
+        }
+    }
+
     pub fn wait_noisy(&self, n_ticks: u64) {
         for _i in 0..n_ticks {
             match self.recv() {
@@ -156,6 +170,11 @@ impl DriverTestHandle {
                     eprintln!("pkt: Raw-Mixed[{}B]", p.len()),
             }
         }
+    }
+
+    pub async fn skip(&self, n_ticks: u64) {
+        self.tick(n_ticks);
+        self.wait_async(n_ticks).await;
     }
 
     pub fn tick(&self, n_ticks: u64) {
@@ -210,7 +229,7 @@ impl DriverTestHandle {
         loop {
             self.tick(1);
             tokio::time::sleep(tick_wait.unwrap_or_else(|| Duration::from_millis(20))).await;
-            self.wait(1);
+            self.wait_async(1).await;
 
             match err_rx.try_recv() {
                 Ok(e) => panic!("Error reported on track: {:?}", e),
