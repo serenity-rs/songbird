@@ -16,6 +16,7 @@ use symphonia_core::{
     },
     errors::{decode_error, Result as SymphResult},
     formats::Packet,
+    units::TimeBase,
 };
 
 /// Opus decoder for symphonia, based on libopus v1.3 (via [`audiopus`]).
@@ -82,9 +83,14 @@ impl Decoder for OpusDecoder {
     fn try_new(params: &CodecParameters, _options: &DecoderOptions) -> SymphResult<Self> {
         let inner = AudiopusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
 
+        let mut params = params.clone();
+        params
+            .with_sample_rate(SAMPLE_RATE_RAW as u32)
+            .with_time_base(TimeBase::new(1, SAMPLE_RATE_RAW as u32));
+
         Ok(Self {
             inner,
-            params: params.clone(),
+            params,
             buf: AudioBuffer::new(
                 MONO_FRAME_SIZE as u64,
                 SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
@@ -124,5 +130,33 @@ impl Decoder for OpusDecoder {
 
     fn last_decoded(&self) -> AudioBufferRef {
         self.buf.as_audio_buffer_ref()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        constants::test_data::FILE_WEBM_TARGET,
+        input::{input_tests::*, File},
+    };
+
+    // NOTE: this covers youtube audio in a non-copyright-violating way, since
+    // those depend on an HttpRequest internally anyhow.
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn webm_track_plays() {
+        track_plays_passthrough(|| File::new(FILE_WEBM_TARGET)).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn webm_forward_seek_correct() {
+        forward_seek_correct(|| File::new(FILE_WEBM_TARGET)).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn webm_backward_seek_correct() {
+        backward_seek_correct(|| File::new(FILE_WEBM_TARGET)).await;
     }
 }

@@ -308,3 +308,29 @@ impl FormatReader for DcaReader {
         self.source
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::input::input_tests::*;
+    use crate::{constants::test_data::FILE_DCA_TARGET, input::File};
+
+    // NOTE: this covers youtube audio in a non-copyright-violating way, since
+    // those depend on an HttpRequest internally anyhow.
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn dca_track_plays() {
+        track_plays_passthrough(|| File::new(FILE_DCA_TARGET)).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn dca_forward_seek_correct() {
+        forward_seek_correct(|| File::new(FILE_DCA_TARGET)).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn dca_backward_seek_correct() {
+        backward_seek_correct(|| File::new(FILE_DCA_TARGET)).await;
+    }
+}

@@ -57,6 +57,8 @@ mod audiostream;
 pub mod codecs;
 mod compose;
 mod error;
+#[cfg(test)]
+pub mod input_tests;
 mod live_input;
 mod metadata;
 mod parsed;

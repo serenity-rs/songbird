@@ -151,6 +151,7 @@ features = ["std"]
 
 [dev-dependencies]
 criterion = "0.3"
+ntest = "0.8"
 symphonia = { version = "0.5", features = ["mp3"] }
 utils = { path = "utils" }
 tokio = { version = "1", features = ["rt", "rt-multi-thread"] }

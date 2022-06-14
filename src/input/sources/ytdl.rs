@@ -124,102 +124,25 @@ impl Compose for YoutubeDl {
 #[cfg(test)]
 mod tests {
     use reqwest::Client;
-    use std::time::Duration;
 
     use super::*;
-    use crate::{
-        constants::test_data::YTDL_TARGET,
-        driver::Driver,
-        tracks::{PlayMode, ReadyState},
-        Config,
-    };
+    use crate::{constants::test_data::YTDL_TARGET, input::input_tests::*};
 
     #[tokio::test]
+    #[ntest::timeout(10_000)]
     async fn ytdl_track_plays() {
-        let (t_handle, config) = Config::test_cfg(true);
-        let mut driver = Driver::new(config.clone());
-
-        let file = YoutubeDl::new(Client::new(), YTDL_TARGET.into());
-
-        // Get input in place, playing. Wait for IO to ready.
-        t_handle.ready_track(&driver.play(file.into()), None).await;
-        t_handle.tick(1);
-
-        // post-conditions:
-        // 1) track produces a packet.
-        // 2) that packet is mixed audio.
-        // 3) that packet is non-zero.
-        let pkt = t_handle.recv();
-        let pkt = pkt.raw().unwrap();
-        assert!(pkt.is_mixed_with_nonzero_signal());
+        track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
     }
 
     #[tokio::test]
+    #[ntest::timeout(10_000)]
     async fn ytdl_forward_seek_correct() {
-        let (t_handle, config) = Config::test_cfg(true);
-        let mut driver = Driver::new(config.clone());
-
-        let file = YoutubeDl::new(Client::new(), YTDL_TARGET.into());
-        let handle = driver.play(file.into());
-
-        // Get input in place, playing. Wait for IO to ready.
-        t_handle.ready_track(&handle, None).await;
-
-        let target_time = Duration::from_secs(30);
-        assert!(handle.seek_time(target_time).is_ok());
-        t_handle.ready_track(&handle, None).await;
-
-        // post-conditions:
-        // 1) track is readied
-        // 2) track's position is approx 30s
-        // 3) track's play time is considerably less (O(5s))
-        let state = handle.get_info();
-        t_handle.tick(1);
-        let state = state.await.expect("Should have received valid state.");
-
-        assert_eq!(state.ready, ReadyState::Playable);
-        assert_eq!(state.playing, PlayMode::Play);
-        assert!(state.play_time < Duration::from_secs(5));
-        assert!(
-            state.position < target_time + Duration::from_millis(100)
-                && state.position > target_time - Duration::from_millis(100)
-        );
+        forward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
     }
 
     #[tokio::test]
+    #[ntest::timeout(10_000)]
     async fn ytdl_backward_seek_correct() {
-        let (t_handle, config) = Config::test_cfg(true);
-        let mut driver = Driver::new(config.clone());
-
-        let file = YoutubeDl::new(Client::new(), YTDL_TARGET.into());
-        let handle = driver.play(file.into());
-
-        // Get input in place, playing. Wait for IO to ready.
-        t_handle.ready_track(&handle, None).await;
-
-        // Accelerated playout -- 4 seconds worth.
-        let n_secs = 4;
-        let n_ticks = 50 * n_secs;
-        t_handle.skip(n_ticks).await;
-
-        let target_time = Duration::from_secs(1);
-        assert!(handle.seek_time(target_time).is_ok());
-        t_handle.ready_track(&handle, None).await;
-
-        // post-conditions:
-        // 1) track is readied
-        // 2) track's position is approx 1s
-        // 3) track's play time is preserved (About 4s)
-        let state = handle.get_info();
-        t_handle.tick(1);
-        let state = state.await.expect("Should have received valid state.");
-
-        assert_eq!(state.ready, ReadyState::Playable);
-        assert_eq!(state.playing, PlayMode::Play);
-        assert!(state.play_time >= Duration::from_secs(n_secs));
-        assert!(
-            state.position < target_time + Duration::from_millis(100)
-                && state.position > target_time - Duration::from_millis(100)
-        );
+        backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
     }
 }

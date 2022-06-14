@@ -96,4 +96,14 @@ pub mod test_data {
     ///
     /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
     pub const HTTP_OPUS_TARGET: &str = "https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.opus";
+
+    /// Path to a DCA source.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    pub const FILE_DCA_TARGET: &str = "resources/Cloudkicker - 2011 07.dca1";
+
+    /// URL for an opus source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    pub const FILE_WEBM_TARGET: &str = "resources/Cloudkicker - Making Will Mad.webm";
 }

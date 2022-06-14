@@ -236,10 +236,18 @@ impl<'a> InternalTrack {
                                         tb
                                     } else {
                                         // Probably fire an Unsupported.
+                                        // FIXME FIXME FIXME FIXME FIXME
+                                        // Honestly just try and use a cached sample rate?!
                                         todo!()
                                     };
                                 // modify track.
+                                eprintln!("Seek landed at {:?}", pos);
                                 let new_time = time_base.calc_time(pos.actual_ts);
+                                eprintln!(
+                                    "=> {:?} [wanted {:?}]",
+                                    new_time,
+                                    time_base.calc_time(pos.required_ts)
+                                );
                                 let time_in_float = new_time.seconds as f64 + new_time.frac;
                                 self.position = std::time::Duration::from_secs_f64(time_in_float);
 
