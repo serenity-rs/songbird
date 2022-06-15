@@ -449,6 +449,8 @@ impl Mixer {
             let action = track.process_commands(i, &self.interconnect);
 
             if let Some(time) = action.seek_point {
+                let backseek_needed = time < track.position;
+
                 let full_input = &mut track.input;
                 let time = Time::from(time.as_secs_f64());
                 let mut ts = SeekTo::Time {
@@ -478,7 +480,7 @@ impl Mixer {
                         }
 
                         self.thread_pool
-                            .seek(tx, p, r, ts, true, self.config.clone());
+                            .seek(tx, p, r, ts, backseek_needed, self.config.clone());
                     },
                     InputState::Preparing(old_prep) => {
                         // Annoying case: we need to mem_swap for the other two cases,

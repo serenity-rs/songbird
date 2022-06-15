@@ -241,15 +241,16 @@ impl<'a> InternalTrack {
                                         todo!()
                                     };
                                 // modify track.
-                                eprintln!("Seek landed at {:?}", pos);
+                                // eprintln!("Seek landed at {:?} (track {})", pos, parsed.track_id);
                                 let new_time = time_base.calc_time(pos.actual_ts);
-                                eprintln!(
-                                    "=> {:?} [wanted {:?}]",
-                                    new_time,
-                                    time_base.calc_time(pos.required_ts)
-                                );
+                                // eprintln!(
+                                //     "=> {:?} [wanted {:?}]",
+                                //     new_time,
+                                //     time_base.calc_time(pos.required_ts)
+                                // );
                                 let time_in_float = new_time.seconds as f64 + new_time.frac;
                                 self.position = std::time::Duration::from_secs_f64(time_in_float);
+                                // eprintln!("Recording self as {:?}", self.position);
 
                                 if !prevent_events {
                                     drop(interconnect.events.send(EventMessage::ChangeState(

@@ -55,6 +55,7 @@ impl LiveInput {
         if let LiveInput::Wrapped(w) = out {
             let hint = w.hint.unwrap_or_default();
             let input = w.input;
+            let supports_backseek = input.is_seekable();
 
             let probe_data = probe.format(
                 &hint,
@@ -96,6 +97,7 @@ impl LiveInput {
                 decoder,
                 track_id,
                 meta,
+                supports_backseek,
             };
 
             out = LiveInput::Parsed(p);
