@@ -97,9 +97,7 @@ impl Compose for YoutubeDl {
             request: url.to_string(),
         };
 
-        let out = req.create_async().await;
-
-        out
+        req.create_async().await
     }
 
     fn should_create_async(&self) -> bool {

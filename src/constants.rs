@@ -92,10 +92,15 @@ pub mod test_data {
     /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
     pub const HTTP_TARGET: &str = "https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%202011%2007.mp3";
 
-    /// URL for an opus source which can be read via an Http Request.
+    /// URL for an opus/ogg source which can be read via an Http Request.
     ///
     /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
     pub const HTTP_OPUS_TARGET: &str = "https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.opus";
+
+    /// URL for an opus/webm source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    pub const HTTP_WEBM_TARGET: &str = "https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.webm";
 
     /// Path to a DCA source.
     ///

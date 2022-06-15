@@ -202,7 +202,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        constants::test_data::{HTTP_OPUS_TARGET, HTTP_TARGET},
+        constants::test_data::{HTTP_OPUS_TARGET, HTTP_TARGET, HTTP_WEBM_TARGET},
         input::input_tests::*,
     };
 
@@ -242,5 +242,23 @@ mod tests {
     #[ntest::timeout(10_000)]
     async fn http_opus_backward_seek_correct() {
         backward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_OPUS_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_webm_track_plays() {
+        track_plays_passthrough(|| HttpRequest::new(Client::new(), HTTP_WEBM_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_webm_forward_seek_correct() {
+        forward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_WEBM_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_webm_backward_seek_correct() {
+        backward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_WEBM_TARGET.into())).await;
     }
 }
