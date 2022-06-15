@@ -231,22 +231,13 @@ impl<'a> InternalTrack {
                     },
                     Ok(MixerInputResultMessage::Seek(parsed, rec, seek_res)) => {
                         match seek_res {
-                            Ok(pos) => {
-                                // Can't use the track's time base. Why? Because MKV, that's why.
-                                // double check what vorbis uses, since it can be in there too?
+                            Ok(pos) =>
                                 if let Some(time_base) = parsed.decoder.codec_params().time_base {
                                     // modify track.
-                                    // eprintln!("Seek landed at {:?} (track {})", pos, parsed.track_id);
                                     let new_time = time_base.calc_time(pos.actual_ts);
-                                    // eprintln!(
-                                    //     "=> {:?} [wanted {:?}]",
-                                    //     new_time,
-                                    //     time_base.calc_time(pos.required_ts)
-                                    // );
                                     let time_in_float = new_time.seconds as f64 + new_time.frac;
                                     self.position =
                                         std::time::Duration::from_secs_f64(time_in_float);
-                                    // eprintln!("Recording self as {:?}", self.position);
 
                                     if !prevent_events {
                                         drop(interconnect.events.send(EventMessage::ChangeState(
@@ -272,8 +263,7 @@ impl<'a> InternalTrack {
                                     Err(InputReadyingError::Seeking(SymphError::Unsupported(
                                         "Track had no recorded time base.",
                                     )))
-                                }
-                            },
+                                },
                             Err(e) => Err(InputReadyingError::Seeking(e)),
                         }
                     },

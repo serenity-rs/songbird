@@ -41,7 +41,6 @@ where
     // 2) that packet is passthrough.
     let pkt = t_handle.recv_async().await;
     let pkt = pkt.raw().unwrap();
-    eprintln!("{:?}", pkt);
 
     if passthrough {
         assert!(pkt.is_passthrough());
@@ -119,7 +118,6 @@ where
     assert_eq!(state.ready, ReadyState::Playable);
     assert_eq!(state.playing, PlayMode::Play);
     assert!(state.play_time >= Duration::from_secs(n_secs));
-    eprintln!("Appaz {:?}", state.position);
     assert!(
         state.position < target_time + Duration::from_millis(100)
             && state.position > target_time - Duration::from_millis(100)

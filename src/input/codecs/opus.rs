@@ -16,7 +16,6 @@ use symphonia_core::{
     },
     errors::{decode_error, Result as SymphResult},
     formats::Packet,
-    units::TimeBase,
 };
 
 /// Opus decoder for symphonia, based on libopus v1.3 (via [`audiopus`]).
@@ -91,9 +90,7 @@ impl Decoder for OpusDecoder {
         let inner = AudiopusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
 
         let mut params = params.clone();
-        params
-            .with_sample_rate(SAMPLE_RATE_RAW as u32)
-            .with_time_base(TimeBase::new(1, SAMPLE_RATE_RAW as u32));
+        params.with_sample_rate(SAMPLE_RATE_RAW as u32);
 
         Ok(Self {
             inner,

@@ -21,6 +21,8 @@ rev = "df1bd8ff44a114df891f40a5db91e624f419a831"
 [dependencies.symphonia]
 version = "0.5"
 features = ["mp3"]
+git = "https://github.com/FelixMcFelix/Symphonia"
+branch = "fix-ogg-opus-timebase"
 
 [dependencies.tokio]
 version = "1.0"
