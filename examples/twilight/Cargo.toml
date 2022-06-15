@@ -24,4 +24,4 @@ features = ["driver", "twilight-rustls", "zlib-stock"]
 version = "0.5"
 features = ["aac", "mp3", "isomp4", "alac"]
 git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "fix-ogg-opus-timebase"
+branch = "songbird-fixes"

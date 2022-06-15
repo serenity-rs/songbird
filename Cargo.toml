@@ -107,13 +107,13 @@ optional = true
 default-features = false
 version = "0.5"
 git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "fix-ogg-opus-timebase"
+branch = "songbird-fixes"
 
 [dependencies.symphonia-core]
 optional = true
 version = "0.5"
 git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "fix-ogg-opus-timebase"
+branch = "songbird-fixes"
 
 [dependencies.tokio]
 optional = true
@@ -156,7 +156,7 @@ features = ["std"]
 [dev-dependencies]
 criterion = "0.3"
 ntest = "0.8"
-symphonia = { version = "0.5", features = ["mp3"], git = "https://github.com/FelixMcFelix/Symphonia", branch = "fix-ogg-opus-timebase" }
+symphonia = { version = "0.5", features = ["mp3"], git = "https://github.com/FelixMcFelix/Symphonia", branch = "songbird-fixes" }
 utils = { path = "utils" }
 tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 
