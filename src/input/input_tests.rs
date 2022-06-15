@@ -73,7 +73,7 @@ where
     // 2) track's position is approx 30s
     // 3) track's play time is considerably less (O(5s))
     let state = handle.get_info();
-    t_handle.tick(1);
+    t_handle.spawn_ticker().await;
     let state = state.await.expect("Should have received valid state.");
 
     assert_eq!(state.ready, ReadyState::Playable);
@@ -113,7 +113,7 @@ where
     // 2) track's position is approx 1s
     // 3) track's play time is preserved (About 4s)
     let state = handle.get_info();
-    t_handle.tick(1);
+    t_handle.spawn_ticker().await;
     let state = state.await.expect("Should have received valid state.");
 
     assert_eq!(state.ready, ReadyState::Playable);

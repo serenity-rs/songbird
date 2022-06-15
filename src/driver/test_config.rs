@@ -158,6 +158,16 @@ impl DriverTestHandle {
         }
     }
 
+    pub async fn spawn_ticker(&self) {
+        let remote = self.clone();
+        tokio::spawn(async move {
+            loop {
+                remote.skip(1).await;
+                tokio::time::sleep(Duration::from_millis(1)).await;
+            }
+        });
+    }
+
     pub fn wait_noisy(&self, n_ticks: u64) {
         for _i in 0..n_ticks {
             match self.recv() {
