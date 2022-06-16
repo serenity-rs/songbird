@@ -1,8 +1,10 @@
+use crate::input::{AudioStream, Input, LiveInput};
 use std::{
     io::{Read, Result as IoResult},
     mem,
     process::Child,
 };
+use symphonia_core::io::{MediaSource, ReadOnlySource};
 use tokio::runtime::Handle;
 use tracing::debug;
 
@@ -42,6 +44,16 @@ impl From<Child> for ChildContainer {
 impl From<Vec<Child>> for ChildContainer {
     fn from(container: Vec<Child>) -> Self {
         Self(container)
+    }
+}
+
+impl From<ChildContainer> for Input {
+    fn from(val: ChildContainer) -> Self {
+        let audio_stream = AudioStream {
+            input: Box::new(ReadOnlySource::new(val)) as Box<dyn MediaSource>,
+            hint: None,
+        };
+        Input::Live(LiveInput::Raw(audio_stream), None)
     }
 }
 

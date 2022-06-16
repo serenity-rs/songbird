@@ -1,4 +1,4 @@
-use crate::{constants::*, input::Parsed};
+use crate::{constants::*, driver::tasks::mixer::mix_logic, input::Parsed};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use rubato::{FftFixedOut, Resampler};
@@ -272,7 +272,7 @@ impl Read for ToAudioBytes {
                     let frames_to_take = available_frames.min(missing_frames);
 
                     resample.scratch.render_reserved(Some(frames_to_take));
-                    copy_into_resampler(
+                    mix_logic::copy_into_resampler(
                         &source_packet,
                         &mut resample.scratch,
                         self.inner_pos.start,
@@ -455,53 +455,4 @@ fn write_resample_buffer(
     source_pos.start += samples_used;
 
     to_write * num_chans * SAMPLE_LEN
-}
-
-// these two are exact copies of the driver code...
-#[inline]
-fn copy_into_resampler(
-    source: &AudioBufferRef,
-    target: &mut AudioBuffer<f32>,
-    source_pos: usize,
-    dest_pos: usize,
-    len: usize,
-) -> usize {
-    match source {
-        AudioBufferRef::U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-    }
-}
-
-#[inline]
-fn copy_symph_buffer<S>(
-    source: &AudioBuffer<S>,
-    target: &mut AudioBuffer<f32>,
-    source_pos: usize,
-    dest_pos: usize,
-    len: usize,
-) -> usize
-where
-    S: Sample + IntoSample<f32>,
-{
-    for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
-        .iter_mut()
-        .zip(source.planes().planes()[..].iter())
-    {
-        for (d, s) in d_plane[dest_pos..dest_pos + len]
-            .iter_mut()
-            .zip(s_plane[source_pos..source_pos + len].iter())
-        {
-            *d = (*s).into_sample();
-        }
-    }
-
-    len
 }

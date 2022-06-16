@@ -1,11 +1,8 @@
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, CryptoMode, DecodeMode, MixMode},
+    driver::{retry::Retry, test_config::*, CryptoMode, DecodeMode, MixMode},
     input::codecs::*,
 };
-
-#[cfg(all(test, feature = "driver"))]
-use crate::driver::test_config::*;
 
 #[cfg(feature = "driver")]
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
@@ -113,12 +110,12 @@ pub struct Config {
     pub format_registry: &'static Probe,
 
     // Test only attributes
-    #[cfg(all(test, feature = "driver"))]
+    #[cfg(feature = "driver")]
     /// Test config to offer precise control over mixing tick rate/count.
-    pub tick_style: TickStyle,
-    #[cfg(all(test, feature = "driver"))]
+    pub(crate) tick_style: TickStyle,
+    #[cfg(feature = "driver")]
     /// If set, skip connection and encryption steps.
-    pub override_connection: Option<OutputMode>,
+    pub(crate) override_connection: Option<OutputMode>,
 }
 
 impl Default for Config {
@@ -142,9 +139,9 @@ impl Default for Config {
             codec_registry: &CODEC_REGISTRY,
             #[cfg(feature = "driver")]
             format_registry: &PROBE,
-            #[cfg(all(test, feature = "driver"))]
+            #[cfg(feature = "driver")]
             tick_style: TickStyle::Timed,
-            #[cfg(all(test, feature = "driver"))]
+            #[cfg(feature = "driver")]
             override_connection: None,
         }
     }
@@ -194,11 +191,65 @@ impl Config {
         self
     }
 
+    /// Sets this `Config`'s symphonia codec registry.
+    #[must_use]
+    pub fn codec_registry(mut self, codec_registry: &'static CODEC_REGISTRY) -> Self {
+        self.codec_registry = codec_registry;
+        self
+    }
+
+    /// Sets this `Config`'s symphonia format registry/probe set.
+    #[must_use]
+    pub fn format_registry(mut self, format_registry: &'static PROBE) -> Self {
+        self.format_registry = format_registry;
+        self
+    }
+
     /// This is used to prevent changes which would invalidate the current session.
     pub(crate) fn make_safe(&mut self, previous: &Config, connected: bool) {
         if connected {
             self.crypto_mode = previous.crypto_mode;
         }
+    }
+}
+
+// Test only attributes
+#[cfg(all(test, feature = "driver"))]
+impl Config {
+    #![allow(missing_docs)]
+    #[must_use]
+    pub fn tick_style(mut self, tick_style: TickStyle) -> Self {
+        self.tick_style = tick_style;
+        self
+    }
+
+    /// Sets this `Config`'s voice connection retry configuration.
+    #[must_use]
+    pub fn override_connection(mut self, override_connection: Option<OutputMode>) -> Self {
+        self.override_connection = override_connection;
+        self
+    }
+
+    pub fn test_cfg(raw_output: bool) -> (DriverTestHandle, Config) {
+        let (tick_tx, tick_rx) = flume::unbounded();
+
+        let (conn, rx) = if raw_output {
+            let (pkt_tx, pkt_rx) = flume::unbounded();
+
+            (OutputMode::Raw(pkt_tx), OutputReceiver::Raw(pkt_rx))
+        } else {
+            let (rtp_tx, rtp_rx) = flume::unbounded();
+
+            (OutputMode::Rtp(rtp_tx), OutputReceiver::Rtp(rtp_rx))
+        };
+
+        let config = Config::default()
+            .tick_style(TickStyle::UntimedWithExecLimit(tick_rx))
+            .override_connection(Some(conn));
+
+        let handle = DriverTestHandle { rx, tx: tick_tx };
+
+        (handle, config)
     }
 }
 

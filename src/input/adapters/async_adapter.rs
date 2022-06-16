@@ -233,7 +233,7 @@ impl Read for AsyncAdapterStream {
                     }
 
                     self.check_dropped()?;
-                    std::hint::spin_loop();
+                    std::thread::yield_now();
                 },
                 a => {
                     println!("Misc err {:?}", a);

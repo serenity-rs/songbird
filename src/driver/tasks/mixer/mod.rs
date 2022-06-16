@@ -13,7 +13,10 @@ pub use track::*;
 use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
-    driver::MixMode,
+    driver::{
+        test_config::{OutputMessage, OutputMode, TickStyle},
+        MixMode,
+    },
     events::EventStore,
     input::{Input, Parsed},
     tracks::{Action, LoopState, PlayError, PlayMode, TrackCommand, TrackHandle, TrackState, View},
@@ -28,6 +31,7 @@ use audiopus::{
 use discortp::{
     rtp::{MutableRtpPacket, RtpPacket},
     MutablePacket,
+    Packet,
 };
 use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
@@ -75,6 +79,9 @@ pub struct Mixer {
     sample_buffer: SampleBuffer<f32>,
     symph_mix: AudioBuffer<f32>,
     resample_scratch: AudioBuffer<f32>,
+
+    #[cfg(test)]
+    remaining_loops: Option<u64>,
 }
 
 fn new_encoder(bitrate: Bitrate, mix_mode: MixMode) -> Result<OpusEncoder> {
@@ -164,6 +171,9 @@ impl Mixer {
             sample_buffer,
             symph_mix,
             resample_scratch,
+
+            #[cfg(test)]
+            remaining_loops: None,
         }
     }
 
@@ -172,7 +182,7 @@ impl Mixer {
         let mut conn_failure = false;
 
         'runner: loop {
-            if self.conn_active.is_some() {
+            if self.conn_active.is_some() || self.config.override_connection.is_some() {
                 loop {
                     match self.mix_rx.try_recv() {
                         Ok(m) => {
@@ -196,7 +206,8 @@ impl Mixer {
                 }
 
                 // The above action may have invalidated the connection; need to re-check!
-                if self.conn_active.is_some() {
+                // Also, if we're in a test mode we should unconditionally run packet mixing code.
+                if self.conn_active.is_some() || self.config.override_connection.is_some() {
                     if let Err(e) = self.cycle().and_then(|_| self.audio_commands_events()) {
                         events_failure |= e.should_trigger_interconnect_rebuild();
                         conn_failure |= e.should_trigger_connect();
@@ -438,6 +449,8 @@ impl Mixer {
             let action = track.process_commands(i, &self.interconnect);
 
             if let Some(time) = action.seek_point {
+                let backseek_needed = time < track.position;
+
                 let full_input = &mut track.input;
                 let time = Time::from(time.as_secs_f64());
                 let mut ts = SeekTo::Time {
@@ -467,7 +480,7 @@ impl Mixer {
                         }
 
                         self.thread_pool
-                            .seek(tx, p, r, ts, true, self.config.clone());
+                            .seek(tx, p, r, ts, backseek_needed, self.config.clone());
                     },
                     InputState::Preparing(old_prep) => {
                         // Annoying case: we need to mem_swap for the other two cases,
@@ -548,8 +561,32 @@ impl Mixer {
             return;
         }
 
-        std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
-        self.deadline += TIMESTEP_LENGTH;
+        // Timed is the usual, default case.
+        // The others exist for end-to-end testing.
+        match &self.config.tick_style {
+            TickStyle::Timed => {
+                std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
+                self.deadline += TIMESTEP_LENGTH;
+            },
+            TickStyle::UntimedWithExecLimit(_rx) => {
+                #[cfg(test)]
+                {
+                    if self.remaining_loops.is_none() {
+                        if let Ok(new_val) = _rx.recv() {
+                            self.remaining_loops = Some(new_val.wrapping_sub(1));
+                        }
+                    }
+
+                    if let Some(cnt) = self.remaining_loops.as_mut() {
+                        if *cnt == 0 {
+                            self.remaining_loops = None;
+                        } else {
+                            *cnt = cnt.wrapping_sub(1);
+                        }
+                    }
+                }
+            },
+        }
     }
 
     pub fn cycle(&mut self) -> Result<()> {
@@ -601,6 +638,14 @@ impl Mixer {
 
                 self.march_deadline();
 
+                match &self.config.override_connection {
+                    Some(OutputMode::Raw(tx)) =>
+                        drop(tx.send(crate::driver::test_config::TickMessage::NoEl)),
+                    Some(OutputMode::Rtp(tx)) =>
+                        drop(tx.send(crate::driver::test_config::TickMessage::NoEl)),
+                    None => {},
+                }
+
                 return Ok(());
             }
         } else {
@@ -627,8 +672,31 @@ impl Mixer {
             ws.send(WsMessage::Speaking(true))?;
         }
 
+        // Wait till the right time to send this packet:
+        // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
         self.march_deadline();
-        self.prep_and_send_packet(&mix_buffer, mix_len)?;
+        if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
+            let msg = match mix_len {
+                MixType::Passthrough(len) if len == SILENT_FRAME.len() => OutputMessage::Silent,
+                MixType::Passthrough(len) => {
+                    let rtp = RtpPacket::new(&self.packet[..]).expect(
+                        "FATAL: Too few bytes in self.packet for RTP header.\
+                            (Blame: VOICE_PACKET_MAX?)",
+                    );
+                    let payload = rtp.payload();
+                    let opus_frame = (&payload[TAG_SIZE..][..len]).to_vec();
+
+                    OutputMessage::Passthrough(opus_frame)
+                },
+                MixType::MixedPcm(_) => OutputMessage::Mixed(
+                    mix_buffer[..self.config.mix_mode.sample_count_in_frame()].to_vec(),
+                ),
+            };
+
+            drop(tx.send(msg.into()));
+        } else {
+            self.prep_and_send_packet(&mix_buffer, mix_len)?;
+        }
 
         if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
             for plane in self.symph_mix.planes_mut().planes() {
@@ -674,20 +742,30 @@ impl Mixer {
                 .crypto_state
                 .write_packet_nonce(&mut rtp, TAG_SIZE + payload_len);
 
-            conn.crypto_state.kind().encrypt_in_place(
-                &mut rtp,
-                &conn.cipher,
-                final_payload_size,
-            )?;
+            // Packet encryption ignored in test modes.
+            if self.config.override_connection.is_none() {
+                conn.crypto_state.kind().encrypt_in_place(
+                    &mut rtp,
+                    &conn.cipher,
+                    final_payload_size,
+                )?;
+            }
 
             RtpPacket::minimum_packet_size() + final_payload_size
         };
 
-        // TODO: This is dog slow, don't do this.
-        // Can we replace this with a shared ring buffer + semaphore?
-        // i.e., do something like double/triple buffering in graphics.
-        conn.udp_tx
-            .send(UdpTxMessage::Packet(self.packet[..index].to_vec()))?;
+        if let Some(OutputMode::Rtp(tx)) = &self.config.override_connection {
+            // Test mode: send unencrypted (compressed) packets to local receiver.
+            drop(tx.send(self.packet[..index].to_vec().into()));
+        } else {
+            // Normal operation: send encrypted payload to UDP Tx task.
+
+            // TODO: This is dog slow, don't do this.
+            // Can we replace this with a shared ring buffer + semaphore?
+            // or the BBQueue crate?
+            conn.udp_tx
+                .send(UdpTxMessage::Packet(self.packet[..index].to_vec()))?;
+        }
 
         let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
             "FATAL: Too few bytes in self.packet for RTP header.\

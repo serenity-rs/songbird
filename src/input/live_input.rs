@@ -40,7 +40,6 @@ impl LiveInput {
     /// [`Wrapped`]: Self::Wrapped
     /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
     /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
-    #[allow(clippy::missing_panics_doc)] // Logic ensures panic doesn't occur
     pub fn promote(self, codecs: &CodecRegistry, probe: &Probe) -> Result<Self, SymphError> {
         let mut out = self;
 
@@ -56,6 +55,7 @@ impl LiveInput {
         if let LiveInput::Wrapped(w) = out {
             let hint = w.hint.unwrap_or_default();
             let input = w.input;
+            let supports_backseek = input.is_seekable();
 
             let probe_data = probe.format(
                 &hint,
@@ -69,12 +69,9 @@ impl LiveInput {
             let mut default_track_id = format.default_track().map(|track| track.id);
             let mut decoder: Option<Box<dyn Decoder>> = None;
 
+            // Awkward loop: we need BOTH a track ID, and a decoder matching that track ID.
             // Take default track (if it exists), take first track to be found otherwise.
             for track in format.tracks() {
-                if decoder.is_some() {
-                    break;
-                }
-
                 if default_track_id.is_some() && Some(track.id) != default_track_id {
                     continue;
                 }
@@ -83,15 +80,24 @@ impl LiveInput {
 
                 decoder = Some(this_decoder);
                 default_track_id = Some(track.id);
+
+                break;
             }
 
-            let track_id = default_track_id.unwrap();
+            // No tracks is a playout error, a bad default track is also possible.
+            // These are probably malformed? We could go best-effort, and fall back to tracks[0]
+            // but drop such tracks for now.
+            let track_id = default_track_id.ok_or(SymphError::DecodeError("no track found"))?;
+            let decoder = decoder.ok_or(SymphError::DecodeError(
+                "reported default track did not exist",
+            ))?;
 
             let p = Parsed {
                 format,
-                decoder: decoder.unwrap(),
+                decoder,
                 track_id,
                 meta,
+                supports_backseek,
             };
 
             out = LiveInput::Parsed(p);

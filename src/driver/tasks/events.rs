@@ -1,7 +1,7 @@
 use super::message::*;
 use crate::{
     events::{EventStore, GlobalEvents, TrackEvent},
-    tracks::{TrackHandle, TrackState},
+    tracks::{ReadyState, TrackHandle, TrackState},
 };
 use flume::Receiver;
 use tracing::{debug, info, instrument, trace};
@@ -68,6 +68,11 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
                         std::mem::swap(&mut state.playing, &mut mode);
                         if state.playing != mode {
                             global.fire_track_event(state.playing.as_track_event(), i);
+                            if let Some(other_evts) = state.playing.also_fired_track_events() {
+                                for evt in other_evts {
+                                    global.fire_track_event(evt, i);
+                                }
+                            }
                         }
                     },
                     TrackStateChange::Volume(vol) => {
@@ -86,6 +91,19 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
                     TrackStateChange::Total(new) => {
                         // Massive, unprecedented state changes.
                         *state = new;
+                    },
+                    TrackStateChange::Ready(ready_state) => {
+                        state.ready = ready_state;
+
+                        match ready_state {
+                            ReadyState::Playable => {
+                                global.fire_track_event(TrackEvent::Playable, i);
+                            },
+                            ReadyState::Preparing => {
+                                global.fire_track_event(TrackEvent::Preparing, i);
+                            },
+                            ReadyState::Uninitialised => {},
+                        }
                     },
                 }
             },

@@ -39,12 +39,11 @@ impl fmt::Debug for InnerHandle {
 }
 
 impl TrackHandle {
-    /// Creates a new handle, using the given command sink and hint as to whether
-    /// the underlying [`Input`] supports seek operations.
+    /// Creates a new handle, using the given command sink.
     ///
     /// [`Input`]: crate::input::Input
     #[must_use]
-    pub fn new(command_channel: Sender<TrackCommand>, uuid: Uuid) -> Self {
+    pub(crate) fn new(command_channel: Sender<TrackCommand>, uuid: Uuid) -> Self {
         let inner = Arc::new(InnerHandle {
             command_channel,
             uuid,

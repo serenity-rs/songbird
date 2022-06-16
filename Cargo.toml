@@ -91,7 +91,7 @@ default-features = false
 features = ["voice", "gateway"]
 git = "https://github.com/serenity-rs/serenity"
 # branch = "next"
-rev = "8d8ff3c6b6543182d3d679773c81a81fc60da74b"
+rev = "df1bd8ff44a114df891f40a5db91e624f419a831"
 
 [dependencies.serenity-voice-model]
 optional = true
@@ -106,10 +106,14 @@ version = "1"
 optional = true
 default-features = false
 version = "0.5"
+git = "https://github.com/FelixMcFelix/Symphonia"
+branch = "songbird-fixes"
 
 [dependencies.symphonia-core]
 optional = true
 version = "0.5"
+git = "https://github.com/FelixMcFelix/Symphonia"
+branch = "songbird-fixes"
 
 [dependencies.tokio]
 optional = true
@@ -151,7 +155,8 @@ features = ["std"]
 
 [dev-dependencies]
 criterion = "0.3"
-symphonia = { version = "0.5", features = ["mp3"] }
+ntest = "0.8"
+symphonia = { version = "0.5", features = ["mp3"], git = "https://github.com/FelixMcFelix/Symphonia", branch = "songbird-fixes" }
 utils = { path = "utils" }
 tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 

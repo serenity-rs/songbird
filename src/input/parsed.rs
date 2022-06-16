@@ -19,4 +19,9 @@ pub struct Parsed {
     /// Typically, this detects metadata *outside* the file's core format (i.e.,
     /// ID3 tags in MP3 and WAV files).
     pub meta: ProbedMetadata,
+    /// Whether the contained format supports arbitrary seeking.
+    ///
+    /// If set to false, Songbird will attempt to recreate the input if
+    /// it must seek backwards.
+    pub supports_backseek: bool,
 }

@@ -33,6 +33,12 @@ pub struct HttpRequest {
 }
 
 impl HttpRequest {
+    #[must_use]
+    /// Create a lazy HTTP request.
+    pub fn new(client: Client, request: String) -> Self {
+        HttpRequest { client, request }
+    }
+
     async fn create_stream(
         &mut self,
         offset: Option<u64>,
@@ -187,5 +193,72 @@ impl Compose for HttpRequest {
 impl From<HttpRequest> for Input {
     fn from(val: HttpRequest) -> Self {
         Input::Lazy(Box::new(val))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use reqwest::Client;
+
+    use super::*;
+    use crate::{
+        constants::test_data::{HTTP_OPUS_TARGET, HTTP_TARGET, HTTP_WEBM_TARGET},
+        input::input_tests::*,
+    };
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_track_plays() {
+        track_plays_mixed(|| HttpRequest::new(Client::new(), HTTP_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_forward_seek_correct() {
+        forward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_backward_seek_correct() {
+        backward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_TARGET.into())).await;
+    }
+
+    // NOTE: this covers youtube audio in a non-copyright-violating way, since
+    // those depend on an HttpRequest internally anyhow.
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_opus_track_plays() {
+        track_plays_passthrough(|| HttpRequest::new(Client::new(), HTTP_OPUS_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_opus_forward_seek_correct() {
+        forward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_OPUS_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_opus_backward_seek_correct() {
+        backward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_OPUS_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_webm_track_plays() {
+        track_plays_passthrough(|| HttpRequest::new(Client::new(), HTTP_WEBM_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_webm_forward_seek_correct() {
+        forward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_WEBM_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn http_webm_backward_seek_correct() {
+        backward_seek_correct(|| HttpRequest::new(Client::new(), HTTP_WEBM_TARGET.into())).await;
     }
 }

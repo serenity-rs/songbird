@@ -1,3 +1,6 @@
+use crate::tracks::ReadyState;
+use symphonia_core::errors::Error as SymphError;
+
 use super::*;
 
 pub struct InternalTrack {
@@ -37,12 +40,15 @@ impl<'a> InternalTrack {
     }
 
     pub(crate) fn state(&self) -> TrackState {
+        let ready = (&self.input).into();
+
         TrackState {
             playing: self.playing.clone(),
             volume: self.volume,
             position: self.position,
             play_time: self.play_time,
             loops: self.loops,
+            ready,
         }
     }
 
@@ -191,6 +197,13 @@ impl<'a> InternalTrack {
                     _ => unreachable!(),
                 }
 
+                if !prevent_events {
+                    drop(interconnect.events.send(EventMessage::ChangeState(
+                        id,
+                        TrackStateChange::Ready(ReadyState::Preparing),
+                    )));
+                }
+
                 Err(InputReadyingError::Waiting)
             },
             InputState::Preparing(info) => {
@@ -201,6 +214,15 @@ impl<'a> InternalTrack {
                         *input = InputState::Ready(parsed, rec);
                         local.reset();
 
+                        // TODO: set position to the true track position here?
+
+                        if !prevent_events {
+                            drop(interconnect.events.send(EventMessage::ChangeState(
+                                id,
+                                TrackStateChange::Ready(ReadyState::Playable),
+                            )));
+                        }
+
                         if let InputState::Ready(ref mut parsed, _) = input {
                             Ok(parsed)
                         } else {
@@ -209,35 +231,39 @@ impl<'a> InternalTrack {
                     },
                     Ok(MixerInputResultMessage::Seek(parsed, rec, seek_res)) => {
                         match seek_res {
-                            Ok(pos) => {
-                                let time_base =
-                                    if let Some(tb) = parsed.decoder.codec_params().time_base {
-                                        tb
+                            Ok(pos) =>
+                                if let Some(time_base) = parsed.decoder.codec_params().time_base {
+                                    // modify track.
+                                    let new_time = time_base.calc_time(pos.actual_ts);
+                                    let time_in_float = new_time.seconds as f64 + new_time.frac;
+                                    self.position =
+                                        std::time::Duration::from_secs_f64(time_in_float);
+
+                                    if !prevent_events {
+                                        drop(interconnect.events.send(EventMessage::ChangeState(
+                                            id,
+                                            TrackStateChange::Position(self.position),
+                                        )));
+
+                                        drop(interconnect.events.send(EventMessage::ChangeState(
+                                            id,
+                                            TrackStateChange::Ready(ReadyState::Playable),
+                                        )));
+                                    }
+
+                                    local.reset();
+                                    *input = InputState::Ready(parsed, rec);
+
+                                    if let InputState::Ready(ref mut parsed, _) = input {
+                                        Ok(parsed)
                                     } else {
-                                        // Probably fire an Unsupported.
-                                        todo!()
-                                    };
-                                // modify track.
-                                let new_time = time_base.calc_time(pos.actual_ts);
-                                let time_in_float = new_time.seconds as f64 + new_time.frac;
-                                self.position = std::time::Duration::from_secs_f64(time_in_float);
-
-                                if !prevent_events {
-                                    drop(interconnect.events.send(EventMessage::ChangeState(
-                                        id,
-                                        TrackStateChange::Position(self.position),
-                                    )));
-                                }
-
-                                local.reset();
-                                *input = InputState::Ready(parsed, rec);
-
-                                if let InputState::Ready(ref mut parsed, _) = input {
-                                    Ok(parsed)
+                                        unreachable!()
+                                    }
                                 } else {
-                                    unreachable!()
-                                }
-                            },
+                                    Err(InputReadyingError::Seeking(SymphError::Unsupported(
+                                        "Track had no recorded time base.",
+                                    )))
+                                },
                             Err(e) => Err(InputReadyingError::Seeking(e)),
                         }
                     },

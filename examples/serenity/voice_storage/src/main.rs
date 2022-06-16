@@ -124,14 +124,14 @@ async fn main() {
         // `spawn_loader` creates a new thread which works to copy all the audio into memory
         // ahead of time. We do this in both cases to ensure optimal performance for the audio
         // core.
-        let ting_src = Memory::new(File::new("ting.wav").into())
+        let ting_src = Memory::new(File::new("../../../resources/ting.wav").into())
             .await
             .expect("These parameters are well-defined.");
         let _ = ting_src.raw.spawn_loader();
         audio_map.insert("ting".into(), CachedSound::Uncompressed(ting_src));
 
         // Another short sting, to show where each loop occurs.
-        let loop_src = Memory::new(File::new("loop.wav").into())
+        let loop_src = Memory::new(File::new("../../../resources/loop.wav").into())
             .await
             .expect("These parameters are well-defined.");
         let _ = loop_src.raw.spawn_loader();
@@ -143,7 +143,7 @@ async fn main() {
         //
         // Music by Cloudkicker, used under CC BY-SC-SA 3.0 (https://creativecommons.org/licenses/by-nc-sa/3.0/).
         let song_src = Compressed::new(
-            File::new("Cloudkicker_-_Loops_-_22_2011_07.mp3").into(),
+            File::new("../../../resources/Cloudkicker - 2011 07.mp3").into(),
             Bitrate::BitsPerSecond(128_000),
         )
         .await

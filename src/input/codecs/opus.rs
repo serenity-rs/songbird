@@ -26,6 +26,13 @@ pub struct OpusDecoder {
     rawbuf: Vec<f32>,
 }
 
+/// # SAFETY
+/// The underlying Opus decoder (currently) requires only a `&self` parameter
+/// to decode given packets, which is likely a mistaken decision.
+///
+/// This struct makes stronger assumptions and only touches FFI decoder state with a
+/// `&mut self`, preventing data races via `&OpusDecoder` as required by `impl Sync`.
+/// No access to other internal state relies on unsafety or crosses FFI.
 unsafe impl Sync for OpusDecoder {}
 
 impl OpusDecoder {
@@ -82,9 +89,12 @@ impl Decoder for OpusDecoder {
     fn try_new(params: &CodecParameters, _options: &DecoderOptions) -> SymphResult<Self> {
         let inner = AudiopusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
 
+        let mut params = params.clone();
+        params.with_sample_rate(SAMPLE_RATE_RAW as u32);
+
         Ok(Self {
             inner,
-            params: params.clone(),
+            params,
             buf: AudioBuffer::new(
                 MONO_FRAME_SIZE as u64,
                 SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
@@ -124,5 +134,33 @@ impl Decoder for OpusDecoder {
 
     fn last_decoded(&self) -> AudioBufferRef {
         self.buf.as_audio_buffer_ref()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        constants::test_data::FILE_WEBM_TARGET,
+        input::{input_tests::*, File},
+    };
+
+    // NOTE: this covers youtube audio in a non-copyright-violating way, since
+    // those depend on an HttpRequest internally anyhow.
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn webm_track_plays() {
+        track_plays_passthrough(|| File::new(FILE_WEBM_TARGET)).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn webm_forward_seek_correct() {
+        forward_seek_correct(|| File::new(FILE_WEBM_TARGET)).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn webm_backward_seek_correct() {
+        backward_seek_correct(|| File::new(FILE_WEBM_TARGET)).await;
     }
 }

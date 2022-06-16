@@ -97,9 +97,7 @@ impl Compose for YoutubeDl {
             request: url.to_string(),
         };
 
-        let out = req.create_async().await;
-
-        out
+        req.create_async().await
     }
 
     fn should_create_async(&self) -> bool {
@@ -118,5 +116,31 @@ impl Compose for YoutubeDl {
                 "Failed to instansiate any metadata... Should be unreachable.".into();
             AudioStreamError::Fail(msg)
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use reqwest::Client;
+
+    use super::*;
+    use crate::{constants::test_data::YTDL_TARGET, input::input_tests::*};
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn ytdl_track_plays() {
+        track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn ytdl_forward_seek_correct() {
+        forward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn ytdl_backward_seek_correct() {
+        backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
     }
 }

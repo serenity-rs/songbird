@@ -9,7 +9,6 @@ use flume::Sender;
 use parking_lot::RwLock;
 use std::{result::Result as StdResult, sync::Arc, time::Duration};
 use symphonia_core::{
-    errors::{Error as SymphoniaError, SeekErrorKind},
     formats::{SeekMode, SeekTo},
     io::MediaSource,
 };
@@ -112,31 +111,25 @@ impl BlockyTaskPool {
         mut input: Parsed,
         rec: Option<Box<dyn Compose>>,
         seek_time: SeekTo,
-        should_recreate: bool,
+        // Not all of symphonia's formats bother to return SeekErrorKind::ForwardOnly.
+        // So, we need *this* flag.
+        backseek_needed: bool,
         config: Arc<Config>,
     ) {
         let pool_clone = self.clone();
         let pool = self.pool.read();
 
-        pool.execute(move || {
-            let seek_result = input
-                .format
-                .seek(SeekMode::Coarse, copy_seek_to(&seek_time));
-
-            let backseek_needed = matches!(
-                seek_result,
-                Err(SymphoniaError::SeekError(SeekErrorKind::ForwardOnly))
-            );
-
-            match rec {
-                Some(rec) if should_recreate && backseek_needed => {
-                    pool_clone.create(callback, Input::Lazy(rec), Some(seek_time), config);
-                },
-                _ => {
-                    input.decoder.reset();
-                    drop(callback.send(MixerInputResultMessage::Seek(input, rec, seek_result)));
-                },
-            }
+        pool.execute(move || match rec {
+            Some(rec) if (!input.supports_backseek) && backseek_needed => {
+                pool_clone.create(callback, Input::Lazy(rec), Some(seek_time), config);
+            },
+            _ => {
+                let seek_result = input
+                    .format
+                    .seek(SeekMode::Accurate, copy_seek_to(&seek_time));
+                input.decoder.reset();
+                drop(callback.send(MixerInputResultMessage::Seek(input, rec, seek_result)));
+            },
         });
     }
 }

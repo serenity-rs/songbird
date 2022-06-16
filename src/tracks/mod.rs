@@ -192,8 +192,11 @@ impl Track {
     }
 }
 
-impl From<Input> for Track {
-    fn from(val: Input) -> Self {
-        Track::new(val)
+/// Any [`Input`] (or struct which can be used as one) can also be made into a [`Track`].
+impl<T: Into<Input>> From<T> for Track {
+    // NOTE: this is `Into` to support user-given structs which can
+    // only `impl Into<Input>`.
+    fn from(val: T) -> Self {
+        Track::new(val.into())
     }
 }
