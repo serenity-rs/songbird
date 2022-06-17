@@ -46,6 +46,8 @@ use core::{
     task::{Context, Poll},
 };
 use flume::{r#async::RecvFut, SendError, Sender};
+#[cfg(feature = "builtin-queue")]
+use std::time::Duration;
 use tasks::message::CoreMessage;
 use tracing::instrument;
 
@@ -59,8 +61,13 @@ pub struct Driver {
     config: Config,
     self_mute: bool,
     sender: Sender<CoreMessage>,
+    // Making this an Option is an abhorrent hack to coerce the borrow checker
+    // into letting us have an &TrackQueue at the same time as an &mut Driver.
+    // This is probably preferable to cloning the driver: Arc<...> should be nonzero
+    // and if the compiler's smart we'll just codegen a pointer swap. It definitely makes
+    // use of NonZero.
     #[cfg(feature = "builtin-queue")]
-    queue: TrackQueue,
+    queue: Option<TrackQueue>,
 }
 
 impl Driver {
@@ -77,7 +84,7 @@ impl Driver {
             self_mute: false,
             sender,
             #[cfg(feature = "builtin-queue")]
-            queue: TrackQueue::default(),
+            queue: Some(TrackQueue::default()),
         }
     }
 
@@ -258,7 +265,9 @@ impl Driver {
     /// [`Driver::enqueue_input`].
     #[must_use]
     pub fn queue(&self) -> &TrackQueue {
-        &self.queue
+        self.queue
+            .as_ref()
+            .expect("Queue: The only case this can fail is if a previous queue operation panicked.")
     }
 
     /// Adds an audio [`Input`] to this driver's built-in queue.
@@ -273,8 +282,26 @@ impl Driver {
     /// Requires the `"builtin-queue"` feature.
     pub async fn enqueue(&mut self, mut track: Track) -> TrackHandle {
         let preload_time = TrackQueue::get_preload_time(&mut track).await;
-        let handle = self.play(track.pause());
-        self.queue.add_raw(handle, preload_time).await
+        self.enqueue_with_preload(track, preload_time)
+    }
+
+    /// Add an existing [`Track`] to the queue, using a known time to preload the next track.
+    ///
+    /// See [`TrackQueue::add_with_preload`] for how `preload_time` is used.
+    ///
+    /// Requires the `"builtin-queue"` feature.
+    pub fn enqueue_with_preload(
+        &mut self,
+        track: Track,
+        preload_time: Option<Duration>,
+    ) -> TrackHandle {
+        let queue = self.queue.take().expect(
+            "Enqueue: The only case this can fail is if a previous queue operation panicked.",
+        );
+        let handle = queue.add_with_preload(track, self, preload_time);
+        self.queue = Some(queue);
+
+        handle
     }
 }
 
