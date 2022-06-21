@@ -2,7 +2,6 @@
 
 use flume::{Receiver, Sender};
 
-#[cfg(test)]
 use crate::{
     tracks::{PlayMode, TrackHandle},
     Event,
@@ -10,7 +9,6 @@ use crate::{
     EventHandler,
     TrackEvent,
 };
-#[cfg(test)]
 use std::time::Duration;
 
 #[allow(dead_code)]
@@ -70,7 +68,6 @@ impl<T> From<T> for TickMessage<T> {
     }
 }
 
-#[cfg(test)]
 impl From<TickMessage<OutputMessage>> for OutputPacket {
     fn from(val: TickMessage<OutputMessage>) -> Self {
         match val {
@@ -80,7 +77,6 @@ impl From<TickMessage<OutputMessage>> for OutputPacket {
     }
 }
 
-#[cfg(test)]
 impl From<TickMessage<Vec<u8>>> for OutputPacket {
     fn from(val: TickMessage<Vec<u8>>) -> Self {
         match val {
@@ -90,7 +86,6 @@ impl From<TickMessage<Vec<u8>>> for OutputPacket {
     }
 }
 
-#[cfg(test)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum OutputPacket {
     Raw(OutputMessage),
@@ -98,7 +93,6 @@ pub enum OutputPacket {
     Empty,
 }
 
-#[cfg(test)]
 impl OutputPacket {
     pub fn raw(&self) -> Option<&OutputMessage> {
         if let Self::Raw(o) = self {
@@ -109,21 +103,18 @@ impl OutputPacket {
     }
 }
 
-#[cfg(test)]
 #[derive(Clone, Debug)]
 pub enum OutputReceiver {
     Raw(Receiver<TickMessage<OutputMessage>>),
     Rtp(Receiver<TickMessage<Vec<u8>>>),
 }
 
-#[cfg(test)]
 #[derive(Clone)]
 pub struct DriverTestHandle {
     pub rx: OutputReceiver,
     pub tx: Sender<u64>,
 }
 
-#[cfg(test)]
 impl DriverTestHandle {
     pub fn recv(&self) -> OutputPacket {
         match &self.rx {

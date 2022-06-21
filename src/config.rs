@@ -1,8 +1,11 @@
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, test_config::*, CryptoMode, DecodeMode, MixMode},
+    driver::{retry::Retry, CryptoMode, DecodeMode, MixMode},
     input::codecs::*,
 };
+
+#[cfg(test)]
+use crate::driver::test_config::*;
 
 #[cfg(feature = "driver")]
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
@@ -111,9 +114,11 @@ pub struct Config {
 
     // Test only attributes
     #[cfg(feature = "driver")]
+    #[cfg(test)]
     /// Test config to offer precise control over mixing tick rate/count.
     pub(crate) tick_style: TickStyle,
     #[cfg(feature = "driver")]
+    #[cfg(test)]
     /// If set, skip connection and encryption steps.
     pub(crate) override_connection: Option<OutputMode>,
 }
@@ -140,8 +145,10 @@ impl Default for Config {
             #[cfg(feature = "driver")]
             format_registry: &PROBE,
             #[cfg(feature = "driver")]
+            #[cfg(test)]
             tick_style: TickStyle::Timed,
             #[cfg(feature = "driver")]
+            #[cfg(test)]
             override_connection: None,
         }
     }

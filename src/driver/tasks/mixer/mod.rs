@@ -13,10 +13,7 @@ pub use track::*;
 use super::{disposal, error::Result, message::*};
 use crate::{
     constants::*,
-    driver::{
-        test_config::{OutputMessage, OutputMode, TickStyle},
-        MixMode,
-    },
+    driver::MixMode,
     events::EventStore,
     input::{Input, Parsed},
     tracks::{Action, LoopState, PlayError, PlayMode, TrackCommand, TrackHandle, TrackState, View},
@@ -31,7 +28,6 @@ use audiopus::{
 use discortp::{
     rtp::{MutableRtpPacket, RtpPacket},
     MutablePacket,
-    Packet,
 };
 use flume::{Receiver, Sender, TryRecvError};
 use rand::random;
@@ -54,6 +50,10 @@ use tokio::runtime::Handle;
 use tracing::{debug, error, instrument, warn};
 use xsalsa20poly1305::TAG_SIZE;
 
+#[cfg(test)]
+use crate::driver::test_config::{OutputMessage, OutputMode, TickStyle};
+#[cfg(test)]
+use discortp::Packet as _;
 pub struct Mixer {
     pub bitrate: Bitrate,
     pub config: Arc<Config>,
@@ -181,8 +181,13 @@ impl Mixer {
         let mut events_failure = false;
         let mut conn_failure = false;
 
+        #[cfg(test)]
+        let ignore_check = self.config.override_connection.is_some();
+        #[cfg(not(test))]
+        let ignore_check = false;
+
         'runner: loop {
-            if self.conn_active.is_some() || self.config.override_connection.is_some() {
+            if self.conn_active.is_some() || ignore_check {
                 loop {
                     match self.mix_rx.try_recv() {
                         Ok(m) => {
@@ -207,7 +212,7 @@ impl Mixer {
 
                 // The above action may have invalidated the connection; need to re-check!
                 // Also, if we're in a test mode we should unconditionally run packet mixing code.
-                if self.conn_active.is_some() || self.config.override_connection.is_some() {
+                if self.conn_active.is_some() || ignore_check {
                     if let Err(e) = self.cycle().and_then(|_| self.audio_commands_events()) {
                         events_failure |= e.should_trigger_interconnect_rebuild();
                         conn_failure |= e.should_trigger_connect();
@@ -555,38 +560,46 @@ impl Mixer {
         Ok(())
     }
 
+    #[cfg(test)]
+    fn _march_deadline(&mut self) {
+        match &self.config.tick_style {
+            TickStyle::Timed => {
+                std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
+                self.deadline += TIMESTEP_LENGTH;
+            },
+            TickStyle::UntimedWithExecLimit(rx) => {
+                if self.remaining_loops.is_none() {
+                    if let Ok(new_val) = rx.recv() {
+                        self.remaining_loops = Some(new_val.wrapping_sub(1));
+                    }
+                }
+
+                if let Some(cnt) = self.remaining_loops.as_mut() {
+                    if *cnt == 0 {
+                        self.remaining_loops = None;
+                    } else {
+                        *cnt = cnt.wrapping_sub(1);
+                    }
+                }
+            },
+        }
+    }
+
+    #[cfg(not(test))]
+    #[inline(always)]
+    #[allow(clippy::inline_always)] // Justified, this is a very very hot path
+    fn _march_deadline(&mut self) {
+        std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
+        self.deadline += TIMESTEP_LENGTH;
+    }
+
     #[inline]
     fn march_deadline(&mut self) {
         if self.skip_sleep {
             return;
         }
 
-        // Timed is the usual, default case.
-        // The others exist for end-to-end testing.
-        match &self.config.tick_style {
-            TickStyle::Timed => {
-                std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
-                self.deadline += TIMESTEP_LENGTH;
-            },
-            TickStyle::UntimedWithExecLimit(_rx) => {
-                #[cfg(test)]
-                {
-                    if self.remaining_loops.is_none() {
-                        if let Ok(new_val) = _rx.recv() {
-                            self.remaining_loops = Some(new_val.wrapping_sub(1));
-                        }
-                    }
-
-                    if let Some(cnt) = self.remaining_loops.as_mut() {
-                        if *cnt == 0 {
-                            self.remaining_loops = None;
-                        } else {
-                            *cnt = cnt.wrapping_sub(1);
-                        }
-                    }
-                }
-            },
-        }
+        self._march_deadline();
     }
 
     pub fn cycle(&mut self) -> Result<()> {
@@ -638,6 +651,7 @@ impl Mixer {
 
                 self.march_deadline();
 
+                #[cfg(test)]
                 match &self.config.override_connection {
                     Some(OutputMode::Raw(tx)) =>
                         drop(tx.send(crate::driver::test_config::TickMessage::NoEl)),
@@ -675,6 +689,8 @@ impl Mixer {
         // Wait till the right time to send this packet:
         // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
         self.march_deadline();
+
+        #[cfg(test)]
         if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
             let msg = match mix_len {
                 MixType::Passthrough(len) if len == SILENT_FRAME.len() => OutputMessage::Silent,
@@ -697,6 +713,9 @@ impl Mixer {
         } else {
             self.prep_and_send_packet(&mix_buffer, mix_len)?;
         }
+
+        #[cfg(not(test))]
+        self.prep_and_send_packet(&mix_buffer, mix_len)?;
 
         if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
             for plane in self.symph_mix.planes_mut().planes() {
@@ -743,6 +762,7 @@ impl Mixer {
                 .write_packet_nonce(&mut rtp, TAG_SIZE + payload_len);
 
             // Packet encryption ignored in test modes.
+            #[cfg(test)]
             if self.config.override_connection.is_none() {
                 conn.crypto_state.kind().encrypt_in_place(
                     &mut rtp,
@@ -754,10 +774,17 @@ impl Mixer {
             RtpPacket::minimum_packet_size() + final_payload_size
         };
 
+        #[cfg(test)]
         if let Some(OutputMode::Rtp(tx)) = &self.config.override_connection {
             // Test mode: send unencrypted (compressed) packets to local receiver.
             drop(tx.send(self.packet[..index].to_vec().into()));
         } else {
+            conn.udp_tx
+                .send(UdpTxMessage::Packet(self.packet[..index].to_vec()))?;
+        }
+
+        #[cfg(not(test))]
+        {
             // Normal operation: send encrypted payload to UDP Tx task.
 
             // TODO: This is dog slow, don't do this.
