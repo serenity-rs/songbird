@@ -762,8 +762,12 @@ impl Mixer {
                 .write_packet_nonce(&mut rtp, TAG_SIZE + payload_len);
 
             // Packet encryption ignored in test modes.
+            #[cfg(not(test))]
+            let encrypt = true;
             #[cfg(test)]
-            if self.config.override_connection.is_none() {
+            let encrypt = self.config.override_connection.is_none();
+
+            if encrypt {
                 conn.crypto_state.kind().encrypt_in_place(
                     &mut rtp,
                     &conn.cipher,
