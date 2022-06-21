@@ -168,6 +168,8 @@ impl TrackQueue {
     ///
     /// This method will preload the next track 5 seconds before the current track ends, if
     /// the [`AuxMetadata`] can be successfully queried for a [`Duration`].
+    ///
+    /// [`AuxMetadata`]: crate::input::AuxMetadata
     pub async fn add_source(&self, input: Input, driver: &mut Driver) -> TrackHandle {
         self.add(input.into(), driver).await
     }
@@ -179,6 +181,8 @@ impl TrackQueue {
     ///
     /// This method will preload the next track 5 seconds before the current track ends, if
     /// the [`AuxMetadata`] can be successfully queried for a [`Duration`].
+    ///
+    /// [`AuxMetadata`]: crate::input::AuxMetadata
     pub async fn add(&self, mut track: Track, driver: &mut Driver) -> TrackHandle {
         let preload_time = Self::get_preload_time(&mut track).await;
         self.add_with_preload(track, driver, preload_time)
@@ -203,6 +207,8 @@ impl TrackQueue {
     /// a track ends.
     ///
     /// A `None` value will not ready the next track until this track ends, disabling preload.
+    ///
+    /// [`AuxMetadata`]: crate::input::AuxMetadata
     #[inline]
     pub fn add_with_preload(
         &self,
