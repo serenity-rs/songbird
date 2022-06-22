@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use futures::TryStreamExt;
 use pin_project::pin_project;
 use reqwest::{
-    header::{ACCEPT_RANGES, CONTENT_LENGTH, CONTENT_TYPE, RANGE, RETRY_AFTER},
+    header::{HeaderMap, ACCEPT_RANGES, CONTENT_LENGTH, CONTENT_TYPE, RANGE, RETRY_AFTER},
     Client,
 };
 use std::{
@@ -30,20 +30,32 @@ pub struct HttpRequest {
     pub client: Client,
     /// The target URL of the required resource.
     pub request: String,
+    /// HTTP header fields to add to any created requests.
+    pub headers: HeaderMap,
 }
 
 impl HttpRequest {
     #[must_use]
     /// Create a lazy HTTP request.
     pub fn new(client: Client, request: String) -> Self {
-        HttpRequest { client, request }
+        Self::new_with_headers(client, request, HeaderMap::default())
+    }
+
+    #[must_use]
+    /// Create a lazy HTTP request.
+    pub fn new_with_headers(client: Client, request: String, headers: HeaderMap) -> Self {
+        HttpRequest {
+            client,
+            request,
+            headers,
+        }
     }
 
     async fn create_stream(
         &mut self,
         offset: Option<u64>,
     ) -> Result<(HttpStream, Option<Hint>), AudioStreamError> {
-        let mut resp = self.client.get(&self.request);
+        let mut resp = self.client.get(&self.request).headers(self.headers.clone());
 
         if let Some(offset) = offset {
             resp = resp.header(RANGE, format!("bytes={}-", offset));

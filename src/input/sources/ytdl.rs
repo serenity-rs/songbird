@@ -1,6 +1,9 @@
 use crate::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input};
 use async_trait::async_trait;
-use reqwest::Client;
+use reqwest::{
+    header::{HeaderMap, HeaderName, HeaderValue},
+    Client,
+};
 use serde_json::Value;
 use std::error::Error;
 use symphonia_core::io::MediaSource;
@@ -82,6 +85,8 @@ impl Compose for YoutubeDl {
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
         let stdout = self.query().await?;
 
+        // TODO: refactor as actual structs.
+
         let url = stdout
             .as_object()
             .and_then(|top| top.get("url"))
@@ -92,9 +97,25 @@ impl Compose for YoutubeDl {
                 AudioStreamError::Fail(msg)
             })?;
 
+        let mut headers = HeaderMap::default();
+
+        if let Some(map) = stdout
+            .as_object()
+            .and_then(|top| top.get("http_headers"))
+            .and_then(Value::as_object)
+        {
+            headers.extend(map.iter().filter_map(|(k, v)| {
+                let k = HeaderName::from_bytes(k.as_bytes()).ok()?;
+                v.as_str()
+                    .and_then(|v| HeaderValue::from_str(v).ok())
+                    .map(move |v| (k, v))
+            }));
+        }
+
         let mut req = HttpRequest {
             client: self.client.clone(),
             request: url.to_string(),
+            headers,
         };
 
         req.create_async().await
