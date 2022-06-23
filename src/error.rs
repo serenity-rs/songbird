@@ -36,10 +36,6 @@ pub enum JoinError {
     ///
     /// [the `Call`'s configuration]: crate::Config
     TimedOut,
-    /// The given guild ID was zero.
-    IllegalGuild,
-    /// The given channel ID was zero.
-    IllegalChannel,
     #[cfg(feature = "driver")]
     /// The driver failed to establish a voice connection.
     ///
@@ -91,8 +87,6 @@ impl fmt::Display for JoinError {
             JoinError::NoSender => write!(f, "no gateway destination"),
             JoinError::NoCall => write!(f, "tried to leave a non-existent call"),
             JoinError::TimedOut => write!(f, "gateway response from Discord timed out"),
-            JoinError::IllegalGuild => write!(f, "target guild ID was zero"),
-            JoinError::IllegalChannel => write!(f, "target channel ID was zero"),
             #[cfg(feature = "driver")]
             JoinError::Driver(_) => write!(f, "establishing connection failed"),
             #[cfg(feature = "serenity")]
@@ -113,8 +107,6 @@ impl Error for JoinError {
             JoinError::NoSender => None,
             JoinError::NoCall => None,
             JoinError::TimedOut => None,
-            JoinError::IllegalGuild => None,
-            JoinError::IllegalChannel => None,
             #[cfg(feature = "driver")]
             JoinError::Driver(e) => Some(e),
             #[cfg(feature = "serenity")]

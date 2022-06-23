@@ -32,9 +32,10 @@ use tracing::{info, warn};
 ///     tracks::TrackQueue,
 /// };
 /// use std::collections::HashMap;
+/// use std::num::NonZeroU64;
 ///
 /// # async {
-/// let guild = GuildId(0);
+/// let guild = GuildId(NonZeroU64::new(1).unwrap());
 /// // A Call is also valid here!
 /// let mut driver: Driver = Default::default();
 ///

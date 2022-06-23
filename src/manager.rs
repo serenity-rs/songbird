@@ -169,7 +169,7 @@ impl Songbird {
                         .read()
                         .expect("Manager has not been initialised");
 
-                    let shard = shard_id(guild_id.0, info.shard_count);
+                    let shard = shard_id(guild_id.0.get(), info.shard_count);
                     let shard_handle = self
                         .sharder
                         .get_shard(shard)
@@ -376,7 +376,7 @@ impl Songbird {
                     .client_data
                     .read()
                     .as_ref()
-                    .map_or(true, |data| v.0.user_id.get() != data.user_id.0)
+                    .map_or(true, |data| v.0.user_id.into_nonzero() != data.user_id.0)
                 {
                     return;
                 }
@@ -396,30 +396,30 @@ impl Songbird {
 #[cfg(feature = "serenity")]
 #[async_trait]
 impl VoiceGatewayManager for Songbird {
-    async fn initialise(&self, shard_count: u64, user_id: SerenityUser) {
+    async fn initialise(&self, shard_count: u32, user_id: SerenityUser) {
         debug!(
             "Initialising Songbird for Serenity: ID {:?}, {} Shards",
             user_id, shard_count
         );
-        self.initialise_client_data(shard_count, user_id);
+        self.initialise_client_data(shard_count as u64, user_id);
         debug!("Songbird ({:?}) Initialised!", user_id);
     }
 
-    async fn register_shard(&self, shard_id: u64, sender: Sender<InterMessage>) {
+    async fn register_shard(&self, shard_id: u32, sender: Sender<InterMessage>) {
         debug!(
             "Registering Serenity shard handle {} with Songbird",
             shard_id
         );
-        self.sharder.register_shard_handle(shard_id, sender);
+        self.sharder.register_shard_handle(shard_id as u64, sender);
         debug!("Registered shard handle {}.", shard_id);
     }
 
-    async fn deregister_shard(&self, shard_id: u64) {
+    async fn deregister_shard(&self, shard_id: u32) {
         debug!(
             "Deregistering Serenity shard handle {} with Songbird",
             shard_id
         );
-        self.sharder.deregister_shard_handle(shard_id);
+        self.sharder.deregister_shard_handle(shard_id as u64);
         debug!("Deregistered shard handle {}.", shard_id);
     }
 

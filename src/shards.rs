@@ -1,9 +1,6 @@
 //! Handlers for sending packets over sharded connections.
 
-use crate::{
-    error::{JoinError, JoinResult},
-    id::*,
-};
+use crate::{error::JoinResult, id::*};
 use async_trait::async_trait;
 use derivative::Derivative;
 #[cfg(feature = "serenity")]
@@ -13,9 +10,9 @@ use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock
 use serde_json::json;
 #[cfg(feature = "serenity")]
 use serenity::gateway::InterMessage;
+use std::sync::Arc;
 #[cfg(feature = "serenity")]
 use std::{collections::HashMap, result::Result as StdResult};
-use std::{num::NonZeroU64, sync::Arc};
 use tracing::{debug, error};
 #[cfg(feature = "twilight")]
 use twilight_gateway::{Cluster, Shard as TwilightShard};
@@ -149,13 +146,6 @@ impl VoiceUpdate for Shard {
         self_deaf: bool,
         self_mute: bool,
     ) -> JoinResult<()> {
-        let nz_guild_id = NonZeroU64::new(guild_id.0).ok_or(JoinError::IllegalGuild)?;
-
-        let nz_channel_id = match channel_id {
-            Some(c) => Some(NonZeroU64::new(c.0).ok_or(JoinError::IllegalChannel)?),
-            None => None,
-        };
-
         match self {
             #[cfg(feature = "serenity")]
             Shard::Serenity(handle) => {
@@ -174,15 +164,15 @@ impl VoiceUpdate for Shard {
             },
             #[cfg(feature = "twilight")]
             Shard::TwilightCluster(handle, shard_id) => {
-                let channel_id = nz_channel_id.map(From::from);
-                let cmd = TwilightVoiceState::new(nz_guild_id, channel_id, self_deaf, self_mute);
+                let channel_id = channel_id.map(|c| c.0).map(From::from);
+                let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
                 handle.command(*shard_id, &cmd).await?;
                 Ok(())
             },
             #[cfg(feature = "twilight")]
             Shard::TwilightShard(handle) => {
-                let channel_id = nz_channel_id.map(From::from);
-                let cmd = TwilightVoiceState::new(nz_guild_id, channel_id, self_deaf, self_mute);
+                let channel_id = channel_id.map(|c| c.0).map(From::from);
+                let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
                 handle.command(&cmd).await?;
                 Ok(())
             },

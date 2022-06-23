@@ -176,7 +176,7 @@ async fn main() {
 #[command]
 #[only_in(guilds)]
 async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let connect_to = match args.single::<u64>() {
+    let connect_to = match args.single::<std::num::NonZeroU64>() {
         Ok(id) => ChannelId(id),
         Err(_) => {
             check_msg(
