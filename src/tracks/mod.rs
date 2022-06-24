@@ -27,7 +27,6 @@ mod view;
 
 pub use self::{
     action::*,
-    command::*,
     error::*,
     handle::*,
     looping::*,
@@ -37,6 +36,7 @@ pub use self::{
     state::*,
     view::*,
 };
+pub(crate) use command::*;
 
 use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::Input};
 use std::time::Duration;

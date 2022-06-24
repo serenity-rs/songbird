@@ -7,6 +7,7 @@ use crate::{
     input::{AudioStreamError, Compose, Parsed},
 };
 use flume::Sender;
+use std::sync::Arc;
 use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
@@ -43,12 +44,12 @@ pub enum MixerMessage {
 }
 
 pub enum MixerInputResultMessage {
-    CreateErr(AudioStreamError),
-    ParseErr(SymphoniaError),
+    CreateErr(Arc<AudioStreamError>),
+    ParseErr(Arc<SymphoniaError>),
     Seek(
         Parsed,
         Option<Box<dyn Compose>>,
-        Result<SeekedTo, SymphoniaError>,
+        Result<SeekedTo, Arc<SymphoniaError>>,
     ),
     Built(Parsed, Option<Box<dyn Compose>>),
 }

@@ -73,7 +73,7 @@ impl BlockyTaskPool {
                 self.parse(config, callback, LiveInput::Raw(o), Some(rec), seek_time);
             },
             Err(e) => {
-                drop(callback.send(MixerInputResultMessage::CreateErr(e)));
+                drop(callback.send(MixerInputResultMessage::CreateErr(e.into())));
             },
         }
     }
@@ -99,7 +99,7 @@ impl BlockyTaskPool {
                     },
                 Ok(_) => unreachable!(),
                 Err(e) => {
-                    drop(callback.send(MixerInputResultMessage::ParseErr(e)));
+                    drop(callback.send(MixerInputResultMessage::ParseErr(e.into())));
                 },
             },
         );
@@ -128,7 +128,11 @@ impl BlockyTaskPool {
                     .format
                     .seek(SeekMode::Accurate, copy_seek_to(&seek_time));
                 input.decoder.reset();
-                drop(callback.send(MixerInputResultMessage::Seek(input, rec, seek_result)));
+                drop(callback.send(MixerInputResultMessage::Seek(
+                    input,
+                    rec,
+                    seek_result.map_err(Arc::new),
+                )));
             },
         });
     }

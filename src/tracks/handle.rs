@@ -1,6 +1,6 @@
 use super::*;
 use crate::events::{Event, EventData, EventHandler};
-use flume::Sender;
+use flume::{Receiver, Sender};
 use std::{fmt, sync::Arc, time::Duration};
 use tokio::sync::RwLock;
 use typemap_rev::TypeMap;
@@ -78,21 +78,48 @@ impl TrackHandle {
         self.send(TrackCommand::Volume(volume))
     }
 
+    #[must_use]
     /// Ready a track for playing if it is lazily initialised.
-    pub fn make_playable(&self) -> TrackResult<()> {
-        self.send(TrackCommand::MakePlayable)
+    ///
+    /// If a track is already playable, the callback will instantly succeed.
+    pub fn make_playable(&self) -> TrackCallback<()> {
+        let (tx, rx) = flume::bounded(1);
+        let fail = self.send(TrackCommand::MakePlayable(tx)).is_err();
+
+        TrackCallback { fail, rx }
     }
 
+    /// Ready a track for playing if it is lazily initialised.
+    ///
+    /// This folds [`Self::make_playable`] into a single `async` result, but must
+    /// be awaited for the command to be sent.
+    pub async fn make_playable_async(&self) -> TrackResult<()> {
+        self.make_playable().result_async().await
+    }
+
+    #[must_use]
     /// Seeks along the track to the specified position.
     ///
     /// If the underlying [`Input`] does not support seeking,
     /// forward seeks will succeed. Backward seeks will recreate the
-    /// track using the lazy [`Compose`] if present.
+    /// track using the lazy [`Compose`] if present. The returned callback
+    /// will indicate whether the seek succeeded.
     ///
     /// [`Input`]: crate::input::Input
     /// [`Compose`]: crate::input::Compose
-    pub fn seek_time(&self, position: Duration) -> TrackResult<()> {
-        self.send(TrackCommand::Seek(position))
+    pub fn seek_time(&self, position: Duration) -> TrackCallback<Duration> {
+        let (tx, rx) = flume::bounded(1);
+        let fail = self.send(TrackCommand::Seek(position, tx)).is_err();
+
+        TrackCallback { fail, rx }
+    }
+
+    /// Seeks along the track to the specified position.
+    ///
+    /// This folds [`Self::seek_time`] into a single `async` result, but must
+    /// be awaited for the command to be sent.
+    pub async fn seek_time_async(&self, position: Duration) -> TrackResult<Duration> {
+        self.seek_time(position).result_async().await
     }
 
     /// Attach an event handler to an audio track. These will receive [`EventContext::Track`].
@@ -185,12 +212,37 @@ impl TrackHandle {
     /// Send a raw command to the [`Track`] object.
     ///
     /// [`Track`]: Track
-    pub fn send(&self, cmd: TrackCommand) -> TrackResult<()> {
+    pub(crate) fn send(&self, cmd: TrackCommand) -> TrackResult<()> {
         // As the send channels are unbounded, we can be reasonably certain
         // that send failure == cancellation.
         self.inner
             .command_channel
             .send(cmd)
             .map_err(|_e| ControlError::Finished)
+    }
+}
+
+#[allow(missing_docs)]
+pub struct TrackCallback<T> {
+    fail: bool,
+    rx: Receiver<Result<T, PlayError>>,
+}
+
+impl<T> TrackCallback<T> {
+    #![allow(missing_docs)]
+    pub fn result(self) -> TrackResult<T> {
+        if self.fail {
+            Err(ControlError::Finished)
+        } else {
+            self.rx.recv()?.map_err(ControlError::Play)
+        }
+    }
+
+    pub async fn result_async(self) -> TrackResult<T> {
+        if self.fail {
+            Err(ControlError::Finished)
+        } else {
+            self.rx.recv_async().await?.map_err(ControlError::Play)
+        }
     }
 }

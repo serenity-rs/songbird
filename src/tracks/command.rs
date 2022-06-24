@@ -21,7 +21,7 @@ pub enum TrackCommand {
     /// Seek to the given duration.
     ///
     /// On unsupported input types, this can be fatal.
-    Seek(Duration),
+    Seek(Duration, Sender<Result<Duration, PlayError>>),
     /// Register an event on this track.
     AddEvent(EventData),
     /// Run some closure on this track, with direct access to the core object.
@@ -31,7 +31,7 @@ pub enum TrackCommand {
     /// Change the loop count/strategy of this track.
     Loop(LoopState),
     /// Prompts a track's input to become live and usable, if it is not already.
-    MakePlayable,
+    MakePlayable(Sender<Result<(), PlayError>>),
 }
 
 impl std::fmt::Debug for TrackCommand {
@@ -44,12 +44,12 @@ impl std::fmt::Debug for TrackCommand {
                 Self::Pause => "Pause".to_string(),
                 Self::Stop => "Stop".to_string(),
                 Self::Volume(vol) => format!("Volume({})", vol),
-                Self::Seek(d) => format!("Seek({:?})", d),
+                Self::Seek(d, _) => format!("Seek({:?})", d),
                 Self::AddEvent(evt) => format!("AddEvent({:?})", evt),
                 Self::Do(_f) => "Do([function])".to_string(),
                 Self::Request(tx) => format!("Request({:?})", tx),
                 Self::Loop(loops) => format!("Loop({:?})", loops),
-                Self::MakePlayable => "MakePlayable".to_string(),
+                Self::MakePlayable(_) => "MakePlayable".to_string(),
             }
         )
     }

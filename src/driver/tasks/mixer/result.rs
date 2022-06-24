@@ -20,21 +20,23 @@ impl From<SymphoniaError> for MixStatus {
     }
 }
 
-#[derive(Debug)]
+// The Symph errors are Arc'd here since if they come up, they will always
+// be Arc'd anyway via into_user.
+#[derive(Clone, Debug)]
 pub enum InputReadyingError {
-    Parsing(SymphoniaError),
-    Creation(AudioStreamError),
-    Seeking(SymphoniaError),
+    Parsing(Arc<SymphoniaError>),
+    Creation(Arc<AudioStreamError>),
+    Seeking(Arc<SymphoniaError>),
     Dropped,
     Waiting,
 }
 
 impl InputReadyingError {
-    pub fn into_user(self) -> Option<PlayError> {
+    pub fn as_user(&self) -> Option<PlayError> {
         match self {
-            Self::Parsing(e) => Some(PlayError::Parse(Arc::new(e))),
-            Self::Creation(e) => Some(PlayError::Create(Arc::new(e))),
-            Self::Seeking(e) => Some(PlayError::Seek(Arc::new(e))),
+            Self::Parsing(e) => Some(PlayError::Parse(e.clone())),
+            Self::Creation(e) => Some(PlayError::Create(e.clone())),
+            Self::Seeking(e) => Some(PlayError::Seek(e.clone())),
             _ => None,
         }
     }

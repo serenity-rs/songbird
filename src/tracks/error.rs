@@ -1,4 +1,5 @@
 use crate::input::AudioStreamError;
+use flume::RecvError;
 use std::{
     error::Error,
     fmt::{self, Display},
@@ -10,7 +11,7 @@ use symphonia_core::errors::Error as SymphoniaError;
 ///
 /// Unless otherwise stated, these don't invalidate an existing track,
 /// but do advise on valid operations and commands.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum ControlError {
     /// The operation failed because the track has ended, has been removed
@@ -19,6 +20,12 @@ pub enum ControlError {
     /// The supplied event listener can never be fired by a track, and should
     /// be attached to the driver instead.
     InvalidTrackEvent,
+    /// A command to seek or ready the target track failed when parsing or creating the stream.
+    ///
+    /// This is a fatal error, and the track will be removed.
+    Play(PlayError),
+    /// Another `seek`/`make_playable` request was made, and so this callback handler was dropped.
+    Dropped,
 }
 
 impl Display for ControlError {
@@ -29,11 +36,21 @@ impl Display for ControlError {
             ControlError::InvalidTrackEvent => {
                 write!(f, "given event listener can't be fired on a track")
             },
+            ControlError::Play(p) => {
+                write!(f, "i/o request on track failed: {}", p)
+            },
+            ControlError::Dropped => write!(f, "request was replaced by another of same type"),
         }
     }
 }
 
 impl Error for ControlError {}
+
+impl From<RecvError> for ControlError {
+    fn from(_: RecvError) -> Self {
+        ControlError::Dropped
+    }
+}
 
 /// Alias for most calls to a [`TrackHandle`].
 ///

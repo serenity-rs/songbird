@@ -34,7 +34,6 @@ use rand::random;
 use rubato::{FftFixedOut, Resampler};
 use std::{
     io::Write,
-    result::Result as StdResult,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -453,7 +452,9 @@ impl Mixer {
             // Changes to play state etc. MUST all be handled.
             let action = track.process_commands(i, &self.interconnect);
 
-            if let Some(time) = action.seek_point {
+            if let Some((time, callback)) = action.seek_point {
+                track.callbacks.seek = Some(callback);
+
                 let backseek_needed = time < track.position;
 
                 let full_input = &mut track.input;
@@ -505,7 +506,7 @@ impl Mixer {
                 }
             }
 
-            if action.make_playable {
+            if let Some(callback) = action.make_playable {
                 if let Err(e) = track.get_or_ready_input(
                     i,
                     &self.interconnect,
@@ -513,9 +514,13 @@ impl Mixer {
                     &self.config,
                     self.prevent_events,
                 ) {
-                    if let Some(fail) = e.into_user() {
+                    track.callbacks.make_playable = Some(callback);
+                    if let Some(fail) = e.as_user() {
                         track.playing = PlayMode::Errored(fail);
                     }
+                } else {
+                    // Track is already ready: don't register callback and just act.
+                    drop(callback.send(Ok(())));
                 }
             }
         }
@@ -847,7 +852,7 @@ impl Mixer {
                 Err(InputReadyingError::Waiting) => continue,
                 // TODO: allow for retry in given time.
                 Err(e) => {
-                    if let Some(fail) = e.into_user() {
+                    if let Some(fail) = e.as_user() {
                         track.playing = PlayMode::Errored(fail);
                     }
                     continue;
@@ -888,7 +893,7 @@ impl Mixer {
                 MixStatus::Errored(e) =>
                     track.playing = PlayMode::Errored(PlayError::Decode(e.into())),
                 MixStatus::Ended if track.do_loop() => {
-                    let _ = self.track_handles[i].seek_time(Duration::default());
+                    drop(self.track_handles[i].seek_time(Duration::default()));
                     if !self.prevent_events {
                         // position update is sent out later, when the seek concludes.
                         drop(self.interconnect.events.send(EventMessage::ChangeState(
