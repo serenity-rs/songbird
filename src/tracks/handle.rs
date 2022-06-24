@@ -245,4 +245,8 @@ impl<T> TrackCallback<T> {
             self.rx.recv_async().await?.map_err(ControlError::Play)
         }
     }
+
+    pub fn is_hung_up(&self) -> bool {
+        self.fail
+    }
 }
