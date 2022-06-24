@@ -32,6 +32,12 @@ pub struct HttpRequest {
     pub request: String,
     /// HTTP header fields to add to any created requests.
     pub headers: HeaderMap,
+    /// Content length, used as an upper bound in range requests if known.
+    ///
+    /// This is only needed for certain domains who expect to see a value like
+    /// `range: bytes=0-1023` instead of the simpler `range: bytes=0-` (such as
+    /// Youtube).
+    pub content_length: Option<u64>,
 }
 
 impl HttpRequest {
@@ -48,6 +54,7 @@ impl HttpRequest {
             client,
             request,
             headers,
+            content_length: None,
         }
     }
 
@@ -57,9 +64,15 @@ impl HttpRequest {
     ) -> Result<(HttpStream, Option<Hint>), AudioStreamError> {
         let mut resp = self.client.get(&self.request).headers(self.headers.clone());
 
-        if let Some(offset) = offset {
-            resp = resp.header(RANGE, format!("bytes={}-", offset));
-        };
+        match (offset, self.content_length) {
+            (Some(offset), Some(max)) => {
+                resp = resp.header(RANGE, format!("bytes={}-{}", offset, max));
+            },
+            (Some(offset), None) => {
+                resp = resp.header(RANGE, format!("bytes={}-", offset));
+            },
+            _ => {},
+        }
 
         let resp = resp
             .send()
