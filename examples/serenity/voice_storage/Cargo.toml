@@ -15,8 +15,7 @@ path = "../../../"
 [dependencies.serenity]
 features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"]
 git = "https://github.com/serenity-rs/serenity"
-# branch = "next"
-rev = "e9c200d9af74994d09e40ae129b44f642522932f"
+branch = "next"
 
 [dependencies.symphonia]
 version = "0.5"

@@ -14,12 +14,7 @@ use std::env;
 use songbird::SerenityInit;
 
 // Event related imports to detect track creation failures.
-use songbird::events::{
-    Event,
-    EventContext,
-    EventHandler as VoiceEventHandler,
-    TrackEvent,
-};
+use songbird::events::{Event, EventContext, EventHandler as VoiceEventHandler, TrackEvent};
 
 // Import the `Context` to handle commands.
 use serenity::client::Context;
@@ -64,8 +59,7 @@ async fn main() {
         .configure(|c| c.prefix("~"))
         .group(&GENERAL_GROUP);
 
-    let intents = GatewayIntents::non_privileged()
-        | GatewayIntents::MESSAGE_CONTENT;
+    let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
 
     let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
@@ -88,8 +82,7 @@ async fn main() {
 #[command]
 #[only_in(guilds)]
 async fn deafen(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx)
         .await
@@ -127,13 +120,15 @@ async fn deafen(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let (guild_id, channel_id) = {
+        let guild = msg.guild(&ctx.cache).unwrap();
+        let channel_id = guild
+            .voice_states
+            .get(&msg.author.id)
+            .and_then(|voice_state| voice_state.channel_id);
 
-    let channel_id = guild
-        .voice_states
-        .get(&msg.author.id)
-        .and_then(|voice_state| voice_state.channel_id);
+        (guild.id, channel_id)
+    };
 
     let connect_to = match channel_id {
         Some(channel) => channel,
@@ -165,7 +160,11 @@ impl VoiceEventHandler for TrackErrorNotifier {
     async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
         if let EventContext::Track(track_list) = ctx {
             for (state, handle) in *track_list {
-                println!("Track {:?} encountered an error: {:?}", handle.uuid(), state.playing);
+                println!(
+                    "Track {:?} encountered an error: {:?}",
+                    handle.uuid(),
+                    state.playing
+                );
             }
         }
 
@@ -176,8 +175,7 @@ impl VoiceEventHandler for TrackErrorNotifier {
 #[command]
 #[only_in(guilds)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx)
         .await
@@ -205,8 +203,7 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn mute(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx)
         .await
@@ -273,8 +270,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx)
         .await
@@ -284,8 +280,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let src =
-            songbird::input::YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
+        let src = songbird::input::YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
 
         handler.play_input(src.into());
 
@@ -304,8 +299,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx)
         .await
@@ -337,8 +331,7 @@ async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn unmute(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx)
         .await

@@ -19,11 +19,7 @@ use serenity::{
         },
         StandardFramework,
     },
-    model::{
-        channel::Message,
-        gateway::Ready,
-        id::ChannelId,
-    },
+    model::{channel::Message, gateway::Ready, id::ChannelId},
     prelude::{GatewayIntents, Mentionable},
     Result as SerenityResult,
 };
@@ -152,8 +148,7 @@ async fn main() {
         .configure(|c| c.prefix("~"))
         .group(&GENERAL_GROUP);
 
-    let intents = GatewayIntents::non_privileged()
-        | GatewayIntents::MESSAGE_CONTENT;
+    let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
 
     // Here, we need to configure Songbird to decode all incoming voice packets.
     // If you want, you can do this on a per-call basis---here, we need it to
@@ -188,8 +183,7 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         },
     };
 
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx)
         .await
@@ -231,8 +225,7 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).unwrap();
-    let guild_id = guild.id;
+    let guild_id = msg.guild_id.unwrap();
 
     let manager = songbird::get(ctx)
         .await
