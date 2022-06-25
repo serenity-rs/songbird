@@ -107,8 +107,11 @@ pub mod test_data {
     /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
     pub const FILE_DCA_TARGET: &str = "resources/Cloudkicker - 2011 07.dca1";
 
-    /// URL for an opus source which can be read via an Http Request.
+    /// Path to an opus source which can be read via a File.
     ///
     /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
     pub const FILE_WEBM_TARGET: &str = "resources/Cloudkicker - Making Will Mad.webm";
+
+    /// Path to a Wav source which can be read via a File.
+    pub const FILE_WAV_TARGET: &str = "resources/loop.wav";
 }

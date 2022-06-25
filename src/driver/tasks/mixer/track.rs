@@ -158,6 +158,10 @@ impl<'a> InternalTrack {
         self.play_time += TIMESTEP_LENGTH;
     }
 
+    pub(crate) fn should_check_input(&self) -> bool {
+        self.playing.is_playing() || matches!(self.input, InputState::Preparing(_))
+    }
+
     pub(crate) fn end(&mut self) -> &mut Self {
         self.playing.change_to(PlayMode::End);
 

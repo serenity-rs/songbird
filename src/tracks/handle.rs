@@ -250,3 +250,49 @@ impl<T> TrackCallback<T> {
         self.fail
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        constants::test_data::FILE_WAV_TARGET,
+        driver::Driver,
+        input::File,
+        tracks::Track,
+        Config,
+    };
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn make_playable_callback_fires() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file = File::new(FILE_WAV_TARGET);
+        let handle = driver.play(Track::from(file).pause());
+
+        let callback = handle.make_playable();
+        t_handle.spawn_ticker().await;
+        assert!(callback.result_async().await.is_ok());
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn seek_callback_fires() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file = File::new(FILE_WAV_TARGET);
+        let handle = driver.play(Track::from(file).pause());
+
+        let target = Duration::from_millis(500);
+        let callback = handle.seek_time(target);
+        t_handle.spawn_ticker().await;
+
+        let answer = callback.result_async().await;
+        assert!(answer.is_ok());
+        let answer = answer.unwrap();
+        let delta = Duration::from_millis(100);
+        assert!(answer > target - delta && answer < target + delta);
+    }
+}

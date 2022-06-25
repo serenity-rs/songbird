@@ -835,9 +835,14 @@ impl Mixer {
         for (i, track) in self.tracks.iter_mut().enumerate() {
             let vol = track.volume;
 
-            if !track.playing.is_playing() {
+            // This specifically tries to get tracks who are "preparing",
+            // mainly so that event handlers and the like can all be fired
+            // without the track being in a play state.
+            if !track.should_check_input() {
                 continue;
             }
+
+            let should_play = track.playing.is_playing();
 
             let input = track.get_or_ready_input(
                 i,
@@ -858,6 +863,12 @@ impl Mixer {
                     continue;
                 },
             };
+
+            // Now that we have dealt with potential errors in preparing tracks,
+            // only do any mixing if the track is to be played!
+            if !should_play {
+                continue;
+            }
 
             let opus_slot = if do_passthrough {
                 Some(&mut *opus_frame)
