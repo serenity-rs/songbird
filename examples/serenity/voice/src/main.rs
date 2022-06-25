@@ -7,7 +7,6 @@
 //! features = ["client", "standard_framework", "voice"]
 //! ```
 use std::env;
-use std::time::Duration;
 
 // This trait adds the `register_songbird` and `register_songbird_with` methods
 // to the client builder below, making it easy to install this voice client.
@@ -261,19 +260,6 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         },
     };
 
-    let time = match args.single::<f64>() {
-        Ok(t) => t,
-        Err(_) => {
-            check_msg(
-                msg.channel_id
-                    .say(&ctx.http, "Must provide a valid f64 timestamp to jump to.")
-                    .await,
-            );
-
-            return Ok(());
-        },
-    };
-
     if !url.starts_with("http") {
         check_msg(
             msg.channel_id
@@ -296,14 +282,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
         let src = songbird::input::YoutubeDl::new(reqwest::Client::new(), url);
 
-        let h = handler.play_input(src.into());
-
-        h.add_event(
-            Event::Delayed(Duration::from_secs(10)),
-            SkipHandler {
-                skip_to: Duration::from_secs_f64(time),
-            },
-        );
+        handler.play_input(src.into());
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {
