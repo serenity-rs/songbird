@@ -31,3 +31,35 @@ impl TrackState {
         self.play_time += TIMESTEP_LENGTH;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        constants::test_data::YTDL_TARGET,
+        driver::Driver,
+        input::YoutubeDl,
+        tracks::Track,
+        Config,
+    };
+    use reqwest::Client;
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn times_unchanged_while_not_ready() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file = YoutubeDl::new(Client::new(), YTDL_TARGET.into());
+        let handle = driver.play(Track::from(file));
+
+        let state = t_handle
+            .ready_track(&handle, Some(Duration::from_millis(5)))
+            .await;
+
+        // As state is `play`, the instant we ready we'll have playout.
+        // Naturally, fetching a ytdl request takes far longer than this.
+        assert_eq!(state.position, Duration::from_millis(20));
+        assert_eq!(state.play_time, Duration::from_millis(20));
+    }
+}

@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     constants::*,
-    tracks::{TrackHandle, TrackState},
+    tracks::{ReadyState, TrackHandle, TrackState},
 };
 use std::{
     collections::{BinaryHeap, HashMap},
@@ -197,7 +197,7 @@ impl GlobalEvents {
 
         // Local timed events
         for (i, state) in states.iter_mut().enumerate() {
-            if state.playing.is_playing() {
+            if state.playing.is_playing() && state.ready == ReadyState::Playable {
                 state.step_frame();
 
                 let event_store = events

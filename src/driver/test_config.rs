@@ -3,7 +3,7 @@
 use flume::{Receiver, Sender};
 
 use crate::{
-    tracks::{PlayMode, TrackHandle},
+    tracks::{PlayMode, TrackHandle, TrackState},
     Event,
     EventContext,
     EventHandler,
@@ -185,19 +185,23 @@ impl DriverTestHandle {
         self.tx.send(n_ticks).unwrap();
     }
 
-    pub async fn ready_track(&self, handle: &TrackHandle, tick_wait: Option<Duration>) {
+    pub async fn ready_track(
+        &self,
+        handle: &TrackHandle,
+        tick_wait: Option<Duration>,
+    ) -> TrackState {
         let (tx, rx) = flume::bounded(1);
         let (err_tx, err_rx) = flume::bounded(1);
 
         struct SongPlayable {
-            tx: Sender<()>,
+            tx: Sender<TrackState>,
         }
 
         #[async_trait::async_trait]
         impl EventHandler for SongPlayable {
             async fn act(&self, ctx: &crate::EventContext<'_>) -> Option<Event> {
-                if let EventContext::Track(&[(_, _)]) = ctx {
-                    drop(self.tx.send(()));
+                if let EventContext::Track(&[(state, _)]) = ctx {
+                    drop(self.tx.send(state.clone()));
                 }
 
                 Some(Event::Cancel)
@@ -238,7 +242,7 @@ impl DriverTestHandle {
             }
 
             match rx.try_recv() {
-                Ok(_) => break,
+                Ok(val) => return val,
                 Err(flume::TryRecvError::Disconnected) => panic!(),
                 Err(flume::TryRecvError::Empty) => {},
             }

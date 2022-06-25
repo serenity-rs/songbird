@@ -16,7 +16,17 @@ use crate::{
     driver::MixMode,
     events::EventStore,
     input::{Input, Parsed},
-    tracks::{Action, LoopState, PlayError, PlayMode, TrackCommand, TrackHandle, TrackState, View},
+    tracks::{
+        Action,
+        LoopState,
+        PlayError,
+        PlayMode,
+        ReadyState,
+        TrackCommand,
+        TrackHandle,
+        TrackState,
+        View,
+    },
     Config,
 };
 use audiopus::{
@@ -454,6 +464,12 @@ impl Mixer {
 
             if let Some((time, callback)) = action.seek_point {
                 track.callbacks.seek = Some(callback);
+                if !self.prevent_events {
+                    drop(self.interconnect.events.send(EventMessage::ChangeState(
+                        i,
+                        TrackStateChange::Ready(ReadyState::Preparing),
+                    )));
+                }
 
                 let backseek_needed = time < track.position;
 
