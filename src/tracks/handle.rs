@@ -222,14 +222,18 @@ impl TrackHandle {
     }
 }
 
-#[allow(missing_docs)]
+/// Asynchronous reply for an operation applied to a [`TrackHandle`].
+///
+/// This object does not need to be `.await`ed for the driver to perform an action.
+/// Async threads can then call, e.g., [`TrackHandle::make_playable`], and safely drop
+/// this callback if the result isn't needed.
 pub struct TrackCallback<T> {
     fail: bool,
     rx: Receiver<Result<T, PlayError>>,
 }
 
 impl<T> TrackCallback<T> {
-    #![allow(missing_docs)]
+    /// Consumes this handle to await a reply from the driver, blocking the current thread.
     pub fn result(self) -> TrackResult<T> {
         if self.fail {
             Err(ControlError::Finished)
@@ -238,6 +242,7 @@ impl<T> TrackCallback<T> {
         }
     }
 
+    /// Consumes this handle to await a reply from the driver asynchronously.
     pub async fn result_async(self) -> TrackResult<T> {
         if self.fail {
             Err(ControlError::Finished)
@@ -246,6 +251,8 @@ impl<T> TrackCallback<T> {
         }
     }
 
+    /// Returns `true` if the operation instantly failed due to the target track being
+    /// removed.
     pub fn is_hung_up(&self) -> bool {
         self.fail
     }
