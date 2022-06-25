@@ -107,7 +107,7 @@ impl TrackHandle {
     ///
     /// [`Input`]: crate::input::Input
     /// [`Compose`]: crate::input::Compose
-    pub fn seek_time(&self, position: Duration) -> TrackCallback<Duration> {
+    pub fn seek(&self, position: Duration) -> TrackCallback<Duration> {
         let (tx, rx) = flume::bounded(1);
         let fail = self.send(TrackCommand::Seek(position, tx)).is_err();
 
@@ -116,10 +116,10 @@ impl TrackHandle {
 
     /// Seeks along the track to the specified position.
     ///
-    /// This folds [`Self::seek_time`] into a single `async` result, but must
+    /// This folds [`Self::seek`] into a single `async` result, but must
     /// be awaited for the command to be sent.
-    pub async fn seek_time_async(&self, position: Duration) -> TrackResult<Duration> {
-        self.seek_time(position).result_async().await
+    pub async fn seek_async(&self, position: Duration) -> TrackResult<Duration> {
+        self.seek(position).result_async().await
     }
 
     /// Attach an event handler to an audio track. These will receive [`EventContext::Track`].
@@ -251,6 +251,7 @@ impl<T> TrackCallback<T> {
         }
     }
 
+    #[must_use]
     /// Returns `true` if the operation instantly failed due to the target track being
     /// removed.
     pub fn is_hung_up(&self) -> bool {
@@ -293,7 +294,7 @@ mod tests {
         let handle = driver.play(Track::from(file).pause());
 
         let target = Duration::from_millis(500);
-        let callback = handle.seek_time(target);
+        let callback = handle.seek(target);
         t_handle.spawn_ticker().await;
 
         let answer = callback.result_async().await;

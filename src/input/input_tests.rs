@@ -64,7 +64,7 @@ where
     t_handle.ready_track(&handle, None).await;
 
     let target_time = Duration::from_secs(30);
-    assert!(!handle.seek_time(target_time).is_hung_up());
+    assert!(!handle.seek(target_time).is_hung_up());
     t_handle.ready_track(&handle, None).await;
 
     // post-conditions:
@@ -104,7 +104,7 @@ where
     t_handle.skip(n_ticks).await;
 
     let target_time = Duration::from_secs(1);
-    assert!(!handle.seek_time(target_time).is_hung_up());
+    assert!(!handle.seek(target_time).is_hung_up());
     t_handle.ready_track(&handle, None).await;
 
     // post-conditions:

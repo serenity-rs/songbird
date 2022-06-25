@@ -904,7 +904,7 @@ impl Mixer {
                 MixStatus::Errored(e) =>
                     track.playing = PlayMode::Errored(PlayError::Decode(e.into())),
                 MixStatus::Ended if track.do_loop() => {
-                    drop(self.track_handles[i].seek_time(Duration::default()));
+                    drop(self.track_handles[i].seek(Duration::default()));
                     if !self.prevent_events {
                         // position update is sent out later, when the seek concludes.
                         drop(self.interconnect.events.send(EventMessage::ChangeState(
