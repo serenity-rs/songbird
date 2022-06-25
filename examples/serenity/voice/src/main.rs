@@ -317,26 +317,6 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     Ok(())
 }
 
-struct SkipHandler {
-    skip_to: Duration,
-}
-
-#[async_trait]
-impl VoiceEventHandler for SkipHandler {
-    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
-        if let EventContext::Track(&[(state, handle)]) = ctx {
-            println!("Current position is {:?}", state.position);
-            println!("Seeking to {:?}", self.skip_to);
-            let resp = handle.seek_time(self.skip_to);
-            println!("Seek response {:?}", resp);
-            return None;
-        }
-
-        println!("This wasn't supposed to happen.");
-        None
-    }
-}
-
 #[command]
 #[only_in(guilds)]
 async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
