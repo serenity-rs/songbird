@@ -68,7 +68,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         let http = HttpClient::new(token.clone());
         let user_id = http.current_user().exec().await?.model().await?.id;
 
-        let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
+        let intents = Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT | Intents::GUILD_VOICE_STATES;
         let (cluster, events) = Cluster::new(token, intents).await?;
         cluster.up().await;
 

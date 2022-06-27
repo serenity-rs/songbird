@@ -58,10 +58,8 @@ impl AsyncAdapterSink {
                         }
                         seen_bytes += n as u64;
                     } else {
-                        println!("Stream died");
                         match self.stream.try_resume(seen_bytes).await {
                             Ok(s) => {
-                                println!("Stream back!");
                                 self.stream = s;
                             },
                             Err(_e) => break,

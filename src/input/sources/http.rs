@@ -65,11 +65,14 @@ impl HttpRequest {
         let mut resp = self.client.get(&self.request).headers(self.headers.clone());
 
         match (offset, self.content_length) {
-            (Some(offset), Some(max)) => {
-                resp = resp.header(RANGE, format!("bytes={}-{}", offset, max));
-            },
             (Some(offset), None) => {
                 resp = resp.header(RANGE, format!("bytes={}-", offset));
+            },
+            (offset, Some(max)) => {
+                resp = resp.header(
+                    RANGE,
+                    format!("bytes={}-{}", offset.unwrap_or(0), max.saturating_sub(1)),
+                );
             },
             _ => {},
         }

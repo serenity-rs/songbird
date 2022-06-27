@@ -1,7 +1,7 @@
 use crate::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input};
 use async_trait::async_trait;
 use reqwest::{
-    header::{HeaderMap, HeaderName, HeaderValue, RANGE},
+    header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
 use serde_json::Value;
@@ -116,10 +116,6 @@ impl Compose for YoutubeDl {
             .as_object()
             .and_then(|top| top.get("filesize"))
             .and_then(Value::as_u64);
-
-        if let Some(len) = content_length {
-            headers.append(RANGE, HeaderValue::from_str(format!("bytes=0-{}", len).as_str()).expect("This header value is known to be well-formed unless the filesize is monstrously huge."));
-        }
 
         let mut req = HttpRequest {
             client: self.client.clone(),
