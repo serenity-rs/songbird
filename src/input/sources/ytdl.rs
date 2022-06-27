@@ -121,11 +121,6 @@ impl Compose for YoutubeDl {
             headers.append(RANGE, HeaderValue::from_str(format!("bytes=0-{}", len).as_str()).expect("This header value is known to be well-formed unless the filesize is monstrously huge."));
         }
 
-        headers.append(
-            HeaderName::from_static("sec-fetch-mode"),
-            HeaderValue::from_static("navigate"),
-        );
-
         let mut req = HttpRequest {
             client: self.client.clone(),
             request: url.to_string(),

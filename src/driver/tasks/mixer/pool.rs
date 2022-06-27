@@ -91,12 +91,17 @@ impl BlockyTaskPool {
 
         pool.execute(
             move || match input.promote(config.codec_registry, config.format_registry) {
-                Ok(LiveInput::Parsed(parsed)) =>
-                    if let Some(seek_time) = seek_time {
+                Ok(LiveInput::Parsed(parsed)) => match seek_time {
+                    // If seek time is zero, then wipe it out.
+                    // Some formats (MKV) make SeekTo(0) require a backseek to realign with the
+                    // current page.
+                    Some(seek_time) if !super::util::seek_to_is_zero(&seek_time) => {
                         pool_clone.seek(callback, parsed, rec, seek_time, false, config);
-                    } else {
+                    },
+                    _ => {
                         drop(callback.send(MixerInputResultMessage::Built(parsed, rec)));
                     },
+                },
                 Ok(_) => unreachable!(),
                 Err(e) => {
                     drop(callback.send(MixerInputResultMessage::ParseErr(e.into())));
