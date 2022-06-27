@@ -2,6 +2,8 @@
 
 use crate::{error::JoinResult, id::*};
 use async_trait::async_trait;
+#[cfg(feature = "serenity")]
+use dashmap::DashMap;
 use derivative::Derivative;
 #[cfg(feature = "serenity")]
 use futures::channel::mpsc::{TrySendError, UnboundedSender as Sender};
@@ -12,7 +14,7 @@ use serde_json::json;
 use serenity::gateway::InterMessage;
 use std::sync::Arc;
 #[cfg(feature = "serenity")]
-use std::{collections::HashMap, result::Result as StdResult};
+use std::result::Result as StdResult;
 use tracing::{debug, error};
 #[cfg(feature = "twilight")]
 use twilight_gateway::{Cluster, Shard as TwilightShard};
@@ -49,10 +51,11 @@ pub trait GenericSharder {
 
 impl Sharder {
     /// Returns a new handle to the required inner shard.
+    #[allow(clippy::must_use_candidate)] // get_or_insert_shard_handle has side effects
     pub fn get_shard(&self, shard_id: u64) -> Option<Shard> {
         match self {
             #[cfg(feature = "serenity")]
-            Sharder::Serenity(s) => Some(Shard::Serenity(s.get_or_insert_shard_handle(shard_id))),
+            Sharder::Serenity(s) => Some(Shard::Serenity(s.get_or_insert_shard_handle(shard_id as u32))),
             #[cfg(feature = "twilight")]
             Sharder::TwilightCluster(t) => Some(Shard::TwilightCluster(t.clone(), shard_id)),
             #[cfg(feature = "twilight")]
@@ -65,7 +68,7 @@ impl Sharder {
 #[cfg(feature = "serenity")]
 impl Sharder {
     #[allow(unreachable_patterns)]
-    pub(crate) fn register_shard_handle(&self, shard_id: u64, sender: Sender<InterMessage>) {
+    pub(crate) fn register_shard_handle(&self, shard_id: u32, sender: Sender<InterMessage>) {
         if let Sharder::Serenity(s) = self {
             s.register_shard_handle(shard_id, sender);
         } else {
@@ -74,7 +77,7 @@ impl Sharder {
     }
 
     #[allow(unreachable_patterns)]
-    pub(crate) fn deregister_shard_handle(&self, shard_id: u64) {
+    pub(crate) fn deregister_shard_handle(&self, shard_id: u32) {
         if let Sharder::Serenity(s) = self {
             s.deregister_shard_handle(shard_id);
         } else {
@@ -89,29 +92,22 @@ impl Sharder {
 ///
 /// This is updated and maintained by the library, and is designed to prevent
 /// message loss during rebalances and reconnects.
-pub struct SerenitySharder(PRwLock<HashMap<u64, Arc<SerenityShardHandle>>>);
+pub struct SerenitySharder(DashMap<u32, Arc<SerenityShardHandle>>);
 
 #[cfg(feature = "serenity")]
 impl SerenitySharder {
-    fn get_or_insert_shard_handle(&self, shard_id: u64) -> Arc<SerenityShardHandle> {
-        ({
-            let map_read = self.0.read();
-            map_read.get(&shard_id).cloned()
-        })
-        .unwrap_or_else(|| {
-            let mut map_read = self.0.write();
-            map_read.entry(shard_id).or_default().clone()
-        })
+    fn get_or_insert_shard_handle(&self, shard_id: u32) -> Arc<SerenityShardHandle> {
+        self.0.entry(shard_id).or_default().clone()
     }
 
-    fn register_shard_handle(&self, shard_id: u64, sender: Sender<InterMessage>) {
+    fn register_shard_handle(&self, shard_id: u32, sender: Sender<InterMessage>) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 
         handle.register(sender);
     }
 
-    fn deregister_shard_handle(&self, shard_id: u64) {
+    fn deregister_shard_handle(&self, shard_id: u32) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 

@@ -13,6 +13,7 @@ use async_trait::async_trait;
 use dashmap::DashMap;
 #[cfg(feature = "serenity")]
 use futures::channel::mpsc::UnboundedSender as Sender;
+use once_cell::sync::OnceCell;
 use parking_lot::RwLock as PRwLock;
 #[cfg(feature = "serenity")]
 use serenity::{
@@ -45,7 +46,7 @@ struct ClientData {
 /// [`Call`]: Call
 #[derive(Debug)]
 pub struct Songbird {
-    client_data: PRwLock<Option<ClientData>>,
+    client_data: OnceCell<ClientData>,
     calls: DashMap<GuildId, Arc<Mutex<Call>>>,
     sharder: Sharder,
     config: PRwLock<Option<Config>>,
@@ -72,7 +73,7 @@ impl Songbird {
     #[must_use]
     pub fn serenity_from_config(config: Config) -> Arc<Self> {
         Arc::new(Self {
-            client_data: PRwLock::new(None),
+            client_data: OnceCell::new(),
             calls: DashMap::new(),
             sharder: Sharder::Serenity(SerenitySharder::default()),
             config: Some(config).into(),
@@ -107,10 +108,10 @@ impl Songbird {
         U: Into<UserId>,
     {
         Self {
-            client_data: PRwLock::new(Some(ClientData {
+            client_data: OnceCell::with_value(ClientData {
                 shard_count: cluster.config().shard_scheme().total(),
                 user_id: user_id.into(),
-            })),
+            }),
             calls: DashMap::new(),
             sharder: Sharder::TwilightCluster(cluster),
             config: Some(config).into(),
@@ -124,16 +125,12 @@ impl Songbird {
     ///
     /// [`::twilight`]: #method.twilight
     pub fn initialise_client_data<U: Into<UserId>>(&self, shard_count: u64, user_id: U) {
-        let mut client_data = self.client_data.write();
-
-        if client_data.is_some() {
-            return;
-        }
-
-        *client_data = Some(ClientData {
-            shard_count,
-            user_id: user_id.into(),
-        });
+        self.client_data
+            .set(ClientData {
+                shard_count,
+                user_id: user_id.into(),
+            })
+            .ok();
     }
 
     /// Retrieves a [`Call`] for the given guild, if one already exists.
@@ -166,7 +163,7 @@ impl Songbird {
                 .or_insert_with(|| {
                     let info = self
                         .client_data
-                        .read()
+                        .get()
                         .expect("Manager has not been initialised");
 
                     let shard = shard_id(guild_id.0.get(), info.shard_count);
@@ -374,8 +371,7 @@ impl Songbird {
             TwilightEvent::VoiceStateUpdate(v) => {
                 if self
                     .client_data
-                    .read()
-                    .as_ref()
+                    .get()
                     .map_or(true, |data| v.0.user_id.into_nonzero() != data.user_id.0)
                 {
                     return;
@@ -410,7 +406,7 @@ impl VoiceGatewayManager for Songbird {
             "Registering Serenity shard handle {} with Songbird",
             shard_id
         );
-        self.sharder.register_shard_handle(shard_id as u64, sender);
+        self.sharder.register_shard_handle(shard_id, sender);
         debug!("Registered shard handle {}.", shard_id);
     }
 
@@ -419,7 +415,7 @@ impl VoiceGatewayManager for Songbird {
             "Deregistering Serenity shard handle {} with Songbird",
             shard_id
         );
-        self.sharder.deregister_shard_handle(shard_id as u64);
+        self.sharder.deregister_shard_handle(shard_id);
         debug!("Deregistered shard handle {}.", shard_id);
     }
 
@@ -435,7 +431,7 @@ impl VoiceGatewayManager for Songbird {
     async fn state_update(&self, guild_id: SerenityGuild, voice_state: &VoiceState) {
         if self
             .client_data
-            .read()
+            .get()
             .map_or(true, |data| voice_state.user_id.0 != data.user_id.0)
         {
             return;
