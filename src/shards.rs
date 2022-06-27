@@ -12,9 +12,9 @@ use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock
 use serde_json::json;
 #[cfg(feature = "serenity")]
 use serenity::gateway::InterMessage;
-use std::sync::Arc;
 #[cfg(feature = "serenity")]
 use std::result::Result as StdResult;
+use std::sync::Arc;
 use tracing::{debug, error};
 #[cfg(feature = "twilight")]
 use twilight_gateway::{Cluster, Shard as TwilightShard};
@@ -55,7 +55,9 @@ impl Sharder {
     pub fn get_shard(&self, shard_id: u64) -> Option<Shard> {
         match self {
             #[cfg(feature = "serenity")]
-            Sharder::Serenity(s) => Some(Shard::Serenity(s.get_or_insert_shard_handle(shard_id as u32))),
+            Sharder::Serenity(s) => Some(Shard::Serenity(
+                s.get_or_insert_shard_handle(shard_id as u32),
+            )),
             #[cfg(feature = "twilight")]
             Sharder::TwilightCluster(t) => Some(Shard::TwilightCluster(t.clone(), shard_id)),
             #[cfg(feature = "twilight")]

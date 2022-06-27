@@ -172,8 +172,8 @@ default = [
 ]
 gateway = [
     "dashmap",
-    "once_cell",
     "flume",
+    "once_cell",
     "parking_lot",
     "tokio/sync",
     "tokio/time",
