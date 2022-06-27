@@ -14,13 +14,13 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
     let mut states: Vec<TrackState> = vec![];
     let mut handles: Vec<TrackHandle> = vec![];
 
-    loop {
-        match evt_rx.recv_async().await {
-            Ok(EventMessage::AddGlobalEvent(data)) => {
+    while let Ok(msg) = evt_rx.recv_async().await {
+        match msg {
+            EventMessage::AddGlobalEvent(data) => {
                 info!("Global event added.");
                 global.add_event(data);
             },
-            Ok(EventMessage::AddTrackEvent(i, data)) => {
+            EventMessage::AddTrackEvent(i, data) => {
                 info!("Adding event to track {}.", i);
 
                 let event_store = events
@@ -32,7 +32,7 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
 
                 event_store.add_event(data, state.position);
             },
-            Ok(EventMessage::FireCoreEvent(ctx)) => {
+            EventMessage::FireCoreEvent(ctx) => {
                 let ctx = ctx.to_user_context();
                 let evt = ctx
                     .to_core_event()
@@ -42,17 +42,17 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
 
                 global.fire_core_event(evt, ctx).await;
             },
-            Ok(EventMessage::RemoveGlobalEvents) => {
+            EventMessage::RemoveGlobalEvents => {
                 global.remove_handlers();
             },
-            Ok(EventMessage::AddTrack(store, state, handle)) => {
+            EventMessage::AddTrack(store, state, handle) => {
                 events.push(store);
                 states.push(state);
                 handles.push(handle);
 
                 info!("Event state for track {} added", events.len());
             },
-            Ok(EventMessage::ChangeState(i, change)) => {
+            EventMessage::ChangeState(i, change) => {
                 let max_states = states.len();
                 debug!(
                     "Changing state for track {} of {}: {:?}",
@@ -107,27 +107,25 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
                     },
                 }
             },
-            Ok(EventMessage::RemoveTrack(i)) => {
+            EventMessage::RemoveTrack(i) => {
                 info!("Event state for track {} of {} removed.", i, events.len());
 
                 events.swap_remove(i);
                 states.swap_remove(i);
                 handles.swap_remove(i);
             },
-            Ok(EventMessage::RemoveAllTracks) => {
+            EventMessage::RemoveAllTracks => {
                 info!("Event state for all tracks removed.");
 
                 events.clear();
                 states.clear();
                 handles.clear();
             },
-            Ok(EventMessage::Tick) => {
+            EventMessage::Tick => {
                 // NOTE: this should fire saved up blocks of state change evts.
                 global.tick(&mut events, &mut states, &mut handles).await;
             },
-            Err(_) | Ok(EventMessage::Poison) => {
-                break;
-            },
+            EventMessage::Poison => break,
         }
     }
 

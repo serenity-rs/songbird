@@ -18,13 +18,6 @@ pub struct MixerConnection {
     pub udp_tx: Sender<UdpTxMessage>,
 }
 
-impl Drop for MixerConnection {
-    fn drop(&mut self) {
-        drop(self.udp_rx.send(UdpRxMessage::Poison));
-        drop(self.udp_tx.send(UdpTxMessage::Poison));
-    }
-}
-
 pub enum MixerMessage {
     AddTrack(TrackContext),
     SetTrack(Option<TrackContext>),

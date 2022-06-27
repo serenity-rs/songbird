@@ -21,7 +21,7 @@ use crate::{
     Config,
     ConnectionInfo,
 };
-use flume::{Receiver, RecvError, Sender};
+use flume::{Receiver, Sender};
 use message::*;
 use tokio::{runtime::Handle, spawn, time::sleep as tsleep};
 use tracing::{debug, instrument, trace};
@@ -70,9 +70,9 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
     let mut retrying = None;
     let mut attempt_idx = 0;
 
-    loop {
-        match rx.recv_async().await {
-            Ok(CoreMessage::ConnectWithResult(info, tx)) => {
+    while let Ok(msg) = rx.recv_async().await {
+        match msg {
+            CoreMessage::ConnectWithResult(info, tx) => {
                 config = if let Some(new_config) = next_config.take() {
                     drop(
                         interconnect
@@ -98,7 +98,7 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     drop(tx.send(Ok(())));
                 }
             },
-            Ok(CoreMessage::RetryConnect(retry_idx)) => {
+            CoreMessage::RetryConnect(retry_idx) => {
                 debug!("Retrying idx: {} (vs. {})", retry_idx, attempt_idx);
                 if retry_idx == attempt_idx {
                     if let Some(progress) = retrying.take() {
@@ -108,7 +108,7 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     }
                 }
             },
-            Ok(CoreMessage::Disconnect) => {
+            CoreMessage::Disconnect => {
                 let last_conn = connection.take();
                 drop(interconnect.mixer.send(MixerMessage::DropConn));
                 drop(interconnect.mixer.send(MixerMessage::RebuildEncoder));
@@ -123,7 +123,7 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     )));
                 }
             },
-            Ok(CoreMessage::SignalWsClosure(ws_idx, ws_info, mut reason)) => {
+            CoreMessage::SignalWsClosure(ws_idx, ws_info, mut reason) => {
                 // if idx is not a match, quash reason
                 // (i.e., prevent users from mistakenly trying to reconnect for an *old* dead conn).
                 // if it *is* a match, the conn needs to die!
@@ -144,32 +144,32 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     }),
                 )));
             },
-            Ok(CoreMessage::SetTrack(s)) => {
+            CoreMessage::SetTrack(s) => {
                 drop(interconnect.mixer.send(MixerMessage::SetTrack(s)));
             },
-            Ok(CoreMessage::AddTrack(s)) => {
+            CoreMessage::AddTrack(s) => {
                 drop(interconnect.mixer.send(MixerMessage::AddTrack(s)));
             },
-            Ok(CoreMessage::SetBitrate(b)) => {
+            CoreMessage::SetBitrate(b) => {
                 drop(interconnect.mixer.send(MixerMessage::SetBitrate(b)));
             },
-            Ok(CoreMessage::SetConfig(mut new_config)) => {
+            CoreMessage::SetConfig(mut new_config) => {
                 next_config = Some(new_config.clone());
 
                 new_config.make_safe(&config, connection.is_some());
 
                 drop(interconnect.mixer.send(MixerMessage::SetConfig(new_config)));
             },
-            Ok(CoreMessage::AddEvent(evt)) => {
+            CoreMessage::AddEvent(evt) => {
                 drop(interconnect.events.send(EventMessage::AddGlobalEvent(evt)));
             },
-            Ok(CoreMessage::RemoveGlobalEvents) => {
+            CoreMessage::RemoveGlobalEvents => {
                 drop(interconnect.events.send(EventMessage::RemoveGlobalEvents));
             },
-            Ok(CoreMessage::Mute(m)) => {
+            CoreMessage::Mute(m) => {
                 drop(interconnect.mixer.send(MixerMessage::SetMute(m)));
             },
-            Ok(CoreMessage::Reconnect) => {
+            CoreMessage::Reconnect => {
                 if let Some(mut conn) = connection.take() {
                     // try once: if interconnect, try again.
                     // if still issue, full connect.
@@ -208,7 +208,7 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     }
                 }
             },
-            Ok(CoreMessage::FullReconnect) =>
+            CoreMessage::FullReconnect =>
                 if let Some(conn) = connection.take() {
                     let info = conn.info.clone();
 
@@ -216,12 +216,10 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                         .attempt(&mut retrying, &interconnect, &config)
                         .await;
                 },
-            Ok(CoreMessage::RebuildInterconnect) => {
+            CoreMessage::RebuildInterconnect => {
                 interconnect.restart_volatile_internals();
             },
-            Err(RecvError::Disconnected) | Ok(CoreMessage::Poison) => {
-                break;
-            },
+            CoreMessage::Poison => break,
         }
     }
 

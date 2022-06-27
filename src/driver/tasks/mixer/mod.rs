@@ -804,8 +804,7 @@ impl Mixer {
             // Test mode: send unencrypted (compressed) packets to local receiver.
             drop(tx.send(self.packet[..index].to_vec().into()));
         } else {
-            conn.udp_tx
-                .send(UdpTxMessage::Packet(self.packet[..index].to_vec()))?;
+            conn.udp_tx.send(self.packet[..index].to_vec())?;
         }
 
         #[cfg(not(test))]
@@ -815,8 +814,7 @@ impl Mixer {
             // TODO: This is dog slow, don't do this.
             // Can we replace this with a shared ring buffer + semaphore?
             // or the BBQueue crate?
-            conn.udp_tx
-                .send(UdpTxMessage::Packet(self.packet[..index].to_vec()))?;
+            conn.udp_tx.send(self.packet[..index].to_vec())?;
         }
 
         let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
@@ -955,9 +953,5 @@ pub(crate) fn runner(
     async_handle: Handle,
     config: Config,
 ) {
-    let mut mixer = Mixer::new(mix_rx, async_handle, interconnect, config);
-
-    mixer.run();
-
-    drop(mixer.disposer.send(DisposalMessage::Poison));
+    Mixer::new(mix_rx, async_handle, interconnect, config).run();
 }

@@ -34,16 +34,12 @@ impl UdpTx {
                     }
                     ka_time += UDP_KEEPALIVE_GAP;
                 },
-                Ok(Ok(UdpTxMessage::Packet(p))) =>
+                Ok(Ok(p)) =>
                     if let Err(e) = self.udp_tx.send(&p[..]).await {
                         error!("Fatal UDP packet send error: {:?}.", e);
                         break;
                     },
-                Ok(Err(e)) => {
-                    error!("Fatal UDP packet receive error: {:?}.", e);
-                    break;
-                },
-                Ok(Ok(UdpTxMessage::Poison)) => {
+                Ok(Err(flume::RecvError::Disconnected)) => {
                     break;
                 },
             }

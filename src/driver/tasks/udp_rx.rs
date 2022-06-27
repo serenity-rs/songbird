@@ -259,7 +259,7 @@ impl UdpRx {
                         Ok(UdpRxMessage::SetConfig(c)) => {
                             self.config = c;
                         },
-                        Ok(UdpRxMessage::Poison) | Err(_) => break,
+                        Err(flume::RecvError::Disconnected) => break,
                     }
                 }
             }

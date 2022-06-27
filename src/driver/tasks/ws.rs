@@ -140,7 +140,7 @@ impl AuxNetwork {
                                 }
                             }
                         },
-                        Err(_) | Ok(WsMessage::Poison) => {
+                        Err(flume::RecvError::Disconnected) => {
                             break;
                         },
                     }
