@@ -378,7 +378,7 @@ mod tests {
     use std::time::Duration;
 
     #[tokio::test]
-    #[ntest::timeout(10_000)]
+    #[ntest::timeout(20_000)]
     async fn next_track_plays_on_end() {
         let (t_handle, config) = Config::test_cfg(true);
         let mut driver = Driver::new(config.clone());

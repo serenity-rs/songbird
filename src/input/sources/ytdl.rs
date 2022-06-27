@@ -154,19 +154,19 @@ mod tests {
     use crate::{constants::test_data::YTDL_TARGET, input::input_tests::*};
 
     #[tokio::test]
-    #[ntest::timeout(10_000)]
+    #[ntest::timeout(20_000)]
     async fn ytdl_track_plays() {
         track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
     }
 
     #[tokio::test]
-    #[ntest::timeout(10_000)]
+    #[ntest::timeout(20_000)]
     async fn ytdl_forward_seek_correct() {
         forward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
     }
 
     #[tokio::test]
-    #[ntest::timeout(10_000)]
+    #[ntest::timeout(20_000)]
     async fn ytdl_backward_seek_correct() {
         backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
     }
