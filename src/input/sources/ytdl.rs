@@ -1,11 +1,14 @@
-use crate::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input};
+use crate::{
+    constants::SAMPLE_RATE_RAW,
+    input::{AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input},
+};
 use async_trait::async_trait;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
-use serde_json::Value;
-use std::error::Error;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, error::Error, time::Duration};
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
 
@@ -49,7 +52,7 @@ impl YoutubeDl {
         }
     }
 
-    async fn query(&mut self) -> Result<Value, AudioStreamError> {
+    async fn query(&mut self) -> Result<Output, AudioStreamError> {
         let ytdl_args = ["-j", &self.url, "-f", "ba[abr>0][vcodec=none]/best"];
 
         let output = Command::new(self.program)
@@ -58,11 +61,10 @@ impl YoutubeDl {
             .await
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
-        let stdout: Value = serde_json::from_slice(&output.stdout[..])
+        let stdout: Output = serde_json::from_slice(&output.stdout[..])
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
-        let metadata = Some(AuxMetadata::from_ytdl_output(&stdout));
-        self.metadata = metadata;
+        self.metadata = Some(stdout.as_aux_metadata());
 
         Ok(stdout)
     }
@@ -85,43 +87,28 @@ impl Compose for YoutubeDl {
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
         let stdout = self.query().await?;
 
-        // TODO: refactor as actual structs.
-
-        let url = stdout
-            .as_object()
-            .and_then(|top| top.get("url"))
-            .and_then(Value::as_str)
-            .ok_or_else(|| {
-                let msg: Box<dyn Error + Send + Sync + 'static> =
-                    "URL field not found on youtube-dl output.".into();
-                AudioStreamError::Fail(msg)
-            })?;
+        let url = stdout.url.ok_or_else(|| {
+            let msg: Box<dyn Error + Send + Sync + 'static> =
+                "URL field not found on youtube-dl output.".into();
+            AudioStreamError::Fail(msg)
+        })?;
 
         let mut headers = HeaderMap::default();
 
-        if let Some(map) = stdout
-            .as_object()
-            .and_then(|top| top.get("http_headers"))
-            .and_then(Value::as_object)
-        {
+        if let Some(map) = stdout.http_headers {
             headers.extend(map.iter().filter_map(|(k, v)| {
-                let k = HeaderName::from_bytes(k.as_bytes()).ok()?;
-                v.as_str()
-                    .and_then(|v| HeaderValue::from_str(v).ok())
-                    .map(move |v| (k, v))
+                Some((
+                    HeaderName::from_bytes(k.as_bytes()).ok()?,
+                    HeaderValue::from_str(v).ok()?,
+                ))
             }));
         }
 
-        let content_length = stdout
-            .as_object()
-            .and_then(|top| top.get("filesize"))
-            .and_then(Value::as_u64);
-
         let mut req = HttpRequest {
             client: self.client.clone(),
-            request: url.to_string(),
+            request: url,
             headers,
-            content_length,
+            content_length: stdout.filesize,
         };
 
         req.create_async().await
@@ -143,6 +130,54 @@ impl Compose for YoutubeDl {
                 "Failed to instansiate any metadata... Should be unreachable.".into();
             AudioStreamError::Fail(msg)
         })
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+struct Output {
+    artist: Option<String>,
+    channel: Option<String>,
+    duration: Option<f64>,
+    filesize: Option<u64>,
+    http_headers: Option<HashMap<String, String>>,
+    release_date: Option<String>,
+    thumbnail: Option<String>,
+    title: Option<String>,
+    track: Option<String>,
+    upload_date: Option<String>,
+    uploader: Option<String>,
+    url: Option<String>,
+    webpage_url: Option<String>,
+}
+
+impl Output {
+    fn as_aux_metadata(&self) -> AuxMetadata {
+        let track = self.track.clone();
+        let true_artist = self.artist.as_ref();
+        let artist = true_artist.or_else(|| self.uploader.as_ref()).cloned();
+        let r_date = self.release_date.as_ref();
+        let date = r_date.or_else(|| self.upload_date.as_ref()).cloned();
+        let channel = self.channel.clone();
+        let duration = self.duration.map(Duration::from_secs_f64);
+        let source_url = self.webpage_url.clone();
+        let title = self.title.clone();
+        let thumbnail = self.thumbnail.clone();
+
+        AuxMetadata {
+            track,
+            artist,
+            date,
+
+            channels: Some(2),
+            channel,
+            duration,
+            sample_rate: Some(SAMPLE_RATE_RAW as u32),
+            source_url,
+            title,
+            thumbnail,
+
+            ..AuxMetadata::default()
+        }
     }
 }
 

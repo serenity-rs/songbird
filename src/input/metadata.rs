@@ -1,4 +1,3 @@
-use crate::constants::*;
 use serde_json::Value;
 use std::time::Duration;
 use symphonia_core::{meta::Metadata as ContainerMetadata, probe::ProbedMetadata};
@@ -105,79 +104,6 @@ impl AuxMetadata {
             start_time,
             duration,
             sample_rate,
-
-            ..Default::default()
-        }
-    }
-
-    /// Use `youtube-dl`'s JSON output for metadata for an online resource.
-    pub fn from_ytdl_output(value: &Value) -> Self {
-        let obj = value.as_object();
-
-        let track = obj
-            .and_then(|m| m.get("track"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let true_artist = obj
-            .and_then(|m| m.get("artist"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let artist = true_artist.or_else(|| {
-            obj.and_then(|m| m.get("uploader"))
-                .and_then(Value::as_str)
-                .map(str::to_string)
-        });
-
-        let r_date = obj
-            .and_then(|m| m.get("release_date"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let date = r_date.or_else(|| {
-            obj.and_then(|m| m.get("upload_date"))
-                .and_then(Value::as_str)
-                .map(str::to_string)
-        });
-
-        let channel = obj
-            .and_then(|m| m.get("channel"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let duration = obj
-            .and_then(|m| m.get("duration"))
-            .and_then(Value::as_f64)
-            .map(Duration::from_secs_f64);
-
-        let source_url = obj
-            .and_then(|m| m.get("webpage_url"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let title = obj
-            .and_then(|m| m.get("title"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let thumbnail = obj
-            .and_then(|m| m.get("thumbnail"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        Self {
-            track,
-            artist,
-            date,
-
-            channels: Some(2),
-            channel,
-            duration,
-            sample_rate: Some(SAMPLE_RATE_RAW as u32),
-            source_url,
-            title,
-            thumbnail,
 
             ..Default::default()
         }
