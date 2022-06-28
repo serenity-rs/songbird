@@ -87,12 +87,6 @@ impl Compose for YoutubeDl {
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
         let stdout = self.query().await?;
 
-        let url = stdout.url.ok_or_else(|| {
-            let msg: Box<dyn Error + Send + Sync + 'static> =
-                "URL field not found on youtube-dl output.".into();
-            AudioStreamError::Fail(msg)
-        })?;
-
         let mut headers = HeaderMap::default();
 
         if let Some(map) = stdout.http_headers {
@@ -106,7 +100,7 @@ impl Compose for YoutubeDl {
 
         let mut req = HttpRequest {
             client: self.client.clone(),
-            request: url,
+            request: stdout.url,
             headers,
             content_length: stdout.filesize,
         };
@@ -146,7 +140,7 @@ struct Output {
     track: Option<String>,
     upload_date: Option<String>,
     uploader: Option<String>,
-    url: Option<String>,
+    url: String,
     webpage_url: Option<String>,
 }
 
