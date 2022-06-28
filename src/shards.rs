@@ -157,7 +157,7 @@ impl VoiceUpdate for Shard {
                     }
                 });
 
-                handle.send(InterMessage::Json(map))?;
+                handle.send(InterMessage::json(map.to_string()))?;
                 Ok(())
             },
             #[cfg(feature = "twilight")]
