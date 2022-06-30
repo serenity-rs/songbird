@@ -1,6 +1,8 @@
-use serde_json::Value;
 use std::time::Duration;
 use symphonia_core::{meta::Metadata as ContainerMetadata, probe::ProbedMetadata};
+
+pub(crate) mod ffprobe;
+pub(crate) mod ytdl;
 
 use super::Parsed;
 
@@ -18,6 +20,8 @@ pub struct AuxMetadata {
     pub track: Option<String>,
     /// The main artist of this stream.
     pub artist: Option<String>,
+    /// The album name of this stream.
+    pub album: Option<String>,
     /// The date of creation of this stream.
     pub date: Option<String>,
 
@@ -42,79 +46,20 @@ pub struct AuxMetadata {
 }
 
 impl AuxMetadata {
-    /// Extract metadata and details from the output of `ffprobe`.
-    pub fn from_ffprobe_json(value: &Value) -> Self {
-        let format = value.as_object().and_then(|m| m.get("format"));
+    /// Extract metadata and details from the output of `ffprobe -of json`.
+    pub fn from_ffprobe_json(value: &[u8]) -> Result<Self, serde_json::Error> {
+        let output: ffprobe::Output = serde_json::from_slice(value)?;
 
-        let duration = format
-            .and_then(|m| m.get("duration"))
-            .and_then(Value::as_str)
-            .and_then(|v| v.parse::<f64>().ok())
-            .map(Duration::from_secs_f64);
-
-        let start_time = format
-            .and_then(|m| m.get("start_time"))
-            .and_then(Value::as_str)
-            .and_then(|v| v.parse::<f64>().ok().map(|t| t.max(0.0)))
-            .map(Duration::from_secs_f64);
-
-        let tags = format.and_then(|m| m.get("tags"));
-
-        let track = tags
-            .and_then(|m| m.get("title"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let artist = tags
-            .and_then(|m| m.get("artist"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let date = tags
-            .and_then(|m| m.get("date"))
-            .and_then(Value::as_str)
-            .map(str::to_string);
-
-        let stream = value
-            .as_object()
-            .and_then(|m| m.get("streams"))
-            .and_then(Value::as_array)
-            .and_then(|v| {
-                v.iter()
-                    .find(|line| line.get("codec_type").and_then(Value::as_str) == Some("audio"))
-            });
-
-        let channels = stream
-            .and_then(|m| m.get("channels"))
-            .and_then(Value::as_u64)
-            .map(|v| v as u8);
-
-        let sample_rate = stream
-            .and_then(|m| m.get("sample_rate"))
-            .and_then(Value::as_str)
-            .and_then(|v| v.parse::<u64>().ok())
-            .map(|v| v as u32);
-
-        Self {
-            track,
-            artist,
-            date,
-
-            channels,
-            start_time,
-            duration,
-            sample_rate,
-
-            ..Default::default()
-        }
+        Ok(output.into_aux_metadata())
     }
 
-    /// Move all fields from a `Metadata` object into a new one.
+    /// Move all fields from an [`AuxMetadata`] object into a new one.
     #[must_use]
     pub fn take(&mut self) -> Self {
         Self {
             track: self.track.take(),
             artist: self.artist.take(),
+            album: self.album.take(),
             date: self.date.take(),
             channels: self.channels.take(),
             channel: self.channel.take(),

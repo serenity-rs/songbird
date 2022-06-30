@@ -1,14 +1,18 @@
-use crate::{
-    constants::SAMPLE_RATE_RAW,
-    input::{AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input},
+use crate::input::{
+    metadata::ytdl::Output,
+    AudioStream,
+    AudioStreamError,
+    AuxMetadata,
+    Compose,
+    HttpRequest,
+    Input,
 };
 use async_trait::async_trait;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
-use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, error::Error, time::Duration};
+use std::error::Error;
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
 
@@ -124,54 +128,6 @@ impl Compose for YoutubeDl {
                 "Failed to instansiate any metadata... Should be unreachable.".into();
             AudioStreamError::Fail(msg)
         })
-    }
-}
-
-#[derive(Deserialize, Serialize)]
-struct Output {
-    artist: Option<String>,
-    channel: Option<String>,
-    duration: Option<f64>,
-    filesize: Option<u64>,
-    http_headers: Option<HashMap<String, String>>,
-    release_date: Option<String>,
-    thumbnail: Option<String>,
-    title: Option<String>,
-    track: Option<String>,
-    upload_date: Option<String>,
-    uploader: Option<String>,
-    url: String,
-    webpage_url: Option<String>,
-}
-
-impl Output {
-    fn as_aux_metadata(&self) -> AuxMetadata {
-        let track = self.track.clone();
-        let true_artist = self.artist.as_ref();
-        let artist = true_artist.or_else(|| self.uploader.as_ref()).cloned();
-        let r_date = self.release_date.as_ref();
-        let date = r_date.or_else(|| self.upload_date.as_ref()).cloned();
-        let channel = self.channel.clone();
-        let duration = self.duration.map(Duration::from_secs_f64);
-        let source_url = self.webpage_url.clone();
-        let title = self.title.clone();
-        let thumbnail = self.thumbnail.clone();
-
-        AuxMetadata {
-            track,
-            artist,
-            date,
-
-            channels: Some(2),
-            channel,
-            duration,
-            sample_rate: Some(SAMPLE_RATE_RAW as u32),
-            source_url,
-            title,
-            thumbnail,
-
-            ..AuxMetadata::default()
-        }
     }
 }
 

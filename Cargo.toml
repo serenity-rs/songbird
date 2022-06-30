@@ -89,6 +89,10 @@ version = "0.12"
 optional = true
 version = "0.7"
 
+[dependencies.serde-aux]
+optional = true
+version = "3"
+
 [dependencies.serenity]
 optional = true
 default-features = false
@@ -191,6 +195,7 @@ driver = [
     "rand",
     "ringbuf",
     "rubato",
+    "serde-aux",
     "serenity-voice-model",
     "streamcatcher",
     "symphonia",

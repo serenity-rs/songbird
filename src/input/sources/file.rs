@@ -1,6 +1,7 @@
-use crate::input::{AudioStream, AudioStreamError, Compose, Input};
+use crate::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, Input};
 use std::{error::Error, ffi::OsStr, path::Path};
 use symphonia_core::{io::MediaSource, probe::Hint};
+use tokio::process::Command;
 
 /// A lazily instantiated local file.
 #[derive(Clone, Debug)]
@@ -53,5 +54,27 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
 
     fn should_create_async(&self) -> bool {
         true
+    }
+
+    /// Probes for metadata about this audio files using ffprobe.
+    async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
+        let args = [
+            "-v",
+            "quiet",
+            "-of",
+            "json",
+            "-show_format",
+            "-show_streams",
+            "-i",
+        ];
+
+        let output = Command::new("ffprobe")
+            .args(&args)
+            .output()
+            .await
+            .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
+
+        AuxMetadata::from_ffprobe_json(&output.stdout[..])
+            .map_err(|e| AudioStreamError::Fail(Box::new(e)))
     }
 }
