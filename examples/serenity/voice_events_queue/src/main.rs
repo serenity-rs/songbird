@@ -18,6 +18,8 @@ use std::{
     time::Duration,
 };
 
+use reqwest::Client as HttpClient;
+
 use serenity::{
     async_trait,
     client::{Client, Context, EventHandler},
@@ -31,7 +33,7 @@ use serenity::{
     },
     http::Http,
     model::{channel::Message, gateway::Ready, prelude::ChannelId},
-    prelude::{GatewayIntents, Mentionable},
+    prelude::{GatewayIntents, Mentionable, TypeMapKey},
     Result as SerenityResult,
 };
 
@@ -43,6 +45,12 @@ use songbird::{
     SerenityInit,
     TrackEvent,
 };
+
+struct HttpKey;
+
+impl TypeMapKey for HttpKey {
+    type Value = HttpClient;
+}
 
 struct Handler;
 
@@ -76,6 +84,7 @@ async fn main() {
         .event_handler(Handler)
         .framework(framework)
         .register_songbird()
+        .type_map_insert::<HttpKey>(HttpClient::new())
         .await
         .expect("Err creating client");
 
@@ -83,6 +92,23 @@ async fn main() {
         .start()
         .await
         .map_err(|why| println!("Client ended: {:?}", why));
+
+    tokio::spawn(async move {
+        let _ = client
+            .start()
+            .await
+            .map_err(|why| println!("Client ended: {:?}", why));
+    });
+
+    let _signal_err = tokio::signal::ctrl_c().await;
+    println!("Received Ctrl-C, shutting down.");
+}
+
+async fn get_http_client(ctx: &Context) -> HttpClient {
+    let data = ctx.data.read().await;
+    data.get::<HttpKey>()
+        .cloned()
+        .expect("Guaranteed to exist in the typemap.")
 }
 
 #[command]
@@ -340,6 +366,8 @@ async fn play_fade(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
 
     let guild_id = msg.guild_id.unwrap();
 
+    let http_client = get_http_client(ctx).await;
+
     let manager = songbird::get(ctx)
         .await
         .expect("Songbird Voice client placed in at initialisation.")
@@ -348,7 +376,7 @@ async fn play_fade(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let src = YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
+        let src = YoutubeDl::new(http_client, url);
 
         // This handler object will allow you to, as needed,
         // control the audio track via events and further commands.
@@ -461,6 +489,8 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
+    let http_client = get_http_client(ctx).await;
+
     let manager = songbird::get(ctx)
         .await
         .expect("Songbird Voice client placed in at initialisation.")
@@ -471,7 +501,7 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
         // Here, we use lazy restartable sources to make sure that we don't pay
         // for decoding, playback on tracks which aren't actually live yet.
-        let src = YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::new(), url);
+        let src = YoutubeDl::new(http_client, url);
 
         handler.enqueue_input(src.into()).await;
 
@@ -541,7 +571,7 @@ async fn stop(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let handler = handler_lock.lock().await;
         let queue = handler.queue();
-        let _ = queue.stop();
+        queue.stop();
 
         check_msg(msg.channel_id.say(&ctx.http, "Queue cleared.").await);
     } else {

@@ -184,9 +184,9 @@ jobs:
       - name: 'Build serenity/voice_receive'
         working-directory: examples
         run: cargo build -p voice_receive
-      - name: 'Build serenity/voice_storage'
+      - name: 'Build serenity/voice_cached_audio'
         working-directory: examples
-        run: cargo build -p voice_storage
+        run: cargo build -p voice_cached_audio
       - name: 'Build twilight'
         working-directory: examples
         run: cargo build -p twilight

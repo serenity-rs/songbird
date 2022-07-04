@@ -1,8 +1,8 @@
 [workspace]
 members = [
     "serenity/voice",
+    "serenity/voice_cached_audio",
     "serenity/voice_events_queue",
     "serenity/voice_receive",
-    "serenity/voice_storage",
     "twilight",
 ]

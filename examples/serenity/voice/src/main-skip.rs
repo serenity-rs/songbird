@@ -16,11 +16,7 @@ use songbird::SerenityInit;
 // Event related imports to detect track creation failures.
 use songbird::events::{Event, EventContext, EventHandler as VoiceEventHandler, TrackEvent};
 
-// To turn user URLs into playable audio, we'll use yt-dlp.
-use songbird::input::YoutubeDl;
-
-// YtDl requests need an HTTP client to operate -- we'll create and store our own.
-use reqwest::Client as HttpClient;
+use std::time::Duration;
 
 // Import the `Context` to handle commands.
 use serenity::client::Context;
@@ -31,21 +27,14 @@ use serenity::{
     framework::{
         standard::{
             macros::{command, group},
-            Args,
-            CommandResult,
+            Args, CommandResult,
         },
         StandardFramework,
     },
     model::{channel::Message, gateway::Ready},
-    prelude::{GatewayIntents, TypeMapKey},
+    prelude::GatewayIntents,
     Result as SerenityResult,
 };
-
-struct HttpKey;
-
-impl TypeMapKey for HttpKey {
-    type Value = HttpClient;
-}
 
 struct Handler;
 
@@ -77,12 +66,6 @@ async fn main() {
         .event_handler(Handler)
         .framework(framework)
         .register_songbird()
-        // We insert our own HTTP client here to make use of in
-        // `~play`. If we wanted, we could supply cookies and auth
-        // details ahead of time.
-        //
-        // Generally, we don't want to make a new Client for every request!
-        .type_map_insert::<HttpKey>(HttpClient::new())
         .await
         .expect("Err creating client");
 
@@ -93,14 +76,15 @@ async fn main() {
             .map_err(|why| println!("Client ended: {:?}", why));
     });
 
-    let _signal_err = tokio::signal::ctrl_c().await;
+    tokio::signal::ctrl_c().await;
     println!("Received Ctrl-C, shutting down.");
 }
 
 #[command]
 #[only_in(guilds)]
 async fn deafen(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
+    let guild_id = guild.id;
 
     let manager = songbird::get(ctx)
         .await
@@ -138,15 +122,13 @@ async fn deafen(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {
-    let (guild_id, channel_id) = {
-        let guild = msg.guild(&ctx.cache).unwrap();
-        let channel_id = guild
-            .voice_states
-            .get(&msg.author.id)
-            .and_then(|voice_state| voice_state.channel_id);
+    let guild = msg.guild(&ctx.cache).unwrap();
+    let guild_id = guild.id;
 
-        (guild.id, channel_id)
-    };
+    let channel_id = guild
+        .voice_states
+        .get(&msg.author.id)
+        .and_then(|voice_state| voice_state.channel_id);
 
     let connect_to = match channel_id {
         Some(channel) => channel,
@@ -193,7 +175,8 @@ impl VoiceEventHandler for TrackErrorNotifier {
 #[command]
 #[only_in(guilds)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
+    let guild_id = guild.id;
 
     let manager = songbird::get(ctx)
         .await
@@ -221,7 +204,8 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn mute(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
+    let guild_id = guild.id;
 
     let manager = songbird::get(ctx)
         .await
@@ -278,6 +262,19 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         },
     };
 
+    let time = match args.single::<f64>() {
+        Ok(t) => t,
+        Err(_) => {
+            check_msg(
+                msg.channel_id
+                    .say(&ctx.http, "Must provide a valid f64 timestamp to jump to.")
+                    .await,
+            );
+
+            return Ok(());
+        },
+    };
+
     if !url.starts_with("http") {
         check_msg(
             msg.channel_id
@@ -288,14 +285,8 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
 
-    let guild_id = msg.guild_id.unwrap();
-
-    let http_client = {
-        let data = ctx.data.read().await;
-        data.get::<HttpKey>()
-            .cloned()
-            .expect("Guaranteed to exist in the typemap.")
-    };
+    let guild = msg.guild(&ctx.cache).unwrap();
+    let guild_id = guild.id;
 
     let manager = songbird::get(ctx)
         .await
@@ -305,8 +296,19 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let src = YoutubeDl::new(http_client, url);
-        let _ = handler.play_input(src.into());
+        let jar = reqwest::cookie::Jar::default();
+        jar.add_cookie_str("CONSENT=YES+; Path=/; Domain=youtube.com; Secure; Expires=Fri, 01 Jan 2038 00:00:00 GMT;", &"https://youtube.com".parse().unwrap());
+
+        let src = songbird::input::YoutubeDl::new_ytdl_like("yt-dlp", reqwest::Client::builder().cookie_provider(std::sync::Arc::new(jar)).build().unwrap(), url);
+
+        let h = handler.play_input(src.into());
+
+        h.add_event(
+            Event::Delayed(Duration::from_secs(10)),
+            SkipHandler {
+                skip_to: Duration::from_secs_f64(time),
+            },
+        );
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {
@@ -320,10 +322,31 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     Ok(())
 }
 
+struct SkipHandler {
+    skip_to: Duration,
+}
+
+#[async_trait]
+impl VoiceEventHandler for SkipHandler {
+    async fn act(&self, ctx: &EventContext<'_>) -> Option<Event> {
+        if let EventContext::Track(&[(state, handle)]) = ctx {
+            println!("Current position is {:?}", state.position);
+            println!("Seeking to {:?}", self.skip_to);
+            let resp = handle.seek_time(self.skip_to);
+            println!("Seek response {:?}", resp);
+            return None;
+        }
+
+        println!("This wasn't supposed to happen.");
+        None
+    }
+}
+
 #[command]
 #[only_in(guilds)]
 async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
+    let guild_id = guild.id;
 
     let manager = songbird::get(ctx)
         .await
@@ -355,7 +378,8 @@ async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[only_in(guilds)]
 async fn unmute(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
+    let guild_id = guild.id;
 
     let manager = songbird::get(ctx)
         .await
