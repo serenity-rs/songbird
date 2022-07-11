@@ -333,4 +333,10 @@ mod tests {
     async fn dca_backward_seek_correct() {
         backward_seek_correct(|| File::new(FILE_DCA_TARGET)).await;
     }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn opus_passthrough_when_other_tracks_paused() {
+        track_plays_passthrough_when_is_only_active(|| File::new(FILE_DCA_TARGET)).await;
+    }
 }

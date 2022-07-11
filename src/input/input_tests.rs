@@ -11,7 +11,20 @@ where
     T: Into<Track>,
     F: FnOnce() -> T,
 {
-    track_plays_base(make_track, true).await;
+    track_plays_base(make_track, true, None).await;
+}
+
+pub async fn track_plays_passthrough_when_is_only_active<T, F>(make_track: F)
+where
+    T: Into<Track>,
+    F: FnOnce() -> T,
+{
+    track_plays_base(
+        make_track,
+        true,
+        Some(include_bytes!("../../resources/loop.wav")),
+    )
+    .await;
 }
 
 pub async fn track_plays_mixed<T, F>(make_track: F)
@@ -19,16 +32,25 @@ where
     T: Into<Track>,
     F: FnOnce() -> T,
 {
-    track_plays_base(make_track, false).await;
+    track_plays_base(make_track, false, None).await;
 }
 
-pub async fn track_plays_base<T, F>(make_track: F, passthrough: bool)
-where
+pub async fn track_plays_base<T, F>(
+    make_track: F,
+    passthrough: bool,
+    dummy_track: Option<&'static [u8]>,
+) where
     T: Into<Track>,
     F: FnOnce() -> T,
 {
     let (t_handle, config) = Config::test_cfg(true);
     let mut driver = Driver::new(config.clone());
+
+    // Used to ensure that paused tracks won't prevent passthrough from happening
+    // i.e., most queue users :)
+    if let Some(audio_data) = dummy_track {
+        driver.play(Track::from(audio_data).pause());
+    }
 
     let file = make_track();
 

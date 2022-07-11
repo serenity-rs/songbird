@@ -838,12 +838,20 @@ impl Mixer {
         let opus_frame = &mut payload[TAG_SIZE..];
 
         // Opus frame passthrough.
-        // This requires that we have only one track, who has volume 1.0, and an
-        // Opus codec type (verified internally).
-        let do_passthrough = self.tracks.len() == 1 && {
-            let track = &self.tracks[0];
-            (track.volume - 1.0).abs() < f32::EPSILON
-        };
+        // This requires that we have only one PLAYING track, who has volume 1.0, and an
+        // Opus codec type (verified later in mix_symph_indiv).
+        //
+        // We *could* cache the number of live tracks separately, but that makes this
+        // quite fragile given all the ways a user can alter the PlayMode.
+        let mut num_live = 0;
+        let mut last_live_vol = 1.0;
+        for track in &self.tracks {
+            if track.playing.is_playing() {
+                num_live += 1;
+                last_live_vol = track.volume;
+            }
+        }
+        let do_passthrough = num_live == 1 && (last_live_vol - 1.0).abs() < f32::EPSILON;
 
         let mut len = 0;
         for (i, track) in self.tracks.iter_mut().enumerate() {
@@ -884,11 +892,7 @@ impl Mixer {
                 continue;
             }
 
-            let opus_slot = if do_passthrough {
-                Some(&mut *opus_frame)
-            } else {
-                None
-            };
+            let opus_slot = do_passthrough.then(|| &mut *opus_frame);
 
             let (mix_type, status) = mix_logic::mix_symph_indiv(
                 &mut self.symph_mix,

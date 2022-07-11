@@ -1,22 +1,58 @@
 use super::*;
 
+/// Mix a track's audio stream into either the shared mixing buffer, or directly into the output
+/// packet ("passthrough") when possible.
+///
+/// Passthrough is highest performance, but the source MUST be opus, have 20ms frames, and be the only
+/// live track. In this case we copy the opus-encoded data with no changes. Otherwise, we fall back to
+/// below.
+///
+/// There are a few functional requirements here for non-passthrough mixing that make it tricky:
+/// * Input frame lengths are not congruent with what we need to send (i.e., 26.12ms in MP3 vs
+///   needed 20ms).
+/// * Input audio arrives at a different sample rate from required (i.e., 44.1 vs needed 48 kHz).
+/// * Input data may not be `f32`s.
+/// * Input data may not match stereo/mono of desired output.
+///
+/// All of the above challenges often happen at once. The rough pipeline in processing is:
+///
+/// until source end or 20 ms taken:
+///   (use previous frame 'til empty / get new frame) -> [resample] -> [audio += vol * (sample as f32)]
+///
+/// In the mono -> stereo case, we duplicate across all target channels. In stereo -> mono, we average
+/// the samples from each channel.
+///
+/// To avoid needing to hold onto resampled data longer than one mix cycle, we take enough input samples
+/// to fill a chunk of the mixer (e.g., 10ms == 20ms / 2) so that they will all be used.
+///
+/// This is a fairly annoying piece of code to reason about, mainly because you need to hold so many
+/// internal positions into: the mix buffer, resample buffers, and previous/current packets
+/// for a stream.
 #[inline]
 pub fn mix_symph_indiv(
+    // shared buffer to mix into.
     symph_mix: &mut AudioBuffer<f32>,
+    // buffer to hold built up packet
     resample_scratch: &mut AudioBuffer<f32>,
+    // the input stream to use
     input: &mut Parsed,
+    // resampler state and positions into partially read packets
     local_state: &mut DecodeState,
+    // volume of this source
     volume: f32,
+    // window into the output UDP buffer to copy opus frames into.
+    // This is set to `Some` IF passthrough is possible (i.e., one live source).
     mut opus_slot: Option<&mut [u8]>,
 ) -> (MixType, MixStatus) {
     let mut samples_written = 0;
-    let mut buf_in_progress = false;
+    let mut buf_in_progress = false; // used to detect whether a track ends mid-resample.
     let mut track_status = MixStatus::Live;
     let codec_type = input.decoder.codec_params().codec;
 
     resample_scratch.clear();
 
     while samples_written != MONO_FRAME_SIZE {
+        // fetch a packet: either in progress, passthrough (early exit), or
         let source_packet = if local_state.inner_pos != 0 {
             Some(input.decoder.last_decoded())
         } else if let Ok(pkt) = input.format.next_packet() {
@@ -66,7 +102,7 @@ pub fn mix_symph_indiv(
         // Cleanup: failed to get the next packet, but still have to convert and mix scratch.
         if source_packet.is_none() {
             if buf_in_progress {
-                // fill up buf with zeroes, resample, mix
+                // fill up remainder of buf with zeroes, resample, mix
                 let (chan_c, resampler, rs_out_buf) = local_state.resampler.as_mut().unwrap();
                 let in_len = resample_scratch.frames();
                 let to_render = resampler.input_frames_next().saturating_sub(in_len);
@@ -148,7 +184,6 @@ pub fn mix_symph_indiv(
             let available_frames = pkt_frames - inner_pos;
 
             let force_copy = buf_in_progress || needed_in_frames > available_frames;
-            // println!("Frame processing state: chan_c {}, inner_pos {}, pkt_frames {}, needed {}, available {}, force_copy {}.", chan_c, inner_pos, pkt_frames, needed_in_frames, available_frames, force_copy);
             if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
                 // This is the only case where we can pull off a straight resample...
                 // I would really like if this could be a slice of slices,
@@ -266,6 +301,7 @@ where
     let source_raw_planes = source_planes.planes();
 
     if source_mono {
+        // mix this signal into *all* output channels at req'd volume.
         let source_plane = source_raw_planes[0];
         for d_plane in (&mut *target.planes_mut().planes()).iter_mut() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
@@ -276,6 +312,8 @@ where
             }
         }
     } else if target_mono {
+        // mix all signals into the one target channel: reduce aggregate volume
+        // by n_channels.
         let vol_adj = 1.0 / (source_chans as f32);
         let mut t_planes = target.planes_mut();
         let d_plane = &mut *t_planes.planes()[0];
@@ -288,6 +326,7 @@ where
             }
         }
     } else {
+        // stereo -> stereo: don't change volume, map input -> output channels w/ no duplication
         for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
             .iter_mut()
             .zip(source_raw_planes[..].iter())
@@ -318,6 +357,7 @@ fn mix_resampled(
     let source_chans = source.len();
     let source_mono = source_chans == 1;
 
+    // see `mix_symph_buffer` for explanations of stereo<->mono logic.
     if source_mono {
         let source_plane = &source[0];
         for d_plane in (&mut *target.planes_mut().planes()).iter_mut() {
