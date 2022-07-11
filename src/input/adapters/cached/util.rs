@@ -258,7 +258,7 @@ impl Read for ToAudioBytes {
 
                         resample
                             .resampler
-                            .process_into_buffer(&*refs, &mut resample.resampled_data, None)
+                            .process_into_buffer(&refs, &mut resample.resampled_data, None)
                             .unwrap();
                     } else {
                         unreachable!()
@@ -394,8 +394,8 @@ where
         *spill_range = 0..num_chans * SAMPLE_LEN;
     }
 
-    for (i, plane) in (&source.planes().planes()[..num_chans]).iter().enumerate() {
-        for (j, sample) in (&plane[source_pos.start..][..to_write]).iter().enumerate() {
+    for (i, plane) in source.planes().planes()[..num_chans].iter().enumerate() {
+        for (j, sample) in plane[source_pos.start..][..to_write].iter().enumerate() {
             // write this into the correct slot of buf.
             let addr = ((j * num_chans) + i) * SAMPLE_LEN;
             (&mut buf[addr..][..SAMPLE_LEN])
@@ -438,8 +438,8 @@ fn write_resample_buffer(
         *spill_range = 0..num_chans * SAMPLE_LEN;
     }
 
-    for (i, plane) in (&source[..num_chans]).iter().enumerate() {
-        for (j, sample) in (&plane[source_pos.start..][..to_write]).iter().enumerate() {
+    for (i, plane) in source[..num_chans].iter().enumerate() {
+        for (j, sample) in plane[source_pos.start..][..to_write].iter().enumerate() {
             // write this into the correct slot of buf.
             let addr = ((j * num_chans) + i) * SAMPLE_LEN;
             (&mut buf[addr..][..SAMPLE_LEN])

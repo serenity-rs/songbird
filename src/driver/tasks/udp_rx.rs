@@ -196,7 +196,7 @@ impl SsrcState {
             // and then remember that.
             loop {
                 let tried_audio_len = self.decoder.decode(
-                    Some((&data[start..]).try_into()?),
+                    Some(data[start..].try_into()?),
                     (&mut out[..]).try_into()?,
                     false,
                 );

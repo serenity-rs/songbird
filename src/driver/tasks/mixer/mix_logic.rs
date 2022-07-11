@@ -203,7 +203,7 @@ pub fn mix_symph_indiv(
                     local_state.inner_pos %= pkt_frames;
 
                     resampler
-                        .process_into_buffer(&*refs, rs_out_buf, None)
+                        .process_into_buffer(&refs, rs_out_buf, None)
                         .unwrap();
                 } else {
                     unreachable!()
