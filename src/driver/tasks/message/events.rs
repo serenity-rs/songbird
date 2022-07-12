@@ -16,7 +16,6 @@ pub enum EventMessage {
 
     AddTrack(EventStore, TrackState, TrackHandle),
     ChangeState(usize, TrackStateChange),
-    RemoveTrack(usize),
     RemoveAllTracks,
     Tick,
 

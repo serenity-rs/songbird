@@ -542,9 +542,7 @@ impl Mixer {
             }
         }
 
-        // TODO: do without vec?
         let mut i = 0;
-        let mut to_remove = Vec::with_capacity(self.tracks.len());
         while i < self.tracks.len() {
             let track = self
                 .tracks
@@ -561,7 +559,6 @@ impl Mixer {
                 let to_drop = self.track_handles.swap_remove(i);
                 drop(self.disposer.send(DisposalMessage::Handle(to_drop)));
 
-                to_remove.push(i);
                 self.fire_event(EventMessage::ChangeState(
                     i,
                     TrackStateChange::Mode(p_state),
@@ -571,13 +568,9 @@ impl Mixer {
             }
         }
 
-        // Tick
+        // Tick -- receive side also handles removals in same manner after it increments
+        // times etc.
         self.fire_event(EventMessage::Tick)?;
-
-        // Then do removals.
-        for i in &to_remove[..] {
-            self.fire_event(EventMessage::RemoveTrack(*i))?;
-        }
 
         Ok(())
     }

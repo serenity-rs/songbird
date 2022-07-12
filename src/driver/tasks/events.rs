@@ -107,13 +107,6 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
                     },
                 }
             },
-            EventMessage::RemoveTrack(i) => {
-                info!("Event state for track {} of {} removed.", i, events.len());
-
-                events.swap_remove(i);
-                states.swap_remove(i);
-                handles.swap_remove(i);
-            },
             EventMessage::RemoveAllTracks => {
                 info!("Event state for all tracks removed.");
 
@@ -124,6 +117,19 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
             EventMessage::Tick => {
                 // NOTE: this should fire saved up blocks of state change evts.
                 global.tick(&mut events, &mut states, &mut handles).await;
+
+                let mut i = 0;
+                while i < states.len() {
+                    if states[i].playing.is_done() {
+                        info!("Event state for track {} of {} removed.", i, events.len());
+
+                        events.swap_remove(i);
+                        states.swap_remove(i);
+                        handles.swap_remove(i);
+                    } else {
+                        i += 1;
+                    }
+                }
             },
             EventMessage::Poison => break,
         }
