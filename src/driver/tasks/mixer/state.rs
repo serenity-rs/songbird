@@ -23,6 +23,14 @@ impl InputState {
             None
         }
     }
+
+    pub fn ready_state(&self) -> ReadyState {
+        match self {
+            InputState::NotReady(_) => ReadyState::Uninitialised,
+            InputState::Preparing(_) => ReadyState::Preparing,
+            InputState::Ready(_, _) => ReadyState::Playable,
+        }
+    }
 }
 
 impl From<Input> for InputState {
@@ -33,16 +41,6 @@ impl From<Input> for InputState {
                 LiveInput::Parsed(p) => InputState::Ready(p, rec),
                 other => InputState::NotReady(Input::Live(other, rec)),
             },
-        }
-    }
-}
-
-impl From<&InputState> for ReadyState {
-    fn from(val: &InputState) -> Self {
-        match val {
-            InputState::NotReady(_) => Self::Uninitialised,
-            InputState::Preparing(_) => Self::Preparing,
-            InputState::Ready(_, _) => Self::Playable,
         }
     }
 }

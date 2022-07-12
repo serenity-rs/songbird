@@ -19,6 +19,10 @@ use super::*;
 /// until source end or 20 ms taken:
 ///   (use previous frame 'til empty / get new frame) -> [resample] -> [audio += vol * (sample as f32)]
 ///
+/// Typically, we mix between a subset of the input packet and the output buf because the 20ms window
+/// straddles packet boundaries. If there's enough space AND 48kHz AND receive f32s, then we use a fast
+/// path.
+///
 /// In the mono -> stereo case, we duplicate across all target channels. In stereo -> mono, we average
 /// the samples from each channel.
 ///
@@ -45,7 +49,7 @@ pub fn mix_symph_indiv(
     mut opus_slot: Option<&mut [u8]>,
 ) -> (MixType, MixStatus) {
     let mut samples_written = 0;
-    let mut buf_in_progress = false; // used to detect whether a track ends mid-resample.
+    let mut resample_in_progress = false;
     let mut track_status = MixStatus::Live;
     let codec_type = input.decoder.codec_params().codec;
 
@@ -101,7 +105,7 @@ pub fn mix_symph_indiv(
 
         // Cleanup: failed to get the next packet, but still have to convert and mix scratch.
         if source_packet.is_none() {
-            if buf_in_progress {
+            if resample_in_progress {
                 // fill up remainder of buf with zeroes, resample, mix
                 let (chan_c, resampler, rs_out_buf) = local_state.resampler.as_mut().unwrap();
                 let in_len = resample_scratch.frames();
@@ -183,7 +187,7 @@ pub fn mix_symph_indiv(
             let needed_in_frames = resampler.input_frames_next();
             let available_frames = pkt_frames - inner_pos;
 
-            let force_copy = buf_in_progress || needed_in_frames > available_frames;
+            let force_copy = resample_in_progress || needed_in_frames > available_frames;
             if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
                 // This is the only case where we can pull off a straight resample...
                 // I would really like if this could be a slice of slices,
@@ -236,10 +240,10 @@ pub fn mix_symph_indiv(
                         )
                         .unwrap();
                     resample_scratch.clear();
-                    buf_in_progress = false;
+                    resample_in_progress = false;
                 } else {
                     // Not enough data to fill the resampler: fetch more.
-                    buf_in_progress = true;
+                    resample_in_progress = true;
                     continue;
                 }
             };

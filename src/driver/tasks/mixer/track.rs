@@ -43,7 +43,7 @@ impl<'a> InternalTrack {
     }
 
     pub(crate) fn state(&self) -> TrackState {
-        let ready = (&self.input).into();
+        let ready = self.input.ready_state();
 
         TrackState {
             playing: self.playing.clone(),
@@ -56,7 +56,7 @@ impl<'a> InternalTrack {
     }
 
     pub(crate) fn view(&'a mut self) -> View<'a> {
-        let ready = (&self.input).into();
+        let ready = self.input.ready_state();
 
         View {
             position: &self.position,

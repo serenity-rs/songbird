@@ -63,6 +63,7 @@ use xsalsa20poly1305::TAG_SIZE;
 use crate::driver::test_config::{OutputMessage, OutputMode, TickStyle};
 #[cfg(test)]
 use discortp::Packet as _;
+
 pub struct Mixer {
     pub bitrate: Bitrate,
     pub config: Arc<Config>,
