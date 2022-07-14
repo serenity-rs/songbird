@@ -221,7 +221,9 @@ impl<'a> InternalTrack {
                         *input = InputState::Ready(parsed, rec);
                         local.reset();
 
-                        // TODO: set position to the true track position here?
+                        // possible TODO: set position to the true track position here?
+                        // ISSUE: need to get next_packet to see its `ts`, but inner_pos==0
+                        // will trigger next packet to be taken at mix time.
 
                         if !prevent_events {
                             drop(interconnect.events.send(EventMessage::ChangeState(
@@ -242,7 +244,8 @@ impl<'a> InternalTrack {
                         match seek_res {
                             Ok(pos) =>
                                 if let Some(time_base) = parsed.decoder.codec_params().time_base {
-                                    // modify track.
+                                    // Update track's position to match the actual timestamp the
+                                    // seek landed at.
                                     let new_time = time_base.calc_time(pos.actual_ts);
                                     let time_in_float = new_time.seconds as f64 + new_time.frac;
                                     self.position =
@@ -263,6 +266,9 @@ impl<'a> InternalTrack {
                                         )));
                                     }
 
+                                    // Our decoder state etc. must be reset.
+                                    // (Symphonia decoder state reset in the thread pool during
+                                    // the operation.)
                                     local.reset();
                                     *input = InputState::Ready(parsed, rec);
 

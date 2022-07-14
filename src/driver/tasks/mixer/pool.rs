@@ -39,6 +39,10 @@ impl BlockyTaskPool {
         seek_time: Option<SeekTo>,
         config: Arc<Config>,
     ) {
+        // Moves an Input from Lazy -> Live.
+        // We either do this on this pool, or move it to the tokio executor as the source requires.
+        // This takes a seek_time to pass on and execute *after* parsing (i.e., back-seek on
+        // read-only stream).
         match input {
             Input::Lazy(mut lazy) => {
                 let far_pool = self.clone();

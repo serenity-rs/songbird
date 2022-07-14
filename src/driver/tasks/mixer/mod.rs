@@ -620,6 +620,8 @@ impl Mixer {
     pub fn cycle(&mut self) -> Result<()> {
         let mut mix_buffer = [0f32; STEREO_FRAME_SIZE];
 
+        // symph_mix is an `AudioBuffer` (planar format), we need to convert this
+        // later into an interleaved `SampleBuffer` for libopus.
         self.symph_mix.clear();
         self.symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
         self.resample_scratch.clear();
@@ -638,11 +640,12 @@ impl Mixer {
             mix_len = MixType::MixedPcm(0);
         }
 
+        // Explicit "Silence" frame handling: if there is no mixed data, we must send
+        // ~5 frames of silence (unless another good audio frame appears) before we
+        // stop sending RTP frames.
         if mix_len == MixType::MixedPcm(0) {
             if self.silence_frames > 0 {
                 self.silence_frames -= 1;
-
-                // Explicit "Silence" frame.
                 let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
                     "FATAL: Too few bytes in self.packet for RTP header.\
                         (Blame: VOICE_PACKET_MAX?)",
@@ -657,7 +660,7 @@ impl Mixer {
             } else {
                 // Per official guidelines, send 5x silence BEFORE we stop speaking.
                 if let Some(ws) = &self.ws {
-                    // NOTE: this should prevent a catastrophic thread pileup.
+                    // NOTE: this explicit `drop` should prevent a catastrophic thread pileup.
                     // A full reconnect might cause an inner closed connection.
                     // It's safer to leave the central task to clean this up and
                     // pass the mixer a new channel.
@@ -681,6 +684,9 @@ impl Mixer {
             self.silence_frames = 5;
 
             if let MixType::MixedPcm(n) = mix_len {
+                // FIXME: When impling #134, prevent this copy from happening if softclip disabled.
+                // Offer sample_buffer.samples() to prep_and_send_packet.
+
                 // to apply soft_clip, we need this to be in a normal f32 buffer.
                 // unfortunately, SampleBuffer does not expose a `.samples_mut()`.
                 // hence, an extra copy...
@@ -732,6 +738,7 @@ impl Mixer {
         #[cfg(not(test))]
         self.prep_and_send_packet(&mix_buffer, mix_len)?;
 
+        // Zero out all planes of the mix buffer if any audio was written.
         if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
             for plane in self.symph_mix.planes_mut().planes() {
                 plane.fill(0.0);
@@ -761,6 +768,8 @@ impl Mixer {
             let payload = rtp.payload_mut();
             let crypto_mode = conn.crypto_state.kind();
 
+            // If passthrough, Opus payload in place already.
+            // Else encode into buffer with space for AEAD encryption headers.
             let payload_len = match mix_len {
                 MixType::Passthrough(opus_len) => opus_len,
                 MixType::MixedPcm(_samples) => {
@@ -852,8 +861,8 @@ impl Mixer {
             let vol = track.volume;
 
             // This specifically tries to get tracks who are "preparing",
-            // mainly so that event handlers and the like can all be fired
-            // without the track being in a play state.
+            // so that event handlers and the like can all be fired without
+            // the track being in a `Play` state.
             if !track.should_check_input() {
                 continue;
             }
@@ -886,15 +895,13 @@ impl Mixer {
                 continue;
             }
 
-            let opus_slot = do_passthrough.then(|| &mut *opus_frame);
-
             let (mix_type, status) = mix_logic::mix_symph_indiv(
                 &mut self.symph_mix,
                 &mut self.resample_scratch,
                 input,
                 mix_state,
                 vol,
-                opus_slot,
+                do_passthrough.then(|| &mut *opus_frame),
             );
 
             let return_here = if let MixType::MixedPcm(pcm_len) = mix_type {
