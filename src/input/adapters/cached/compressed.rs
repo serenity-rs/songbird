@@ -20,7 +20,15 @@ use audiopus::{
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::{
     convert::TryInto,
-    io::{Cursor, Error as IoError, ErrorKind as IoErrorKind, Read, Result as IoResult, Seek},
+    io::{
+        Cursor,
+        Error as IoError,
+        ErrorKind as IoErrorKind,
+        Read,
+        Result as IoResult,
+        Seek,
+        SeekFrom,
+    },
     mem,
     sync::atomic::{AtomicUsize, Ordering},
 };
@@ -42,10 +50,10 @@ use symphonia_core::{
 use tracing::{debug, trace};
 
 pub struct Config {
-    /// Registry of the inner codecs supported by the driver, adding audiopus-based
-    /// Opus codec support to all of Symphonia's default codecs.
+    /// Registry of audio codecs supported by the driver.
     ///
-    /// Defaults to [`CODEC_REGISTRY`].
+    /// Defaults to [`CODEC_REGISTRY`], which adds audiopus-based Opus codec support
+    /// to all of Symphonia's default codecs.
     ///
     /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
     pub codec_registry: &'static CodecRegistry,
@@ -113,10 +121,8 @@ impl Compressed {
         Self::with_config(source, bitrate, None).await
     }
 
-    /// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.
-    ///
-    /// `config.length_hint` may be used to control the size of the initial chunk, preventing
-    /// needless allocations and copies.
+    /// Wrap an existing [`Input`] with an in-memory store, compressed using Opus, with
+    /// custom configuration for both Symphonia and the backing store.
     ///
     /// [`Input`]: Input
     pub async fn with_config(
@@ -498,13 +504,13 @@ impl Stateful for OpusCompressor {
 }
 
 impl Read for Compressed {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
         self.raw.read(buf)
     }
 }
 
 impl Seek for Compressed {
-    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
         self.raw.seek(pos)
     }
 }

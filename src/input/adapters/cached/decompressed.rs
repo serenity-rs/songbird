@@ -3,7 +3,7 @@ use crate::{
     constants::SAMPLE_RATE_RAW,
     input::{AudioStream, Input, LiveInput, RawAdapter},
 };
-use std::io::{Read, Seek};
+use std::io::{Read, Result as IoResult, Seek, SeekFrom};
 use streamcatcher::Catcher;
 use symphonia_core::{audio::Channels, io::MediaSource};
 
@@ -40,10 +40,8 @@ impl Decompressed {
         Self::with_config(source, None).await
     }
 
-    /// Wrap an existing [`Input`] with an in-memory store, decompressed into `f32` PCM audio.
-    ///
-    /// `config.length_hint` may be used to control the size of the initial chunk, preventing
-    /// needless allocations and copies.
+    /// Wrap an existing [`Input`] with an in-memory store, decompressed into `f32` PCM audio,
+    /// with custom configuration for both Symphonia and the backing store.
     ///
     /// [`Input`]: Input
     pub async fn with_config(
@@ -111,13 +109,13 @@ impl Decompressed {
 }
 
 impl Read for Decompressed {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
         self.raw.read(buf)
     }
 }
 
 impl Seek for Decompressed {
-    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
         self.raw.seek(pos)
     }
 }
