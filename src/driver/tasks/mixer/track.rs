@@ -1,4 +1,4 @@
-use crate::tracks::ReadyState;
+use crate::tracks::{ReadyState, SeekRequest};
 use std::result::Result as StdResult;
 use symphonia_core::errors::Error as SymphError;
 
@@ -110,7 +110,7 @@ impl<'a> InternalTrack {
                         TrackStateChange::Volume(self.volume),
                     )));
                 },
-                TrackCommand::Seek(time, callback) => action.seek_point = Some((time, callback)),
+                TrackCommand::Seek(req) => action.seek_point = Some(req),
                 TrackCommand::AddEvent(evt) => {
                     drop(ic.events.send(EventMessage::AddTrackEvent(index, evt)));
                 },
@@ -180,9 +180,9 @@ impl<'a> InternalTrack {
         prevent_events: bool,
     ) -> StdResult<(&'a mut Parsed, &'a mut DecodeState), InputReadyingError> {
         let input = &mut self.input;
-        let local = &mut self.mix_state;
+        let mix_state = &mut self.mix_state;
 
-        match input {
+        let (out, queued_seek) = match input {
             InputState::NotReady(_) => {
                 let (tx, rx) = flume::bounded(1);
 
@@ -211,7 +211,7 @@ impl<'a> InternalTrack {
                     )));
                 }
 
-                Err(InputReadyingError::Waiting)
+                (Err(InputReadyingError::Waiting), None)
             },
             InputState::Preparing(info) => {
                 let queued_seek = info.queued_seek.take();
@@ -219,7 +219,7 @@ impl<'a> InternalTrack {
                 let orig_out = match info.callback.try_recv() {
                     Ok(MixerInputResultMessage::Built(parsed, rec)) => {
                         *input = InputState::Ready(parsed, rec);
-                        local.reset();
+                        mix_state.reset();
 
                         // possible TODO: set position to the true track position here?
                         // ISSUE: need to get next_packet to see its `ts`, but inner_pos==0
@@ -269,7 +269,7 @@ impl<'a> InternalTrack {
                                     // Our decoder state etc. must be reset.
                                     // (Symphonia decoder state reset in the thread pool during
                                     // the operation.)
-                                    local.reset();
+                                    mix_state.reset();
                                     *input = InputState::Ready(parsed, rec);
 
                                     if let InputState::Ready(ref mut parsed, _) = input {
@@ -293,7 +293,7 @@ impl<'a> InternalTrack {
                     Err(TryRecvError::Empty) => Err(InputReadyingError::Waiting),
                 };
 
-                let orig_out = orig_out.map(|a| (a, &mut self.mix_state));
+                let orig_out = orig_out.map(|a| (a, mix_state));
 
                 if let Err(ref e) = orig_out {
                     if let Some(e) = e.as_user() {
@@ -301,15 +301,70 @@ impl<'a> InternalTrack {
                     }
                 }
 
-                match (orig_out, queued_seek) {
-                    (Ok(v), Some(_time)) => {
-                        warn!("Track was given seek command while busy: handling not impl'd yet.");
-                        Ok(v)
-                    },
-                    (a, _) => a,
-                }
+                (orig_out, queued_seek)
             },
-            InputState::Ready(parsed, _) => Ok((parsed, &mut self.mix_state)),
+            InputState::Ready(ref mut parsed, _) => (Ok((parsed, mix_state)), None),
+        };
+
+        match (out, queued_seek) {
+            (Ok(_), Some(request)) => Err(InputReadyingError::NeedsSeek(request)),
+            (a, _) => a,
+        }
+    }
+
+    pub(crate) fn seek(
+        &mut self,
+        id: usize,
+        request: SeekRequest,
+        interconnect: &Interconnect,
+        pool: &BlockyTaskPool,
+        config: &Arc<Config>,
+        prevent_events: bool,
+    ) {
+        if let InputState::Preparing(p) = &mut self.input {
+            p.queued_seek = Some(request);
+            return;
+        }
+
+        // might be a little topsy turvy: rethink me.
+        let SeekRequest { time, callback } = request;
+
+        self.callbacks.seek = Some(callback);
+        if !prevent_events {
+            drop(interconnect.events.send(EventMessage::ChangeState(
+                id,
+                TrackStateChange::Ready(ReadyState::Preparing),
+            )));
+        }
+
+        let backseek_needed = time < self.position;
+
+        let time = Time::from(time.as_secs_f64());
+        let mut ts = SeekTo::Time {
+            time,
+            track_id: None,
+        };
+        let (tx, rx) = flume::bounded(1);
+
+        let state = std::mem::replace(
+            &mut self.input,
+            InputState::Preparing(PreparingInfo {
+                time: Instant::now(),
+                callback: rx,
+                queued_seek: None,
+            }),
+        );
+
+        match state {
+            InputState::Ready(p, r) => {
+                if let SeekTo::Time { time: _, track_id } = &mut ts {
+                    *track_id = Some(p.track_id);
+                }
+
+                pool.seek(tx, p, r, ts, backseek_needed, config.clone());
+            },
+            InputState::NotReady(lazy) => pool.create(tx, lazy, Some(ts), config.clone()),
+            InputState::Preparing(_) => unreachable!(), // Covered above.
         }
     }
 }

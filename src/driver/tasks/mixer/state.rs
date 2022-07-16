@@ -2,12 +2,11 @@ use crate::{
     constants::OPUS_PASSTHROUGH_STRIKE_LIMIT,
     driver::tasks::message::*,
     input::{Compose, Input, LiveInput, Metadata, Parsed},
-    tracks::ReadyState,
+    tracks::{ReadyState, SeekRequest},
 };
 use flume::Receiver;
 use rubato::FftFixedOut;
 use std::time::Instant;
-use symphonia_core::formats::SeekTo;
 
 pub enum InputState {
     NotReady(Input),
@@ -26,9 +25,9 @@ impl InputState {
 
     pub fn ready_state(&self) -> ReadyState {
         match self {
-            InputState::NotReady(_) => ReadyState::Uninitialised,
-            InputState::Preparing(_) => ReadyState::Preparing,
-            InputState::Ready(_, _) => ReadyState::Playable,
+            Self::NotReady(_) => ReadyState::Uninitialised,
+            Self::Preparing(_) => ReadyState::Preparing,
+            Self::Ready(_, _) => ReadyState::Playable,
         }
     }
 }
@@ -36,10 +35,10 @@ impl InputState {
 impl From<Input> for InputState {
     fn from(val: Input) -> Self {
         match val {
-            a @ Input::Lazy(_) => InputState::NotReady(a),
+            a @ Input::Lazy(_) => Self::NotReady(a),
             Input::Live(live, rec) => match live {
-                LiveInput::Parsed(p) => InputState::Ready(p, rec),
-                other => InputState::NotReady(Input::Live(other, rec)),
+                LiveInput::Parsed(p) => Self::Ready(p, rec),
+                other => Self::NotReady(Input::Live(other, rec)),
             },
         }
     }
@@ -47,8 +46,11 @@ impl From<Input> for InputState {
 
 pub struct PreparingInfo {
     #[allow(dead_code)]
+    /// Time this request was fired.
     pub time: Instant,
-    pub queued_seek: Option<SeekTo>,
+    /// Used to handle seek requests fired while a track was being created (or a seek was in progress).
+    pub queued_seek: Option<SeekRequest>,
+    /// Callback from the thread pool to indicate the result of creating/parsing this track.
     pub callback: Receiver<MixerInputResultMessage>,
 }
 

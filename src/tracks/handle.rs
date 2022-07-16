@@ -109,7 +109,12 @@ impl TrackHandle {
     /// [`Compose`]: crate::input::Compose
     pub fn seek(&self, position: Duration) -> TrackCallback<Duration> {
         let (tx, rx) = flume::bounded(1);
-        let fail = self.send(TrackCommand::Seek(position, tx)).is_err();
+        let fail = self
+            .send(TrackCommand::Seek(SeekRequest {
+                time: position,
+                callback: tx,
+            }))
+            .is_err();
 
         TrackCallback { fail, rx }
     }

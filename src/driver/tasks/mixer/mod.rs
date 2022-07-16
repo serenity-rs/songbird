@@ -16,17 +16,7 @@ use crate::{
     driver::MixMode,
     events::EventStore,
     input::{Input, Parsed},
-    tracks::{
-        Action,
-        LoopState,
-        PlayError,
-        PlayMode,
-        ReadyState,
-        TrackCommand,
-        TrackHandle,
-        TrackState,
-        View,
-    },
+    tracks::{Action, LoopState, PlayError, PlayMode, TrackCommand, TrackHandle, TrackState, View},
     Config,
 };
 use audiopus::{
@@ -463,64 +453,15 @@ impl Mixer {
             // Changes to play state etc. MUST all be handled.
             let action = track.process_commands(i, &self.interconnect);
 
-            if let Some((time, callback)) = action.seek_point {
-                track.callbacks.seek = Some(callback);
-                if !self.prevent_events {
-                    drop(self.interconnect.events.send(EventMessage::ChangeState(
-                        i,
-                        TrackStateChange::Ready(ReadyState::Preparing),
-                    )));
-                }
-
-                let backseek_needed = time < track.position;
-
-                let full_input = &mut track.input;
-                let time = Time::from(time.as_secs_f64());
-                let mut ts = SeekTo::Time {
-                    time,
-                    track_id: None,
-                };
-                let (tx, rx) = flume::bounded(1);
-
-                let queued_seek = if matches!(full_input, InputState::Preparing(_)) {
-                    Some(util::copy_seek_to(&ts))
-                } else {
-                    None
-                };
-
-                let mut new_state = InputState::Preparing(PreparingInfo {
-                    time: Instant::now(),
-                    callback: rx,
-                    queued_seek,
-                });
-
-                std::mem::swap(full_input, &mut new_state);
-
-                match new_state {
-                    InputState::Ready(p, r) => {
-                        if let SeekTo::Time { time: _, track_id } = &mut ts {
-                            *track_id = Some(p.track_id);
-                        }
-
-                        self.thread_pool
-                            .seek(tx, p, r, ts, backseek_needed, self.config.clone());
-                    },
-                    InputState::Preparing(old_prep) => {
-                        // Annoying case: we need to mem_swap for the other two cases,
-                        // but here we don't want to.
-                        // new_state contains the old request now, so we want to move its
-                        // callback and time *back* into self.full_inputs[i].
-                        if let InputState::Preparing(new_prep) = full_input {
-                            new_prep.callback = old_prep.callback;
-                            new_prep.time = old_prep.time;
-                        } else {
-                            unreachable!()
-                        }
-                    },
-                    InputState::NotReady(lazy) =>
-                        self.thread_pool
-                            .create(tx, lazy, Some(ts), self.config.clone()),
-                }
+            if let Some(req) = action.seek_point {
+                track.seek(
+                    i,
+                    req,
+                    &self.interconnect,
+                    &self.thread_pool,
+                    &self.config,
+                    self.prevent_events,
+                );
             }
 
             if let Some(callback) = action.make_playable {
@@ -534,6 +475,16 @@ impl Mixer {
                     track.callbacks.make_playable = Some(callback);
                     if let Some(fail) = e.as_user() {
                         track.playing = PlayMode::Errored(fail);
+                    }
+                    if let Some(req) = e.into_seek_request() {
+                        track.seek(
+                            i,
+                            req,
+                            &self.interconnect,
+                            &self.thread_pool,
+                            &self.config,
+                            self.prevent_events,
+                        );
                     }
                 } else {
                     // Track is already ready: don't register callback and just act.
@@ -880,6 +831,17 @@ impl Mixer {
             let (input, mix_state) = match input {
                 Ok(i) => i,
                 Err(InputReadyingError::Waiting) => continue,
+                Err(InputReadyingError::NeedsSeek(req)) => {
+                    track.seek(
+                        i,
+                        req,
+                        &self.interconnect,
+                        &self.thread_pool,
+                        &self.config,
+                        self.prevent_events,
+                    );
+                    continue;
+                },
                 // TODO: allow for retry in given time.
                 Err(e) => {
                     if let Some(fail) = e.as_user() {

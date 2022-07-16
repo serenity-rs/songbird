@@ -1,4 +1,7 @@
-use crate::{input::AudioStreamError, tracks::PlayError};
+use crate::{
+    input::AudioStreamError,
+    tracks::{PlayError, SeekRequest},
+};
 use std::sync::Arc;
 use symphonia_core::errors::Error as SymphoniaError;
 
@@ -29,6 +32,7 @@ pub enum InputReadyingError {
     Seeking(Arc<SymphoniaError>),
     Dropped,
     Waiting,
+    NeedsSeek(SeekRequest),
 }
 
 impl InputReadyingError {
@@ -38,6 +42,14 @@ impl InputReadyingError {
             Self::Creation(e) => Some(PlayError::Create(e.clone())),
             Self::Seeking(e) => Some(PlayError::Seek(e.clone())),
             _ => None,
+        }
+    }
+
+    pub fn into_seek_request(self) -> Option<SeekRequest> {
+        if let Self::NeedsSeek(a) = self {
+            Some(a)
+        } else {
+            None
         }
     }
 }
