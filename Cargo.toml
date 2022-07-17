@@ -90,6 +90,7 @@ optional = true
 version = "0.7"
 
 [dependencies.serde-aux]
+default-features = false
 optional = true
 version = "3"
 
