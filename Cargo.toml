@@ -69,7 +69,7 @@ version = "0.8"
 
 [dependencies.serenity]
 optional = true
-version = "^0.10.2"
+version = "0.11"
 default-features = false
 features = ["voice", "gateway"]
 
