@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-version = "0.2.2"
+version = "0.3.0"
 
 [dependencies]
 derivative = "2"
@@ -50,7 +50,7 @@ version = "0.4"
 # Temporary hack to pin MSRV.
 [dependencies.flume]
 optional = true
-version = "<0.10.12"
+version = "0.10"
 
 [dependencies.futures]
 version = "0.3"
