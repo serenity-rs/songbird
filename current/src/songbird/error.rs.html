@@ -150,6 +150,28 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Driver and gateway error handling.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
@@ -159,7 +181,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span>, <span class="ident">fmt</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">twilight_gateway::shard::CommandError</span>;
+<span class="kw">use</span> <span class="ident">twilight_gateway</span>::{<span class="ident">cluster::ClusterCommandError</span>, <span class="ident">shard::CommandError</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -188,6 +210,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [the `Call`&#39;s configuration]: crate::Config</span>
     <span class="ident">TimedOut</span>,
+    <span class="doccomment">/// The given guild ID was zero.</span>
+    <span class="ident">IllegalGuild</span>,
+    <span class="doccomment">/// The given channel ID was zero.</span>
+    <span class="ident">IllegalChannel</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
     <span class="doccomment">/// The driver failed to establish a voice connection.</span>
     <span class="doccomment">///</span>
@@ -198,8 +224,11 @@
     <span class="doccomment">/// Serenity-specific WebSocket send error.</span>
     <span class="ident">Serenity</span>(<span class="ident">TrySendError</span><span class="op">&lt;</span><span class="ident">InterMessage</span><span class="op">&gt;</span>),
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-    <span class="doccomment">/// Twilight-specific WebSocket send error.</span>
-    <span class="ident">Twilight</span>(<span class="ident">CommandError</span>),
+    <span class="doccomment">/// Twilight-specific WebSocket send error returned when using a shard cluster.</span>
+    <span class="ident">TwilightCluster</span>(<span class="ident">ClusterCommandError</span>),
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
+    <span class="doccomment">/// Twilight-specific WebSocket send error when explicitly using a single shard.</span>
+    <span class="ident">TwilightShard</span>(<span class="ident">CommandError</span>),
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>)]</span>
@@ -236,12 +265,16 @@
             <span class="ident">JoinError::NoSender</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;no gateway destination&quot;</span>),
             <span class="ident">JoinError::NoCall</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;tried to leave a non-existent call&quot;</span>),
             <span class="ident">JoinError::TimedOut</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;gateway response from Discord timed out&quot;</span>),
+            <span class="ident">JoinError::IllegalGuild</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;target guild ID was zero&quot;</span>),
+            <span class="ident">JoinError::IllegalChannel</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;target channel ID was zero&quot;</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
             <span class="ident">JoinError::Driver</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;establishing connection failed&quot;</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
             <span class="ident">JoinError::Serenity</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-            <span class="ident">JoinError::Twilight</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">JoinError::TwilightCluster</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
+            <span class="ident">JoinError::TwilightShard</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
         }
     }
 }
@@ -254,12 +287,16 @@
             <span class="ident">JoinError::NoSender</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">JoinError::NoCall</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">JoinError::TimedOut</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">JoinError::IllegalGuild</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">JoinError::IllegalChannel</span> =&gt; <span class="prelude-val">None</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
             <span class="ident">JoinError::Driver</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
             <span class="ident">JoinError::Serenity</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-            <span class="ident">JoinError::Twilight</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
+            <span class="ident">JoinError::TwilightCluster</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
+            <span class="ident">JoinError::TwilightShard</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
         }
     }
 }
@@ -274,7 +311,14 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>))]</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CommandError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CommandError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">JoinError::Twilight</span>(<span class="ident">e</span>)
+        <span class="ident">JoinError::TwilightShard</span>(<span class="ident">e</span>)
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway-core&quot;</span>))]</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ClusterCommandError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JoinError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">ClusterCommandError</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">JoinError::TwilightCluster</span>(<span class="ident">e</span>)
     }
 }
 
@@ -295,5 +339,5 @@
     <span class="ident">tracks</span>::{<span class="ident">TrackError</span>, <span class="ident">TrackResult</span>},
 };
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d5e7f4782 2022-07-16)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (62b272d25 2022-07-21)" ></div>
 </body></html>

@@ -143,9 +143,6 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Connection errors and convenience types.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -155,10 +152,7 @@
 <span class="kw">use</span> <span class="ident">flume::SendError</span>;
 <span class="kw">use</span> <span class="ident">serde_json::Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">StdError</span>, <span class="ident">fmt</span>, <span class="ident">io::Error</span> <span class="kw">as</span> <span class="ident">IoError</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio::time::error::Elapsed</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat::time::Elapsed</span>;
 <span class="kw">use</span> <span class="ident">xsalsa20poly1305::aead::Error</span> <span class="kw">as</span> <span class="ident">CryptoError</span>;
 
 <span class="doccomment">/// Errors encountered while connecting to a Discord voice server over the driver.</span>
@@ -287,5 +281,5 @@
 <span class="doccomment">/// Convenience type for Discord voice/driver connection error handling.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d5e7f4782 2022-07-16)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (62b272d25 2022-07-21)" ></div>
 </body></html>

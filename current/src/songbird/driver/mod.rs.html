@@ -340,6 +340,7 @@
 <span id="332">332</span>
 <span id="333">333</span>
 <span id="334">334</span>
+<span id="335">335</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Runner for a voice connection.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Songbird&#39;s driver is a mixed-sync system, using:</span>
@@ -623,10 +624,11 @@
     <span class="doccomment">/// Requires the `&quot;builtin-queue&quot;` feature.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Input`]: crate::input::Input</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enqueue_source</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>) {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">track</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tracks::create_player</span>(<span class="ident">source</span>);
-        <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">add_raw</span>(<span class="kw-2">&amp;mut</span> <span class="ident">track</span>);
-        <span class="self">self</span>.<span class="ident">play</span>(<span class="ident">track</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enqueue_source</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>) -&gt; <span class="ident">TrackHandle</span> {
+        <span class="kw">let</span> (<span class="ident">track</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident">tracks::create_player</span>(<span class="ident">source</span>);
+        <span class="self">self</span>.<span class="ident">enqueue</span>(<span class="ident">track</span>);
+
+        <span class="ident">handle</span>
     }
 
     <span class="doccomment">/// Adds an existing [`Track`] to this driver&#39;s built-in queue.</span>
@@ -675,5 +677,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d5e7f4782 2022-07-16)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (62b272d25 2022-07-21)" ></div>
 </body></html>

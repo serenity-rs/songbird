@@ -177,9 +177,6 @@
 <span id="169">169</span>
 <span id="170">170</span>
 <span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Future types for gateway interactions.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
@@ -198,10 +195,7 @@
 };
 <span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">r#async</span><span class="ident">::RecvFut</span>;
 <span class="kw">use</span> <span class="ident">pin_project::pin_project</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio::time</span>::{<span class="self">self</span>, <span class="ident">Timeout</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat::time</span>::{<span class="self">self</span>, <span class="ident">Timeout</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
 <span class="doccomment">/// Future for a call to [`Call::join`].</span>
@@ -355,5 +349,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d5e7f4782 2022-07-16)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (62b272d25 2022-07-21)" ></div>
 </body></html>

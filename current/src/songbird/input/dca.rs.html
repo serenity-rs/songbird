@@ -146,13 +146,13 @@
 <span id="138">138</span>
 <span id="139">139</span>
 <span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">codec::OpusDecoderState</span>, <span class="ident">error::DcaError</span>, <span class="ident">Codec</span>, <span class="ident">Container</span>, <span class="ident">Input</span>, <span class="ident">Metadata</span>, <span class="ident">Reader</span>};
 <span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi::OsStr</span>, <span class="ident">mem</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">fs::File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io::AsyncReadExt</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat</span>::{<span class="ident">fs::File</span> <span class="kw">as</span> <span class="ident">TokioFile</span>, <span class="ident">io::AsyncReadExt</span>};
 
 <span class="doccomment">/// Creates a streamed audio source from a DCA file.</span>
 <span class="doccomment">/// Currently only accepts the [DCA1 format](https://github.com/bwmarrin/dca).</span>
@@ -213,6 +213,7 @@
     ))
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DcaMetadata</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">dca</span>: <span class="ident">Dca</span>,
@@ -222,12 +223,14 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">serde_json::Value</span><span class="op">&gt;</span>,
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Dca</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">version</span>: <span class="ident">u64</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">tool</span>: <span class="ident">Tool</span>,
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Tool</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">name</span>: <span class="ident">String</span>,
@@ -236,6 +239,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">author</span>: <span class="ident">String</span>,
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Opus</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mode</span>: <span class="ident">String</span>,
@@ -246,6 +250,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">channels</span>: <span class="ident">u8</span>,
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Info</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">title</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
@@ -255,6 +260,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">cover</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Origin</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">source</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
@@ -287,5 +293,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d5e7f4782 2022-07-16)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (62b272d25 2022-07-21)" ></div>
 </body></html>

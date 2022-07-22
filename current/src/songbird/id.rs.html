@@ -126,7 +126,6 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
-<span id="121">121</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Newtypes around Discord IDs for library cross-compatibility.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver-core&quot;</span>)]</span>
@@ -140,9 +139,8 @@
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">FmtResult</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">twilight_model::id</span>::{
-    <span class="ident">ChannelId</span> <span class="kw">as</span> <span class="ident">TwilightChannel</span>,
-    <span class="ident">GuildId</span> <span class="kw">as</span> <span class="ident">TwilightGuild</span>,
-    <span class="ident">UserId</span> <span class="kw">as</span> <span class="ident">TwilightUser</span>,
+    <span class="ident">marker</span>::{<span class="ident">ChannelMarker</span>, <span class="ident">GuildMarker</span>, <span class="ident">UserMarker</span>},
+    <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">TwilightId</span>,
 };
 
 <span class="doccomment">/// ID of a Discord voice/text channel.</span>
@@ -177,9 +175,9 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TwilightChannel</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ChannelId</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="ident">TwilightChannel</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">id</span>.<span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TwilightId</span><span class="op">&lt;</span><span class="ident">ChannelMarker</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ChannelId</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="ident">TwilightId</span><span class="op">&lt;</span><span class="ident">ChannelMarker</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">id</span>.<span class="ident">get</span>().<span class="ident">into</span>())
     }
 }
 
@@ -210,9 +208,9 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TwilightGuild</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GuildId</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="ident">TwilightGuild</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">id</span>.<span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TwilightId</span><span class="op">&lt;</span><span class="ident">GuildMarker</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GuildId</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="ident">TwilightId</span><span class="op">&lt;</span><span class="ident">GuildMarker</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">id</span>.<span class="ident">get</span>().<span class="ident">into</span>())
     }
 }
 
@@ -243,11 +241,11 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;twilight&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TwilightUser</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UserId</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="ident">TwilightUser</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">id</span>.<span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TwilightId</span><span class="op">&lt;</span><span class="ident">UserMarker</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UserId</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">id</span>: <span class="ident">TwilightId</span><span class="op">&lt;</span><span class="ident">UserMarker</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">id</span>.<span class="ident">get</span>().<span class="ident">into</span>())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d5e7f4782 2022-07-16)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (62b272d25 2022-07-21)" ></div>
 </body></html>

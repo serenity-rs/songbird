@@ -600,9 +600,6 @@
 <span id="592">592</span>
 <span id="593">593</span>
 <span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Raw audio input data streams and sources.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [`Input`] is handled in Songbird by combining metadata with:</span>
@@ -663,13 +660,10 @@
 <span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>, <span class="ident">WriteBytesExt</span>};
 <span class="kw">use</span> <span class="ident">cached::OpusCompressor</span>;
 <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio-02-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_compat::runtime::Handle</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">convert::TryFrom</span>,
+    <span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
     <span class="ident">io</span>::{
         <span class="self">self</span>,
         <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>,
@@ -841,8 +835,8 @@
 
                         <span class="kw">let</span> <span class="ident">samples</span> <span class="op">=</span> <span class="ident">decoder</span>
                             .<span class="ident">decode_float</span>(
-                                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">opus_data_buffer</span>[..<span class="ident">seen</span>]),
-                                <span class="kw-2">&amp;mut</span> <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>[..],
+                                <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">opus_data_buffer</span>[..<span class="ident">seen</span>]).<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                                (<span class="kw-2">&amp;mut</span> <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>[..]).<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
                                 <span class="bool-val">false</span>,
                             )
                             .<span class="ident">unwrap_or</span>(<span class="number">0</span>);
@@ -1201,5 +1195,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (d5e7f4782 2022-07-16)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (62b272d25 2022-07-21)" ></div>
 </body></html>
