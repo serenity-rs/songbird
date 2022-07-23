@@ -1,7 +1,10 @@
 use super::*;
 use crate::events::EventData;
 use flume::Sender;
-use std::time::Duration;
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    time::Duration,
+};
 
 /// A request from external code using a [`TrackHandle`] to modify
 /// or act upon an [`Track`] object.
@@ -34,8 +37,8 @@ pub enum TrackCommand {
     MakePlayable(Sender<Result<(), PlayError>>),
 }
 
-impl std::fmt::Debug for TrackCommand {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+impl Debug for TrackCommand {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
             "TrackCommand::{}",

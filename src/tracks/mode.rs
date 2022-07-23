@@ -55,7 +55,7 @@ impl PlayMode {
         }
     }
 
-    // The above COULD just return a Vec, but the below means we only allocate a Vec
+    // The above fn COULD just return a Vec, but the below means we only allocate a Vec
     // in the rare error case.
     // Also, see discussion on bitsets in src/events/track.rs
     #[must_use]

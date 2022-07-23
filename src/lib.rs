@@ -35,7 +35,7 @@
 //! ```toml
 //! ## Including songbird alone gives you support for Opus via the DCA file format.
 //! [dependencies.songbird]
-//! version = "0.3"
+//! version = "0.4"
 //! features = ["builtin-queue"]
 //!
 //! ## To get additional codecs, you *must* add Symphonia yourself.

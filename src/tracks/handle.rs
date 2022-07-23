@@ -14,8 +14,7 @@ use uuid::Uuid;
 ///
 /// Many method calls here are fallible; in most cases, this will be because
 /// the underlying [`Track`] object has been discarded. Those which aren't refer
-/// to immutable properties of the underlying stream, or shared data not used
-/// by the driver.
+/// to shared data not used by the driver.
 ///
 /// [`Track`]: Track
 pub struct TrackHandle {

@@ -6,7 +6,7 @@ use super::{PlayError, SeekRequest};
 /// Actions for the mixer to take after inspecting track state via
 /// [`TrackHandle::action`].
 ///
-/// [`TrackHandle::action`]: super::[`TrackHandle::action`]
+/// [`TrackHandle::action`]: super::TrackHandle::action
 #[derive(Clone, Default)]
 pub struct Action {
     pub(crate) make_playable: Option<Sender<Result<(), PlayError>>>,

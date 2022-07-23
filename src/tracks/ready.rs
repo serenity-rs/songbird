@@ -6,8 +6,10 @@ pub enum ReadyState {
     ///
     /// [`Compose`]: crate::input::Compose
     Uninitialised,
+
     /// The mixer is currently creating and parsing this track's bytestream.
     Preparing,
+
     /// This track is fully initialised and usable.
     Playable,
 }

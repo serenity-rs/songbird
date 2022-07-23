@@ -2,7 +2,7 @@ use crate::input::AudioStreamError;
 use flume::RecvError;
 use std::{
     error::Error,
-    fmt::{self, Display},
+    fmt::{Display, Formatter, Result as FmtResult},
     sync::Arc,
 };
 use symphonia_core::errors::Error as SymphoniaError;
@@ -29,7 +29,7 @@ pub enum ControlError {
 }
 
 impl Display for ControlError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "failed to operate on track (handle): ")?;
         match self {
             ControlError::Finished => write!(f, "track ended"),
@@ -80,7 +80,7 @@ pub enum PlayError {
 }
 
 impl Display for PlayError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("runtime error while playing track: ")?;
         match self {
             Self::Create(c) => {
