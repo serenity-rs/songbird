@@ -1,6 +1,10 @@
 use crate::input::AudioStreamError;
 use audiopus::error::Error as OpusError;
 use serde_json::Error as JsonError;
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use streamcatcher::CatcherError;
 use symphonia_core::errors::Error as SymphError;
 use tokio::task::JoinError;
@@ -20,6 +24,21 @@ pub enum Error {
     /// could not be used.
     StreamNotAtStart,
 }
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Create(c) => f.write_fmt(format_args!("failed to create audio stream: {}", c)),
+            Self::CreatePanicked => f.write_str("sync thread panicked while creating stream"),
+            Self::Streamcatcher(s) =>
+                f.write_fmt(format_args!("illegal streamcatcher config: {}", s)),
+            Self::StreamNotAtStart =>
+                f.write_str("stream cannot have been pre-read/parsed, missing headers"),
+        }
+    }
+}
+
+impl StdError for Error {}
 
 impl From<AudioStreamError> for Error {
     fn from(val: AudioStreamError) -> Self {
@@ -65,6 +84,30 @@ pub enum CodecCacheError {
     /// could not be used.
     StreamNotAtStart,
 }
+
+impl Display for CodecCacheError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Create(c) => f.write_fmt(format_args!("failed to create audio stream: {}", c)),
+            Self::Parse(p) => f.write_fmt(format_args!("failed to parse audio format: {}", p)),
+            Self::Opus(o) => f.write_fmt(format_args!("failed to create Opus encoder: {}", o)),
+            Self::MetadataEncoding(m) => f.write_fmt(format_args!(
+                "failed to convert track metadata to JSON: {}",
+                m
+            )),
+            Self::MetadataTooLarge => f.write_str("track metadata was too large, >= 32kiB"),
+            Self::CreatePanicked => f.write_str("sync thread panicked while creating stream"),
+            Self::UnknownChannelCount =>
+                f.write_str("audio stream's channel count could not be determined"),
+            Self::Streamcatcher(s) =>
+                f.write_fmt(format_args!("illegal streamcatcher config: {}", s)),
+            Self::StreamNotAtStart =>
+                f.write_str("stream cannot have been pre-read/parsed, missing headers"),
+        }
+    }
+}
+
+impl StdError for CodecCacheError {}
 
 impl From<AudioStreamError> for CodecCacheError {
     fn from(val: AudioStreamError) -> Self {
