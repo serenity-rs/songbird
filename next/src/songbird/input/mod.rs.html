@@ -1,11 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -389,812 +388,388 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Raw audio input data streams and sources.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`Input`] is handled in Songbird by combining metadata with:</span>
-<span class="doccomment">//!  * A 48kHz audio bytestream, via [`Reader`],</span>
-<span class="doccomment">//!  * A [`Container`] describing the framing mechanism of the bytestream,</span>
-<span class="doccomment">//!  * A [`Codec`], defining the format of audio frames.</span>
+<span class="doccomment">//! [`Input`]s in Songbird are based on [symphonia], which provides demuxing,</span>
+<span class="doccomment">//! decoding and management of synchronous byte sources (i.e., any items which</span>
+<span class="doccomment">//! `impl` [`Read`]).</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! When used as a [`Read`], the output bytestream will be a floating-point</span>
-<span class="doccomment">//! PCM stream at 48kHz, matching the channel count of the input source.</span>
+<span class="doccomment">//! Songbird adds support for the Opus codec to symphonia via [`OpusDecoder`],</span>
+<span class="doccomment">//! the [DCA1] file format via [`DcaReader`], and a simple PCM adapter via [`RawReader`];</span>
+<span class="doccomment">//! the [format] and [codec registries] in [`codecs`] install these on top of those</span>
+<span class="doccomment">//! enabled in your `Cargo.toml` when you include symphonia.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Common sources</span>
+<span class="doccomment">//! * Any owned byte slice: `&amp;&#39;static [u8]`, `Bytes`, or `Vec&lt;u8&gt;`,</span>
+<span class="doccomment">//! * [`File`] offers a lazy way to open local audio files,</span>
+<span class="doccomment">//! * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,</span>
+<span class="doccomment">//! * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape</span>
+<span class="doccomment">//!   a target URL for a usable audio stream, before opening an [`HttpRequest`].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Adapters</span>
+<span class="doccomment">//! Songbird includes several adapters to make developing your own inputs easier:</span>
+<span class="doccomment">//! * [`cached::*`], which allow seeking and shared caching of an input stream (storing</span>
+<span class="doccomment">//!   it in memory in a variety of formats),</span>
+<span class="doccomment">//! * [`ChildContainer`] for managing audio given by a process chain,</span>
+<span class="doccomment">//! * [`RawAdapter`], for feeding in a synchronous `f32`-PCM stream, and</span>
+<span class="doccomment">//! * [`AsyncAdapterStream`], for passing bytes from an `AsyncRead` (`+ AsyncSeek`) stream</span>
+<span class="doccomment">//!   into the mixer.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Opus frame passthrough.</span>
-<span class="doccomment">//! Some sources, such as [`Compressed`] or the output of [`dca`], support</span>
+<span class="doccomment">//! Some sources, such as [`Compressed`] or any WebM/Opus/DCA file, support</span>
 <span class="doccomment">//! direct frame passthrough to the driver. This lets you directly send the</span>
 <span class="doccomment">//! audio data you have *without decoding, re-encoding, or mixing*. In many</span>
-<span class="doccomment">//! cases, this can greatly reduce the processing/compute cost of the driver.</span>
+<span class="doccomment">//! cases, this can greatly reduce the CPU cost required by the driver.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This functionality requires that:</span>
 <span class="doccomment">//!  * only one track is active (including paused tracks),</span>
 <span class="doccomment">//!  * that track&#39;s input supports direct Opus frame reads,</span>
-<span class="doccomment">//!  * its [`Input`] [meets the promises described herein](codec/struct.OpusDecoderState.html#structfield.allow_passthrough),</span>
+<span class="doccomment">//!  * this input&#39;s frames are all sized to 20ms.</span>
 <span class="doccomment">//!  * and that track&#39;s volume is set to `1.0`.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`Input`]: Input</span>
-<span class="doccomment">//! [`Reader`]: reader::Reader</span>
-<span class="doccomment">//! [`Container`]: Container</span>
-<span class="doccomment">//! [`Codec`]: Codec</span>
+<span class="doccomment">//! [`Input`]s which are almost suitable but which have **any** illegal frames will be</span>
+<span class="doccomment">//! blocked from passthrough to prevent glitches such as repeated encoder frame gaps.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [symphonia]: https://docs.rs/symphonia</span>
 <span class="doccomment">//! [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
 <span class="doccomment">//! [`Compressed`]: cached::Compressed</span>
-<span class="doccomment">//! [`dca`]: dca()</span>
+<span class="doccomment">//! [DCA1]: https://github.com/bwmarrin/dca</span>
+<span class="doccomment">//! [`registry::*`]: registry</span>
+<span class="doccomment">//! [`cached::*`]: cached</span>
+<span class="doccomment">//! [`OpusDecoder`]: codecs::OpusDecoder</span>
+<span class="doccomment">//! [`DcaReader`]: codecs::DcaReader</span>
+<span class="doccomment">//! [`RawReader`]: codecs::RawReader</span>
+<span class="doccomment">//! [format]: static@codecs::PROBE</span>
+<span class="doccomment">//! [codec registries]: static@codecs::CODEC_REGISTRY</span>
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">cached</span>;
-<span class="kw">mod</span> <span class="ident">child</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">codec</span>;
-<span class="kw">mod</span> <span class="ident">container</span>;
-<span class="kw">mod</span> <span class="ident">dca</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">mod</span> <span class="ident">ffmpeg_src</span>;
+<span class="kw">mod</span> <span class="ident">adapters</span>;
+<span class="kw">mod</span> <span class="ident">audiostream</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">codecs</span>;
+<span class="kw">mod</span> <span class="ident">compose</span>;
+<span class="kw">mod</span> <span class="ident">error</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">input_tests</span>;
+<span class="kw">mod</span> <span class="ident">live_input</span>;
 <span class="kw">mod</span> <span class="ident">metadata</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">reader</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">restartable</span>;
+<span class="kw">mod</span> <span class="ident">parsed</span>;
+<span class="kw">mod</span> <span class="ident">sources</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">utils</span>;
-<span class="kw">mod</span> <span class="ident">ytdl_src</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">child</span>::<span class="kw-2">*</span>,
-    <span class="ident">codec</span>::{<span class="ident">Codec</span>, <span class="ident">CodecType</span>},
-    <span class="ident">container</span>::{<span class="ident">Container</span>, <span class="ident">Frame</span>},
-    <span class="ident">dca::dca</span>,
-    <span class="ident">ffmpeg_src</span>::<span class="kw-2">*</span>,
-    <span class="ident">metadata::Metadata</span>,
-    <span class="ident">reader::Reader</span>,
-    <span class="ident">restartable::Restartable</span>,
-    <span class="ident">ytdl_src</span>::<span class="kw-2">*</span>,
+    <span class="ident">adapters</span>::<span class="kw-2">*</span>,
+    <span class="ident">audiostream</span>::<span class="kw-2">*</span>,
+    <span class="ident">compose</span>::<span class="kw-2">*</span>,
+    <span class="ident">error</span>::<span class="kw-2">*</span>,
+    <span class="ident">live_input</span>::<span class="kw-2">*</span>,
+    <span class="ident">metadata</span>::<span class="kw-2">*</span>,
+    <span class="ident">parsed</span>::<span class="kw-2">*</span>,
+    <span class="ident">sources</span>::<span class="kw-2">*</span>,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">audiopus::coder::GenericCtl</span>;
-<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>, <span class="ident">WriteBytesExt</span>};
-<span class="kw">use</span> <span class="ident">cached::OpusCompressor</span>;
-<span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">symphonia_core</span> <span class="kw">as</span> <span class="ident">core</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
-    <span class="ident">io</span>::{
-        <span class="self">self</span>,
-        <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>,
-        <span class="ident">ErrorKind</span> <span class="kw">as</span> <span class="ident">IoErrorKind</span>,
-        <span class="ident">Read</span>,
-        <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>,
-        <span class="ident">Seek</span>,
-        <span class="ident">SeekFrom</span>,
-    },
-    <span class="ident">mem</span>,
-    <span class="ident">time::Duration</span>,
-};
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">error</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span>, <span class="ident">io::Cursor</span>};
+<span class="kw">use</span> <span class="ident">symphonia_core</span>::{<span class="ident">codecs::CodecRegistry</span>, <span class="ident">probe::Probe</span>};
+<span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span> <span class="kw">as</span> <span class="ident">TokioHandle</span>;
 
-<span class="doccomment">/// Data and metadata needed to correctly parse a [`Reader`]&#39;s audio bytestream.</span>
+<span class="doccomment">/// An audio source, which can be live or lazily initialised.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See the [module root] for more information.</span>
+<span class="doccomment">/// This can be created from a wide variety of sources:</span>
+<span class="doccomment">/// * Any owned byte slice: `&amp;&#39;static [u8]`, `Bytes`, or `Vec&lt;u8&gt;`,</span>
+<span class="doccomment">/// * [`File`] offers a lazy way to open local audio files,</span>
+<span class="doccomment">/// * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,</span>
+<span class="doccomment">/// * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape</span>
+<span class="doccomment">///   a target URL for a usable audio stream, before opening an [`HttpRequest`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Reader`]: Reader</span>
-<span class="doccomment">/// [module root]: super</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Input</span> {
-    <span class="doccomment">/// Information about the played source.</span>
-    <span class="kw">pub</span> <span class="ident">metadata</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Indicates whether `source` is stereo or mono.</span>
-    <span class="kw">pub</span> <span class="ident">stereo</span>: <span class="ident">bool</span>,
-    <span class="doccomment">/// Underlying audio data bytestream.</span>
-    <span class="kw">pub</span> <span class="ident">reader</span>: <span class="ident">Reader</span>,
-    <span class="doccomment">/// Decoder used to parse the output of `reader`.</span>
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">Codec</span>,
-    <span class="doccomment">/// Framing strategy needed to identify frames of compressed audio.</span>
-    <span class="kw">pub</span> <span class="ident">container</span>: <span class="ident">Container</span>,
-    <span class="ident">pos</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Any [`Input`] (or struct with `impl Into&lt;Input&gt;`) can also be made into a [`Track`] via</span>
+<span class="doccomment">/// `From`/`Into`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # use tokio::runtime;</span>
+<span class="doccomment">/// #</span>
+<span class="doccomment">/// # let basic_rt = runtime::Builder::new_current_thread().enable_io().build().unwrap();</span>
+<span class="doccomment">/// # basic_rt.block_on(async {</span>
+<span class="doccomment">/// use songbird::{</span>
+<span class="doccomment">///     driver::Driver,</span>
+<span class="doccomment">///     input::{codecs::*, Compose, Input, MetadataError, YoutubeDl},</span>
+<span class="doccomment">///     tracks::Track,</span>
+<span class="doccomment">/// };</span>
+<span class="doccomment">/// // Inputs are played using a `Driver`, or `Call`.</span>
+<span class="doccomment">/// let mut driver = Driver::new(Default::default());</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Lazy inputs take very little resources, and don&#39;t occupy any resources until we</span>
+<span class="doccomment">/// // need to play them (by default).</span>
+<span class="doccomment">/// let mut lazy = YoutubeDl::new(</span>
+<span class="doccomment">///     reqwest::Client::new(),</span>
+<span class="doccomment">///     // Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/</span>
+<span class="doccomment">///     &quot;https://cloudkicker.bandcamp.com/track/94-days&quot;.to_string(),</span>
+<span class="doccomment">/// );</span>
+<span class="doccomment">/// let lazy_c = lazy.clone();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // With sources like `YoutubeDl`, we can get metadata from, e.g., a track&#39;s page.</span>
+<span class="doccomment">/// let aux_metadata = lazy.aux_metadata().await.unwrap();</span>
+<span class="doccomment">/// assert_eq!(aux_metadata.track, Some(&quot;94 Days&quot;.to_string()));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Once we pass an `Input` to the `Driver`, we can only remotely control it via</span>
+<span class="doccomment">/// // a `TrackHandle`.</span>
+<span class="doccomment">/// let handle = driver.play_input(lazy.into());</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // We can also modify some of its initial state via `Track`s.</span>
+<span class="doccomment">/// let handle = driver.play(Track::from(lazy_c).volume(0.5).pause());</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // In-memory sources like `Vec&lt;u8&gt;`, or `&amp;&#39;static [u8]` are easy to use, and only take a</span>
+<span class="doccomment">/// // little time for the mixer to parse their headers.</span>
+<span class="doccomment">/// // You can also use the adapters in `songbird::input::cached::*`to keep a source</span>
+<span class="doccomment">/// // from the Internet, HTTP, or a File in-memory *and* share it among calls.</span>
+<span class="doccomment">/// let in_memory = include_bytes!(&quot;../../resources/ting.mp3&quot;);</span>
+<span class="doccomment">/// let mut in_memory_input = in_memory.into();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // This source is live...</span>
+<span class="doccomment">/// assert!(matches!(in_memory_input, Input::Live(..)));</span>
+<span class="doccomment">/// // ...but not yet playable, and we can&#39;t access its `Metadata`.</span>
+<span class="doccomment">/// assert!(!in_memory_input.is_playable());</span>
+<span class="doccomment">/// assert!(matches!(in_memory_input.metadata(), Err(MetadataError::NotParsed)));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // If we want to inspect metadata (and we can&#39;t use AuxMetadata for any reason), we have</span>
+<span class="doccomment">/// // to parse the track ourselves.</span>
+<span class="doccomment">/// in_memory_input = in_memory_input</span>
+<span class="doccomment">///     .make_playable_async(&amp;CODEC_REGISTRY, &amp;PROBE)</span>
+<span class="doccomment">///     .await</span>
+<span class="doccomment">///     .expect(&quot;WAV support is included, and this file is good!&quot;);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Symphonia&#39;s metadata can be difficult to use: prefer `AuxMetadata` when you can!</span>
+<span class="doccomment">/// use symphonia_core::meta::{StandardTagKey, Value};</span>
+<span class="doccomment">/// let mut metadata = in_memory_input.metadata();</span>
+<span class="doccomment">/// let meta = metadata.as_mut().unwrap();</span>
+<span class="doccomment">/// let mut probed = meta.probe.get().unwrap();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let track_name = probed</span>
+<span class="doccomment">///     .current().unwrap()</span>
+<span class="doccomment">///     .tags().iter().filter(|v| v.std_key == Some(StandardTagKey::TrackTitle))</span>
+<span class="doccomment">///     .next().unwrap();</span>
+<span class="doccomment">/// if let Value::String(s) = &amp;track_name.value {</span>
+<span class="doccomment">///     assert_eq!(s, &quot;Ting!&quot;);</span>
+<span class="doccomment">/// } else { panic!() };</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // ...and these are played like any other input.</span>
+<span class="doccomment">/// let handle = driver.play_input(in_memory_input);</span>
+<span class="doccomment">/// # });</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`Track`]: crate::tracks::Track</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Input</span> {
+    <span class="doccomment">/// A byte source which is not yet initialised.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When a parent track is either played or explicitly readied, the inner [`Compose`]</span>
+    <span class="doccomment">/// is used to create an [`Input::Live`].</span>
+    <span class="ident">Lazy</span>(
+        <span class="doccomment">/// A trait object which can be used to (re)create a usable byte stream.</span>
+        <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span>,
+    ),
+    <span class="doccomment">/// An initialised byte source.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This contains a raw byte stream, the lazy initialiser that was used,</span>
+    <span class="doccomment">/// as well as any symphonia-specific format data and/or hints.</span>
+    <span class="ident">Live</span>(
+        <span class="doccomment">/// The byte source, plus symphonia-specific data.</span>
+        <span class="ident">LiveInput</span>,
+        <span class="doccomment">/// The struct used to initialise this source, if available.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// This is used to recreate the stream when a source does not support</span>
+        <span class="doccomment">/// backward seeking, if present.</span>
+        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    ),
 }
 
 <span class="kw">impl</span> <span class="ident">Input</span> {
-    <span class="doccomment">/// Creates a floating-point PCM Input from a given reader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">float_pcm</span>(<span class="ident">is_stereo</span>: <span class="ident">bool</span>, <span class="ident">reader</span>: <span class="ident">Reader</span>) -&gt; <span class="ident">Input</span> {
-        <span class="ident">Input</span> {
-            <span class="ident">metadata</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">stereo</span>: <span class="ident">is_stereo</span>,
-            <span class="ident">reader</span>,
-            <span class="ident">kind</span>: <span class="ident">Codec::FloatPcm</span>,
-            <span class="ident">container</span>: <span class="ident">Container::Raw</span>,
-            <span class="ident">pos</span>: <span class="number">0</span>,
-        }
-    }
-
-    <span class="doccomment">/// Creates a new Input using (at least) the given reader, codec, and container.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">stereo</span>: <span class="ident">bool</span>,
-        <span class="ident">reader</span>: <span class="ident">Reader</span>,
-        <span class="ident">kind</span>: <span class="ident">Codec</span>,
-        <span class="ident">container</span>: <span class="ident">Container</span>,
-        <span class="ident">metadata</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">Input</span> {
-            <span class="ident">metadata</span>: <span class="ident">metadata</span>.<span class="ident">unwrap_or_default</span>().<span class="ident">into</span>(),
-            <span class="ident">stereo</span>,
-            <span class="ident">reader</span>,
-            <span class="ident">kind</span>,
-            <span class="ident">container</span>,
-            <span class="ident">pos</span>: <span class="number">0</span>,
-        }
-    }
-
-    <span class="doccomment">/// Returns whether the inner [`Reader`] implements [`Seek`].</span>
+    <span class="doccomment">/// Requests auxiliary metadata which can be accessed without parsing the file.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Reader`]: reader::Reader</span>
+    <span class="doccomment">/// This method will never be called by songbird but allows, for instance, access to metadata</span>
+    <span class="doccomment">/// which might only be visible to a web crawler, e.g., uploader or source URL.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This requires that the [`Input`] has a [`Compose`] available to use, otherwise it</span>
+    <span class="doccomment">/// will always fail with [`AudioStreamError::Unsupported`].</span>
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">aux_metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AuxMetadata</span>, <span class="ident">AuxMetadataError</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">composer</span>) =&gt; <span class="ident">composer</span>.<span class="ident">aux_metadata</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">Into::into</span>),
+            <span class="ident"><span class="self">Self</span>::Live</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">composer</span>)) =&gt;
+                <span class="ident">composer</span>.<span class="ident">aux_metadata</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">Into::into</span>),
+            <span class="ident"><span class="self">Self</span>::Live</span>(<span class="kw">_</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">AuxMetadataError::NoCompose</span>),
+        }
+    }
+
+    <span class="doccomment">/// Tries to get any information about this audio stream acquired during parsing.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Only exists when this input is both [`Self::Live`] and has been fully parsed.</span>
+    <span class="doccomment">/// In general, you probably want to use [`Self::aux_metadata`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Metadata</span>, <span class="ident">MetadataError</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">live</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">live</span>.<span class="ident">metadata</span>()
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">MetadataError::NotLive</span>)
+        }
+    }
+
+    <span class="doccomment">/// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],</span>
+    <span class="doccomment">/// placing blocking I/O on the current thread.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *This is a blocking operation. If you wish to use this from an async task, you</span>
+    <span class="doccomment">/// must do so via [`Self::make_live_async`].*</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a no-op for an [`Input::Live`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_live</span>(<span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">TokioHandle</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw-2">mut</span> <span class="ident">lazy</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="kw">let</span> (<span class="ident">created</span>, <span class="ident">lazy</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lazy</span>.<span class="ident">should_create_async</span>() {
+                <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
+                <span class="ident">handle</span>.<span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
+                    <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">lazy</span>.<span class="ident">create_async</span>().<span class="kw">await</span>;
+                    <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send_async</span>((<span class="ident">out</span>, <span class="ident">lazy</span>)));
+                });
+                <span class="ident">rx</span>.<span class="ident">recv</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="ident">err_msg</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="op">=</span>
+                        <span class="string">&quot;async Input create handler panicked&quot;</span>.<span class="ident">into</span>();
+                    <span class="ident">AudioStreamError::Fail</span>(<span class="ident">err_msg</span>)
+                })<span class="question-mark">?</span>
+            } <span class="kw">else</span> {
+                (<span class="ident">lazy</span>.<span class="ident">create</span>(), <span class="ident">lazy</span>)
+            };
+
+            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">LiveInput::Raw</span>(<span class="ident">created</span><span class="question-mark">?</span>), <span class="prelude-val">Some</span>(<span class="ident">lazy</span>)))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+        }
+    }
+
+    <span class="doccomment">/// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],</span>
+    <span class="doccomment">/// placing blocking I/O on the a `spawn_blocking` executor.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a no-op for an [`Input::Live`].</span>
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">make_live_async</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw-2">mut</span> <span class="ident">lazy</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="kw">let</span> (<span class="ident">created</span>, <span class="ident">lazy</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lazy</span>.<span class="ident">should_create_async</span>() {
+                (<span class="ident">lazy</span>.<span class="ident">create_async</span>().<span class="kw">await</span>, <span class="ident">lazy</span>)
+            } <span class="kw">else</span> {
+                <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">lazy</span>.<span class="ident">create</span>(), <span class="ident">lazy</span>))
+                    .<span class="kw">await</span>
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">err_msg</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="op">=</span>
+                            <span class="string">&quot;synchronous Input create handler panicked&quot;</span>.<span class="ident">into</span>();
+                        <span class="ident">AudioStreamError::Fail</span>(<span class="ident">err_msg</span>)
+                    })<span class="question-mark">?</span>
+            };
+
+            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">LiveInput::Raw</span>(<span class="ident">created</span><span class="question-mark">?</span>), <span class="prelude-val">Some</span>(<span class="ident">lazy</span>)))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+        }
+    }
+
+    <span class="doccomment">/// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],</span>
+    <span class="doccomment">/// placing blocking I/O on the current thread.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.</span>
+    <span class="doccomment">/// If you can&#39;t access one, then consider manually using [`LiveInput::promote`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *This is a blocking operation. Symphonia uses standard library I/O (e.g., [`Read`], [`Seek`]).</span>
+    <span class="doccomment">/// If you wish to use this from an async task, you must do so within `spawn_blocking`.*</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
     <span class="doccomment">/// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">is_seekable</span>()
-    }
-
-    <span class="doccomment">/// Returns whether the read audio signal is stereo (or mono).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_stereo</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">stereo</span>
-    }
-
-    <span class="doccomment">/// Returns the type of the inner [`Codec`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Codec`]: Codec</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CodecType</span> {
-        (<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>).<span class="ident">into</span>()
-    }
-
-    <span class="doccomment">/// Mixes the output of this stream into a 20ms stereo audio buffer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mix</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">float_buffer</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>], <span class="ident">volume</span>: <span class="ident">f32</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">add_float_pcm_frame</span>(<span class="ident">float_buffer</span>, <span class="self">self</span>.<span class="ident">stereo</span>, <span class="ident">volume</span>)
-            .<span class="ident">unwrap_or</span>(<span class="number">0</span>)
-    }
-
-    <span class="doccomment">/// Seeks the stream to the given time, if possible.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the actual time reached.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_time</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="ident">Duration</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">future_pos</span> <span class="op">=</span> <span class="ident">utils::timestamp_to_byte_count</span>(<span class="ident">time</span>, <span class="self">self</span>.<span class="ident">stereo</span>);
-        <span class="ident">Seek::seek</span>(<span class="self">self</span>, <span class="ident">SeekFrom::Start</span>(<span class="ident">future_pos</span> <span class="kw">as</span> <span class="ident">u64</span>))
-            .<span class="ident">ok</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">utils::byte_count_to_timestamp</span>(<span class="ident">a</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="self">self</span>.<span class="ident">stereo</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">read_inner</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>], <span class="ident">ignore_decode</span>: <span class="ident">bool</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="comment">// This implementation of Read converts the input stream</span>
-        <span class="comment">// to floating point output.</span>
-        <span class="kw">let</span> <span class="ident">sample_len</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">float_space</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="ident">sample_len</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">written_floats</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="comment">// TODO: better decouple codec and container here.</span>
-        <span class="comment">// this is a little bit backwards, and assumes the bottom cases are always raw...</span>
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Codec::Opus</span>(<span class="ident">decoder_state</span>) =&gt; {
-                <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">container</span>, <span class="ident">Container::Raw</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
-                        <span class="ident">IoErrorKind::InvalidInput</span>,
-                        <span class="string">&quot;Raw container cannot demarcate Opus frames.&quot;</span>,
-                    ));
-                }
-
-                <span class="kw">if</span> <span class="ident">ignore_decode</span> {
-                    <span class="comment">// If we&#39;re less than one frame away from the end of cheap seeking,</span>
-                    <span class="comment">// then we must decode to make sure the next starting offset is correct.</span>
-
-                    <span class="comment">// Step one: use up the remainder of the frame.</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aud_skipped</span> <span class="op">=</span>
-                        <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span>;
-
-                    <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span> <span class="op">=</span> <span class="number">0</span>;
-                    <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">truncate</span>(<span class="number">0</span>);
-
-                    <span class="comment">// Step two: take frames if we can.</span>
-                    <span class="kw">while</span> <span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">aud_skipped</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">STEREO_FRAME_BYTE_SIZE</span> {
-                        <span class="ident">decoder_state</span>.<span class="ident">should_reset</span> <span class="op">=</span> <span class="bool-val">true</span>;
-
-                        <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="self">self</span>
-                            .<span class="ident">container</span>
-                            .<span class="ident">next_frame_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="ident">CodecType::Opus</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">consume</span>(<span class="ident">frame</span>.<span class="ident">frame_len</span>);
-
-                        <span class="ident">aud_skipped</span> <span class="op">+</span><span class="op">=</span> <span class="ident">STEREO_FRAME_BYTE_SIZE</span>;
-                    }
-
-                    <span class="prelude-val">Ok</span>(<span class="ident">aud_skipped</span>)
-                } <span class="kw">else</span> {
-                    <span class="comment">// get new frame *if needed*</span>
-                    <span class="kw">if</span> <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span> <span class="op">==</span> <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">len</span>() {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoder</span> <span class="op">=</span> <span class="ident">decoder_state</span>.<span class="ident">decoder</span>.<span class="ident">lock</span>();
-
-                        <span class="kw">if</span> <span class="ident">decoder_state</span>.<span class="ident">should_reset</span> {
-                            <span class="ident">decoder</span>
-                                .<span class="ident">reset_state</span>()
-                                .<span class="ident">expect</span>(<span class="string">&quot;Critical failure resetting decoder.&quot;</span>);
-                            <span class="ident">decoder_state</span>.<span class="ident">should_reset</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                        }
-                        <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="self">self</span>
-                            .<span class="ident">container</span>
-                            .<span class="ident">next_frame_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="ident">CodecType::Opus</span>)<span class="question-mark">?</span>;
-
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opus_data_buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4000</span>];
-
-                        <span class="ident">decoder_state</span>
-                            .<span class="ident">current_frame</span>
-                            .<span class="ident">resize</span>(<span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">capacity</span>(), <span class="number">0.0</span>);
-
-                        <span class="kw">let</span> <span class="ident">seen</span> <span class="op">=</span>
-                            <span class="ident">Read::read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="ident">opus_data_buffer</span>[..<span class="ident">frame</span>.<span class="ident">frame_len</span>])<span class="question-mark">?</span>;
-
-                        <span class="kw">let</span> <span class="ident">samples</span> <span class="op">=</span> <span class="ident">decoder</span>
-                            .<span class="ident">decode_float</span>(
-                                <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">opus_data_buffer</span>[..<span class="ident">seen</span>]).<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                                (<span class="kw-2">&amp;mut</span> <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>[..]).<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
-                                <span class="bool-val">false</span>,
-                            )
-                            .<span class="ident">unwrap_or</span>(<span class="number">0</span>);
-
-                        <span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">truncate</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">samples</span>);
-                        <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span> <span class="op">=</span> <span class="number">0</span>;
-                    }
-
-                    <span class="comment">// read from frame which is present.</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer</span>;
-
-                    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span>;
-                    <span class="kw">let</span> <span class="ident">to_write</span> <span class="op">=</span> <span class="ident">float_space</span>.<span class="ident">min</span>(<span class="ident">decoder_state</span>.<span class="ident">current_frame</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">start</span>);
-                    <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">decoder_state</span>.<span class="ident">current_frame</span>[<span class="ident">start</span>..<span class="ident">start</span> <span class="op">+</span> <span class="ident">float_space</span>] {
-                        <span class="ident">buffer</span>.<span class="ident">write_f32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">val</span>)<span class="question-mark">?</span>;
-                    }
-                    <span class="ident">decoder_state</span>.<span class="ident">frame_pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">to_write</span>;
-                    <span class="ident">written_floats</span> <span class="op">=</span> <span class="ident">to_write</span>;
-
-                    <span class="prelude-val">Ok</span>(<span class="ident">written_floats</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>())
-                }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_playable</span>(
+        <span class="self">self</span>,
+        <span class="ident">codecs</span>: <span class="kw-2">&amp;</span><span class="ident">CodecRegistry</span>,
+        <span class="ident">probe</span>: <span class="kw-2">&amp;</span><span class="ident">Probe</span>,
+        <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">TokioHandle</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">MakePlayableError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">make_live</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+        <span class="kw">match</span> <span class="ident">out</span> {
+            <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">input</span>, <span class="ident">lazy</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">promote</span>(<span class="ident">codecs</span>, <span class="ident">probe</span>)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">promoted</span>, <span class="ident">lazy</span>))
             },
-            <span class="ident">Codec::Pcm</span> =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer</span>;
-                <span class="kw">while</span> <span class="ident">written_floats</span> <span class="op">&lt;</span> <span class="ident">float_space</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">signal</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_i16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>() {
-                        <span class="ident">buffer</span>.<span class="ident">write_f32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="ident">f32::from</span>(<span class="ident">signal</span>) <span class="op">/</span> <span class="number">32768.0</span>)<span class="question-mark">?</span>;
-                        <span class="ident">written_floats</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                    } <span class="kw">else</span> {
-                        <span class="kw">break</span>;
-                    }
-                }
-                <span class="prelude-val">Ok</span>(<span class="ident">written_floats</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>())
-            },
-            <span class="ident">Codec::FloatPcm</span> =&gt; <span class="ident">Read::read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="ident">buffer</span>),
-        };
-
-        <span class="ident">out</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-            <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">v</span>;
-            <span class="ident">v</span>
-        })
-    }
-
-    <span class="kw">fn</span> <span class="ident">cheap_consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">count</span>: <span class="ident">usize</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scratch</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">STEREO_FRAME_BYTE_SIZE</span> <span class="op">*</span> <span class="number">4</span>];
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">scratch</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">done</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_inner</span>(<span class="kw-2">&amp;mut</span> <span class="ident">scratch</span>[..<span class="ident">len</span>.<span class="ident">min</span>(<span class="ident">count</span> <span class="op">-</span> <span class="ident">done</span>)], <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">read</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">break</span>;
-            }
-            <span class="ident">done</span> <span class="op">+</span><span class="op">=</span> <span class="ident">read</span>;
-        }
-
-        <span class="prelude-val">Ok</span>(<span class="ident">done</span>)
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">supports_passthrough</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">Codec::Opus</span>(<span class="ident">state</span>) =&gt; <span class="ident">state</span>.<span class="ident">allow_passthrough</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">read_opus_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="comment">// Called in event of opus passthrough.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Codec::Opus</span>(<span class="ident">state</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="comment">// step 1: align to frame.</span>
-            <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">state</span>.<span class="ident">current_frame</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">state</span>.<span class="ident">frame_pos</span>;
+    <span class="doccomment">/// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],</span>
+    <span class="doccomment">/// placing blocking I/O on a tokio blocking thread.</span>
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">make_playable_async</span>(
+        <span class="self">self</span>,
+        <span class="ident">codecs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CodecRegistry</span>,
+        <span class="ident">probe</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Probe</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">MakePlayableError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">make_live_async</span>().<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">match</span> <span class="ident">out</span> {
+            <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">input</span>, <span class="ident">lazy</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">promote</span>(<span class="ident">codecs</span>, <span class="ident">probe</span>))
+                    .<span class="kw">await</span>
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MakePlayableError::Panicked</span>)<span class="question-mark">?</span><span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">promoted</span>, <span class="ident">lazy</span>))
+            },
+        }
+    }
 
-            <span class="ident">state</span>.<span class="ident">frame_pos</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="ident">state</span>.<span class="ident">current_frame</span>.<span class="ident">truncate</span>(<span class="number">0</span>);
-
-            <span class="comment">// step 2: read new header.</span>
-            <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">container</span>
-                .<span class="ident">next_frame_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="ident">CodecType::Opus</span>)<span class="question-mark">?</span>;
-
-            <span class="comment">// step 3: read in bytes.</span>
-            <span class="self">self</span>.<span class="ident">reader</span>
-                .<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buffer</span>[..<span class="ident">frame</span>.<span class="ident">frame_len</span>])
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">STEREO_FRAME_BYTE_SIZE</span>;
-                    <span class="ident">frame</span>.<span class="ident">frame_len</span>
-                })
+    <span class="doccomment">/// Returns whether this audio stream is full initialised, parsed, and</span>
+    <span class="doccomment">/// ready to play (e.g., `Self::Live(LiveInput::Parsed(p), _)`).</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_playable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">input</span>.<span class="ident">is_playable</span>()
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
-                <span class="ident">IoErrorKind::InvalidInput</span>,
-                <span class="string">&quot;Frame passthrough not supported for this file.&quot;</span>,
-            ))
+            <span class="bool-val">false</span>
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prep_with_handle</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">handle</span>: <span class="ident">Handle</span>) {
-        <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">prep_with_handle</span>(<span class="ident">handle</span>);
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">read_inner</span>(<span class="ident">buffer</span>, <span class="bool-val">false</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos</span>;
-        <span class="kw">match</span> <span class="ident">pos</span> {
-            <span class="ident">SeekFrom::Start</span>(<span class="ident">pos</span>) =&gt; {
-                <span class="ident">target</span> <span class="op">=</span> <span class="ident">pos</span> <span class="kw">as</span> <span class="ident">usize</span>;
-            },
-            <span class="ident">SeekFrom::Current</span>(<span class="ident">rel</span>) =&gt; {
-                <span class="ident">target</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">wrapping_add</span>(<span class="ident">rel</span> <span class="kw">as</span> <span class="ident">usize</span>);
-            },
-            <span class="ident">SeekFrom::End</span>(<span class="ident">_pos</span>) =&gt; <span class="macro">unimplemented!</span>(),
-        }
-
-        <span class="macro">debug!</span>(<span class="string">&quot;Seeking to {:?}&quot;</span>, <span class="ident">pos</span>);
-
-        (<span class="kw">if</span> <span class="ident">target</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">pos</span> {
-            <span class="prelude-val">Ok</span>(<span class="number">0</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conversion</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">container</span>.<span class="ident">try_seek_trivial</span>(<span class="self">self</span>.<span class="ident">get_type</span>()) {
-            <span class="kw">let</span> <span class="ident">inside_target</span> <span class="op">=</span> (<span class="ident">target</span> <span class="op">*</span> <span class="ident">conversion</span>) <span class="op">/</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
-            <span class="ident">Seek::seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="ident">SeekFrom::Start</span>(<span class="ident">inside_target</span> <span class="kw">as</span> <span class="ident">u64</span>)).<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner_dest</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">outer_dest</span> <span class="op">=</span> ((<span class="ident">inner_dest</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>()) <span class="op">/</span> <span class="ident">conversion</span>;
-                <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">outer_dest</span>;
-                <span class="ident">outer_dest</span>
-            })
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">target</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">pos</span> {
-            <span class="comment">// seek in the next amount, disabling decoding if need be.</span>
-            <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">target</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">pos</span>;
-            <span class="self">self</span>.<span class="ident">cheap_consume</span>(<span class="ident">shift</span>)
+    <span class="doccomment">/// Returns a reference to the live input, if it has been created via</span>
+    <span class="doccomment">/// [`Self::make_live`] or [`Self::make_live_async`].</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">live</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">LiveInput</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">input</span>)
         } <span class="kw">else</span> {
-            <span class="comment">// start from scratch, then seek in...</span>
-            <span class="ident">Seek::seek</span>(
-                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>,
-                <span class="ident">SeekFrom::Start</span>(<span class="self">self</span>.<span class="ident">container</span>.<span class="ident">input_start</span>() <span class="kw">as</span> <span class="ident">u64</span>),
-            )<span class="question-mark">?</span>;
-
-            <span class="self">self</span>.<span class="ident">cheap_consume</span>(<span class="ident">target</span>)
-        })
-        .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">pos</span> <span class="kw">as</span> <span class="ident">u64</span>)
+            <span class="prelude-val">None</span>
+        }
     }
-}
 
-<span class="doccomment">/// Extension trait to pull frames of audio from a byte source.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">ReadAudioExt</span> {
-    <span class="kw">fn</span> <span class="ident">add_float_pcm_frame</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">float_buffer</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>],
-        <span class="ident">true_stereo</span>: <span class="ident">bool</span>,
-        <span class="ident">volume</span>: <span class="ident">f32</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">Sized</span>;
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">ReadAudioExt</span> <span class="kw">for</span> <span class="ident">R</span> {
-    <span class="kw">fn</span> <span class="ident">add_float_pcm_frame</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">float_buffer</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>],
-        <span class="ident">stereo</span>: <span class="ident">bool</span>,
-        <span class="ident">volume</span>: <span class="ident">f32</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="comment">// IDEA: Read in 8 floats at a time, then use iterator code</span>
-        <span class="comment">// to gently nudge the compiler into vectorising for us.</span>
-        <span class="comment">// Max SIMD float32 lanes is 8 on AVX, older archs use a divisor of this</span>
-        <span class="comment">// e.g., 4.</span>
-        <span class="kw">const</span> <span class="ident">SAMPLE_LEN</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
-        <span class="kw">const</span> <span class="ident">FLOAT_COUNT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">512</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">simd_float_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">FLOAT_COUNT</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">simd_float_buf</span> <span class="op">=</span> [<span class="number">0f32</span>; <span class="ident">FLOAT_COUNT</span>];
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">frame_pos</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="comment">// Code duplication here is because unifying these codepaths</span>
-        <span class="comment">// with a dynamic chunk size is not zero-cost.</span>
-        <span class="kw">if</span> <span class="ident">stereo</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max_bytes</span> <span class="op">=</span> <span class="ident">STEREO_FRAME_BYTE_SIZE</span>;
-
-            <span class="kw">while</span> <span class="ident">frame_pos</span> <span class="op">&lt;</span> <span class="ident">float_buffer</span>.<span class="ident">len</span>() {
-                <span class="kw">let</span> <span class="ident">progress</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">simd_float_bytes</span>[..<span class="ident">max_bytes</span>.<span class="ident">min</span>(<span class="ident">FLOAT_COUNT</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>)])
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">byte_len</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">byte_len</span> <span class="op">/</span> <span class="ident">SAMPLE_LEN</span>;
-                        (<span class="kw-2">&amp;</span><span class="ident">simd_float_bytes</span>[..<span class="ident">byte_len</span>])
-                            .<span class="ident">read_f32_into</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">simd_float_buf</span>[..<span class="ident">target</span>])
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">target</span>)
-                    })
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">f32_len</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">new_pos</span> <span class="op">=</span> <span class="ident">frame_pos</span> <span class="op">+</span> <span class="ident">f32_len</span>;
-                        <span class="kw">for</span> (<span class="ident">el</span>, <span class="ident">new_el</span>) <span class="kw">in</span> <span class="ident">float_buffer</span>[<span class="ident">frame_pos</span>..<span class="ident">new_pos</span>]
-                            .<span class="ident">iter_mut</span>()
-                            .<span class="ident">zip</span>(<span class="kw-2">&amp;</span><span class="ident">simd_float_buf</span>[..<span class="ident">f32_len</span>])
-                        {
-                            <span class="kw-2">*</span><span class="ident">el</span> <span class="op">+</span><span class="op">=</span> <span class="ident">volume</span> <span class="op">*</span> <span class="ident">new_el</span>;
-                        }
-                        (<span class="ident">new_pos</span>, <span class="ident">f32_len</span>)
-                    });
-
-                <span class="kw">match</span> <span class="ident">progress</span> {
-                    <span class="prelude-val">Ok</span>((<span class="ident">new_pos</span>, <span class="ident">delta</span>)) =&gt; {
-                        <span class="ident">frame_pos</span> <span class="op">=</span> <span class="ident">new_pos</span>;
-                        <span class="ident">max_bytes</span> <span class="op">-</span><span class="op">=</span> <span class="ident">delta</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>;
-
-                        <span class="kw">if</span> <span class="ident">delta</span> <span class="op">==</span> <span class="number">0</span> {
-                            <span class="kw">break</span>;
-                        }
-                    },
-                    <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt;
-                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">IoErrorKind::UnexpectedEof</span> {
-                            <span class="macro">error!</span>(<span class="string">&quot;EOF unexpectedly: {:?}&quot;</span>, <span class="ident">e</span>);
-                            <span class="prelude-val">Some</span>(<span class="ident">frame_pos</span>)
-                        } <span class="kw">else</span> {
-                            <span class="macro">error!</span>(<span class="string">&quot;Input died unexpectedly: {:?}&quot;</span>, <span class="ident">e</span>);
-                            <span class="prelude-val">None</span>
-                        },
-                }
-            }
+    <span class="doccomment">/// Returns a mutable reference to the live input, if it been created via</span>
+    <span class="doccomment">/// [`Self::make_live`] or [`Self::make_live_async`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">live_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">LiveInput</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Live</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">input</span>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max_bytes</span> <span class="op">=</span> <span class="ident">MONO_FRAME_BYTE_SIZE</span>;
-
-            <span class="kw">while</span> <span class="ident">frame_pos</span> <span class="op">&lt;</span> <span class="ident">float_buffer</span>.<span class="ident">len</span>() {
-                <span class="kw">let</span> <span class="ident">progress</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">simd_float_bytes</span>[..<span class="ident">max_bytes</span>.<span class="ident">min</span>(<span class="ident">FLOAT_COUNT</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>)])
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">byte_len</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">byte_len</span> <span class="op">/</span> <span class="ident">SAMPLE_LEN</span>;
-                        (<span class="kw-2">&amp;</span><span class="ident">simd_float_bytes</span>[..<span class="ident">byte_len</span>])
-                            .<span class="ident">read_f32_into</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">simd_float_buf</span>[..<span class="ident">target</span>])
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">target</span>)
-                    })
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">f32_len</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">new_pos</span> <span class="op">=</span> <span class="ident">frame_pos</span> <span class="op">+</span> (<span class="number">2</span> <span class="op">*</span> <span class="ident">f32_len</span>);
-                        <span class="kw">for</span> (<span class="ident">els</span>, <span class="ident">new_el</span>) <span class="kw">in</span> <span class="ident">float_buffer</span>[<span class="ident">frame_pos</span>..<span class="ident">new_pos</span>]
-                            .<span class="ident">chunks_exact_mut</span>(<span class="number">2</span>)
-                            .<span class="ident">zip</span>(<span class="kw-2">&amp;</span><span class="ident">simd_float_buf</span>[..<span class="ident">f32_len</span>])
-                        {
-                            <span class="kw">let</span> <span class="ident">sample</span> <span class="op">=</span> <span class="ident">volume</span> <span class="op">*</span> <span class="ident">new_el</span>;
-                            <span class="ident">els</span>[<span class="number">0</span>] <span class="op">+</span><span class="op">=</span> <span class="ident">sample</span>;
-                            <span class="ident">els</span>[<span class="number">1</span>] <span class="op">+</span><span class="op">=</span> <span class="ident">sample</span>;
-                        }
-                        (<span class="ident">new_pos</span>, <span class="ident">f32_len</span>)
-                    });
-
-                <span class="kw">match</span> <span class="ident">progress</span> {
-                    <span class="prelude-val">Ok</span>((<span class="ident">new_pos</span>, <span class="ident">delta</span>)) =&gt; {
-                        <span class="ident">frame_pos</span> <span class="op">=</span> <span class="ident">new_pos</span>;
-                        <span class="ident">max_bytes</span> <span class="op">-</span><span class="op">=</span> <span class="ident">delta</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>;
-
-                        <span class="kw">if</span> <span class="ident">delta</span> <span class="op">==</span> <span class="number">0</span> {
-                            <span class="kw">break</span>;
-                        }
-                    },
-                    <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt;
-                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">IoErrorKind::UnexpectedEof</span> {
-                            <span class="prelude-val">Some</span>(<span class="ident">frame_pos</span>)
-                        } <span class="kw">else</span> {
-                            <span class="macro">error!</span>(<span class="string">&quot;Input died unexpectedly: {:?}&quot;</span>, <span class="ident">e</span>);
-                            <span class="prelude-val">None</span>
-                        },
-                }
-            }
+            <span class="prelude-val">None</span>
         }
-
-        <span class="prelude-val">Some</span>(<span class="ident">frame_pos</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
-        <span class="ident">io::copy</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">by_ref</span>().<span class="ident">take</span>(<span class="ident">amt</span> <span class="kw">as</span> <span class="ident">u64</span>), <span class="kw-2">&amp;mut</span> <span class="ident">io::sink</span>()).<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="doccomment">/// Returns a reference to the data parsed from this input stream, if it has</span>
+    <span class="doccomment">/// been made available via [`Self::make_playable`] or [`LiveInput::promote`].</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Parsed</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">live</span>().<span class="ident">and_then</span>(<span class="ident">LiveInput::parsed</span>)
+    }
+
+    <span class="doccomment">/// Returns a mutable reference to the data parsed from this input stream, if it</span>
+    <span class="doccomment">/// has been made available via [`Self::make_playable`] or [`LiveInput::promote`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parsed_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Parsed</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">live_mut</span>().<span class="ident">and_then</span>(<span class="ident">LiveInput::parsed_mut</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test_utils</span>::<span class="kw-2">*</span>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Input</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">raw_src</span> <span class="op">=</span> <span class="ident">LiveInput::Raw</span>(<span class="ident">AudioStream</span> {
+            <span class="ident">input</span>: <span class="ident">Box::new</span>(<span class="ident">Cursor::new</span>(<span class="ident">val</span>)),
+            <span class="ident">hint</span>: <span class="prelude-val">None</span>,
+        });
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">float_pcm_input_unchanged_mono</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">make_sine</span>(<span class="number">50</span> <span class="op">*</span> <span class="ident">MONO_FRAME_SIZE</span>, <span class="bool-val">false</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Input::new</span>(
-            <span class="bool-val">false</span>,
-            <span class="ident">data</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">Codec::FloatPcm</span>,
-            <span class="ident">Container::Raw</span>,
-            <span class="prelude-val">None</span>,
-        );
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out_vec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out_vec</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">out_vec</span>[..<span class="ident">len</span>], <span class="ident">data</span>[..]);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">float_pcm_input_unchanged_stereo</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">make_sine</span>(<span class="number">50</span> <span class="op">*</span> <span class="ident">MONO_FRAME_SIZE</span>, <span class="bool-val">true</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Input::new</span>(
-            <span class="bool-val">true</span>,
-            <span class="ident">data</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">Codec::FloatPcm</span>,
-            <span class="ident">Container::Raw</span>,
-            <span class="prelude-val">None</span>,
-        );
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out_vec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out_vec</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">out_vec</span>[..<span class="ident">len</span>], <span class="ident">data</span>[..]);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pcm_input_becomes_float_mono</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">make_pcm_sine</span>(<span class="number">50</span> <span class="op">*</span> <span class="ident">MONO_FRAME_SIZE</span>, <span class="bool-val">false</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Input::new</span>(<span class="bool-val">false</span>, <span class="ident">data</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">Codec::Pcm</span>, <span class="ident">Container::Raw</span>, <span class="prelude-val">None</span>);
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out_vec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">let</span> <span class="ident">_len</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out_vec</span>).<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i16_window</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">data</span>[..];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">float_window</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">out_vec</span>[..];
-
-        <span class="kw">while</span> <span class="ident">i16_window</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">i16_window</span>.<span class="ident">read_i16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">f32</span>;
-            <span class="kw">let</span> <span class="ident">after</span> <span class="op">=</span> <span class="ident">float_window</span>.<span class="ident">read_f32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
-
-            <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> (<span class="ident">before</span> <span class="op">/</span> <span class="number">32768.0</span>) <span class="op">-</span> <span class="ident">after</span>;
-
-            <span class="macro">assert!</span>(<span class="ident">diff</span>.<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">f32::EPSILON</span>);
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">pcm_input_becomes_float_stereo</span>() {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">make_pcm_sine</span>(<span class="number">50</span> <span class="op">*</span> <span class="ident">MONO_FRAME_SIZE</span>, <span class="bool-val">true</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Input::new</span>(<span class="bool-val">true</span>, <span class="ident">data</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">Codec::Pcm</span>, <span class="ident">Container::Raw</span>, <span class="prelude-val">None</span>);
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out_vec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">let</span> <span class="ident">_len</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">out_vec</span>).<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i16_window</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">data</span>[..];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">float_window</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">out_vec</span>[..];
-
-        <span class="kw">while</span> <span class="ident">i16_window</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">i16_window</span>.<span class="ident">read_i16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">f32</span>;
-            <span class="kw">let</span> <span class="ident">after</span> <span class="op">=</span> <span class="ident">float_window</span>.<span class="ident">read_f32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
-
-            <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> (<span class="ident">before</span> <span class="op">/</span> <span class="number">32768.0</span>) <span class="op">-</span> <span class="ident">after</span>;
-
-            <span class="macro">assert!</span>(<span class="ident">diff</span>.<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="ident">f32::EPSILON</span>);
-        }
+        <span class="ident">Input::Live</span>(<span class="ident">raw_src</span>, <span class="prelude-val">None</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (76761db59 2022-05-24)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (848090dcd 2022-07-22)" ></div>
 </body></html>

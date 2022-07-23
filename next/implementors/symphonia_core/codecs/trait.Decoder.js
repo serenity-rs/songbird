@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["songbird"] = [{"text":"impl Decoder for <a class=\"struct\" href=\"songbird/input/codecs/struct.OpusDecoder.html\" title=\"struct songbird::input::codecs::OpusDecoder\">OpusDecoder</a>","synthetic":false,"types":["songbird::input::codecs::opus::OpusDecoder"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

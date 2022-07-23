@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["songbird"] = [{"text":"impl FormatReader for <a class=\"struct\" href=\"songbird/input/codecs/struct.DcaReader.html\" title=\"struct songbird::input::codecs::DcaReader\">DcaReader</a>","synthetic":false,"types":["songbird::input::codecs::dca::DcaReader"]},{"text":"impl FormatReader for <a class=\"struct\" href=\"songbird/input/codecs/struct.RawReader.html\" title=\"struct songbird::input::codecs::RawReader\">RawReader</a>","synthetic":false,"types":["songbird::input::codecs::raw::RawReader"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,11 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -362,10 +361,6 @@
 <span id="353">353</span>
 <span id="354">354</span>
 <span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">disposal</span>;
@@ -389,7 +384,7 @@
     <span class="ident">Config</span>,
     <span class="ident">ConnectionInfo</span>,
 };
-<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">RecvError</span>, <span class="ident">Sender</span>};
+<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
 <span class="kw">use</span> <span class="ident">message</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">runtime::Handle</span>, <span class="ident">spawn</span>, <span class="ident">time::sleep</span> <span class="kw">as</span> <span class="ident">tsleep</span>};
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>};
@@ -438,23 +433,21 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">retrying</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attempt_idx</span> <span class="op">=</span> <span class="number">0</span>;
 
-    <span class="kw">loop</span> {
-        <span class="kw">match</span> <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::ConnectWithResult</span>(<span class="ident">info</span>, <span class="ident">tx</span>)) =&gt; {
+    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span> {
+        <span class="kw">match</span> <span class="ident">msg</span> {
+            <span class="ident">CoreMessage::ConnectWithResult</span>(<span class="ident">info</span>, <span class="ident">tx</span>) =&gt; {
                 <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_config</span>) <span class="op">=</span> <span class="ident">next_config</span>.<span class="ident">take</span>() {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>
-                        .<span class="ident">mixer</span>
-                        .<span class="ident">send</span>(<span class="ident">MixerMessage::SetConfig</span>(<span class="ident">new_config</span>.<span class="ident">clone</span>()));
+                    <span class="ident">drop</span>(
+                        <span class="ident">interconnect</span>
+                            .<span class="ident">mixer</span>
+                            .<span class="ident">send</span>(<span class="ident">MixerMessage::SetConfig</span>(<span class="ident">new_config</span>.<span class="ident">clone</span>())),
+                    );
                     <span class="ident">new_config</span>
                 } <span class="kw">else</span> {
                     <span class="ident">config</span>
                 };
 
-                <span class="kw">if</span> <span class="ident">connection</span>
-                    .<span class="ident">as_ref</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">conn</span><span class="op">|</span> <span class="ident">conn</span>.<span class="ident">info</span> <span class="op">!</span><span class="op">=</span> <span class="ident">info</span>)
-                    .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
-                {
+                <span class="kw">if</span> <span class="ident">connection</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">conn</span><span class="op">|</span> <span class="ident">conn</span>.<span class="ident">info</span> <span class="op">!</span><span class="op">=</span> <span class="ident">info</span>) {
                     <span class="comment">// Only *actually* reconnect if the conn info changed, or we don&#39;t have an</span>
                     <span class="comment">// active connection.</span>
                     <span class="comment">// This allows the gateway component to keep sending join requests independent</span>
@@ -465,10 +458,10 @@
                 } <span class="kw">else</span> {
                     <span class="comment">// No reconnection was attempted as there&#39;s a valid, identical connection;</span>
                     <span class="comment">// tell the outside listener that the operation was a success.</span>
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(()));
+                    <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(())));
                 }
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RetryConnect</span>(<span class="ident">retry_idx</span>)) =&gt; {
+            <span class="ident">CoreMessage::RetryConnect</span>(<span class="ident">retry_idx</span>) =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot;Retrying idx: {} (vs. {})&quot;</span>, <span class="ident">retry_idx</span>, <span class="ident">attempt_idx</span>);
                 <span class="kw">if</span> <span class="ident">retry_idx</span> <span class="op">==</span> <span class="ident">attempt_idx</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress</span>) <span class="op">=</span> <span class="ident">retrying</span>.<span class="ident">take</span>() {
@@ -478,68 +471,68 @@
                     }
                 }
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Disconnect</span>) =&gt; {
+            <span class="ident">CoreMessage::Disconnect</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">last_conn</span> <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">take</span>();
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::DropConn</span>);
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::RebuildEncoder</span>);
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::DropConn</span>));
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::RebuildEncoder</span>));
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="ident">last_conn</span> {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                    <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                         <span class="ident">CoreContext::DriverDisconnect</span>(<span class="ident">InternalDisconnect</span> {
                             <span class="ident">kind</span>: <span class="ident">DisconnectKind::Runtime</span>,
                             <span class="ident">reason</span>: <span class="prelude-val">None</span>,
                             <span class="ident">info</span>: <span class="ident">conn</span>.<span class="ident">info</span>.<span class="ident">clone</span>(),
                         }),
-                    ));
+                    )));
                 }
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SignalWsClosure</span>(<span class="ident">ws_idx</span>, <span class="ident">ws_info</span>, <span class="kw-2">mut</span> <span class="ident">reason</span>)) =&gt; {
+            <span class="ident">CoreMessage::SignalWsClosure</span>(<span class="ident">ws_idx</span>, <span class="ident">ws_info</span>, <span class="kw-2">mut</span> <span class="ident">reason</span>) =&gt; {
                 <span class="comment">// if idx is not a match, quash reason</span>
                 <span class="comment">// (i.e., prevent users from mistakenly trying to reconnect for an *old* dead conn).</span>
                 <span class="comment">// if it *is* a match, the conn needs to die!</span>
                 <span class="comment">// (as the WS channel has truly given up the ghost).</span>
-                <span class="kw">if</span> <span class="ident">ws_idx</span> <span class="op">!</span><span class="op">=</span> <span class="ident">attempt_idx</span> {
-                    <span class="ident">reason</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                } <span class="kw">else</span> {
+                <span class="kw">if</span> <span class="ident">ws_idx</span> <span class="op">==</span> <span class="ident">attempt_idx</span> {
                     <span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::DropConn</span>);
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::RebuildEncoder</span>);
+                    <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::DropConn</span>));
+                    <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::RebuildEncoder</span>));
+                } <span class="kw">else</span> {
+                    <span class="ident">reason</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                 }
 
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                     <span class="ident">CoreContext::DriverDisconnect</span>(<span class="ident">InternalDisconnect</span> {
                         <span class="ident">kind</span>: <span class="ident">DisconnectKind::Runtime</span>,
                         <span class="ident">reason</span>,
                         <span class="ident">info</span>: <span class="ident">ws_info</span>,
                     }),
-                ));
+                )));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="ident">s</span>)) =&gt; {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetTrack</span>(<span class="ident">s</span>));
+            <span class="ident">CoreMessage::SetTrack</span>(<span class="ident">s</span>) =&gt; {
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetTrack</span>(<span class="ident">s</span>)));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::AddTrack</span>(<span class="ident">s</span>)) =&gt; {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::AddTrack</span>(<span class="ident">s</span>));
+            <span class="ident">CoreMessage::AddTrack</span>(<span class="ident">s</span>) =&gt; {
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::AddTrack</span>(<span class="ident">s</span>)));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetBitrate</span>(<span class="ident">b</span>)) =&gt; {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetBitrate</span>(<span class="ident">b</span>));
+            <span class="ident">CoreMessage::SetBitrate</span>(<span class="ident">b</span>) =&gt; {
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetBitrate</span>(<span class="ident">b</span>)));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::SetConfig</span>(<span class="kw-2">mut</span> <span class="ident">new_config</span>)) =&gt; {
+            <span class="ident">CoreMessage::SetConfig</span>(<span class="kw-2">mut</span> <span class="ident">new_config</span>) =&gt; {
                 <span class="ident">next_config</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_config</span>.<span class="ident">clone</span>());
 
                 <span class="ident">new_config</span>.<span class="ident">make_safe</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="ident">connection</span>.<span class="ident">is_some</span>());
 
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetConfig</span>(<span class="ident">new_config</span>));
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetConfig</span>(<span class="ident">new_config</span>)));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::AddEvent</span>(<span class="ident">evt</span>)) =&gt; {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::AddGlobalEvent</span>(<span class="ident">evt</span>));
+            <span class="ident">CoreMessage::AddEvent</span>(<span class="ident">evt</span>) =&gt; {
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::AddGlobalEvent</span>(<span class="ident">evt</span>)));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RemoveGlobalEvents</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::RemoveGlobalEvents</span>);
+            <span class="ident">CoreMessage::RemoveGlobalEvents</span> =&gt; {
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::RemoveGlobalEvents</span>));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Mute</span>(<span class="ident">m</span>)) =&gt; {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetMute</span>(<span class="ident">m</span>));
+            <span class="ident">CoreMessage::Mute</span>(<span class="ident">m</span>) =&gt; {
+                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::SetMute</span>(<span class="ident">m</span>)));
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Reconnect</span>) =&gt; {
+            <span class="ident">CoreMessage::Reconnect</span> =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">conn</span>) <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">take</span>() {
                     <span class="comment">// try once: if interconnect, try again.</span>
                     <span class="comment">// if still issue, full connect.</span>
@@ -569,16 +562,16 @@
                             .<span class="ident">attempt</span>(<span class="kw-2">&amp;mut</span> <span class="ident">retrying</span>, <span class="kw-2">&amp;</span><span class="ident">interconnect</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>)
                             .<span class="kw">await</span>;
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">connection</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">connection</span> {
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                        <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                             <span class="ident">CoreContext::DriverReconnect</span>(<span class="ident">InternalConnect</span> {
                                 <span class="ident">info</span>: <span class="ident">connection</span>.<span class="ident">info</span>.<span class="ident">clone</span>(),
                                 <span class="ident">ssrc</span>: <span class="ident">connection</span>.<span class="ident">ssrc</span>,
                             }),
-                        ));
+                        )));
                     }
                 }
             },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::FullReconnect</span>) =&gt;
+            <span class="ident">CoreMessage::FullReconnect</span> =&gt;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">take</span>() {
                     <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">info</span>.<span class="ident">clone</span>();
 
@@ -586,12 +579,10 @@
                         .<span class="ident">attempt</span>(<span class="kw-2">&amp;mut</span> <span class="ident">retrying</span>, <span class="kw-2">&amp;</span><span class="ident">interconnect</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>)
                         .<span class="kw">await</span>;
                 },
-            <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::RebuildInterconnect</span>) =&gt; {
+            <span class="ident">CoreMessage::RebuildInterconnect</span> =&gt; {
                 <span class="ident">interconnect</span>.<span class="ident">restart_volatile_internals</span>();
             },
-            <span class="prelude-val">Err</span>(<span class="ident">RecvError::Disconnected</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">CoreMessage::Poison</span>) =&gt; {
-                <span class="kw">break</span>;
-            },
+            <span class="ident">CoreMessage::Poison</span> =&gt; <span class="kw">break</span>,
         }
     }
 
@@ -643,22 +634,22 @@
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flavour</span> {
                     <span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>) =&gt; {
                         <span class="comment">// Other side may not be listening: this is fine.</span>
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(()));
+                        <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(())));
 
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                        <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                             <span class="ident">CoreContext::DriverConnect</span>(<span class="ident">InternalConnect</span> {
                                 <span class="ident">info</span>: <span class="ident">connection</span>.<span class="ident">info</span>.<span class="ident">clone</span>(),
                                 <span class="ident">ssrc</span>: <span class="ident">connection</span>.<span class="ident">ssrc</span>,
                             }),
-                        ));
+                        )));
                     },
                     <span class="ident">ConnectionFlavour::Reconnect</span> =&gt; {
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                        <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                             <span class="ident">CoreContext::DriverReconnect</span>(<span class="ident">InternalConnect</span> {
                                 <span class="ident">info</span>: <span class="ident">connection</span>.<span class="ident">info</span>.<span class="ident">clone</span>(),
                                 <span class="ident">ssrc</span>: <span class="ident">connection</span>.<span class="ident">ssrc</span>,
                             }),
-                        ));
+                        )));
                     },
                 }
 
@@ -672,7 +663,7 @@
 
                     <span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
                         <span class="ident">tsleep</span>(<span class="ident">t</span>).<span class="kw">await</span>;
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">remote_ic</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::RetryConnect</span>(<span class="ident">idx</span>));
+                        <span class="ident">drop</span>(<span class="ident">remote_ic</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::RetryConnect</span>(<span class="ident">idx</span>)));
                     });
 
                     <span class="self">self</span>.<span class="ident">attempts</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -693,24 +684,24 @@
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flavour</span> {
                         <span class="ident">ConnectionFlavour::Connect</span>(<span class="ident">tx</span>) =&gt; {
                             <span class="comment">// See above.</span>
-                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">why</span>));
+                            <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">why</span>)));
 
-                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                            <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                                 <span class="ident">CoreContext::DriverDisconnect</span>(<span class="ident">InternalDisconnect</span> {
                                     <span class="ident">kind</span>: <span class="ident">DisconnectKind::Connect</span>,
                                     <span class="ident">reason</span>,
                                     <span class="ident">info</span>: <span class="self">self</span>.<span class="ident">info</span>,
                                 }),
-                            ));
+                            )));
                         },
                         <span class="ident">ConnectionFlavour::Reconnect</span> =&gt; {
-                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
+                            <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                                 <span class="ident">CoreContext::DriverDisconnect</span>(<span class="ident">InternalDisconnect</span> {
                                     <span class="ident">kind</span>: <span class="ident">DisconnectKind::Reconnect</span>,
                                     <span class="ident">reason</span>,
                                     <span class="ident">info</span>: <span class="self">self</span>.<span class="ident">info</span>,
                                 }),
-                            ));
+                            )));
                         },
                     }
                 }
@@ -726,5 +717,5 @@
     <span class="ident">Reconnect</span>,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (76761db59 2022-05-24)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (848090dcd 2022-07-22)" ></div>
 </body></html>

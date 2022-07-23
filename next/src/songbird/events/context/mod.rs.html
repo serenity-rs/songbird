@@ -1,11 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/context/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/context/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -104,7 +103,6 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
-<span id="98">98</span>
 </pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">data</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_data</span>;
 
@@ -169,17 +167,17 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">CoreContext</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_user_context</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="ident">EventContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">CoreContext</span>::<span class="kw-2">*</span>;
-
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SpeakingStateUpdate</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::SpeakingStateUpdate</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
-            <span class="ident">SpeakingUpdate</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::SpeakingUpdate</span>(<span class="ident">SpeakingUpdateData::from</span>(<span class="ident">evt</span>)),
-            <span class="ident">VoicePacket</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::VoicePacket</span>(<span class="ident">VoiceData::from</span>(<span class="ident">evt</span>)),
-            <span class="ident">RtcpPacket</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::RtcpPacket</span>(<span class="ident">RtcpData::from</span>(<span class="ident">evt</span>)),
-            <span class="ident">ClientDisconnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::ClientDisconnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
-            <span class="ident">DriverConnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::DriverConnect</span>(<span class="ident">ConnectData::from</span>(<span class="ident">evt</span>)),
-            <span class="ident">DriverReconnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::DriverReconnect</span>(<span class="ident">ConnectData::from</span>(<span class="ident">evt</span>)),
-            <span class="ident">DriverDisconnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::DriverDisconnect</span>(<span class="ident">DisconnectData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident"><span class="self">Self</span>::SpeakingStateUpdate</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::SpeakingStateUpdate</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
+            <span class="ident"><span class="self">Self</span>::SpeakingUpdate</span>(<span class="ident">evt</span>) =&gt;
+                <span class="ident">EventContext::SpeakingUpdate</span>(<span class="ident">SpeakingUpdateData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident"><span class="self">Self</span>::VoicePacket</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::VoicePacket</span>(<span class="ident">VoiceData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident"><span class="self">Self</span>::RtcpPacket</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::RtcpPacket</span>(<span class="ident">RtcpData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident"><span class="self">Self</span>::ClientDisconnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::ClientDisconnect</span>(<span class="kw-2">*</span><span class="ident">evt</span>),
+            <span class="ident"><span class="self">Self</span>::DriverConnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::DriverConnect</span>(<span class="ident">ConnectData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident"><span class="self">Self</span>::DriverReconnect</span>(<span class="ident">evt</span>) =&gt; <span class="ident">EventContext::DriverReconnect</span>(<span class="ident">ConnectData::from</span>(<span class="ident">evt</span>)),
+            <span class="ident"><span class="self">Self</span>::DriverDisconnect</span>(<span class="ident">evt</span>) =&gt;
+                <span class="ident">EventContext::DriverDisconnect</span>(<span class="ident">DisconnectData::from</span>(<span class="ident">evt</span>)),
         }
     }
 }
@@ -187,22 +185,21 @@
 <span class="kw">impl</span> <span class="ident">EventContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Retreive the event class for an event (i.e., when matching)</span>
     <span class="doccomment">/// an event against the registered listeners.</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_core_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CoreEvent</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">EventContext</span>::<span class="kw-2">*</span>;
-
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SpeakingStateUpdate</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::SpeakingStateUpdate</span>),
-            <span class="ident">SpeakingUpdate</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::SpeakingUpdate</span>),
-            <span class="ident">VoicePacket</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::VoicePacket</span>),
-            <span class="ident">RtcpPacket</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::RtcpPacket</span>),
-            <span class="ident">ClientDisconnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::ClientDisconnect</span>),
-            <span class="ident">DriverConnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverConnect</span>),
-            <span class="ident">DriverReconnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverReconnect</span>),
-            <span class="ident">DriverDisconnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverDisconnect</span>),
+            <span class="ident"><span class="self">Self</span>::SpeakingStateUpdate</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::SpeakingStateUpdate</span>),
+            <span class="ident"><span class="self">Self</span>::SpeakingUpdate</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::SpeakingUpdate</span>),
+            <span class="ident"><span class="self">Self</span>::VoicePacket</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::VoicePacket</span>),
+            <span class="ident"><span class="self">Self</span>::RtcpPacket</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::RtcpPacket</span>),
+            <span class="ident"><span class="self">Self</span>::ClientDisconnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::ClientDisconnect</span>),
+            <span class="ident"><span class="self">Self</span>::DriverConnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverConnect</span>),
+            <span class="ident"><span class="self">Self</span>::DriverReconnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverReconnect</span>),
+            <span class="ident"><span class="self">Self</span>::DriverDisconnect</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CoreEvent::DriverDisconnect</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (76761db59 2022-05-24)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (848090dcd 2022-07-22)" ></div>
 </body></html>

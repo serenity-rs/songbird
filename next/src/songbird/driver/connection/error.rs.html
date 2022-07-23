@@ -1,11 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/connection/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/connection/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -240,21 +239,21 @@
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to connect to Discord RTP server: &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">use</span> <span class="ident">Error</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AttemptDiscarded</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
-            <span class="ident">Crypto</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">CryptoModeInvalid</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
-            <span class="ident">CryptoModeUnavailable</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
-            <span class="ident">EndpointUrl</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
-            <span class="ident">ExpectedHandshake</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;voice initialisation protocol was violated&quot;</span>),
-            <span class="ident">IllegalDiscoveryResponse</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response was invalid&quot;</span>),
-            <span class="ident">IllegalIp</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
-            <span class="ident">Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">Json</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">InterconnectFailure</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to contact other task ({:?})&quot;</span>, <span class="ident">e</span>),
-            <span class="ident">Ws</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;websocket issue ({:?}).&quot;</span>, <span class="ident">e</span>),
-            <span class="ident">TimedOut</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt timed out&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::AttemptDiscarded</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Crypto</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::CryptoModeInvalid</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::CryptoModeUnavailable</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::EndpointUrl</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::ExpectedHandshake</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;voice initialisation protocol was violated&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::IllegalDiscoveryResponse</span> =&gt;
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response was invalid&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::IllegalIp</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::Json</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::InterconnectFailure</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to contact other task ({:?})&quot;</span>, <span class="ident">e</span>),
+            <span class="ident"><span class="self">Self</span>::Ws</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;websocket issue ({:?}).&quot;</span>, <span class="ident">e</span>),
+            <span class="ident"><span class="self">Self</span>::TimedOut</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt timed out&quot;</span>),
         }
     }
 }
@@ -262,19 +261,19 @@
 <span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::AttemptDiscarded</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">Error::AttemptDiscarded</span>
+            <span class="op">|</span> <span class="ident">Error::CryptoModeInvalid</span>
+            <span class="op">|</span> <span class="ident">Error::CryptoModeUnavailable</span>
+            <span class="op">|</span> <span class="ident">Error::EndpointUrl</span>
+            <span class="op">|</span> <span class="ident">Error::ExpectedHandshake</span>
+            <span class="op">|</span> <span class="ident">Error::IllegalDiscoveryResponse</span>
+            <span class="op">|</span> <span class="ident">Error::IllegalIp</span>
+            <span class="op">|</span> <span class="ident">Error::InterconnectFailure</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">Error::Ws</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">Error::TimedOut</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">Error::Crypto</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::CryptoModeInvalid</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::CryptoModeUnavailable</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::EndpointUrl</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::ExpectedHandshake</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::IllegalDiscoveryResponse</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::IllegalIp</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">Error::Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
             <span class="ident">Error::Json</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::InterconnectFailure</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::Ws</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::TimedOut</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
@@ -282,5 +281,5 @@
 <span class="doccomment">/// Convenience type for Discord voice/driver connection error handling.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (76761db59 2022-05-24)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (848090dcd 2022-07-22)" ></div>
 </body></html>
