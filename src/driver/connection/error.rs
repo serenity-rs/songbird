@@ -94,21 +94,21 @@ impl From<Elapsed> for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "failed to connect to Discord RTP server: ")?;
-        use Error::*;
         match self {
-            AttemptDiscarded => write!(f, "connection attempt was aborted/discarded"),
-            Crypto(e) => e.fmt(f),
-            CryptoModeInvalid => write!(f, "server changed negotiated encryption mode"),
-            CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode"),
-            EndpointUrl => write!(f, "endpoint URL received from gateway was invalid"),
-            ExpectedHandshake => write!(f, "voice initialisation protocol was violated"),
-            IllegalDiscoveryResponse => write!(f, "IP discovery/NAT punching response was invalid"),
-            IllegalIp => write!(f, "IP discovery/NAT punching response had bad IP value"),
-            Io(e) => e.fmt(f),
-            Json(e) => e.fmt(f),
-            InterconnectFailure(e) => write!(f, "failed to contact other task ({:?})", e),
-            Ws(e) => write!(f, "websocket issue ({:?}).", e),
-            TimedOut => write!(f, "connection attempt timed out"),
+            Self::AttemptDiscarded => write!(f, "connection attempt was aborted/discarded"),
+            Self::Crypto(e) => e.fmt(f),
+            Self::CryptoModeInvalid => write!(f, "server changed negotiated encryption mode"),
+            Self::CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode"),
+            Self::EndpointUrl => write!(f, "endpoint URL received from gateway was invalid"),
+            Self::ExpectedHandshake => write!(f, "voice initialisation protocol was violated"),
+            Self::IllegalDiscoveryResponse =>
+                write!(f, "IP discovery/NAT punching response was invalid"),
+            Self::IllegalIp => write!(f, "IP discovery/NAT punching response had bad IP value"),
+            Self::Io(e) => e.fmt(f),
+            Self::Json(e) => e.fmt(f),
+            Self::InterconnectFailure(e) => write!(f, "failed to contact other task ({:?})", e),
+            Self::Ws(e) => write!(f, "websocket issue ({:?}).", e),
+            Self::TimedOut => write!(f, "connection attempt timed out"),
         }
     }
 }
@@ -116,19 +116,19 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Error::AttemptDiscarded => None,
+            Error::AttemptDiscarded
+            | Error::CryptoModeInvalid
+            | Error::CryptoModeUnavailable
+            | Error::EndpointUrl
+            | Error::ExpectedHandshake
+            | Error::IllegalDiscoveryResponse
+            | Error::IllegalIp
+            | Error::InterconnectFailure(_)
+            | Error::Ws(_)
+            | Error::TimedOut => None,
             Error::Crypto(e) => e.source(),
-            Error::CryptoModeInvalid => None,
-            Error::CryptoModeUnavailable => None,
-            Error::EndpointUrl => None,
-            Error::ExpectedHandshake => None,
-            Error::IllegalDiscoveryResponse => None,
-            Error::IllegalIp => None,
             Error::Io(e) => e.source(),
             Error::Json(e) => e.source(),
-            Error::InterconnectFailure(_) => None,
-            Error::Ws(_) => None,
-            Error::TimedOut => None,
         }
     }
 }

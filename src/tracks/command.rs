@@ -1,7 +1,10 @@
 use super::*;
 use crate::events::EventData;
 use flume::Sender;
-use std::time::Duration;
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    time::Duration,
+};
 
 /// A request from external code using a [`TrackHandle`] to modify
 /// or act upon an [`Track`] object.
@@ -21,37 +24,42 @@ pub enum TrackCommand {
     /// Seek to the given duration.
     ///
     /// On unsupported input types, this can be fatal.
-    Seek(Duration),
+    Seek(SeekRequest),
     /// Register an event on this track.
     AddEvent(EventData),
     /// Run some closure on this track, with direct access to the core object.
-    Do(Box<dyn FnOnce(&mut Track) + Send + Sync + 'static>),
+    Do(Box<dyn FnOnce(View) -> Option<Action> + Send + Sync + 'static>),
     /// Request a copy of this track's state.
     Request(Sender<TrackState>),
     /// Change the loop count/strategy of this track.
     Loop(LoopState),
     /// Prompts a track's input to become live and usable, if it is not already.
-    MakePlayable,
+    MakePlayable(Sender<Result<(), PlayError>>),
 }
 
-impl std::fmt::Debug for TrackCommand {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        use TrackCommand::*;
+impl Debug for TrackCommand {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
             "TrackCommand::{}",
             match self {
-                Play => "Play".to_string(),
-                Pause => "Pause".to_string(),
-                Stop => "Stop".to_string(),
-                Volume(vol) => format!("Volume({})", vol),
-                Seek(d) => format!("Seek({:?})", d),
-                AddEvent(evt) => format!("AddEvent({:?})", evt),
-                Do(_f) => "Do([function])".to_string(),
-                Request(tx) => format!("Request({:?})", tx),
-                Loop(loops) => format!("Loop({:?})", loops),
-                MakePlayable => "MakePlayable".to_string(),
+                Self::Play => "Play".to_string(),
+                Self::Pause => "Pause".to_string(),
+                Self::Stop => "Stop".to_string(),
+                Self::Volume(vol) => format!("Volume({})", vol),
+                Self::Seek(s) => format!("Seek({:?})", s.time),
+                Self::AddEvent(evt) => format!("AddEvent({:?})", evt),
+                Self::Do(_f) => "Do([function])".to_string(),
+                Self::Request(tx) => format!("Request({:?})", tx),
+                Self::Loop(loops) => format!("Loop({:?})", loops),
+                Self::MakePlayable(_) => "MakePlayable".to_string(),
             }
         )
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct SeekRequest {
+    pub time: Duration,
+    pub callback: Sender<Result<Duration, PlayError>>,
 }

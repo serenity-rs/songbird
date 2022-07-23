@@ -1,16 +1,16 @@
 //! Constants affecting driver function and API handling.
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 use audiopus::{Bitrate, SampleRate};
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 use discortp::rtp::RtpType;
 use std::time::Duration;
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 /// The voice gateway version used by the library.
 pub const VOICE_GATEWAY_VERSION: u8 = crate::model::constants::GATEWAY_VERSION;
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 /// Sample rate of audio to be sent to Discord.
 pub const SAMPLE_RATE: SampleRate = SampleRate::Hz48000;
 
@@ -23,9 +23,15 @@ pub const AUDIO_FRAME_RATE: usize = 50;
 /// Length of time between any two audio frames.
 pub const TIMESTEP_LENGTH: Duration = Duration::from_millis(1000 / AUDIO_FRAME_RATE as u64);
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 /// Default bitrate for audio.
 pub const DEFAULT_BITRATE: Bitrate = Bitrate::BitsPerSecond(128_000);
+
+/// Number of output samples at 48kHZ to produced when resampling subframes.
+pub(crate) const RESAMPLE_OUTPUT_FRAME_SIZE: usize = MONO_FRAME_SIZE / 2;
+
+/// The maximum number of bad frames to allow in an Opus source before blocking passthrough.
+pub(crate) const OPUS_PASSTHROUGH_STRIKE_LIMIT: u8 = 3;
 
 /// Number of samples in one complete frame of audio per channel.
 ///
@@ -70,6 +76,42 @@ pub const SILENT_FRAME: [u8; 3] = [0xf8, 0xff, 0xfe];
 /// The one (and only) RTP version.
 pub const RTP_VERSION: u8 = 2;
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 /// Profile type used by Discord's Opus audio traffic.
 pub const RTP_PROFILE_TYPE: RtpType = RtpType::Dynamic(120);
+
+#[cfg(test)]
+pub mod test_data {
+    /// URL for a source which YTDL must extract.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    pub const YTDL_TARGET: &str = "https://cloudkicker.bandcamp.com/track/94-days";
+
+    /// URL for a source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    pub const HTTP_TARGET: &str = "https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%202011%2007.mp3";
+
+    /// URL for an opus/ogg source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    pub const HTTP_OPUS_TARGET: &str = "https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.opus";
+
+    /// URL for an opus/webm source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    pub const HTTP_WEBM_TARGET: &str = "https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.webm";
+
+    /// Path to a DCA source.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    pub const FILE_DCA_TARGET: &str = "resources/Cloudkicker - 2011 07.dca1";
+
+    /// Path to an opus source which can be read via a File.
+    ///
+    /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    pub const FILE_WEBM_TARGET: &str = "resources/Cloudkicker - Making Will Mad.webm";
+
+    /// Path to a Wav source which can be read via a File.
+    pub const FILE_WAV_TARGET: &str = "resources/loop.wav";
+}

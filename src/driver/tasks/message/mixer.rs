@@ -1,12 +1,14 @@
 #![allow(missing_docs)]
 
-use super::{Interconnect, UdpRxMessage, UdpTxMessage, WsMessage};
+use super::{Interconnect, TrackContext, UdpRxMessage, UdpTxMessage, WsMessage};
 
 use crate::{
     driver::{Bitrate, Config, CryptoState},
-    tracks::Track,
+    input::{AudioStreamError, Compose, Parsed},
 };
 use flume::Sender;
+use std::sync::Arc;
+use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 pub struct MixerConnection {
@@ -16,16 +18,9 @@ pub struct MixerConnection {
     pub udp_tx: Sender<UdpTxMessage>,
 }
 
-impl Drop for MixerConnection {
-    fn drop(&mut self) {
-        let _ = self.udp_rx.send(UdpRxMessage::Poison);
-        let _ = self.udp_tx.send(UdpTxMessage::Poison);
-    }
-}
-
 pub enum MixerMessage {
-    AddTrack(Track),
-    SetTrack(Option<Track>),
+    AddTrack(TrackContext),
+    SetTrack(Option<TrackContext>),
 
     SetBitrate(Bitrate),
     SetConfig(Config),
@@ -39,4 +34,15 @@ pub enum MixerMessage {
     RebuildEncoder,
 
     Poison,
+}
+
+pub enum MixerInputResultMessage {
+    CreateErr(Arc<AudioStreamError>),
+    ParseErr(Arc<SymphoniaError>),
+    Seek(
+        Parsed,
+        Option<Box<dyn Compose>>,
+        Result<SeekedTo, Arc<SymphoniaError>>,
+    ),
+    Built(Parsed, Option<Box<dyn Compose>>),
 }

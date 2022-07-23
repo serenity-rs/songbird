@@ -9,7 +9,7 @@
 /// when a client leaves the session ([`ClientDisconnect`]), voice packets ([`VoicePacket`]), and
 /// telemetry data ([`RtcpPacket`]). The format of voice packets is described by [`VoiceData`].
 ///
-/// To detect when a user connects, you must correlate gateway (e.g., VoiceStateUpdate) events
+/// To detect when a user connects, you must correlate gateway (e.g., `VoiceStateUpdate`) events
 /// from the main part of your bot.
 ///
 /// To obtain a user's SSRC, you must use [`SpeakingStateUpdate`] events.

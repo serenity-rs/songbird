@@ -2,7 +2,7 @@
 authors = ["Kyle Simpson <kyleandrew.simpson@gmail.com>"]
 description = "An async Rust library for the Discord voice API."
 documentation = "https://docs.rs/songbird"
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/serenity-rs/songbird"
 include = ["src/**/*.rs", "Cargo.toml", "build.rs"]
 keywords = ["discord", "api", "rtp", "audio"]
@@ -10,15 +10,20 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-version = "0.3.0"
+version = "0.2.2"
+rust-version = "1.61"
 
 [dependencies]
 derivative = "2"
+pin-project = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
-symphonia-core = "0.5"
+
+[dependencies.once_cell]
+version = "1"
+optional = true
 
 [dependencies.async-trait]
 optional = true
@@ -45,9 +50,8 @@ version = "5"
 [dependencies.discortp]
 features = ["discord-full"]
 optional = true
-version = "0.4"
+version = "0.5"
 
-# Temporary hack to pin MSRV.
 [dependencies.flume]
 optional = true
 version = "0.10"
@@ -55,17 +59,40 @@ version = "0.10"
 [dependencies.futures]
 version = "0.3"
 
+[dependencies.lazy_static]
+optional = true
+version = "1"
+
 [dependencies.parking_lot]
 optional = true
 version = "0.12"
 
-[dependencies.pin-project]
-optional = true
-version = "1"
-
 [dependencies.rand]
 optional = true
 version = "0.8"
+
+[dependencies.reqwest]
+optional = true
+default-features = false
+features = ["stream"]
+version = "0.11"
+
+[dependencies.ringbuf]
+optional = true
+version = "0.2"
+
+[dependencies.rubato]
+optional = true
+version = "0.12"
+
+[dependencies.rusty_pool]
+optional = true
+version = "0.7"
+
+[dependencies.serde-aux]
+default-features = false
+optional = true
+version = "3"
 
 [dependencies.serenity]
 optional = true
@@ -83,10 +110,28 @@ branch = "next"
 optional = true
 version = "1"
 
+[dependencies.symphonia]
+optional = true
+default-features = false
+version = "0.5"
+git = "https://github.com/FelixMcFelix/Symphonia"
+branch = "songbird-fixes"
+
+[dependencies.symphonia-core]
+optional = true
+version = "0.5"
+git = "https://github.com/FelixMcFelix/Symphonia"
+branch = "songbird-fixes"
+
 [dependencies.tokio]
 optional = true
 version = "1.0"
 default-features = false
+
+[dependencies.tokio-util]
+optional = true
+version = "0.7"
+features = ["io"]
 
 [dependencies.twilight-gateway]
 optional = true
@@ -108,7 +153,7 @@ version = "2"
 
 [dependencies.uuid]
 optional = true
-version = "0.8"
+version = "1"
 features = ["v4"]
 
 [dependencies.xsalsa20poly1305]
@@ -118,7 +163,10 @@ features = ["std"]
 
 [dev-dependencies]
 criterion = "0.3"
+ntest = "0.8"
+symphonia = { version = "0.5", features = ["mp3"], git = "https://github.com/FelixMcFelix/Symphonia", branch = "songbird-fixes" }
 utils = { path = "utils" }
+tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 
 [features]
 # Core features
@@ -128,19 +176,33 @@ default = [
     "gateway",
 ]
 gateway = [
-    "gateway-core",
+    "dashmap",
+    "flume",
+    "once_cell",
+    "parking_lot",
     "tokio/sync",
     "tokio/time",
 ]
-gateway-core = [
-    "dashmap",
-    "flume",
-    "parking_lot",
-    "pin-project",
-]
 driver = [
+    "async-trait",
     "async-tungstenite",
-    "driver-core",
+    "audiopus",
+    "byteorder",
+    "discortp",
+    "reqwest",
+    "flume",
+    "lazy_static",
+    "parking_lot",
+    "rand",
+    "ringbuf",
+    "rubato",
+    "serde-aux",
+    "serenity-voice-model",
+    "streamcatcher",
+    "symphonia",
+    "symphonia-core",
+    "rusty_pool",
+    "tokio-util",
     "tokio/fs",
     "tokio/io-util",
     "tokio/macros",
@@ -149,24 +211,13 @@ driver = [
     "tokio/rt",
     "tokio/sync",
     "tokio/time",
-]
-driver-core = [
-    "async-trait",
-    "audiopus",
-    "byteorder",
-    "discortp",
-    "flume",
-    "parking_lot",
-    "rand",
-    "serenity-voice-model",
-    "streamcatcher",
     "typemap_rev",
     "url",
     "uuid",
     "xsalsa20poly1305",
 ]
-rustls = ["async-tungstenite/tokio-rustls-webpki-roots", "rustls-marker"]
-native = ["async-tungstenite/tokio-native-tls", "native-marker"]
+rustls = ["async-tungstenite/tokio-rustls-webpki-roots", "reqwest/rustls-tls", "rustls-marker"]
+native = ["async-tungstenite/tokio-native-tls", "native-marker", "reqwest/native-tls"]
 serenity-rustls = ["serenity/rustls_backend", "rustls", "gateway", "serenity-deps"]
 serenity-native = ["serenity/native_tls_backend", "native", "gateway", "serenity-deps"]
 twilight-rustls = ["twilight", "twilight-gateway/rustls-native-roots", "rustls", "gateway"]
@@ -180,8 +231,6 @@ rustls-marker = []
 native-marker = []
 
 # Behaviour altering features.
-youtube-dlc = []
-yt-dlp = []
 builtin-queue = []
 
 # Used for docgen/testing/benchmarking.
@@ -191,6 +240,7 @@ internals = []
 [[bench]]
 name = "base-mixing"
 path = "benches/base-mixing.rs"
+required-features = ["internals"]
 harness = false
 
 [[bench]]

@@ -29,12 +29,14 @@ Songbird's **driver** is a mixed sync/async system for running voice connections
 Audio processing remains synchronous for the following reasons:
 * Encryption, encoding, and mixing are compute bound tasks which cannot be subdivided cleanly by the Tokio executor. Having these block the scheduler's finite thread count has a significant impact on servicing other tasks.
 * `Read` and `Seek` are considerably more user-friendly to use, implement, and integrate than `AsyncRead`, `AsyncBufRead`, and `AsyncSeek`.
+* Symphonia implements all of its functionality based on synchronous I/O.
 
 ## Tasks
 Songbird subdivides voice connection handling into several long- and short-lived tasks.
 
 * **Core**: Handles and directs commands received from the driver. Responsible for connection/reconnection, and creates network tasks.
 * **Mixer**: Combines audio sources together, Opus encodes the result, and encrypts the built packets every 20ms. Responsible for handling track commands/state. ***Synchronous***.
+* **Thread Pool**: A dynamically sized thread-pool for I/O tasks. Creates lazy tracks using `Compose` if sync creation is needed, otherwise spawns a tokio task. Seek operations always go to the thread pool. ***Synchronous***.
 * **Disposer**: Used by mixer thread to dispose of data with potentially long/blocking `Drop` implementations (i.e., audio sources). ***Synchronous***.
 * **Events**: Stores and runs event handlers, tracks event timing, and handles 
 * **Websocket**: *Network task.* Sends speaking status updates and keepalives to Discord, and receives client (dis)connect events.
@@ -52,23 +54,22 @@ src/driver/*
 ## Audio handling
 
 ### Input
-Inputs are raw audio sources: composed of a `Reader` (which can be `Read`-only or `Read + Seek`), a framing mechanism, and a codec.
-Several wrappers exist to add `Seek` capabilities to one-way streams via storage or explicitly recreating the struct.
+Inputs are audio sources supporting lazy initialisation, being either:
+* **lazy inputs**—a trait object which allows an instructions to create an audio source to be cheaply stored. This will be initialised when needed either synchronously or asynchronously based on what which methods the trait object supports.
+* **live inputs**—a usable audio object implementing `MediaSource: Read + Seek`. `Seek` support may be dummied in, as seek use and support is gated by `MediaSource`. These can be passed in at various stages of processing by symphonia.
 
-Framing is not always needed (`Raw`), but makes it possible to consume the correct number of bytes needed to decode one audio packet (and/or simplify skipping through the stream).
-Currently, Opus and raw (`i16`/`f32`) audio sources are supported, though only the DCA framing for Opus is implemented.
-At present, the use of the FFmpeg executable allows us to receive raw input, but at heavy memory cost.
-Further implementations are possible in the present framework (e.g., WebM/MKV and Ogg containers, MP3 and linked FFI FFmpeg as codecs).
+Several wrappers exist to add `Seek` capabilities to one-way streams via storage or explicitly recreating the struct, `AsyncRead` adapters, and raw audio input adapters.
 
 Internally, the mixer uses floating-point audio to prevent clipping and allow more granular volume control.
-If a source is known to use the Opus codec (and is the only source), then it can bypass mixing altogether.
+Symphonia is used to demux and decode input files in a variety of formats into this floating-point buffer: songbird supports all codecs and containers which are part of the symphonia project, while adding support for Opus decoding and DCA1 container files.
+If a source uses the Opus codec (and is the only source), then it can bypass mixing and re-encoding altogether, saving CPU cycles per server.
 
 ```
 src/input/*
 ```
 
 ### Tracks
-Tracks hold additional state which is expected to change over the lifetime of  a track: position, play state, and modifiers like volume.
+Tracks hold additional state which is expected to change over the lifetime of a track: position, play state, and modifiers like volume.
 Tracks (and their handles) also allow per-source events to be inserted.
 
 Tracks are defined in user code, where they are fully modifiable, before being passed into the driver.

@@ -14,20 +14,26 @@ pub mod bench_internals;
 pub(crate) mod connection;
 mod crypto;
 mod decode_mode;
+mod mix_mode;
 pub mod retry;
 pub(crate) mod tasks;
+#[cfg(test)]
+pub(crate) mod test_config;
 
 use connection::error::{Error, Result};
 pub use crypto::CryptoMode;
 pub(crate) use crypto::CryptoState;
 pub use decode_mode::DecodeMode;
+pub use mix_mode::MixMode;
+#[cfg(test)]
+pub use test_config::*;
 
 #[cfg(feature = "builtin-queue")]
 use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,
     input::Input,
-    tracks::{self, Track, TrackHandle},
+    tracks::{Track, TrackHandle},
     Config,
     ConnectionInfo,
     Event,
@@ -41,6 +47,8 @@ use core::{
     task::{Context, Poll},
 };
 use flume::{r#async::RecvFut, SendError, Sender};
+#[cfg(feature = "builtin-queue")]
+use std::time::Duration;
 use tasks::message::CoreMessage;
 use tracing::instrument;
 
@@ -54,8 +62,13 @@ pub struct Driver {
     config: Config,
     self_mute: bool,
     sender: Sender<CoreMessage>,
+    // Making this an Option is an abhorrent hack to coerce the borrow checker
+    // into letting us have an &TrackQueue at the same time as an &mut Driver.
+    // This is probably preferable to cloning the driver: Arc<...> should be nonzero
+    // and if the compiler's smart we'll just codegen a pointer swap. It definitely makes
+    // use of NonZero.
     #[cfg(feature = "builtin-queue")]
-    queue: TrackQueue,
+    queue: Option<TrackQueue>,
 }
 
 impl Driver {
@@ -63,6 +76,7 @@ impl Driver {
     ///
     /// This will create the core voice tasks in the background.
     #[inline]
+    #[must_use]
     pub fn new(config: Config) -> Self {
         let sender = Self::start_inner(config.clone());
 
@@ -71,7 +85,7 @@ impl Driver {
             self_mute: false,
             sender,
             #[cfg(feature = "builtin-queue")]
-            queue: Default::default(),
+            queue: Some(TrackQueue::default()),
         }
     }
 
@@ -136,63 +150,45 @@ impl Driver {
         self.self_mute
     }
 
-    /// Plays audio from a source, returning a handle for further control.
-    ///
-    /// This can be a source created via [`ffmpeg`] or [`ytdl`].
-    ///
-    /// [`ffmpeg`]: crate::input::ffmpeg
-    /// [`ytdl`]: crate::input::ytdl
-    #[instrument(skip(self))]
-    pub fn play_source(&mut self, source: Input) -> TrackHandle {
-        let (player, handle) = super::create_player(source);
-        self.send(CoreMessage::AddTrack(player));
-
-        handle
+    /// Plays audio from an input, returning a handle for further control.
+    #[instrument(skip(self, input))]
+    pub fn play_input(&mut self, input: Input) -> TrackHandle {
+        self.play(input.into())
     }
 
-    /// Plays audio from a source, returning a handle for further control.
+    /// Plays audio from an input, returning a handle for further control.
     ///
-    /// Unlike [`play_source`], this stops all other sources attached
+    /// Unlike [`Self::play_input`], this stops all other inputs attached
     /// to the channel.
-    ///
-    /// [`play_source`]: Driver::play_source
-    #[instrument(skip(self))]
-    pub fn play_only_source(&mut self, source: Input) -> TrackHandle {
-        let (player, handle) = super::create_player(source);
-        self.send(CoreMessage::SetTrack(Some(player)));
-
-        handle
+    #[instrument(skip(self, input))]
+    pub fn play_only_input(&mut self, input: Input) -> TrackHandle {
+        self.play_only(input.into())
     }
 
     /// Plays audio from a [`Track`] object.
     ///
-    /// This will be one half of the return value of [`create_player`].
-    /// The main difference between this function and [`play_source`] is
+    /// The main difference between this function and [`Self::play_input`] is
     /// that this allows for direct manipulation of the [`Track`] object
     /// before it is passed over to the voice and mixing contexts.
-    ///
-    /// [`create_player`]: crate::tracks::create_player
-    /// [`create_player`]: crate::tracks::Track
-    /// [`play_source`]: Driver::play_source
-    #[instrument(skip(self))]
-    pub fn play(&mut self, track: Track) {
-        self.send(CoreMessage::AddTrack(track));
+    #[instrument(skip(self, track))]
+    pub fn play(&mut self, track: Track) -> TrackHandle {
+        let (handle, ctx) = track.into_context();
+        self.send(CoreMessage::AddTrack(ctx));
+
+        handle
     }
 
     /// Exclusively plays audio from a [`Track`] object.
     ///
-    /// This will be one half of the return value of [`create_player`].
-    /// As in [`play_only_source`], this stops all other sources attached to the
-    /// channel. Like [`play`], however, this allows for direct manipulation of the
+    /// As in [`Self::play_only_input`], this stops all other sources attached to the
+    /// channel. Like [`Self::play`], however, this allows for direct manipulation of the
     /// [`Track`] object before it is passed over to the voice and mixing contexts.
-    ///
-    /// [`create_player`]: crate::tracks::create_player
-    /// [`Track`]: crate::tracks::Track
-    /// [`play_only_source`]: Driver::play_only_source
-    /// [`play`]: Driver::play
-    #[instrument(skip(self))]
-    pub fn play_only(&mut self, track: Track) {
-        self.send(CoreMessage::SetTrack(Some(track)));
+    #[instrument(skip(self, track))]
+    pub fn play_only(&mut self, track: Track) -> TrackHandle {
+        let (handle, ctx) = track.into_context();
+        self.send(CoreMessage::SetTrack(Some(ctx)));
+
+        handle
     }
 
     /// Sets the bitrate for encoding Opus packets sent along
@@ -204,20 +200,20 @@ impl Driver {
     /// Alternatively, `Auto` and `Max` remain available.
     #[instrument(skip(self))]
     pub fn set_bitrate(&mut self, bitrate: Bitrate) {
-        self.send(CoreMessage::SetBitrate(bitrate))
+        self.send(CoreMessage::SetBitrate(bitrate));
     }
 
     /// Stops playing audio from all sources, if any are set.
     #[instrument(skip(self))]
     pub fn stop(&mut self) {
-        self.send(CoreMessage::SetTrack(None))
+        self.send(CoreMessage::SetTrack(None));
     }
 
     /// Sets the configuration for this driver (and parent `Call`, if applicable).
     #[instrument(skip(self))]
     pub fn set_config(&mut self, config: Config) {
         self.config = config.clone();
-        self.send(CoreMessage::SetConfig(config))
+        self.send(CoreMessage::SetConfig(config));
     }
 
     /// Returns a view of this driver's configuration.
@@ -237,7 +233,6 @@ impl Driver {
     /// within the supplied function or closure. *Taking excess time could prevent
     /// timely sending of packets, causing audio glitches and delays*.
     ///
-    /// [`Track`]: crate::tracks::Track
     /// [`TrackEvent`]: crate::events::TrackEvent
     /// [`EventContext`]: crate::events::EventContext
     #[instrument(skip(self, action))]
@@ -267,41 +262,53 @@ impl Driver {
     /// Returns a reference to this driver's built-in queue.
     ///
     /// Requires the `"builtin-queue"` feature.
-    /// Queue additions should be made via [`enqueue`] and
-    /// [`enqueue_source`].
-    ///
-    /// [`enqueue`]: Driver::enqueue
-    /// [`enqueue_source`]: Driver::enqueue_source
+    /// Queue additions should be made via [`Driver::enqueue`] and
+    /// [`Driver::enqueue_input`].
+    #[must_use]
     pub fn queue(&self) -> &TrackQueue {
-        &self.queue
+        self.queue
+            .as_ref()
+            .expect("Queue: The only case this can fail is if a previous queue operation panicked.")
     }
 
     /// Adds an audio [`Input`] to this driver's built-in queue.
     ///
     /// Requires the `"builtin-queue"` feature.
-    ///
-    /// [`Input`]: crate::input::Input
-    pub fn enqueue_source(&mut self, source: Input) -> TrackHandle {
-        let (track, handle) = tracks::create_player(source);
-        self.enqueue(track);
-
-        handle
+    pub async fn enqueue_input(&mut self, input: Input) -> TrackHandle {
+        self.enqueue(input.into()).await
     }
 
     /// Adds an existing [`Track`] to this driver's built-in queue.
     ///
     /// Requires the `"builtin-queue"` feature.
+    pub async fn enqueue(&mut self, mut track: Track) -> TrackHandle {
+        let preload_time = TrackQueue::get_preload_time(&mut track).await;
+        self.enqueue_with_preload(track, preload_time)
+    }
+
+    /// Add an existing [`Track`] to the queue, using a known time to preload the next track.
     ///
-    /// [`Track`]: crate::tracks::Track
-    pub fn enqueue(&mut self, mut track: Track) {
-        self.queue.add_raw(&mut track);
-        self.play(track);
+    /// See [`TrackQueue::add_with_preload`] for how `preload_time` is used.
+    ///
+    /// Requires the `"builtin-queue"` feature.
+    pub fn enqueue_with_preload(
+        &mut self,
+        track: Track,
+        preload_time: Option<Duration>,
+    ) -> TrackHandle {
+        let queue = self.queue.take().expect(
+            "Enqueue: The only case this can fail is if a previous queue operation panicked.",
+        );
+        let handle = queue.add_with_preload(track, self, preload_time);
+        self.queue = Some(queue);
+
+        handle
     }
 }
 
 impl Default for Driver {
     fn default() -> Self {
-        Self::new(Default::default())
+        Self::new(Config::default())
     }
 }
 
@@ -309,7 +316,7 @@ impl Drop for Driver {
     /// Leaves the current connected voice channel, if connected to one, and
     /// forgets all configurations relevant to this Handler.
     fn drop(&mut self) {
-        let _ = self.sender.send(CoreMessage::Poison);
+        drop(self.sender.send(CoreMessage::Poison));
     }
 }
 
@@ -317,8 +324,6 @@ impl Drop for Driver {
 ///
 /// This future awaits the *result* of a connection; the driver
 /// is messaged at the time of the call.
-///
-/// [`Driver::connect`]: Driver::connect
 pub struct Connect {
     inner: RecvFut<'static, Result<()>>,
 }

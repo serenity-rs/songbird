@@ -9,10 +9,5 @@ use tracing::instrument;
 /// to prevent deadline misses.
 #[instrument(skip(mix_rx))]
 pub(crate) fn runner(mix_rx: Receiver<DisposalMessage>) {
-    loop {
-        match mix_rx.recv() {
-            Err(_) | Ok(DisposalMessage::Poison) => break,
-            _ => {},
-        }
-    }
+    while mix_rx.recv().is_ok() {}
 }
