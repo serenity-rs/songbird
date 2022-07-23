@@ -56,7 +56,7 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
         true
     }
 
-    /// Probes for metadata about this audio files using ffprobe.
+    /// Probes for metadata about this audio files using `ffprobe`.
     async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
         let args = [
             "-v",

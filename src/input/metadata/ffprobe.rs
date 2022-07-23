@@ -140,8 +140,6 @@ fn apply_tags(tag_map: HashMap<String, String>, dest: &mut AuxMetadata) {
 
 impl Output {
     pub fn into_aux_metadata(self) -> AuxMetadata {
-        // let format = value.as_object().and_then(|m| m.get("format"));
-
         let duration = self.format.duration.map(Duration::from_secs_f64);
         let start_time = self
             .format

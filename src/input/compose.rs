@@ -11,6 +11,7 @@ pub trait Compose: Send {
     ///
     /// [`should_create_async`]: Self::should_create_async
     fn create(&mut self) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError>;
+
     /// Create a source asynchronously.
     ///
     /// If [`should_create_async`] returns `true`, this method will chosen at runtime.
@@ -18,6 +19,7 @@ pub trait Compose: Send {
     /// [`should_create_async`]: Self::should_create_async
     async fn create_async(&mut self)
         -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError>;
+
     /// Determines whether this source will be instantiated using [`create`] or [`create_async`].
     ///
     /// Songbird will create the audio stream using either a dynamically sized thread pool,
@@ -27,6 +29,7 @@ pub trait Compose: Send {
     /// [`create_async`]: Self::create_async
     /// [`create`]: Self::create
     fn should_create_async(&self) -> bool;
+
     /// Requests auxiliary metadata which can be accessed without parsing the file.
     ///
     /// This method will never be called by songbird but allows, for instance, access to metadata

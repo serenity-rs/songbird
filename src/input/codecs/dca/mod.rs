@@ -6,11 +6,12 @@ use crate::constants::{SAMPLE_RATE, SAMPLE_RATE_RAW};
 use std::io::{Seek, SeekFrom};
 use symphonia::core::{
     codecs::{CodecParameters, CODEC_TYPE_OPUS},
-    errors::{self as symph_err, Result as SymphResult, SeekErrorKind},
+    errors::{self as symph_err, Error as SymphError, Result as SymphResult, SeekErrorKind},
     formats::prelude::*,
     io::{MediaSource, MediaSourceStream, ReadBytes, SeekBuffered},
     meta::{Metadata as SymphMetadata, MetadataBuilder, MetadataLog, StandardTagKey, Tag, Value},
     probe::{Descriptor, Instantiate, QueryDescriptor},
+    sample::SampleFormat,
     units::TimeStamp,
 };
 
@@ -97,7 +98,7 @@ impl FormatReader for DcaReader {
             .with_max_frames_per_packet(1)
             .with_sample_rate(SAMPLE_RATE_RAW as u32)
             .with_time_base(TimeBase::new(1, SAMPLE_RATE_RAW as u32))
-            .with_sample_format(symphonia_core::sample::SampleFormat::F32);
+            .with_sample_format(SampleFormat::F32);
 
         let mut metas = MetadataLog::default();
 
@@ -112,7 +113,7 @@ impl FormatReader for DcaReader {
             let raw_json = source.read_boxed_slice_exact(size as usize)?;
 
             let metadata: DcaMetadata = serde_json::from_slice::<DcaMetadata>(&raw_json)
-                .map_err(|_| symph_err::Error::DecodeError("malformed DCA1 metadata block"))?;
+                .map_err(|_| SymphError::DecodeError("malformed DCA1 metadata block"))?;
 
             let mut revision = MetadataBuilder::new();
 
@@ -249,7 +250,7 @@ impl FormatReader for DcaReader {
         symph_err::seek_error(SeekErrorKind::OutOfRange)
     }
 
-    fn tracks(&self) -> &[symphonia_core::formats::Track] {
+    fn tracks(&self) -> &[Track] {
         // DCA tracks can hold only one track by design.
         // Of course, a zero-length file is technically allowed,
         // in which case no track.
@@ -260,7 +261,7 @@ impl FormatReader for DcaReader {
         }
     }
 
-    fn default_track(&self) -> Option<&symphonia_core::formats::Track> {
+    fn default_track(&self) -> Option<&Track> {
         self.track.as_ref()
     }
 

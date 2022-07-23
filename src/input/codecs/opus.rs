@@ -3,6 +3,7 @@ use audiopus::{
     coder::{Decoder as AudiopusDecoder, GenericCtl},
     Channels,
     Error as OpusError,
+    ErrorCode,
 };
 use symphonia_core::{
     audio::{AsAudioBufferRef, AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec},
@@ -49,7 +50,7 @@ impl OpusDecoder {
 
             match self.inner.decode_float(pkt, out_space, false) {
                 Ok(v) => break v,
-                Err(OpusError::Opus(audiopus::ErrorCode::BufferTooSmall)) => {
+                Err(OpusError::Opus(ErrorCode::BufferTooSmall)) => {
                     // double the buffer size
                     // correct behav would be to mirror the decoder logic in the udp_rx set.
                     let new_size = (self.rawbuf.len() * 2).min(std::i32::MAX as usize);
@@ -103,7 +104,7 @@ impl Decoder for OpusDecoder {
         })
     }
 
-    fn supported_codecs() -> &'static [symphonia::core::codecs::CodecDescriptor] {
+    fn supported_codecs() -> &'static [CodecDescriptor] {
         &[symphonia_core::support_codec!(
             CODEC_TYPE_OPUS,
             "opus",
@@ -111,7 +112,7 @@ impl Decoder for OpusDecoder {
         )]
     }
 
-    fn codec_params(&self) -> &symphonia::core::codecs::CodecParameters {
+    fn codec_params(&self) -> &CodecParameters {
         &self.params
     }
 

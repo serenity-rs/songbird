@@ -142,11 +142,11 @@ impl FormatReader for RawReader {
         })
     }
 
-    fn tracks(&self) -> &[symphonia_core::formats::Track] {
+    fn tracks(&self) -> &[Track] {
         std::slice::from_ref(&self.track)
     }
 
-    fn default_track(&self) -> Option<&symphonia_core::formats::Track> {
+    fn default_track(&self) -> Option<&Track> {
         Some(&self.track)
     }
 
