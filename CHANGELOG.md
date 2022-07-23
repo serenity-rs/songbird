@@ -1,8 +1,63 @@
 # Changelog
 
+## [0.3.0] — 2022-07-22 — **Chaffinch**
+
+Abundant and ever-curious, chaffinches are a vibrant and welcome visitor in these spring and summer months.
+
+Making a quick and colourful splash, this breaking release mainly bumps our own dependencies and support for Discord libraries without any sweeping changes -- while adding generic support for any future rust-based Discord library. However, we have now removed support for the v0.2 series of the Tokio runtime.
+
+Thanks to the following for their contributions:
+
+- [@Erk-]
+- [@FelixMcFelix]
+- [@GnomedDev]
+- [@tktcorporation]
+- [@vaporox]
+- [@wlcx]
+
+### Upgrade Pathway
+* Tokio v0.2 support has been removed in parity with other Discord -- users must now migrate to v1.x.x.
+* Deprecated events (`ClientConnect`, `DriverConnectFailed`, `DriverReconnectFailed` and `SsrcKnown`) have been removed.
+ * `ClientConnect` must now be detected using VoiceStateUpdate messages from your main gateway library of choice.
+ * The remainder should be replaced with `DriverDisconnect`, and `DriverConnect`/`DriverReconnect`
+
+### Added
+
+- [queue] driver, queue: return track handle when adding an `Input` to the queue (#116) ([@vaporox]) [c:bacf681]
+- [gateway] Gateway: Generic Shard and Twilight v0.8 Support (#109) ([@FelixMcFelix]) [c:b4ce845]
+- [gateway] Gateway: Add generics to `Call` methods. (#102) ([@FelixMcFelix]) [c:8dedf3b]
+- [docs] Events: Document format of `VoiceData`. (#114) ([@FelixMcFelix]) [c:806a422]
+
+### Changed
+
+- [deps] Chore: Update to twilight 0.12 ([@FelixMcFelix]) [c:865c75f]
+- [deps] Chore: Update to serenity 0.11 ([@FelixMcFelix]) [c:a85a1f0]
+- [deps] Update twilight support to twilight 0.11 (#132) ([@Erk-]) [c:69339e8]
+- [deps] Deps: Update to Audiopus v0.3.0-rc.0 (#125) ([@FelixMcFelix]) [c:4eb95d4]
+- [deps] Deps: Bump dependencies and document bumped MSRV (#119) ([@GnomedDev]) [c:98f0d02]
+- [deps] Gateway: Twilight v0.10 support (#117) ([@FelixMcFelix]) [c:fac6664]
+- [deps] Gateway: Twilight v0.9 support (#110) ([@FelixMcFelix]) [c:0730a00]
+- [gateway] Gateway: Remove lifetime from Serenity setup trait (#103) ([@FelixMcFelix]) [c:12c76a9]
+- [deps] Deps: Bump streamcatcher version -> 1.0 (#93) ([@tktcorporation]) [c:67ad7c9]
+- [docs] Chore: Update link to lavalink-basic-bot.rs (#135) ([@wlcx]) [c:f9b7e76]
+- [deps] Chore: Pin flume version to prevent MSRV breakage. ([@FelixMcFelix]) [c:312457e]
+- [deps] Chore: Bump MSRV to 1.51.0 ([@FelixMcFelix]) [c:05c6762]
+
+### Fixed
+
+- [examples] Examples: support new Serenity Intents init ([@FelixMcFelix]) [c:d3a40fe]
+- [examples] Examples: Fix serenity-next cache accesses (#99) ([@FelixMcFelix]) [c:f1ed41e]
+- [driver] Driver: Prevent panic when decrypting undersized RTP packets (#122) ([@FelixMcFelix]) [c:8791805]
+
+### Removed
+
+- [driver] Driver: Remove spin_sleep in `Mixer::march_deadline` (#124) ([@GnomedDev]) [c:e3476e7]
+- [driver] Driver, Gateway: Remove tokio 0.2 support (#118) ([@GnomedDev]) [c:f2cd8a0]
+- [events] Events: Remove deprecated events. (#115) ([@FelixMcFelix]) [c:ac20764]
+
 ## [0.2.2] — 2022-02-13
 
-This patch release mskes it easier to create new `ChildContainer`s, and deprecates the `ClientConnect` event. Users should instead make use of `SpeakingStateUpdate` events and Discord gateway events.
+This patch release makes it easier to create new `ChildContainer`s, and deprecates the `ClientConnect` event. Users should instead make use of `SpeakingStateUpdate` events and Discord gateway events.
 
 Thanks to the following for their contributions:
 
@@ -343,6 +398,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.3.0]: https://github.com/serenity-rs/songbird/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/serenity-rs/songbird/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/serenity-rs/songbird/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/serenity-rs/songbird/compare/v0.1.8...v0.2.0
@@ -369,6 +425,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@Flat]: https://github.com/Flat
 [@ForsakenHarmony]: https://github.com/ForsakenHarmony
 [@ftriquet]: https://github.com/ftriquet
+[@GnomedDev]: https://github.com/GnomedDev
 [@hiratara]: https://github.com/hiratara
 [@indiv0]: https://github.com/indiv0
 [@james7132]: https://github.com/james7132
@@ -393,10 +450,35 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@s0lst1ce]: https://github.com/s0lst1ce
 [@Sreyas-Sreelal]: https://github.com/Sreyas-Sreelal
 [@tarcieri]: https://github.com/tarcieri
+[@tktcorporation]: https://github.com/tktcorporation
+[@vaporox]: https://github.com/vaporox
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
+[@wlcx]: https://github.com/wlcx
 
 <!-- COMMITS -->
+[c:bacf681]: https://github.com/serenity-rs/songbird/commit/bacf68146555db018e59e8276d2617c69a9beaa0
+[c:b4ce845]: https://github.com/serenity-rs/songbird/commit/b4ce84546b8e98d696d5b1b37f05c096486cd313
+[c:8dedf3b]: https://github.com/serenity-rs/songbird/commit/8dedf3bf011640edf0834c8e931b8e5ca5b406aa
+[c:806a422]: https://github.com/serenity-rs/songbird/commit/806a422a2eb6022ddaf9f9c507b9319554f3d42b
+[c:865c75f]: https://github.com/serenity-rs/songbird/commit/865c75f3c3131ae43ac4beef5a080993a0bd0d74
+[c:a85a1f0]: https://github.com/serenity-rs/songbird/commit/a85a1f08e15541eed9ea026423d9ed6697f390ec
+[c:69339e8]: https://github.com/serenity-rs/songbird/commit/69339e8d459d3f2b9b798a16acbb25dc6b756d50
+[c:4eb95d4]: https://github.com/serenity-rs/songbird/commit/4eb95d4b59846d7d7d2fcfe3d401646489aa4ca7
+[c:98f0d02]: https://github.com/serenity-rs/songbird/commit/98f0d025c04c743654b51c5ca8e3d79e61ab0f55
+[c:fac6664]: https://github.com/serenity-rs/songbird/commit/fac6664072ea90bb758ddaa62b01ffa3ab1eaf49
+[c:0730a00]: https://github.com/serenity-rs/songbird/commit/0730a00dc7127c710defb0ab7d13c85173ae8ec3
+[c:12c76a9]: https://github.com/serenity-rs/songbird/commit/12c76a9046494c929abf8e1e22e8f647109b9caf
+[c:67ad7c9]: https://github.com/serenity-rs/songbird/commit/67ad7c9e4925ba68395153ea144b4902e361593c
+[c:f9b7e76]: https://github.com/serenity-rs/songbird/commit/f9b7e76bb143c6e3280ed79a8258886492dffc52
+[c:312457e]: https://github.com/serenity-rs/songbird/commit/312457eb74130ef30385bbf5a5bfe6e9ce8cd5fd
+[c:05c6762]: https://github.com/serenity-rs/songbird/commit/05c676222870b92c5d86816708f1911b2b0fe8f2
+[c:d3a40fe]: https://github.com/serenity-rs/songbird/commit/d3a40fe6913c39f866a3c8deea860a314eac009b
+[c:f1ed41e]: https://github.com/serenity-rs/songbird/commit/f1ed41ea284de82fc738123a1eb182eb550f9223
+[c:8791805]: https://github.com/serenity-rs/songbird/commit/87918058042c6ae8712f29f3558e27de11d15531
+[c:e3476e7]: https://github.com/serenity-rs/songbird/commit/e3476e79657b8d418661e75079dfaa1ad299991e
+[c:f2cd8a0]: https://github.com/serenity-rs/songbird/commit/f2cd8a0b6a1199f44126ce5b67efdc7c2ccec22b
+[c:ac20764]: https://github.com/serenity-rs/songbird/commit/ac20764157e931863acfb3173782bffe650d094c
 [c:ecc47d5]: https://github.com/serenity-rs/songbird/commit/ecc47d588ab4bf492cf72d13e1dc0f039f4f3aab
 [c:c464fcc]: https://github.com/serenity-rs/songbird/commit/c464fcc38dc180f5409f687bc5efdbbf994b1878
 [c:652ec1f]: https://github.com/serenity-rs/songbird/commit/652ec1f2934b50f43819bc92ee70d9d95586a548

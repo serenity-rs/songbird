@@ -18,7 +18,7 @@
 //! THIS SOFTWARE.
 //!
 //!
-//! [basic lavalink bot]: https://github.com/twilight-rs/twilight/tree/main/lavalink/examples/basic-lavalink-bot
+//! [basic lavalink bot]: https://github.com/twilight-rs/twilight/tree/main/examples/lavalink-basic-bot.rs
 
 use futures::StreamExt;
 use songbird::{

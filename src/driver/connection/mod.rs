@@ -113,7 +113,6 @@ impl Connection {
         }
 
         let udp = UdpSocket::bind("0.0.0.0:0").await?;
-
         udp.connect((ready.ip, ready.port)).await?;
 
         // Follow Discord's IP Discovery procedures, in case NAT tunnelling is needed.
