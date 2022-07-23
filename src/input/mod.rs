@@ -1,594 +1,382 @@
 //! Raw audio input data streams and sources.
 //!
-//! [`Input`] is handled in Songbird by combining metadata with:
-//!  * A 48kHz audio bytestream, via [`Reader`],
-//!  * A [`Container`] describing the framing mechanism of the bytestream,
-//!  * A [`Codec`], defining the format of audio frames.
+//! [`Input`]s in Songbird are based on [symphonia], which provides demuxing,
+//! decoding and management of synchronous byte sources (i.e., any items which
+//! `impl` [`Read`]).
 //!
-//! When used as a [`Read`], the output bytestream will be a floating-point
-//! PCM stream at 48kHz, matching the channel count of the input source.
+//! Songbird adds support for the Opus codec to symphonia via [`OpusDecoder`],
+//! the [DCA1] file format via [`DcaReader`], and a simple PCM adapter via [`RawReader`];
+//! the [format] and [codec registries] in [`codecs`] install these on top of those
+//! enabled in your `Cargo.toml` when you include symphonia.
+//!
+//! ## Common sources
+//! * Any owned byte slice: `&'static [u8]`, `Bytes`, or `Vec<u8>`,
+//! * [`File`] offers a lazy way to open local audio files,
+//! * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,
+//! * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape
+//!   a target URL for a usable audio stream, before opening an [`HttpRequest`].
+//!
+//! ## Adapters
+//! Songbird includes several adapters to make developing your own inputs easier:
+//! * [`cached::*`], which allow seeking and shared caching of an input stream (storing
+//!   it in memory in a variety of formats),
+//! * [`ChildContainer`] for managing audio given by a process chain,
+//! * [`RawAdapter`], for feeding in a synchronous `f32`-PCM stream, and
+//! * [`AsyncAdapterStream`], for passing bytes from an `AsyncRead` (`+ AsyncSeek`) stream
+//!   into the mixer.
 //!
 //! ## Opus frame passthrough.
-//! Some sources, such as [`Compressed`] or the output of [`dca`], support
+//! Some sources, such as [`Compressed`] or any WebM/Opus/DCA file, support
 //! direct frame passthrough to the driver. This lets you directly send the
 //! audio data you have *without decoding, re-encoding, or mixing*. In many
-//! cases, this can greatly reduce the processing/compute cost of the driver.
+//! cases, this can greatly reduce the CPU cost required by the driver.
 //!
 //! This functionality requires that:
 //!  * only one track is active (including paused tracks),
 //!  * that track's input supports direct Opus frame reads,
-//!  * its [`Input`] [meets the promises described herein](codec/struct.OpusDecoderState.html#structfield.allow_passthrough),
+//!  * this input's frames are all sized to 20ms.
 //!  * and that track's volume is set to `1.0`.
 //!
-//! [`Input`]: Input
-//! [`Reader`]: reader::Reader
-//! [`Container`]: Container
-//! [`Codec`]: Codec
+//! [`Input`]s which are almost suitable but which have **any** illegal frames will be
+//! blocked from passthrough to prevent glitches such as repeated encoder frame gaps.
+//!
+//! [symphonia]: https://docs.rs/symphonia
 //! [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
 //! [`Compressed`]: cached::Compressed
-//! [`dca`]: dca()
+//! [DCA1]: https://github.com/bwmarrin/dca
+//! [`registry::*`]: registry
+//! [`cached::*`]: cached
+//! [`OpusDecoder`]: codecs::OpusDecoder
+//! [`DcaReader`]: codecs::DcaReader
+//! [`RawReader`]: codecs::RawReader
+//! [format]: static@codecs::PROBE
+//! [codec registries]: static@codecs::CODEC_REGISTRY
 
-pub mod cached;
-mod child;
-pub mod codec;
-mod container;
-mod dca;
-pub mod error;
-mod ffmpeg_src;
+mod adapters;
+mod audiostream;
+pub mod codecs;
+mod compose;
+mod error;
+#[cfg(test)]
+pub mod input_tests;
+mod live_input;
 mod metadata;
-pub mod reader;
-pub mod restartable;
+mod parsed;
+mod sources;
 pub mod utils;
-mod ytdl_src;
 
 pub use self::{
-    child::*,
-    codec::{Codec, CodecType},
-    container::{Container, Frame},
-    dca::dca,
-    ffmpeg_src::*,
-    metadata::Metadata,
-    reader::Reader,
-    restartable::Restartable,
-    ytdl_src::*,
+    adapters::*,
+    audiostream::*,
+    compose::*,
+    error::*,
+    live_input::*,
+    metadata::*,
+    parsed::*,
+    sources::*,
 };
 
-use crate::constants::*;
-use audiopus::coder::GenericCtl;
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
-use cached::OpusCompressor;
-use error::{Error, Result};
-use tokio::runtime::Handle;
+pub use symphonia_core as core;
 
-use std::{
-    convert::{TryFrom, TryInto},
-    io::{
-        self,
-        Error as IoError,
-        ErrorKind as IoErrorKind,
-        Read,
-        Result as IoResult,
-        Seek,
-        SeekFrom,
-    },
-    mem,
-    time::Duration,
-};
-use tracing::{debug, error};
+use std::{error::Error, io::Cursor};
+use symphonia_core::{codecs::CodecRegistry, probe::Probe};
+use tokio::runtime::Handle as TokioHandle;
 
-/// Data and metadata needed to correctly parse a [`Reader`]'s audio bytestream.
+/// An audio source, which can be live or lazily initialised.
 ///
-/// See the [module root] for more information.
+/// This can be created from a wide variety of sources:
+/// * Any owned byte slice: `&'static [u8]`, `Bytes`, or `Vec<u8>`,
+/// * [`File`] offers a lazy way to open local audio files,
+/// * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,
+/// * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape
+///   a target URL for a usable audio stream, before opening an [`HttpRequest`].
 ///
-/// [`Reader`]: Reader
-/// [module root]: super
-#[derive(Debug)]
-pub struct Input {
-    /// Information about the played source.
-    pub metadata: Box<Metadata>,
-    /// Indicates whether `source` is stereo or mono.
-    pub stereo: bool,
-    /// Underlying audio data bytestream.
-    pub reader: Reader,
-    /// Decoder used to parse the output of `reader`.
-    pub kind: Codec,
-    /// Framing strategy needed to identify frames of compressed audio.
-    pub container: Container,
-    pos: usize,
+/// Any [`Input`] (or struct with `impl Into<Input>`) can also be made into a [`Track`] via
+/// `From`/`Into`.
+///
+/// # Example
+///
+/// ```
+/// # use tokio::runtime;
+/// #
+/// # let basic_rt = runtime::Builder::new_current_thread().enable_io().build().unwrap();
+/// # basic_rt.block_on(async {
+/// use songbird::{
+///     driver::Driver,
+///     input::{codecs::*, Compose, Input, MetadataError, YoutubeDl},
+///     tracks::Track,
+/// };
+/// // Inputs are played using a `Driver`, or `Call`.
+/// let mut driver = Driver::new(Default::default());
+///
+/// // Lazy inputs take very little resources, and don't occupy any resources until we
+/// // need to play them (by default).
+/// let mut lazy = YoutubeDl::new(
+///     reqwest::Client::new(),
+///     // Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+///     "https://cloudkicker.bandcamp.com/track/94-days".to_string(),
+/// );
+/// let lazy_c = lazy.clone();
+///
+/// // With sources like `YoutubeDl`, we can get metadata from, e.g., a track's page.
+/// let aux_metadata = lazy.aux_metadata().await.unwrap();
+/// assert_eq!(aux_metadata.track, Some("94 Days".to_string()));
+///
+/// // Once we pass an `Input` to the `Driver`, we can only remotely control it via
+/// // a `TrackHandle`.
+/// let handle = driver.play_input(lazy.into());
+///
+/// // We can also modify some of its initial state via `Track`s.
+/// let handle = driver.play(Track::from(lazy_c).volume(0.5).pause());
+///
+/// // In-memory sources like `Vec<u8>`, or `&'static [u8]` are easy to use, and only take a
+/// // little time for the mixer to parse their headers.
+/// // You can also use the adapters in `songbird::input::cached::*`to keep a source
+/// // from the Internet, HTTP, or a File in-memory *and* share it among calls.
+/// let in_memory = include_bytes!("../../resources/ting.mp3");
+/// let mut in_memory_input = in_memory.into();
+///
+/// // This source is live...
+/// assert!(matches!(in_memory_input, Input::Live(..)));
+/// // ...but not yet playable, and we can't access its `Metadata`.
+/// assert!(!in_memory_input.is_playable());
+/// assert!(matches!(in_memory_input.metadata(), Err(MetadataError::NotParsed)));
+///
+/// // If we want to inspect metadata (and we can't use AuxMetadata for any reason), we have
+/// // to parse the track ourselves.
+/// in_memory_input = in_memory_input
+///     .make_playable_async(&CODEC_REGISTRY, &PROBE)
+///     .await
+///     .expect("WAV support is included, and this file is good!");
+///
+/// // Symphonia's metadata can be difficult to use: prefer `AuxMetadata` when you can!
+/// use symphonia_core::meta::{StandardTagKey, Value};
+/// let mut metadata = in_memory_input.metadata();
+/// let meta = metadata.as_mut().unwrap();
+/// let mut probed = meta.probe.get().unwrap();
+///
+/// let track_name = probed
+///     .current().unwrap()
+///     .tags().iter().filter(|v| v.std_key == Some(StandardTagKey::TrackTitle))
+///     .next().unwrap();
+/// if let Value::String(s) = &track_name.value {
+///     assert_eq!(s, "Ting!");
+/// } else { panic!() };
+///
+/// // ...and these are played like any other input.
+/// let handle = driver.play_input(in_memory_input);
+/// # });
+/// ```
+///
+/// [`Track`]: crate::tracks::Track
+pub enum Input {
+    /// A byte source which is not yet initialised.
+    ///
+    /// When a parent track is either played or explicitly readied, the inner [`Compose`]
+    /// is used to create an [`Input::Live`].
+    Lazy(
+        /// A trait object which can be used to (re)create a usable byte stream.
+        Box<dyn Compose>,
+    ),
+    /// An initialised byte source.
+    ///
+    /// This contains a raw byte stream, the lazy initialiser that was used,
+    /// as well as any symphonia-specific format data and/or hints.
+    Live(
+        /// The byte source, plus symphonia-specific data.
+        LiveInput,
+        /// The struct used to initialise this source, if available.
+        ///
+        /// This is used to recreate the stream when a source does not support
+        /// backward seeking, if present.
+        Option<Box<dyn Compose>>,
+    ),
 }
 
 impl Input {
-    /// Creates a floating-point PCM Input from a given reader.
-    pub fn float_pcm(is_stereo: bool, reader: Reader) -> Input {
-        Input {
-            metadata: Default::default(),
-            stereo: is_stereo,
-            reader,
-            kind: Codec::FloatPcm,
-            container: Container::Raw,
-            pos: 0,
-        }
-    }
-
-    /// Creates a new Input using (at least) the given reader, codec, and container.
-    pub fn new(
-        stereo: bool,
-        reader: Reader,
-        kind: Codec,
-        container: Container,
-        metadata: Option<Metadata>,
-    ) -> Self {
-        Input {
-            metadata: metadata.unwrap_or_default().into(),
-            stereo,
-            reader,
-            kind,
-            container,
-            pos: 0,
-        }
-    }
-
-    /// Returns whether the inner [`Reader`] implements [`Seek`].
+    /// Requests auxiliary metadata which can be accessed without parsing the file.
     ///
-    /// [`Reader`]: reader::Reader
+    /// This method will never be called by songbird but allows, for instance, access to metadata
+    /// which might only be visible to a web crawler, e.g., uploader or source URL.
+    ///
+    /// This requires that the [`Input`] has a [`Compose`] available to use, otherwise it
+    /// will always fail with [`AudioStreamError::Unsupported`].
+    pub async fn aux_metadata(&mut self) -> Result<AuxMetadata, AuxMetadataError> {
+        match self {
+            Self::Lazy(ref mut composer) => composer.aux_metadata().await.map_err(Into::into),
+            Self::Live(_, Some(ref mut composer)) =>
+                composer.aux_metadata().await.map_err(Into::into),
+            Self::Live(_, None) => Err(AuxMetadataError::NoCompose),
+        }
+    }
+
+    /// Tries to get any information about this audio stream acquired during parsing.
+    ///
+    /// Only exists when this input is both [`Self::Live`] and has been fully parsed.
+    /// In general, you probably want to use [`Self::aux_metadata`].
+    pub fn metadata(&mut self) -> Result<Metadata, MetadataError> {
+        if let Self::Live(live, _) = self {
+            live.metadata()
+        } else {
+            Err(MetadataError::NotLive)
+        }
+    }
+
+    /// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the current thread.
+    ///
+    /// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.
+    ///
+    /// *This is a blocking operation. If you wish to use this from an async task, you
+    /// must do so via [`Self::make_live_async`].*
+    ///
+    /// This is a no-op for an [`Input::Live`].
+    pub fn make_live(self, handle: &TokioHandle) -> Result<Self, AudioStreamError> {
+        if let Self::Lazy(mut lazy) = self {
+            let (created, lazy) = if lazy.should_create_async() {
+                let (tx, rx) = flume::bounded(1);
+                handle.spawn(async move {
+                    let out = lazy.create_async().await;
+                    drop(tx.send_async((out, lazy)));
+                });
+                rx.recv().map_err(|_| {
+                    let err_msg: Box<dyn Error + Send + Sync> =
+                        "async Input create handler panicked".into();
+                    AudioStreamError::Fail(err_msg)
+                })?
+            } else {
+                (lazy.create(), lazy)
+            };
+
+            Ok(Self::Live(LiveInput::Raw(created?), Some(lazy)))
+        } else {
+            Ok(self)
+        }
+    }
+
+    /// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the a `spawn_blocking` executor.
+    ///
+    /// This is a no-op for an [`Input::Live`].
+    pub async fn make_live_async(self) -> Result<Self, AudioStreamError> {
+        if let Self::Lazy(mut lazy) = self {
+            let (created, lazy) = if lazy.should_create_async() {
+                (lazy.create_async().await, lazy)
+            } else {
+                tokio::task::spawn_blocking(move || (lazy.create(), lazy))
+                    .await
+                    .map_err(|_| {
+                        let err_msg: Box<dyn Error + Send + Sync> =
+                            "synchronous Input create handler panicked".into();
+                        AudioStreamError::Fail(err_msg)
+                    })?
+            };
+
+            Ok(Self::Live(LiveInput::Raw(created?), Some(lazy)))
+        } else {
+            Ok(self)
+        }
+    }
+
+    /// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the current thread.
+    ///
+    /// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.
+    /// If you can't access one, then consider manually using [`LiveInput::promote`].
+    ///
+    /// *This is a blocking operation. Symphonia uses standard library I/O (e.g., [`Read`], [`Seek`]).
+    /// If you wish to use this from an async task, you must do so within `spawn_blocking`.*
+    ///
+    /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
     /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
-    pub fn is_seekable(&self) -> bool {
-        self.reader.is_seekable()
-    }
-
-    /// Returns whether the read audio signal is stereo (or mono).
-    pub fn is_stereo(&self) -> bool {
-        self.stereo
-    }
-
-    /// Returns the type of the inner [`Codec`].
-    ///
-    /// [`Codec`]: Codec
-    pub fn get_type(&self) -> CodecType {
-        (&self.kind).into()
-    }
-
-    /// Mixes the output of this stream into a 20ms stereo audio buffer.
-    #[inline]
-    pub fn mix(&mut self, float_buffer: &mut [f32; STEREO_FRAME_SIZE], volume: f32) -> usize {
-        self.add_float_pcm_frame(float_buffer, self.stereo, volume)
-            .unwrap_or(0)
-    }
-
-    /// Seeks the stream to the given time, if possible.
-    ///
-    /// Returns the actual time reached.
-    pub fn seek_time(&mut self, time: Duration) -> Option<Duration> {
-        let future_pos = utils::timestamp_to_byte_count(time, self.stereo);
-        Seek::seek(self, SeekFrom::Start(future_pos as u64))
-            .ok()
-            .map(|a| utils::byte_count_to_timestamp(a as usize, self.stereo))
-    }
-
-    fn read_inner(&mut self, buffer: &mut [u8], ignore_decode: bool) -> IoResult<usize> {
-        // This implementation of Read converts the input stream
-        // to floating point output.
-        let sample_len = mem::size_of::<f32>();
-        let float_space = buffer.len() / sample_len;
-        let mut written_floats = 0;
-
-        // TODO: better decouple codec and container here.
-        // this is a little bit backwards, and assumes the bottom cases are always raw...
-        let out = match &mut self.kind {
-            Codec::Opus(decoder_state) => {
-                if matches!(self.container, Container::Raw) {
-                    return Err(IoError::new(
-                        IoErrorKind::InvalidInput,
-                        "Raw container cannot demarcate Opus frames.",
-                    ));
-                }
-
-                if ignore_decode {
-                    // If we're less than one frame away from the end of cheap seeking,
-                    // then we must decode to make sure the next starting offset is correct.
-
-                    // Step one: use up the remainder of the frame.
-                    let mut aud_skipped =
-                        decoder_state.current_frame.len() - decoder_state.frame_pos;
-
-                    decoder_state.frame_pos = 0;
-                    decoder_state.current_frame.truncate(0);
-
-                    // Step two: take frames if we can.
-                    while buffer.len() - aud_skipped >= STEREO_FRAME_BYTE_SIZE {
-                        decoder_state.should_reset = true;
-
-                        let frame = self
-                            .container
-                            .next_frame_length(&mut self.reader, CodecType::Opus)?;
-                        self.reader.consume(frame.frame_len);
-
-                        aud_skipped += STEREO_FRAME_BYTE_SIZE;
-                    }
-
-                    Ok(aud_skipped)
-                } else {
-                    // get new frame *if needed*
-                    if decoder_state.frame_pos == decoder_state.current_frame.len() {
-                        let mut decoder = decoder_state.decoder.lock();
-
-                        if decoder_state.should_reset {
-                            decoder
-                                .reset_state()
-                                .expect("Critical failure resetting decoder.");
-                            decoder_state.should_reset = false;
-                        }
-                        let frame = self
-                            .container
-                            .next_frame_length(&mut self.reader, CodecType::Opus)?;
-
-                        let mut opus_data_buffer = [0u8; 4000];
-
-                        decoder_state
-                            .current_frame
-                            .resize(decoder_state.current_frame.capacity(), 0.0);
-
-                        let seen =
-                            Read::read(&mut self.reader, &mut opus_data_buffer[..frame.frame_len])?;
-
-                        let samples = decoder
-                            .decode_float(
-                                Some((&opus_data_buffer[..seen]).try_into().unwrap()),
-                                (&mut decoder_state.current_frame[..]).try_into().unwrap(),
-                                false,
-                            )
-                            .unwrap_or(0);
-
-                        decoder_state.current_frame.truncate(2 * samples);
-                        decoder_state.frame_pos = 0;
-                    }
-
-                    // read from frame which is present.
-                    let mut buffer = buffer;
-
-                    let start = decoder_state.frame_pos;
-                    let to_write = float_space.min(decoder_state.current_frame.len() - start);
-                    for val in &decoder_state.current_frame[start..start + float_space] {
-                        buffer.write_f32::<LittleEndian>(*val)?;
-                    }
-                    decoder_state.frame_pos += to_write;
-                    written_floats = to_write;
-
-                    Ok(written_floats * mem::size_of::<f32>())
-                }
+    pub fn make_playable(
+        self,
+        codecs: &CodecRegistry,
+        probe: &Probe,
+        handle: &TokioHandle,
+    ) -> Result<Self, MakePlayableError> {
+        let out = self.make_live(handle)?;
+        match out {
+            Self::Lazy(_) => unreachable!(),
+            Self::Live(input, lazy) => {
+                let promoted = input.promote(codecs, probe)?;
+                Ok(Self::Live(promoted, lazy))
             },
-            Codec::Pcm => {
-                let mut buffer = buffer;
-                while written_floats < float_space {
-                    if let Ok(signal) = self.reader.read_i16::<LittleEndian>() {
-                        buffer.write_f32::<LittleEndian>(f32::from(signal) / 32768.0)?;
-                        written_floats += 1;
-                    } else {
-                        break;
-                    }
-                }
-                Ok(written_floats * mem::size_of::<f32>())
-            },
-            Codec::FloatPcm => Read::read(&mut self.reader, buffer),
-        };
-
-        out.map(|v| {
-            self.pos += v;
-            v
-        })
-    }
-
-    fn cheap_consume(&mut self, count: usize) -> IoResult<usize> {
-        let mut scratch = [0u8; STEREO_FRAME_BYTE_SIZE * 4];
-        let len = scratch.len();
-        let mut done = 0;
-
-        loop {
-            let read = self.read_inner(&mut scratch[..len.min(count - done)], true)?;
-            if read == 0 {
-                break;
-            }
-            done += read;
-        }
-
-        Ok(done)
-    }
-
-    pub(crate) fn supports_passthrough(&self) -> bool {
-        match &self.kind {
-            Codec::Opus(state) => state.allow_passthrough,
-            _ => false,
         }
     }
 
-    pub(crate) fn read_opus_frame(&mut self, buffer: &mut [u8]) -> IoResult<usize> {
-        // Called in event of opus passthrough.
-        if let Codec::Opus(state) = &mut self.kind {
-            // step 1: align to frame.
-            self.pos += state.current_frame.len() - state.frame_pos;
+    /// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on a tokio blocking thread.
+    pub async fn make_playable_async(
+        self,
+        codecs: &'static CodecRegistry,
+        probe: &'static Probe,
+    ) -> Result<Self, MakePlayableError> {
+        let out = self.make_live_async().await?;
+        match out {
+            Self::Lazy(_) => unreachable!(),
+            Self::Live(input, lazy) => {
+                let promoted = tokio::task::spawn_blocking(move || input.promote(codecs, probe))
+                    .await
+                    .map_err(|_| MakePlayableError::Panicked)??;
+                Ok(Self::Live(promoted, lazy))
+            },
+        }
+    }
 
-            state.frame_pos = 0;
-            state.current_frame.truncate(0);
-
-            // step 2: read new header.
-            let frame = self
-                .container
-                .next_frame_length(&mut self.reader, CodecType::Opus)?;
-
-            // step 3: read in bytes.
-            self.reader
-                .read_exact(&mut buffer[..frame.frame_len])
-                .map(|_| {
-                    self.pos += STEREO_FRAME_BYTE_SIZE;
-                    frame.frame_len
-                })
+    /// Returns whether this audio stream is full initialised, parsed, and
+    /// ready to play (e.g., `Self::Live(LiveInput::Parsed(p), _)`).
+    #[must_use]
+    pub fn is_playable(&self) -> bool {
+        if let Self::Live(input, _) = self {
+            input.is_playable()
         } else {
-            Err(IoError::new(
-                IoErrorKind::InvalidInput,
-                "Frame passthrough not supported for this file.",
-            ))
+            false
         }
     }
 
-    pub(crate) fn prep_with_handle(&mut self, handle: Handle) {
-        self.reader.prep_with_handle(handle);
-    }
-}
-
-impl Read for Input {
-    fn read(&mut self, buffer: &mut [u8]) -> IoResult<usize> {
-        self.read_inner(buffer, false)
-    }
-}
-
-impl Seek for Input {
-    fn seek(&mut self, pos: SeekFrom) -> IoResult<u64> {
-        let mut target = self.pos;
-        match pos {
-            SeekFrom::Start(pos) => {
-                target = pos as usize;
-            },
-            SeekFrom::Current(rel) => {
-                target = target.wrapping_add(rel as usize);
-            },
-            SeekFrom::End(_pos) => unimplemented!(),
-        }
-
-        debug!("Seeking to {:?}", pos);
-
-        (if target == self.pos {
-            Ok(0)
-        } else if let Some(conversion) = self.container.try_seek_trivial(self.get_type()) {
-            let inside_target = (target * conversion) / mem::size_of::<f32>();
-            Seek::seek(&mut self.reader, SeekFrom::Start(inside_target as u64)).map(|inner_dest| {
-                let outer_dest = ((inner_dest as usize) * mem::size_of::<f32>()) / conversion;
-                self.pos = outer_dest;
-                outer_dest
-            })
-        } else if target > self.pos {
-            // seek in the next amount, disabling decoding if need be.
-            let shift = target - self.pos;
-            self.cheap_consume(shift)
+    /// Returns a reference to the live input, if it has been created via
+    /// [`Self::make_live`] or [`Self::make_live_async`].
+    #[must_use]
+    pub fn live(&self) -> Option<&LiveInput> {
+        if let Self::Live(input, _) = self {
+            Some(input)
         } else {
-            // start from scratch, then seek in...
-            Seek::seek(
-                &mut self.reader,
-                SeekFrom::Start(self.container.input_start() as u64),
-            )?;
-
-            self.cheap_consume(target)
-        })
-        .map(|_| self.pos as u64)
+            None
+        }
     }
-}
 
-/// Extension trait to pull frames of audio from a byte source.
-pub(crate) trait ReadAudioExt {
-    fn add_float_pcm_frame(
-        &mut self,
-        float_buffer: &mut [f32; STEREO_FRAME_SIZE],
-        true_stereo: bool,
-        volume: f32,
-    ) -> Option<usize>;
-
-    fn consume(&mut self, amt: usize) -> usize
-    where
-        Self: Sized;
-}
-
-impl<R: Read + Sized> ReadAudioExt for R {
-    fn add_float_pcm_frame(
-        &mut self,
-        float_buffer: &mut [f32; STEREO_FRAME_SIZE],
-        stereo: bool,
-        volume: f32,
-    ) -> Option<usize> {
-        // IDEA: Read in 8 floats at a time, then use iterator code
-        // to gently nudge the compiler into vectorising for us.
-        // Max SIMD float32 lanes is 8 on AVX, older archs use a divisor of this
-        // e.g., 4.
-        const SAMPLE_LEN: usize = mem::size_of::<f32>();
-        const FLOAT_COUNT: usize = 512;
-        let mut simd_float_bytes = [0u8; FLOAT_COUNT * SAMPLE_LEN];
-        let mut simd_float_buf = [0f32; FLOAT_COUNT];
-
-        let mut frame_pos = 0;
-
-        // Code duplication here is because unifying these codepaths
-        // with a dynamic chunk size is not zero-cost.
-        if stereo {
-            let mut max_bytes = STEREO_FRAME_BYTE_SIZE;
-
-            while frame_pos < float_buffer.len() {
-                let progress = self
-                    .read(&mut simd_float_bytes[..max_bytes.min(FLOAT_COUNT * SAMPLE_LEN)])
-                    .and_then(|byte_len| {
-                        let target = byte_len / SAMPLE_LEN;
-                        (&simd_float_bytes[..byte_len])
-                            .read_f32_into::<LittleEndian>(&mut simd_float_buf[..target])
-                            .map(|_| target)
-                    })
-                    .map(|f32_len| {
-                        let new_pos = frame_pos + f32_len;
-                        for (el, new_el) in float_buffer[frame_pos..new_pos]
-                            .iter_mut()
-                            .zip(&simd_float_buf[..f32_len])
-                        {
-                            *el += volume * new_el;
-                        }
-                        (new_pos, f32_len)
-                    });
-
-                match progress {
-                    Ok((new_pos, delta)) => {
-                        frame_pos = new_pos;
-                        max_bytes -= delta * SAMPLE_LEN;
-
-                        if delta == 0 {
-                            break;
-                        }
-                    },
-                    Err(ref e) =>
-                        return if e.kind() == IoErrorKind::UnexpectedEof {
-                            error!("EOF unexpectedly: {:?}", e);
-                            Some(frame_pos)
-                        } else {
-                            error!("Input died unexpectedly: {:?}", e);
-                            None
-                        },
-                }
-            }
+    /// Returns a mutable reference to the live input, if it been created via
+    /// [`Self::make_live`] or [`Self::make_live_async`].
+    pub fn live_mut(&mut self) -> Option<&mut LiveInput> {
+        if let Self::Live(ref mut input, _) = self {
+            Some(input)
         } else {
-            let mut max_bytes = MONO_FRAME_BYTE_SIZE;
-
-            while frame_pos < float_buffer.len() {
-                let progress = self
-                    .read(&mut simd_float_bytes[..max_bytes.min(FLOAT_COUNT * SAMPLE_LEN)])
-                    .and_then(|byte_len| {
-                        let target = byte_len / SAMPLE_LEN;
-                        (&simd_float_bytes[..byte_len])
-                            .read_f32_into::<LittleEndian>(&mut simd_float_buf[..target])
-                            .map(|_| target)
-                    })
-                    .map(|f32_len| {
-                        let new_pos = frame_pos + (2 * f32_len);
-                        for (els, new_el) in float_buffer[frame_pos..new_pos]
-                            .chunks_exact_mut(2)
-                            .zip(&simd_float_buf[..f32_len])
-                        {
-                            let sample = volume * new_el;
-                            els[0] += sample;
-                            els[1] += sample;
-                        }
-                        (new_pos, f32_len)
-                    });
-
-                match progress {
-                    Ok((new_pos, delta)) => {
-                        frame_pos = new_pos;
-                        max_bytes -= delta * SAMPLE_LEN;
-
-                        if delta == 0 {
-                            break;
-                        }
-                    },
-                    Err(ref e) =>
-                        return if e.kind() == IoErrorKind::UnexpectedEof {
-                            Some(frame_pos)
-                        } else {
-                            error!("Input died unexpectedly: {:?}", e);
-                            None
-                        },
-                }
-            }
+            None
         }
-
-        Some(frame_pos * SAMPLE_LEN)
     }
 
-    fn consume(&mut self, amt: usize) -> usize {
-        io::copy(&mut self.by_ref().take(amt as u64), &mut io::sink()).unwrap_or(0) as usize
+    /// Returns a reference to the data parsed from this input stream, if it has
+    /// been made available via [`Self::make_playable`] or [`LiveInput::promote`].
+    #[must_use]
+    pub fn parsed(&self) -> Option<&Parsed> {
+        self.live().and_then(LiveInput::parsed)
+    }
+
+    /// Returns a mutable reference to the data parsed from this input stream, if it
+    /// has been made available via [`Self::make_playable`] or [`LiveInput::promote`].
+    pub fn parsed_mut(&mut self) -> Option<&mut Parsed> {
+        self.live_mut().and_then(LiveInput::parsed_mut)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::test_utils::*;
+impl<T: AsRef<[u8]> + Send + Sync + 'static> From<T> for Input {
+    fn from(val: T) -> Self {
+        let raw_src = LiveInput::Raw(AudioStream {
+            input: Box::new(Cursor::new(val)),
+            hint: None,
+        });
 
-    #[test]
-    fn float_pcm_input_unchanged_mono() {
-        let data = make_sine(50 * MONO_FRAME_SIZE, false);
-        let mut input = Input::new(
-            false,
-            data.clone().into(),
-            Codec::FloatPcm,
-            Container::Raw,
-            None,
-        );
-
-        let mut out_vec = vec![];
-
-        let len = input.read_to_end(&mut out_vec).unwrap();
-        assert_eq!(out_vec[..len], data[..]);
-    }
-
-    #[test]
-    fn float_pcm_input_unchanged_stereo() {
-        let data = make_sine(50 * MONO_FRAME_SIZE, true);
-        let mut input = Input::new(
-            true,
-            data.clone().into(),
-            Codec::FloatPcm,
-            Container::Raw,
-            None,
-        );
-
-        let mut out_vec = vec![];
-
-        let len = input.read_to_end(&mut out_vec).unwrap();
-        assert_eq!(out_vec[..len], data[..]);
-    }
-
-    #[test]
-    fn pcm_input_becomes_float_mono() {
-        let data = make_pcm_sine(50 * MONO_FRAME_SIZE, false);
-        let mut input = Input::new(false, data.clone().into(), Codec::Pcm, Container::Raw, None);
-
-        let mut out_vec = vec![];
-        let _len = input.read_to_end(&mut out_vec).unwrap();
-
-        let mut i16_window = &data[..];
-        let mut float_window = &out_vec[..];
-
-        while i16_window.len() != 0 {
-            let before = i16_window.read_i16::<LittleEndian>().unwrap() as f32;
-            let after = float_window.read_f32::<LittleEndian>().unwrap();
-
-            let diff = (before / 32768.0) - after;
-
-            assert!(diff.abs() < f32::EPSILON);
-        }
-    }
-
-    #[test]
-    fn pcm_input_becomes_float_stereo() {
-        let data = make_pcm_sine(50 * MONO_FRAME_SIZE, true);
-        let mut input = Input::new(true, data.clone().into(), Codec::Pcm, Container::Raw, None);
-
-        let mut out_vec = vec![];
-        let _len = input.read_to_end(&mut out_vec).unwrap();
-
-        let mut i16_window = &data[..];
-        let mut float_window = &out_vec[..];
-
-        while i16_window.len() != 0 {
-            let before = i16_window.read_i16::<LittleEndian>().unwrap() as f32;
-            let after = float_window.read_f32::<LittleEndian>().unwrap();
-
-            let diff = (before / 32768.0) - after;
-
-            assert!(diff.abs() < f32::EPSILON);
-        }
+        Input::Live(raw_src, None)
     }
 }

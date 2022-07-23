@@ -39,7 +39,6 @@ jobs:
           - Windows
           - driver only
           - gateway only
-          - legacy tokio
 
         include:
           - name: beta
@@ -74,6 +73,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libopus-dev
+
+      - name: Install yt-dlp (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          sudo wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp
+          sudo chmod a+rx /usr/local/bin/yt-dlp
+
+      - name: Install yt-dlp (Windows)
+        if: runner.os == 'Windows'
+        run: choco install yt-dlp
 
       - name: Setup cache
         if: runner.os != 'macOS'
@@ -175,9 +184,9 @@ jobs:
       - name: 'Build serenity/voice_receive'
         working-directory: examples
         run: cargo build -p voice_receive
-      - name: 'Build serenity/voice_storage'
+      - name: 'Build serenity/voice_cached_audio'
         working-directory: examples
-        run: cargo build -p voice_storage
+        run: cargo build -p voice_cached_audio
       - name: 'Build twilight'
         working-directory: examples
         run: cargo build -p twilight

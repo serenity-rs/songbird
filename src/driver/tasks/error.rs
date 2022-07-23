@@ -32,9 +32,7 @@ impl Error {
     pub(crate) fn should_trigger_connect(&self) -> bool {
         matches!(
             self,
-            Error::InterconnectFailure(Recipient::AuxNetwork)
-                | Error::InterconnectFailure(Recipient::UdpRx)
-                | Error::InterconnectFailure(Recipient::UdpTx)
+            Error::InterconnectFailure(Recipient::AuxNetwork | Recipient::UdpRx | Recipient::UdpTx)
         )
     }
 

@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     constants::*,
-    tracks::{PlayMode, TrackHandle, TrackState},
+    tracks::{ReadyState, TrackHandle, TrackState},
 };
 use std::{
     collections::{BinaryHeap, HashMap},
@@ -24,8 +24,9 @@ pub struct EventStore {
 
 impl EventStore {
     /// Creates a new event store to be used globally.
+    #[must_use]
     pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
     /// Creates a new event store to be used within a [`Track`].
@@ -34,6 +35,7 @@ impl EventStore {
     /// a track has been registered.
     ///
     /// [`Track`]: crate::tracks::Track
+    #[must_use]
     pub fn new_local() -> Self {
         EventStore {
             local_only: true,
@@ -53,21 +55,20 @@ impl EventStore {
             return;
         }
 
-        use Event::*;
         match evt.event {
-            Core(c) => {
+            Event::Core(c) => {
                 self.untimed
                     .entry(c.into())
                     .or_insert_with(Vec::new)
                     .push(evt);
             },
-            Track(t) => {
+            Event::Track(t) => {
                 self.untimed
                     .entry(t.into())
                     .or_insert_with(Vec::new)
                     .push(evt);
             },
-            Delayed(_) | Periodic(_, _) => {
+            Event::Delayed(_) | Event::Periodic(_, _) => {
                 self.timed.push(evt);
             },
             _ => {
@@ -105,15 +106,12 @@ impl EventStore {
 
     /// Processes all events due up to and including `now`.
     pub(crate) fn timed_event_ready(&self, now: Duration) -> bool {
-        self.timed
-            .peek()
-            .map(|evt| {
-                evt.fire_time
-                    .as_ref()
-                    .expect("Timed event must have a fire_time.")
-                    <= &now
-            })
-            .unwrap_or(false)
+        self.timed.peek().map_or(false, |evt| {
+            evt.fire_time
+                .as_ref()
+                .expect("Timed event must have a fire_time.")
+                <= &now
+        })
     }
 
     /// Processes all events attached to the given track event.
@@ -183,9 +181,9 @@ impl GlobalEvents {
 
     pub(crate) async fn tick(
         &mut self,
-        events: &mut Vec<EventStore>,
-        states: &mut Vec<TrackState>,
-        handles: &mut Vec<TrackHandle>,
+        events: &mut [EventStore],
+        states: &mut [TrackState],
+        handles: &mut [TrackHandle],
     ) {
         // Global timed events
         self.time += TIMESTEP_LENGTH;
@@ -199,7 +197,7 @@ impl GlobalEvents {
 
         // Local timed events
         for (i, state) in states.iter_mut().enumerate() {
-            if state.playing == PlayMode::Play {
+            if state.playing.is_playing() && state.ready == ReadyState::Playable {
                 state.step_frame();
 
                 let event_store = events
@@ -215,7 +213,7 @@ impl GlobalEvents {
             }
         }
 
-        for (evt, indices) in self.awaiting_tick.iter() {
+        for (evt, indices) in &self.awaiting_tick {
             let untimed = (*evt).into();
 
             if !indices.is_empty() {
@@ -223,7 +221,7 @@ impl GlobalEvents {
             }
 
             // Local untimed track events.
-            for &i in indices.iter() {
+            for &i in indices {
                 let event_store = events
                     .get_mut(i)
                     .expect("Missing store index for Tick (local untimed).");
@@ -261,12 +259,12 @@ impl GlobalEvents {
 
                 self.store
                     .process_untimed(self.time, untimed, EventContext::Track(&global_ctx[..]))
-                    .await
+                    .await;
             }
         }
 
         // Now drain vecs.
-        for (_evt, indices) in self.awaiting_tick.iter_mut() {
+        for indices in self.awaiting_tick.values_mut() {
             indices.clear();
         }
     }

@@ -1,0 +1,28 @@
+[package]
+name = "voice_cached_audio"
+version = "0.1.0"
+authors = ["my name <my@email.address>"]
+edition = "2021"
+
+[dependencies]
+tracing = "0.1"
+tracing-subscriber = "0.2"
+tracing-futures = "0.2"
+
+[dependencies.songbird]
+path = "../../../"
+
+[dependencies.serenity]
+features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"]
+git = "https://github.com/serenity-rs/serenity"
+branch = "next"
+
+[dependencies.symphonia]
+version = "0.5"
+features = ["mp3"]
+git = "https://github.com/FelixMcFelix/Symphonia"
+branch = "songbird-fixes"
+
+[dependencies.tokio]
+version = "1.0"
+features = ["macros", "rt-multi-thread"]

@@ -2,7 +2,7 @@ use crate::{
     driver::Driver,
     events::{Event, EventContext, EventData, EventHandler, TrackEvent},
     input::Input,
-    tracks::{self, Track, TrackHandle, TrackResult},
+    tracks::{Track, TrackHandle, TrackResult},
 };
 use async_trait::async_trait;
 use parking_lot::Mutex;
@@ -28,28 +28,27 @@ use tracing::{info, warn};
 /// use songbird::{
 ///     driver::Driver,
 ///     id::GuildId,
-///     ffmpeg,
-///     tracks::{create_player, TrackQueue},
+///     input::File,
+///     tracks::TrackQueue,
 /// };
 /// use std::collections::HashMap;
+/// use std::num::NonZeroU64;
 ///
 /// # async {
-/// let guild = GuildId(0);
+/// let guild = GuildId(NonZeroU64::new(1).unwrap());
 /// // A Call is also valid here!
 /// let mut driver: Driver = Default::default();
 ///
 /// let mut queues: HashMap<GuildId, TrackQueue> = Default::default();
 ///
-/// let source = ffmpeg("../audio/my-favourite-song.mp3")
-///     .await
-///     .expect("This might fail: handle this error!");
+/// let source = File::new("../audio/my-favourite-song.mp3");
 ///
 /// // We need to ensure that this guild has a TrackQueue created for it.
 /// let queue = queues.entry(guild)
 ///     .or_default();
 ///
 /// // Queueing a track is this easy!
-/// queue.add_source(source, &mut driver);
+/// queue.add_source(source.into(), &mut driver);
 /// # };
 /// ```
 ///
@@ -77,6 +76,7 @@ impl Deref for Queued {
 
 impl Queued {
     /// Clones the inner handle
+    #[must_use]
     pub fn handle(&self) -> TrackHandle {
         self.0.clone()
     }
@@ -147,7 +147,9 @@ impl EventHandler for SongPreloader {
         let inner = self.remote_lock.lock();
 
         if let Some(track) = inner.tracks.get(1) {
-            let _ = track.0.make_playable();
+            // This is the sync-version so that we can fire and ignore
+            // the request ASAP.
+            drop(track.0.make_playable());
         }
 
         None
@@ -156,6 +158,7 @@ impl EventHandler for SongPreloader {
 
 impl TrackQueue {
     /// Create a new, empty, track queue.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             inner: Arc::new(Mutex::new(TrackQueueCore {
@@ -164,72 +167,99 @@ impl TrackQueue {
         }
     }
 
-    /// Adds an audio source to the queue, to be played in the channel managed by `handler`.
-    pub fn add_source(&self, source: Input, handler: &mut Driver) -> TrackHandle {
-        let (track, handle) = tracks::create_player(source);
-        self.add(track, handler);
+    /// Adds an audio source to the queue, to be played in the channel managed by `driver`.
+    ///
+    /// This method will preload the next track 5 seconds before the current track ends, if
+    /// the [`AuxMetadata`] can be successfully queried for a [`Duration`].
+    ///
+    /// [`AuxMetadata`]: crate::input::AuxMetadata
+    pub async fn add_source(&self, input: Input, driver: &mut Driver) -> TrackHandle {
+        self.add(input.into(), driver).await
+    }
+
+    /// Adds a [`Track`] object to the queue, to be played in the channel managed by `driver`.
+    ///
+    /// This allows additional configuration or event handlers to be added
+    /// before enqueueing the audio track. [`Track`]s will be paused pre-emptively.
+    ///
+    /// This method will preload the next track 5 seconds before the current track ends, if
+    /// the [`AuxMetadata`] can be successfully queried for a [`Duration`].
+    ///
+    /// [`AuxMetadata`]: crate::input::AuxMetadata
+    pub async fn add(&self, mut track: Track, driver: &mut Driver) -> TrackHandle {
+        let preload_time = Self::get_preload_time(&mut track).await;
+        self.add_with_preload(track, driver, preload_time)
+    }
+
+    pub(crate) async fn get_preload_time(track: &mut Track) -> Option<Duration> {
+        let meta = match track.input {
+            Input::Lazy(ref mut rec) => rec.aux_metadata().await.ok(),
+            Input::Live(_, Some(ref mut rec)) => rec.aux_metadata().await.ok(),
+            Input::Live(_, None) => None,
+        };
+
+        meta.and_then(|meta| meta.duration)
+            .map(|d| d.saturating_sub(Duration::from_secs(5)))
+    }
+
+    /// Add an existing [`Track`] to the queue, using a known time to preload the next track.
+    ///
+    /// `preload_time` can be specified to enable gapless playback: this is the
+    /// playback position *in this track* when the the driver will begin to load the next track.
+    /// The standard [`Self::add`] method use [`AuxMetadata`] to set this to 5 seconds before
+    /// a track ends.
+    ///
+    /// A `None` value will not ready the next track until this track ends, disabling preload.
+    ///
+    /// [`AuxMetadata`]: crate::input::AuxMetadata
+    #[inline]
+    pub fn add_with_preload(
+        &self,
+        mut track: Track,
+        driver: &mut Driver,
+        preload_time: Option<Duration>,
+    ) -> TrackHandle {
+        // Attempts to start loading the next track before this one ends.
+        // Idea is to provide as close to gapless playback as possible,
+        // while minimising memory use.
+        info!("Track added to queue.");
+
+        let remote_lock = self.inner.clone();
+        track.events.add_event(
+            EventData::new(Event::Track(TrackEvent::End), QueueHandler { remote_lock }),
+            Duration::ZERO,
+        );
+
+        if let Some(time) = preload_time {
+            let remote_lock = self.inner.clone();
+            track.events.add_event(
+                EventData::new(Event::Delayed(time), SongPreloader { remote_lock }),
+                Duration::ZERO,
+            );
+        }
+
+        let (should_play, handle) = {
+            let mut inner = self.inner.lock();
+
+            let handle = driver.play(track.pause());
+            inner.tracks.push_back(Queued(handle.clone()));
+
+            (inner.tracks.len() == 1, handle)
+        };
+
+        if should_play {
+            drop(handle.play());
+        }
 
         handle
     }
 
-    /// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.
-    ///
-    /// This is used with [`create_player`] if additional configuration or event handlers
-    /// are required before enqueueing the audio track.
-    ///
-    /// [`Track`]: Track
-    /// [`create_player`]: super::create_player
-    pub fn add(&self, mut track: Track, handler: &mut Driver) {
-        self.add_raw(&mut track);
-        handler.play(track);
-    }
-
-    #[inline]
-    pub(crate) fn add_raw(&self, track: &mut Track) {
-        info!("Track added to queue.");
-        let remote_lock = self.inner.clone();
-        let mut inner = self.inner.lock();
-
-        let track_handle = track.handle.clone();
-
-        if !inner.tracks.is_empty() {
-            track.pause();
-        }
-
-        track
-            .events
-            .as_mut()
-            .expect("Queue inspecting EventStore on new Track: did not exist.")
-            .add_event(
-                EventData::new(Event::Track(TrackEvent::End), QueueHandler { remote_lock }),
-                track.position,
-            );
-
-        // Attempts to start loading the next track before this one ends.
-        // Idea is to provide as close to gapless playback as possible,
-        // while minimising memory use.
-        if let Some(time) = track.source.metadata.duration {
-            let preload_time = time.checked_sub(Duration::from_secs(5)).unwrap_or_default();
-            let remote_lock = self.inner.clone();
-
-            track
-                .events
-                .as_mut()
-                .expect("Queue inspecting EventStore on new Track: did not exist.")
-                .add_event(
-                    EventData::new(Event::Delayed(preload_time), SongPreloader { remote_lock }),
-                    track.position,
-                );
-        }
-
-        inner.tracks.push_back(Queued(track_handle));
-    }
-
     /// Returns a handle to the currently playing track.
+    #[must_use]
     pub fn current(&self) -> Option<TrackHandle> {
         let inner = self.inner.lock();
 
-        inner.tracks.front().map(|h| h.handle())
+        inner.tracks.front().map(Queued::handle)
     }
 
     /// Attempts to remove a track from the specified index.
@@ -237,11 +267,13 @@ impl TrackQueue {
     /// The returned entry can be readded to *this* queue via [`modify_queue`].
     ///
     /// [`modify_queue`]: TrackQueue::modify_queue
+    #[must_use]
     pub fn dequeue(&self, index: usize) -> Option<Queued> {
         self.modify_queue(|vq| vq.remove(index))
     }
 
     /// Returns the number of tracks currently in the queue.
+    #[must_use]
     pub fn len(&self) -> usize {
         let inner = self.inner.lock();
 
@@ -249,6 +281,7 @@ impl TrackQueue {
     }
 
     /// Returns whether there are no tracks currently in the queue.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         let inner = self.inner.lock();
 
@@ -296,7 +329,7 @@ impl TrackQueue {
         for track in inner.tracks.drain(..) {
             // Errors when removing tracks don't really make
             // a difference: an error just implies it's already gone.
-            let _ = track.stop();
+            drop(track.stop());
         }
     }
 
@@ -314,10 +347,11 @@ impl TrackQueue {
     /// Use [`modify_queue`] for direct modification of the queue.
     ///
     /// [`modify_queue`]: TrackQueue::modify_queue
+    #[must_use]
     pub fn current_queue(&self) -> Vec<TrackHandle> {
         let inner = self.inner.lock();
 
-        inner.tracks.iter().map(|q| q.handle()).collect()
+        inner.tracks.iter().map(Queued::handle).collect()
     }
 }
 
@@ -329,5 +363,137 @@ impl TrackQueueCore {
         } else {
             Ok(())
         }
+    }
+}
+
+#[cfg(all(test, feature = "builtin-queue"))]
+mod tests {
+    use crate::{
+        driver::Driver,
+        input::{File, HttpRequest},
+        tracks::PlayMode,
+        Config,
+    };
+    use reqwest::Client;
+    use std::time::Duration;
+
+    #[tokio::test]
+    #[ntest::timeout(20_000)]
+    async fn next_track_plays_on_end() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file1 = File::new("resources/ting.wav");
+        let file2 = file1.clone();
+
+        let h1 = driver.enqueue_input(file1.into()).await;
+        let h2 = driver.enqueue_input(file2.into()).await;
+
+        // Get h1 in place, playing. Wait for IO to ready.
+        // Fast wait here since it's all local I/O, no network.
+        t_handle
+            .ready_track(&h1, Some(Duration::from_millis(1)))
+            .await;
+        t_handle
+            .ready_track(&h2, Some(Duration::from_millis(1)))
+            .await;
+
+        // playout
+        t_handle.tick(1);
+        t_handle.wait(1);
+
+        let h1a = h1.get_info();
+        let h2a = h2.get_info();
+
+        // allow get_info to fire for h2.
+        t_handle.tick(2);
+
+        // post-conditions:
+        // 1) track 1 is done & dropped (commands fail).
+        // 2) track 2 is playing.
+        assert!(h1a.await.is_err());
+        assert_eq!(h2a.await.unwrap().playing, PlayMode::Play);
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn next_track_plays_on_skip() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file1 = File::new("resources/ting.wav");
+        let file2 = file1.clone();
+
+        let h1 = driver.enqueue_input(file1.into()).await;
+        let h2 = driver.enqueue_input(file2.into()).await;
+
+        // Get h1 in place, playing. Wait for IO to ready.
+        // Fast wait here since it's all local I/O, no network.
+        t_handle
+            .ready_track(&h1, Some(Duration::from_millis(1)))
+            .await;
+
+        assert!(driver.queue().skip().is_ok());
+
+        t_handle
+            .ready_track(&h2, Some(Duration::from_millis(1)))
+            .await;
+
+        // playout
+        t_handle.skip(1).await;
+
+        let h1a = h1.get_info();
+        let h2a = h2.get_info();
+
+        // allow get_info to fire for h2.
+        t_handle.tick(2);
+
+        // post-conditions:
+        // 1) track 1 is done & dropped (commands fail).
+        // 2) track 2 is playing.
+        assert!(h1a.await.is_err());
+        assert_eq!(h2a.await.unwrap().playing, PlayMode::Play);
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn next_track_plays_on_err() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        // File 1 is HTML with no valid audio -- this will fail to play.
+        let file1 = HttpRequest::new(
+            Client::new(),
+            "http://github.com/serenity-rs/songbird/".into(),
+        );
+        let file2 = File::new("resources/ting.wav");
+
+        let h1 = driver.enqueue_input(file1.into()).await;
+        let h2 = driver.enqueue_input(file2.into()).await;
+
+        // Get h1 in place, playing. Wait for IO to ready.
+        // Fast wait here since it's all local I/O, no network.
+        // t_handle
+        //     .ready_track(&h1, Some(Duration::from_millis(1)))
+        //     .await;
+        t_handle
+            .ready_track(&h2, Some(Duration::from_millis(1)))
+            .await;
+
+        // playout
+        t_handle.tick(1);
+        t_handle.wait(1);
+
+        let h1a = h1.get_info();
+        let h2a = h2.get_info();
+
+        // allow get_info to fire for h2.
+        t_handle.tick(2);
+
+        // post-conditions:
+        // 1) track 1 is done & dropped (commands fail).
+        // 2) track 2 is playing.
+        assert!(h1a.await.is_err());
+        assert_eq!(h2a.await.unwrap().playing, PlayMode::Play);
     }
 }

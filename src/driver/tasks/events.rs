@@ -1,7 +1,7 @@
 use super::message::*;
 use crate::{
     events::{EventStore, GlobalEvents, TrackEvent},
-    tracks::{TrackHandle, TrackState},
+    tracks::{ReadyState, TrackHandle, TrackState},
 };
 use flume::Receiver;
 use tracing::{debug, info, instrument, trace};
@@ -14,14 +14,13 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
     let mut states: Vec<TrackState> = vec![];
     let mut handles: Vec<TrackHandle> = vec![];
 
-    loop {
-        use EventMessage::*;
-        match evt_rx.recv_async().await {
-            Ok(AddGlobalEvent(data)) => {
+    while let Ok(msg) = evt_rx.recv_async().await {
+        match msg {
+            EventMessage::AddGlobalEvent(data) => {
                 info!("Global event added.");
                 global.add_event(data);
             },
-            Ok(AddTrackEvent(i, data)) => {
+            EventMessage::AddTrackEvent(i, data) => {
                 info!("Adding event to track {}.", i);
 
                 let event_store = events
@@ -33,7 +32,7 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
 
                 event_store.add_event(data, state.position);
             },
-            Ok(FireCoreEvent(ctx)) => {
+            EventMessage::FireCoreEvent(ctx) => {
                 let ctx = ctx.to_user_context();
                 let evt = ctx
                     .to_core_event()
@@ -43,19 +42,17 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
 
                 global.fire_core_event(evt, ctx).await;
             },
-            Ok(RemoveGlobalEvents) => {
+            EventMessage::RemoveGlobalEvents => {
                 global.remove_handlers();
             },
-            Ok(AddTrack(store, state, handle)) => {
+            EventMessage::AddTrack(store, state, handle) => {
                 events.push(store);
                 states.push(state);
                 handles.push(handle);
 
                 info!("Event state for track {} added", events.len());
             },
-            Ok(ChangeState(i, change)) => {
-                use TrackStateChange::*;
-
+            EventMessage::ChangeState(i, change) => {
                 let max_states = states.len();
                 debug!(
                     "Changing state for track {} of {}: {:?}",
@@ -67,53 +64,74 @@ pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMe
                     .expect("Event thread was given an illegal state index for ChangeState.");
 
                 match change {
-                    Mode(mode) => {
-                        let old = state.playing;
-                        state.playing = mode;
-                        if old != mode {
-                            global.fire_track_event(mode.as_track_event(), i);
+                    TrackStateChange::Mode(mut mode) => {
+                        std::mem::swap(&mut state.playing, &mut mode);
+                        if state.playing != mode {
+                            global.fire_track_event(state.playing.as_track_event(), i);
+                            if let Some(other_evts) = state.playing.also_fired_track_events() {
+                                for evt in other_evts {
+                                    global.fire_track_event(evt, i);
+                                }
+                            }
                         }
                     },
-                    Volume(vol) => {
+                    TrackStateChange::Volume(vol) => {
                         state.volume = vol;
                     },
-                    Position(pos) => {
+                    TrackStateChange::Position(pos) => {
                         // Currently, only Tick should fire time events.
                         state.position = pos;
                     },
-                    Loops(loops, user_set) => {
+                    TrackStateChange::Loops(loops, user_set) => {
                         state.loops = loops;
                         if !user_set {
                             global.fire_track_event(TrackEvent::Loop, i);
                         }
                     },
-                    Total(new) => {
+                    TrackStateChange::Total(new) => {
                         // Massive, unprecedented state changes.
                         *state = new;
                     },
+                    TrackStateChange::Ready(ready_state) => {
+                        state.ready = ready_state;
+
+                        match ready_state {
+                            ReadyState::Playable => {
+                                global.fire_track_event(TrackEvent::Playable, i);
+                            },
+                            ReadyState::Preparing => {
+                                global.fire_track_event(TrackEvent::Preparing, i);
+                            },
+                            ReadyState::Uninitialised => {},
+                        }
+                    },
                 }
             },
-            Ok(RemoveTrack(i)) => {
-                info!("Event state for track {} of {} removed.", i, events.len());
-
-                events.swap_remove(i);
-                states.swap_remove(i);
-                handles.swap_remove(i);
-            },
-            Ok(RemoveAllTracks) => {
+            EventMessage::RemoveAllTracks => {
                 info!("Event state for all tracks removed.");
 
                 events.clear();
                 states.clear();
                 handles.clear();
             },
-            Ok(Tick) => {
+            EventMessage::Tick => {
                 // NOTE: this should fire saved up blocks of state change evts.
                 global.tick(&mut events, &mut states, &mut handles).await;
+
+                let mut i = 0;
+                while i < states.len() {
+                    if states[i].playing.is_done() {
+                        info!("Event state for track {} of {} removed.", i, events.len());
+
+                        events.swap_remove(i);
+                        states.swap_remove(i);
+                        handles.swap_remove(i);
+                    } else {
+                        i += 1;
+                    }
+                }
             },
-            Err(_) | Ok(Poison) => {
-                break;
-            },
+            EventMessage::Poison => break,
         }
     }
 

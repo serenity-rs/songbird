@@ -1,9 +1,8 @@
 #![allow(missing_docs)]
 
-use crate::tracks::Track;
+use crate::{driver::tasks::mixer::InternalTrack, tracks::TrackHandle};
 
 pub enum DisposalMessage {
-    Track(Track),
-
-    Poison,
+    Track(Box<InternalTrack>),
+    Handle(TrackHandle),
 }
