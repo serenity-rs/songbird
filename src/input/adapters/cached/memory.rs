@@ -1,6 +1,6 @@
 use super::{default_config, raw_cost_per_sec, Error};
 use crate::input::{AudioStream, Input, LiveInput};
-use std::io::{Read, Seek};
+use std::io::{Read, Result as IoResult, Seek};
 use streamcatcher::{Catcher, Config};
 use symphonia_core::io::MediaSource;
 
@@ -78,13 +78,13 @@ impl Memory {
 }
 
 impl Read for Memory {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+    fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
         self.raw.read(buf)
     }
 }
 
 impl Seek for Memory {
-    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> IoResult<u64> {
         self.raw.seek(pos)
     }
 }

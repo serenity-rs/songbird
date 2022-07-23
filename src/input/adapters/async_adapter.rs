@@ -200,8 +200,8 @@ impl AsyncAdapterStream {
 
     fn check_dropped(&self) -> IoResult<()> {
         if self.is_dropped_and_clear() {
-            Err(std::io::Error::new(
-                std::io::ErrorKind::UnexpectedEof,
+            Err(IoError::new(
+                IoErrorKind::UnexpectedEof,
                 "Async half was dropped.",
             ))
         } else {

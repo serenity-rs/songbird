@@ -3,7 +3,7 @@ use crate::{constants::*, driver::tasks::mixer::mix_logic, input::Parsed};
 use byteorder::{LittleEndian, WriteBytesExt};
 use rubato::{FftFixedOut, Resampler};
 use std::{
-    io::{ErrorKind as IoErrorKind, Read, Seek, Write},
+    io::{ErrorKind as IoErrorKind, Read, Result as IoResult, Seek, Write},
     mem,
     ops::Range,
 };
@@ -126,7 +126,7 @@ impl ToAudioBytes {
 }
 
 impl Read for ToAudioBytes {
-    fn read(&mut self, mut buf: &mut [u8]) -> std::io::Result<usize> {
+    fn read(&mut self, mut buf: &mut [u8]) -> IoResult<usize> {
         // NOTE: this is disturbingly similar to the mixer code, but different enough that we can't
         // just reuse it freely.
         let orig_sz = buf.len();
@@ -318,7 +318,7 @@ impl Read for ToAudioBytes {
 }
 
 impl Seek for ToAudioBytes {
-    fn seek(&mut self, _pos: std::io::SeekFrom) -> std::io::Result<u64> {
+    fn seek(&mut self, _pos: std::io::SeekFrom) -> IoResult<u64> {
         Err(IoErrorKind::Unsupported.into())
     }
 }

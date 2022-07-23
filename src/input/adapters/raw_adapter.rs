@@ -3,6 +3,9 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use std::io::{ErrorKind as IoErrorKind, Read, Result as IoResult, Seek, SeekFrom, Write};
 use symphonia::core::io::MediaSource;
 
+// format header is a magic string, followed by two LE u32s (sample rate, channel count)
+const FMT_HEADER: &[u8; 16] = b"SbirdRaw\0\0\0\0\0\0\0\0";
+
 /// Adapter around a raw, interleaved, `f32` PCM byte stream.
 ///
 /// This may be used to port legacy songbird audio sources to be compatible with
@@ -21,15 +24,15 @@ pub struct RawAdapter<A> {
 impl<A: MediaSource> RawAdapter<A> {
     /// Wrap an input PCM byte source to be readable by symphonia.
     pub fn new(audio_source: A, sample_rate: u32, channel_count: u32) -> Self {
-        let mut prepend: [u8; 16] = *b"SbirdRaw\0\0\0\0\0\0\0\0";
+        let mut prepend: [u8; 16] = *FMT_HEADER;
         let mut write_space = &mut prepend[8..];
 
         write_space
             .write_u32::<LittleEndian>(sample_rate)
-            .expect("Prepend buffer is sized to include enough space.");
+            .expect("Prepend buffer is sized to include enough space for sample rate.");
         write_space
             .write_u32::<LittleEndian>(channel_count)
-            .expect("Prepend buffer is sized to include enough space.");
+            .expect("Prepend buffer is sized to include enough space for number of channels.");
 
         Self {
             prepend,
