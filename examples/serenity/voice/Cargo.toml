@@ -2,12 +2,19 @@
 name = "voice"
 version = "0.1.0"
 authors = ["my name <my@email.address>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 tracing = "0.1"
 tracing-subscriber = "0.2"
 tracing-futures = "0.2"
+reqwest = "0.11"
+
+[dependencies.symphonia]
+version = "0.5"
+features = ["aac", "mp3", "isomp4", "alac"]
+git = "https://github.com/FelixMcFelix/Symphonia"
+branch = "songbird-fixes"
 
 [dependencies.songbird]
 path = "../../../"

@@ -2,7 +2,7 @@
 
 use crate::{
     events::{CoreContext, EventData, EventStore},
-    tracks::{LoopState, PlayMode, TrackHandle, TrackState},
+    tracks::{LoopState, PlayMode, ReadyState, TrackHandle, TrackState},
 };
 use std::time::Duration;
 
@@ -16,7 +16,6 @@ pub enum EventMessage {
 
     AddTrack(EventStore, TrackState, TrackHandle),
     ChangeState(usize, TrackStateChange),
-    RemoveTrack(usize),
     RemoveAllTracks,
     Tick,
 
@@ -31,4 +30,5 @@ pub enum TrackStateChange {
     // Bool indicates user-set.
     Loops(LoopState, bool),
     Total(TrackState),
+    Ready(ReadyState),
 }

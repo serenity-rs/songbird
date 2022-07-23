@@ -58,7 +58,7 @@ impl Default for ExponentialBackoff {
 
 impl ExponentialBackoff {
     pub(crate) fn retry_in(&self, last_wait: Option<Duration>) -> Duration {
-        let attempt = last_wait.map(|t| 2 * t).unwrap_or(self.min);
+        let attempt = last_wait.map_or(self.min, |t| 2 * t);
         let perturb = (1.0 - (self.jitter * 2.0 * (random::<f32>() - 1.0)))
             .max(0.0)
             .min(2.0);

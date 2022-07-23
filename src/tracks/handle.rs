@@ -1,9 +1,6 @@
 use super::*;
-use crate::{
-    events::{Event, EventData, EventHandler},
-    input::Metadata,
-};
-use flume::Sender;
+use crate::events::{Event, EventData, EventHandler};
+use flume::{Receiver, Sender};
 use std::{fmt, sync::Arc, time::Duration};
 use tokio::sync::RwLock;
 use typemap_rev::TypeMap;
@@ -17,8 +14,7 @@ use uuid::Uuid;
 ///
 /// Many method calls here are fallible; in most cases, this will be because
 /// the underlying [`Track`] object has been discarded. Those which aren't refer
-/// to immutable properties of the underlying stream, or shared data not used
-/// by the driver.
+/// to shared data not used by the driver.
 ///
 /// [`Track`]: Track
 pub struct TrackHandle {
@@ -27,9 +23,7 @@ pub struct TrackHandle {
 
 struct InnerHandle {
     command_channel: Sender<TrackCommand>,
-    seekable: bool,
     uuid: Uuid,
-    metadata: Box<Metadata>,
     typemap: RwLock<TypeMap>,
 }
 
@@ -37,30 +31,21 @@ impl fmt::Debug for InnerHandle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("InnerHandle")
             .field("command_channel", &self.command_channel)
-            .field("seekable", &self.seekable)
             .field("uuid", &self.uuid)
-            .field("metadata", &self.metadata)
             .field("typemap", &"<LOCK>")
             .finish()
     }
 }
 
 impl TrackHandle {
-    /// Creates a new handle, using the given command sink and hint as to whether
-    /// the underlying [`Input`] supports seek operations.
+    /// Creates a new handle, using the given command sink.
     ///
     /// [`Input`]: crate::input::Input
-    pub fn new(
-        command_channel: Sender<TrackCommand>,
-        seekable: bool,
-        uuid: Uuid,
-        metadata: Box<Metadata>,
-    ) -> Self {
+    #[must_use]
+    pub(crate) fn new(command_channel: Sender<TrackCommand>, uuid: Uuid) -> Self {
         let inner = Arc::new(InnerHandle {
             command_channel,
-            seekable,
             uuid,
-            metadata,
             typemap: RwLock::new(TypeMap::new()),
         });
 
@@ -92,53 +77,64 @@ impl TrackHandle {
         self.send(TrackCommand::Volume(volume))
     }
 
+    #[must_use]
     /// Ready a track for playing if it is lazily initialised.
     ///
-    /// Currently, only [`Restartable`] sources support lazy setup.
-    /// This call is a no-op for all others.
-    ///
-    /// [`Restartable`]: crate::input::restartable::Restartable
-    pub fn make_playable(&self) -> TrackResult<()> {
-        self.send(TrackCommand::MakePlayable)
+    /// If a track is already playable, the callback will instantly succeed.
+    pub fn make_playable(&self) -> TrackCallback<()> {
+        let (tx, rx) = flume::bounded(1);
+        let fail = self.send(TrackCommand::MakePlayable(tx)).is_err();
+
+        TrackCallback { fail, rx }
     }
 
-    /// Denotes whether the underlying [`Input`] stream is compatible with arbitrary seeking.
+    /// Ready a track for playing if it is lazily initialised.
     ///
-    /// If this returns `false`, all calls to [`seek_time`] will fail, and the track is
-    /// incapable of looping.
+    /// This folds [`Self::make_playable`] into a single `async` result, but must
+    /// be awaited for the command to be sent.
+    pub async fn make_playable_async(&self) -> TrackResult<()> {
+        self.make_playable().result_async().await
+    }
+
+    #[must_use]
+    /// Seeks along the track to the specified position.
     ///
-    /// [`seek_time`]: TrackHandle::seek_time
+    /// If the underlying [`Input`] does not support seeking,
+    /// forward seeks will succeed. Backward seeks will recreate the
+    /// track using the lazy [`Compose`] if present. The returned callback
+    /// will indicate whether the seek succeeded.
+    ///
     /// [`Input`]: crate::input::Input
-    pub fn is_seekable(&self) -> bool {
-        self.inner.seekable
+    /// [`Compose`]: crate::input::Compose
+    pub fn seek(&self, position: Duration) -> TrackCallback<Duration> {
+        let (tx, rx) = flume::bounded(1);
+        let fail = self
+            .send(TrackCommand::Seek(SeekRequest {
+                time: position,
+                callback: tx,
+            }))
+            .is_err();
+
+        TrackCallback { fail, rx }
     }
 
     /// Seeks along the track to the specified position.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
-    ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
-    pub fn seek_time(&self, position: Duration) -> TrackResult<()> {
-        if self.is_seekable() {
-            self.send(TrackCommand::Seek(position))
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+    /// This folds [`Self::seek`] into a single `async` result, but must
+    /// be awaited for the command to be sent.
+    pub async fn seek_async(&self, position: Duration) -> TrackResult<Duration> {
+        self.seek(position).result_async().await
     }
 
     /// Attach an event handler to an audio track. These will receive [`EventContext::Track`].
     ///
-    /// Events which can only be fired by the global context return [`TrackError::InvalidTrackEvent`]
+    /// Events which can only be fired by the global context return [`ControlError::InvalidTrackEvent`]
     ///
-    /// [`Track`]: Track
     /// [`EventContext::Track`]: crate::events::EventContext::Track
-    /// [`TrackError::InvalidTrackEvent`]: TrackError::InvalidTrackEvent
     pub fn add_event<F: EventHandler + 'static>(&self, event: Event, action: F) -> TrackResult<()> {
         let cmd = TrackCommand::AddEvent(EventData::new(event, action));
         if event.is_global_only() {
-            Err(TrackError::InvalidTrackEvent)
+            Err(ControlError::InvalidTrackEvent)
         } else {
             self.send(cmd)
         }
@@ -146,14 +142,17 @@ impl TrackHandle {
 
     /// Perform an arbitrary synchronous action on a raw [`Track`] object.
     ///
+    /// This will give access to a [`View`] of the current track state and [`Metadata`],
+    /// which can be used to take an [`Action`].
+    ///
     /// Users **must** ensure that no costly work or blocking occurs
     /// within the supplied function or closure. *Taking excess time could prevent
     /// timely sending of packets, causing audio glitches and delays*.
     ///
-    /// [`Track`]: Track
+    /// [`Metadata`]: crate::input::Metadata
     pub fn action<F>(&self, action: F) -> TrackResult<()>
     where
-        F: FnOnce(&mut Track) + Send + Sync + 'static,
+        F: FnOnce(View) -> Option<Action> + Send + Sync + 'static,
     {
         self.send(TrackCommand::Do(Box::new(action)))
     }
@@ -163,77 +162,52 @@ impl TrackHandle {
         let (tx, rx) = flume::bounded(1);
         self.send(TrackCommand::Request(tx))?;
 
-        rx.recv_async().await.map_err(|_| TrackError::Finished)
+        rx.recv_async().await.map_err(|_| ControlError::Finished)
     }
 
     /// Set an audio track to loop indefinitely.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This requires either a [`Compose`] to be present or for the
+    /// input stream to be seekable.
     ///
     /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`Compose`]: crate::input::Compose
     pub fn enable_loop(&self) -> TrackResult<()> {
-        if self.is_seekable() {
-            self.send(TrackCommand::Loop(LoopState::Infinite))
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        self.send(TrackCommand::Loop(LoopState::Infinite))
     }
 
     /// Set an audio track to no longer loop.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This follows the same rules as [`enable_loop`].
     ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`enable_loop`]: Self::enable_loop
     pub fn disable_loop(&self) -> TrackResult<()> {
-        if self.is_seekable() {
-            self.send(TrackCommand::Loop(LoopState::Finite(0)))
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        self.send(TrackCommand::Loop(LoopState::Finite(0)))
     }
 
     /// Set an audio track to loop a set number of times.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This follows the same rules as [`enable_loop`].
     ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`enable_loop`]: Self::enable_loop
     pub fn loop_for(&self, count: usize) -> TrackResult<()> {
-        if self.is_seekable() {
-            self.send(TrackCommand::Loop(LoopState::Finite(count)))
-        } else {
-            Err(TrackError::SeekUnsupported)
-        }
+        self.send(TrackCommand::Loop(LoopState::Finite(count)))
     }
 
     /// Returns this handle's (and track's) unique identifier.
+    #[must_use]
     pub fn uuid(&self) -> Uuid {
         self.inner.uuid
     }
 
-    /// Returns the metadata stored in the handle.
+    /// Allows access to this track's attached [`TypeMap`].
     ///
-    /// Metadata is cloned from the inner [`Input`] at
-    /// the time a track/handle is created, and is effectively
-    /// read-only from then on.
-    ///
-    /// [`Input`]: crate::input::Input
-    pub fn metadata(&self) -> &Metadata {
-        &self.inner.metadata
-    }
-
-    /// Allows access to this track's attached TypeMap.
-    ///
-    /// TypeMaps allow additional, user-defined data shared by all handles
+    /// [`TypeMap`]s allow additional, user-defined data shared by all handles
     /// to be attached to any track.
     ///
     /// Driver code will never attempt to lock access to this map,
     /// preventing deadlock/stalling.
+    #[must_use]
     pub fn typemap(&self) -> &RwLock<TypeMap> {
         &self.inner.typemap
     }
@@ -242,12 +216,95 @@ impl TrackHandle {
     /// Send a raw command to the [`Track`] object.
     ///
     /// [`Track`]: Track
-    pub fn send(&self, cmd: TrackCommand) -> TrackResult<()> {
+    pub(crate) fn send(&self, cmd: TrackCommand) -> TrackResult<()> {
         // As the send channels are unbounded, we can be reasonably certain
         // that send failure == cancellation.
         self.inner
             .command_channel
             .send(cmd)
-            .map_err(|_e| TrackError::Finished)
+            .map_err(|_e| ControlError::Finished)
+    }
+}
+
+/// Asynchronous reply for an operation applied to a [`TrackHandle`].
+///
+/// This object does not need to be `.await`ed for the driver to perform an action.
+/// Async threads can then call, e.g., [`TrackHandle::make_playable`], and safely drop
+/// this callback if the result isn't needed.
+pub struct TrackCallback<T> {
+    fail: bool,
+    rx: Receiver<Result<T, PlayError>>,
+}
+
+impl<T> TrackCallback<T> {
+    /// Consumes this handle to await a reply from the driver, blocking the current thread.
+    pub fn result(self) -> TrackResult<T> {
+        if self.fail {
+            Err(ControlError::Finished)
+        } else {
+            self.rx.recv()?.map_err(ControlError::Play)
+        }
+    }
+
+    /// Consumes this handle to await a reply from the driver asynchronously.
+    pub async fn result_async(self) -> TrackResult<T> {
+        if self.fail {
+            Err(ControlError::Finished)
+        } else {
+            self.rx.recv_async().await?.map_err(ControlError::Play)
+        }
+    }
+
+    #[must_use]
+    /// Returns `true` if the operation instantly failed due to the target track being
+    /// removed.
+    pub fn is_hung_up(&self) -> bool {
+        self.fail
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        constants::test_data::FILE_WAV_TARGET,
+        driver::Driver,
+        input::File,
+        tracks::Track,
+        Config,
+    };
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn make_playable_callback_fires() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file = File::new(FILE_WAV_TARGET);
+        let handle = driver.play(Track::from(file).pause());
+
+        let callback = handle.make_playable();
+        t_handle.spawn_ticker().await;
+        assert!(callback.result_async().await.is_ok());
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn seek_callback_fires() {
+        let (t_handle, config) = Config::test_cfg(true);
+        let mut driver = Driver::new(config.clone());
+
+        let file = File::new(FILE_WAV_TARGET);
+        let handle = driver.play(Track::from(file).pause());
+
+        let target = Duration::from_millis(500);
+        let callback = handle.seek(target);
+        t_handle.spawn_ticker().await;
+
+        let answer = callback.result_async().await;
+        assert!(answer.is_ok());
+        let answer = answer.unwrap();
+        let delta = Duration::from_millis(100);
+        assert!(answer > target - delta && answer < target + delta);
     }
 }
