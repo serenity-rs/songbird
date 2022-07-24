@@ -1,6 +1,6 @@
 //! Future types for gateway interactions.
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 use crate::error::ConnectionResult;
 use crate::{
     error::{JoinError, JoinResult},
@@ -16,12 +16,9 @@ use core::{
 };
 use flume::r#async::RecvFut;
 use pin_project::pin_project;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::time::{self, Timeout};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::time::{self, Timeout};
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 /// Future for a call to [`Call::join`].
 ///
 /// This future `await`s Discord's response *and*
@@ -43,7 +40,7 @@ pub struct Join {
     state: JoinState,
 }
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 impl Join {
     pub(crate) fn new(
         driver: RecvFut<'static, ConnectionResult<()>>,
@@ -58,7 +55,7 @@ impl Join {
     }
 }
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 impl Future for Join {
     type Output = JoinResult<()>;
 
@@ -99,7 +96,7 @@ impl Future for Join {
     }
 }
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 #[derive(Copy, Clone, Eq, PartialEq)]
 enum JoinState {
     BeforeGw,
@@ -140,6 +137,7 @@ impl Future for JoinGateway {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[pin_project(project = JoinClassProj)]
 enum JoinClass<T: 'static> {
     WithTimeout(#[pin] Timeout<RecvFut<'static, T>>),

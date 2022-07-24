@@ -13,15 +13,17 @@ impl ConnectionProgress {
             channel_id,
             guild_id,
             user_id,
-            ..Default::default()
+            token: None,
+            endpoint: None,
+            session_id: None,
         })
     }
 
     pub(crate) fn get_connection_info(&self) -> Option<&ConnectionInfo> {
-        use ConnectionProgress::*;
-        match self {
-            Complete(c) => Some(c),
-            _ => None,
+        if let Self::Complete(c) = self {
+            Some(c)
+        } else {
+            None
         }
     }
 
@@ -53,10 +55,7 @@ impl ConnectionProgress {
     }
 
     pub(crate) fn info(&self) -> Option<ConnectionInfo> {
-        match self {
-            ConnectionProgress::Complete(conn_info) => Some(conn_info.clone()),
-            _ => None,
-        }
+        self.get_connection_info().cloned()
     }
 
     pub(crate) fn apply_state_update(&mut self, session_id: String, channel_id: ChannelId) -> bool {
@@ -65,26 +64,24 @@ impl ConnectionProgress {
             *self = ConnectionProgress::new(self.guild_id(), self.user_id(), channel_id);
         }
 
-        use ConnectionProgress::*;
         match self {
-            Complete(c) => {
+            Self::Complete(c) => {
                 let should_reconn = c.session_id != session_id;
                 c.session_id = session_id;
                 should_reconn
             },
-            Incomplete(i) => i
+            Self::Incomplete(i) => i
                 .apply_state_update(session_id, channel_id)
                 .map(|info| {
-                    *self = Complete(info);
+                    *self = Self::Complete(info);
                 })
                 .is_some(),
         }
     }
 
     pub(crate) fn apply_server_update(&mut self, endpoint: String, token: String) -> bool {
-        use ConnectionProgress::*;
         match self {
-            Complete(c) => {
+            Self::Complete(c) => {
                 let should_reconn = c.endpoint != endpoint || c.token != token;
 
                 c.endpoint = endpoint;
@@ -92,10 +89,10 @@ impl ConnectionProgress {
 
                 should_reconn
             },
-            Incomplete(i) => i
+            Self::Incomplete(i) => i
                 .apply_server_update(endpoint, token)
                 .map(|info| {
-                    *self = Complete(info);
+                    *self = Self::Complete(info);
                 })
                 .is_some(),
         }
@@ -138,7 +135,7 @@ impl fmt::Debug for ConnectionInfo {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub(crate) struct Partial {
     pub channel_id: ChannelId,
     pub endpoint: Option<String>,

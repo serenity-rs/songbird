@@ -11,10 +11,7 @@ mod ws;
 pub use self::{core::*, disposal::*, events::*, mixer::*, udp_rx::*, udp_tx::*, ws::*};
 
 use flume::Sender;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::spawn;
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::spawn;
 use tracing::trace;
 
 #[derive(Clone, Debug)]
@@ -26,11 +23,11 @@ pub struct Interconnect {
 
 impl Interconnect {
     pub fn poison(&self) {
-        let _ = self.events.send(EventMessage::Poison);
+        drop(self.events.send(EventMessage::Poison));
     }
 
     pub fn poison_all(&self) {
-        let _ = self.mixer.send(MixerMessage::Poison);
+        drop(self.mixer.send(MixerMessage::Poison));
         self.poison();
     }
 
@@ -49,8 +46,9 @@ impl Interconnect {
         });
 
         // Make mixer aware of new targets...
-        let _ = self
-            .mixer
-            .send(MixerMessage::ReplaceInterconnect(self.clone()));
+        drop(
+            self.mixer
+                .send(MixerMessage::ReplaceInterconnect(self.clone())),
+        );
     }
 }

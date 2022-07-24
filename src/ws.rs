@@ -1,15 +1,7 @@
 use crate::model::Event;
 
 use async_trait::async_trait;
-#[cfg(not(feature = "tokio-02-marker"))]
 use async_tungstenite::{
-    self as tungstenite,
-    tokio::ConnectStream,
-    tungstenite::{error::Error as TungsteniteError, protocol::CloseFrame, Message},
-    WebSocketStream,
-};
-#[cfg(feature = "tokio-02-marker")]
-use async_tungstenite_compat::{
     self as tungstenite,
     tokio::ConnectStream,
     tungstenite::{error::Error as TungsteniteError, protocol::CloseFrame, Message},
@@ -25,8 +17,6 @@ use serenity::json::prelude::ValueAccess;
 use serenity::json::JsonError;
 #[cfg(not(feature = "tokio-02-marker"))]
 use tokio::time::{timeout, Duration};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::time::{timeout, Duration};
 use tracing::instrument;
 
 pub type WsStream = WebSocketStream<ConnectStream>;

@@ -5,12 +5,13 @@ use super::{
 };
 use crate::{
     constants::*,
-    driver::DecodeMode,
+    driver::{CryptoMode, DecodeMode},
     events::{internal_data::*, CoreContext},
 };
 use audiopus::{
     coder::Decoder as OpusDecoder,
     error::{Error as OpusError, ErrorCode},
+    packet::Packet as OpusPacket,
     Channels,
 };
 use discortp::{
@@ -21,11 +22,8 @@ use discortp::{
     PacketSize,
 };
 use flume::Receiver;
-use std::{collections::HashMap, sync::Arc};
-#[cfg(not(feature = "tokio-02-marker"))]
+use std::{collections::HashMap, convert::TryInto, sync::Arc};
 use tokio::{net::UdpSocket, select};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{net::udp::RecvHalf, select};
 use tracing::{error, instrument, trace, warn};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
@@ -55,27 +53,25 @@ enum PacketDecodeSize {
 
 impl PacketDecodeSize {
     fn bump_up(self) -> Self {
-        use PacketDecodeSize::*;
         match self {
-            TwentyMillis => ThirtyMillis,
-            ThirtyMillis => FortyMillis,
-            FortyMillis => SixtyMillis,
-            SixtyMillis | Max => Max,
+            Self::TwentyMillis => Self::ThirtyMillis,
+            Self::ThirtyMillis => Self::FortyMillis,
+            Self::FortyMillis => Self::SixtyMillis,
+            Self::SixtyMillis | Self::Max => Self::Max,
         }
     }
 
     fn can_bump_up(self) -> bool {
-        self != PacketDecodeSize::Max
+        self != Self::Max
     }
 
     fn len(self) -> usize {
-        use PacketDecodeSize::*;
         match self {
-            TwentyMillis => STEREO_FRAME_SIZE,
-            ThirtyMillis => (STEREO_FRAME_SIZE / 2) * 3,
-            FortyMillis => 2 * STEREO_FRAME_SIZE,
-            SixtyMillis => 3 * STEREO_FRAME_SIZE,
-            Max => 6 * STEREO_FRAME_SIZE,
+            Self::TwentyMillis => STEREO_FRAME_SIZE,
+            Self::ThirtyMillis => (STEREO_FRAME_SIZE / 2) * 3,
+            Self::FortyMillis => 2 * STEREO_FRAME_SIZE,
+            Self::SixtyMillis => 3 * STEREO_FRAME_SIZE,
+            Self::Max => 6 * STEREO_FRAME_SIZE,
         }
     }
 }
@@ -88,7 +84,7 @@ enum SpeakingDelta {
 }
 
 impl SsrcState {
-    fn new(pkt: RtpPacket<'_>) -> Self {
+    fn new(pkt: &RtpPacket<'_>) -> Self {
         Self {
             silent_frame_count: 5, // We do this to make the first speech packet fire an event.
             decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
@@ -100,7 +96,7 @@ impl SsrcState {
 
     fn process(
         &mut self,
-        pkt: RtpPacket<'_>,
+        pkt: &RtpPacket<'_>,
         data_offset: usize,
         data_trailer: usize,
         decode_mode: DecodeMode,
@@ -183,8 +179,11 @@ impl SsrcState {
             let mut out = vec![0; self.decode_size.len()];
 
             for _ in 0..missed_packets {
-                let missing_frame: Option<&[u8]> = None;
-                if let Err(e) = self.decoder.decode(missing_frame, &mut out[..], false) {
+                let missing_frame: Option<OpusPacket> = None;
+                let dest_samples = (&mut out[..])
+                    .try_into()
+                    .expect("Decode logic will cap decode buffer size at i32::MAX.");
+                if let Err(e) = self.decoder.decode(missing_frame, dest_samples, false) {
                     warn!("Issue while decoding for missed packet: {:?}.", e);
                 }
             }
@@ -196,10 +195,11 @@ impl SsrcState {
             // This should scan up to find the "correct" size that a source is using,
             // and then remember that.
             loop {
-                let tried_audio_len =
-                    self.decoder
-                        .decode(Some(&data[start..]), &mut out[..], false);
-
+                let tried_audio_len = self.decoder.decode(
+                    Some(data[start..].try_into()?),
+                    (&mut out[..]).try_into()?,
+                    false,
+                );
                 match tried_audio_len {
                     Ok(audio_len) => {
                         // Decoding to stereo: audio_len refers to sample count irrespective of channel count.
@@ -240,11 +240,7 @@ struct UdpRx {
     config: Config,
     packet_buffer: [u8; VOICE_PACKET_MAX],
     rx: Receiver<UdpRxMessage>,
-
-    #[cfg(not(feature = "tokio-02-marker"))]
     udp_socket: Arc<UdpSocket>,
-    #[cfg(feature = "tokio-02-marker")]
-    udp_socket: RecvHalf,
 }
 
 impl UdpRx {
@@ -256,15 +252,14 @@ impl UdpRx {
                     self.process_udp_message(interconnect, len);
                 }
                 msg = self.rx.recv_async() => {
-                    use UdpRxMessage::*;
                     match msg {
-                        Ok(ReplaceInterconnect(i)) => {
+                        Ok(UdpRxMessage::ReplaceInterconnect(i)) => {
                             *interconnect = i;
                         },
-                        Ok(SetConfig(c)) => {
+                        Ok(UdpRxMessage::SetConfig(c)) => {
                             self.config = c;
                         },
-                        Ok(Poison) | Err(_) => break,
+                        Err(flume::RecvError::Disconnected) => break,
                     }
                 }
             }
@@ -284,7 +279,7 @@ impl UdpRx {
 
         match demux::demux_mut(packet) {
             DemuxedMut::Rtp(mut rtp) => {
-                if !rtp_valid(rtp.to_immutable()) {
+                if !rtp_valid(&rtp.to_immutable()) {
                     error!("Illegal RTP message received.");
                     return;
                 }
@@ -303,9 +298,10 @@ impl UdpRx {
                     None
                 };
 
+                let rtp = rtp.to_immutable();
                 let (rtp_body_start, rtp_body_tail, decrypted) = packet_data.unwrap_or_else(|| {
                     (
-                        crypto_mode.payload_prefix_len(),
+                        CryptoMode::payload_prefix_len(),
                         crypto_mode.payload_suffix_len(),
                         false,
                     )
@@ -314,10 +310,10 @@ impl UdpRx {
                 let entry = self
                     .decoder_map
                     .entry(rtp.get_ssrc())
-                    .or_insert_with(|| SsrcState::new(rtp.to_immutable()));
+                    .or_insert_with(|| SsrcState::new(&rtp));
 
                 if let Ok((delta, audio)) = entry.process(
-                    rtp.to_immutable(),
+                    &rtp,
                     rtp_body_start,
                     rtp_body_tail,
                     self.config.decode_mode,
@@ -325,32 +321,32 @@ impl UdpRx {
                 ) {
                     match delta {
                         SpeakingDelta::Start => {
-                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                            drop(interconnect.events.send(EventMessage::FireCoreEvent(
                                 CoreContext::SpeakingUpdate(InternalSpeakingUpdate {
                                     ssrc: rtp.get_ssrc(),
                                     speaking: true,
                                 }),
-                            ));
+                            )));
                         },
                         SpeakingDelta::Stop => {
-                            let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                            drop(interconnect.events.send(EventMessage::FireCoreEvent(
                                 CoreContext::SpeakingUpdate(InternalSpeakingUpdate {
                                     ssrc: rtp.get_ssrc(),
                                     speaking: false,
                                 }),
-                            ));
+                            )));
                         },
-                        _ => {},
+                        SpeakingDelta::Same => {},
                     }
 
-                    let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                    drop(interconnect.events.send(EventMessage::FireCoreEvent(
                         CoreContext::VoicePacket(InternalVoicePacket {
                             audio,
                             packet: rtp.from_packet(),
                             payload_offset: rtp_body_start,
                             payload_end_pad: rtp_body_tail,
                         }),
-                    ));
+                    )));
                 } else {
                     warn!("RTP decoding/processing failed.");
                 }
@@ -370,33 +366,29 @@ impl UdpRx {
 
                 let (start, tail) = packet_data.unwrap_or_else(|| {
                     (
-                        crypto_mode.payload_prefix_len(),
+                        CryptoMode::payload_prefix_len(),
                         crypto_mode.payload_suffix_len(),
                     )
                 });
 
-                let _ =
-                    interconnect
-                        .events
-                        .send(EventMessage::FireCoreEvent(CoreContext::RtcpPacket(
-                            InternalRtcpPacket {
-                                packet: rtcp.from_packet(),
-                                payload_offset: start,
-                                payload_end_pad: tail,
-                            },
-                        )));
+                drop(interconnect.events.send(EventMessage::FireCoreEvent(
+                    CoreContext::RtcpPacket(InternalRtcpPacket {
+                        packet: rtcp.from_packet(),
+                        payload_offset: start,
+                        payload_end_pad: tail,
+                    }),
+                )));
             },
             DemuxedMut::FailedParse(t) => {
                 warn!("Failed to parse message of type {:?}.", t);
             },
-            _ => {
+            DemuxedMut::TooSmall => {
                 warn!("Illegal UDP packet from voice server.");
             },
         }
     }
 }
 
-#[cfg(not(feature = "tokio-02-marker"))]
 #[instrument(skip(interconnect, rx, cipher))]
 pub(crate) async fn runner(
     mut interconnect: Interconnect,
@@ -409,32 +401,7 @@ pub(crate) async fn runner(
 
     let mut state = UdpRx {
         cipher,
-        decoder_map: Default::default(),
-        config,
-        packet_buffer: [0u8; VOICE_PACKET_MAX],
-        rx,
-        udp_socket,
-    };
-
-    state.run(&mut interconnect).await;
-
-    trace!("UDP receive handle stopped.");
-}
-
-#[cfg(feature = "tokio-02-marker")]
-#[instrument(skip(interconnect, rx, cipher))]
-pub(crate) async fn runner(
-    mut interconnect: Interconnect,
-    rx: Receiver<UdpRxMessage>,
-    cipher: Cipher,
-    config: Config,
-    udp_socket: RecvHalf,
-) {
-    trace!("UDP receive handle started.");
-
-    let mut state = UdpRx {
-        cipher,
-        decoder_map: Default::default(),
+        decoder_map: HashMap::new(),
         config,
         packet_buffer: [0u8; VOICE_PACKET_MAX],
         rx,
@@ -447,6 +414,6 @@ pub(crate) async fn runner(
 }
 
 #[inline]
-fn rtp_valid(packet: RtpPacket<'_>) -> bool {
+fn rtp_valid(packet: &RtpPacket<'_>) -> bool {
     packet.get_version() == RTP_VERSION && packet.get_payload_type() == RTP_PROFILE_TYPE
 }

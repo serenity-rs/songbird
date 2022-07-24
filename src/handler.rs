@@ -1,22 +1,18 @@
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 use crate::{driver::Driver, error::ConnectionResult};
 use crate::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
     info::{ConnectionInfo, ConnectionProgress},
     join::*,
-    shards::Shard,
+    shards::{Shard, VoiceUpdate},
     Config,
 };
 use flume::Sender;
-#[cfg(not(feature = "serenity"))]
-use serde_json::json;
-#[cfg(feature = "serenity")]
-use serenity::json::json;
 use std::fmt::Debug;
 use tracing::instrument;
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug)]
@@ -28,7 +24,7 @@ enum Return {
     // second indicates that the driver successfully connected.
     // The first is needed to cancel a timeout as the driver can/should
     // have separate connection timing/retry config.
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     Conn(Sender<()>, Sender<ConnectionResult<()>>),
 }
 
@@ -41,12 +37,12 @@ enum Return {
 /// [`Driver`]: struct@Driver
 #[derive(Clone, Debug)]
 pub struct Call {
-    #[cfg(not(feature = "driver-core"))]
+    #[cfg(not(feature = "driver"))]
     config: Config,
 
     connection: Option<(ConnectionProgress, Return)>,
 
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// The internal controller of the voice connection monitor thread.
     driver: Driver,
 
@@ -77,12 +73,7 @@ impl Call {
         G: Into<GuildId> + Debug,
         U: Into<UserId> + Debug,
     {
-        Self::new_raw_cfg(
-            guild_id.into(),
-            Some(ws),
-            user_id.into(),
-            Default::default(),
-        )
+        Self::new_raw_cfg(guild_id.into(), Some(ws), user_id.into(), Config::default())
     }
 
     /// Creates a new Call, configuring the driver as specified.
@@ -111,7 +102,7 @@ impl Call {
         G: Into<GuildId> + Debug,
         U: Into<UserId> + Debug,
     {
-        Self::new_raw_cfg(guild_id.into(), None, user_id.into(), Default::default())
+        Self::new_raw_cfg(guild_id.into(), None, user_id.into(), Config::default())
     }
 
     /// Creates a new standalone Call from the given configuration file.
@@ -127,10 +118,10 @@ impl Call {
 
     fn new_raw_cfg(guild_id: GuildId, ws: Option<Shard>, user_id: UserId, config: Config) -> Self {
         Call {
-            #[cfg(not(feature = "driver-core"))]
+            #[cfg(not(feature = "driver"))]
             config,
             connection: None,
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             driver: Driver::new(config),
             guild_id,
             self_deaf: false,
@@ -145,9 +136,9 @@ impl Call {
         match &self.connection {
             Some((ConnectionProgress::Complete(c), Return::Info(tx))) => {
                 // It's okay if the receiver hung up.
-                let _ = tx.send(c.clone());
+                drop(tx.send(c.clone()));
             },
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             Some((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) => {
                 // It's okay if the receiver hung up.
                 let _ = first_tx.send(());
@@ -199,7 +190,7 @@ impl Call {
                 self.leave().await?;
                 true
             } else if conn.0.channel_id() == channel_id {
-                let _ = tx.send(completion_generator(self));
+                drop(tx.send(completion_generator(self)));
                 false
             } else {
                 // not in progress, and/or a channel change.
@@ -210,7 +201,7 @@ impl Call {
         })
     }
 
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// Connect or switch to the given voice channel by its Id.
     ///
     /// This function acts as a future in two stages:
@@ -231,7 +222,7 @@ impl Call {
         self._join(channel_id.into()).await
     }
 
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     async fn _join(&mut self, channel_id: ChannelId) -> JoinResult<Join> {
         let (tx, rx) = flume::unbounded();
         let (gw_tx, gw_rx) = flume::unbounded();
@@ -363,7 +354,7 @@ impl Call {
     fn leave_local(&mut self) {
         self.connection = None;
 
-        #[cfg(feature = "driver-core")]
+        #[cfg(feature = "driver")]
         self.driver.leave();
     }
 
@@ -380,7 +371,7 @@ impl Call {
     pub async fn mute(&mut self, mute: bool) -> JoinResult<()> {
         self.self_mute = mute;
 
-        #[cfg(feature = "driver-core")]
+        #[cfg(feature = "driver")]
         self.driver.mute(mute);
 
         self.update().await
@@ -423,7 +414,7 @@ impl Call {
     where
         C: Into<ChannelId> + Debug,
     {
-        self._update_state(session_id, channel_id.map(|c| c.into()))
+        self._update_state(session_id, channel_id.map(Into::into));
     }
 
     fn _update_state(&mut self, session_id: String, channel_id: Option<ChannelId>) {
@@ -451,24 +442,20 @@ impl Call {
     #[instrument(skip(self))]
     async fn update(&mut self) -> JoinResult<()> {
         if let Some(ws) = self.ws.as_mut() {
-            let map = json!({
-                "op": 4,
-                "d": {
-                    "channel_id": self.connection.as_ref().map(|c| c.0.channel_id().0),
-                    "guild_id": self.guild_id.0,
-                    "self_deaf": self.self_deaf,
-                    "self_mute": self.self_mute,
-                }
-            });
-
-            ws.send(map).await
+            ws.update_voice_state(
+                self.guild_id,
+                self.connection.as_ref().map(|c| c.0.channel_id()),
+                self.self_deaf,
+                self.self_mute,
+            )
+            .await
         } else {
             Err(JoinError::NoSender)
         }
     }
 }
 
-#[cfg(not(feature = "driver-core"))]
+#[cfg(not(feature = "driver"))]
 impl Call {
     /// Access this call handler's configuration.
     pub fn config(&self) -> &Config {
@@ -486,7 +473,7 @@ impl Call {
     }
 }
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 impl Deref for Call {
     type Target = Driver;
 
@@ -495,7 +482,7 @@ impl Deref for Call {
     }
 }
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 impl DerefMut for Call {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.driver

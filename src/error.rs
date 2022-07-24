@@ -4,12 +4,12 @@
 use futures::channel::mpsc::TrySendError;
 #[cfg(feature = "serenity")]
 use serenity::gateway::InterMessage;
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 use std::{error::Error, fmt};
 #[cfg(feature = "twilight")]
-use twilight_gateway::shard::CommandError;
+use twilight_gateway::{cluster::ClusterCommandError, shard::CommandError};
 
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 #[derive(Debug)]
 #[non_exhaustive]
 /// Error returned when a manager or call handler is
@@ -36,7 +36,7 @@ pub enum JoinError {
     ///
     /// [the `Call`'s configuration]: crate::Config
     TimedOut,
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// The driver failed to establish a voice connection.
     ///
     /// *Users should `leave` the server on the gateway before
@@ -46,11 +46,14 @@ pub enum JoinError {
     /// Serenity-specific WebSocket send error.
     Serenity(TrySendError<InterMessage>),
     #[cfg(feature = "twilight")]
-    /// Twilight-specific WebSocket send error.
-    Twilight(CommandError),
+    /// Twilight-specific WebSocket send error returned when using a shard cluster.
+    TwilightCluster(ClusterCommandError),
+    #[cfg(feature = "twilight")]
+    /// Twilight-specific WebSocket send error when explicitly using a single shard.
+    TwilightShard(CommandError),
 }
 
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 impl JoinError {
     /// Indicates whether this failure may have left (or been
     /// caused by) Discord's gateway state being in an
@@ -62,7 +65,7 @@ impl JoinError {
         matches!(self, JoinError::TimedOut)
     }
 
-    #[cfg(feature = "driver-core")]
+    #[cfg(feature = "driver")]
     /// Indicates whether this failure can be reattempted via
     /// [`Driver::connect`] with retreived connection info.
     ///
@@ -75,7 +78,7 @@ impl JoinError {
     }
 }
 
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 impl fmt::Display for JoinError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "failed to join voice channel: ")?;
@@ -84,17 +87,19 @@ impl fmt::Display for JoinError {
             JoinError::NoSender => write!(f, "no gateway destination"),
             JoinError::NoCall => write!(f, "tried to leave a non-existent call"),
             JoinError::TimedOut => write!(f, "gateway response from Discord timed out"),
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             JoinError::Driver(_) => write!(f, "establishing connection failed"),
             #[cfg(feature = "serenity")]
             JoinError::Serenity(e) => e.fmt(f),
             #[cfg(feature = "twilight")]
-            JoinError::Twilight(e) => e.fmt(f),
+            JoinError::TwilightCluster(e) => e.fmt(f),
+            #[cfg(feature = "twilight")]
+            JoinError::TwilightShard(e) => e.fmt(f),
         }
     }
 }
 
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 impl Error for JoinError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
@@ -102,43 +107,52 @@ impl Error for JoinError {
             JoinError::NoSender => None,
             JoinError::NoCall => None,
             JoinError::TimedOut => None,
-            #[cfg(feature = "driver-core")]
+            #[cfg(feature = "driver")]
             JoinError::Driver(e) => Some(e),
             #[cfg(feature = "serenity")]
             JoinError::Serenity(e) => e.source(),
             #[cfg(feature = "twilight")]
-            JoinError::Twilight(e) => e.source(),
+            JoinError::TwilightCluster(e) => e.source(),
+            #[cfg(feature = "twilight")]
+            JoinError::TwilightShard(e) => e.source(),
         }
     }
 }
 
-#[cfg(all(feature = "serenity", feature = "gateway-core"))]
+#[cfg(all(feature = "serenity", feature = "gateway"))]
 impl From<TrySendError<InterMessage>> for JoinError {
     fn from(e: TrySendError<InterMessage>) -> Self {
         JoinError::Serenity(e)
     }
 }
 
-#[cfg(all(feature = "twilight", feature = "gateway-core"))]
+#[cfg(all(feature = "twilight", feature = "gateway"))]
 impl From<CommandError> for JoinError {
     fn from(e: CommandError) -> Self {
-        JoinError::Twilight(e)
+        JoinError::TwilightShard(e)
     }
 }
 
-#[cfg(all(feature = "driver-core", feature = "gateway-core"))]
+#[cfg(all(feature = "twilight", feature = "gateway"))]
+impl From<ClusterCommandError> for JoinError {
+    fn from(e: ClusterCommandError) -> Self {
+        JoinError::TwilightCluster(e)
+    }
+}
+
+#[cfg(all(feature = "driver", feature = "gateway"))]
 impl From<ConnectionError> for JoinError {
     fn from(e: ConnectionError) -> Self {
         JoinError::Driver(e)
     }
 }
 
-#[cfg(feature = "gateway-core")]
+#[cfg(feature = "gateway")]
 /// Convenience type for Discord gateway error handling.
 pub type JoinResult<T> = Result<T, JoinError>;
 
-#[cfg(feature = "driver-core")]
+#[cfg(feature = "driver")]
 pub use crate::{
     driver::connection::error::{Error as ConnectionError, Result as ConnectionResult},
-    tracks::{TrackError, TrackResult},
+    tracks::{ControlError, PlayError, TrackResult},
 };

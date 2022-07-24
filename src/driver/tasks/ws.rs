@@ -11,22 +11,13 @@ use crate::{
     ws::{Error as WsError, ReceiverExt, SenderExt, WsStream},
     ConnectionInfo,
 };
-#[cfg(not(feature = "tokio-02-marker"))]
 use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
-#[cfg(feature = "tokio-02-marker")]
-use async_tungstenite_compat::tungstenite::protocol::frame::coding::CloseCode;
 use flume::Receiver;
 use rand::random;
 use std::time::Duration;
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{
     select,
     time::{sleep_until, Instant},
-};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{
-    select,
-    time::{delay_until as sleep_until, Instant},
 };
 use tracing::{debug, info, instrument, trace, warn};
 
@@ -149,7 +140,7 @@ impl AuxNetwork {
                                 }
                             }
                         },
-                        Err(_) | Ok(WsMessage::Poison) => {
+                        Err(flume::RecvError::Disconnected) => {
                             break;
                         },
                     }
@@ -160,13 +151,13 @@ impl AuxNetwork {
                 self.dont_send = true;
 
                 if should_reconnect {
-                    let _ = interconnect.core.send(CoreMessage::Reconnect);
+                    drop(interconnect.core.send(CoreMessage::Reconnect));
                 } else {
-                    let _ = interconnect.core.send(CoreMessage::SignalWsClosure(
+                    drop(interconnect.core.send(CoreMessage::SignalWsClosure(
                         self.attempt_idx,
                         self.info.clone(),
                         ws_reason,
-                    ));
+                    )));
                     break;
                 }
             }
@@ -195,19 +186,17 @@ impl AuxNetwork {
     fn process_ws(&mut self, interconnect: &Interconnect, value: GatewayEvent) {
         match value {
             GatewayEvent::Speaking(ev) => {
-                let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                drop(interconnect.events.send(EventMessage::FireCoreEvent(
                     CoreContext::SpeakingStateUpdate(ev),
-                ));
+                )));
             },
             GatewayEvent::ClientConnect(ev) => {
-                let _ = interconnect
-                    .events
-                    .send(EventMessage::FireCoreEvent(CoreContext::ClientConnect(ev)));
+                debug!("Received discontinued ClientConnect: {:?}", ev);
             },
             GatewayEvent::ClientDisconnect(ev) => {
-                let _ = interconnect.events.send(EventMessage::FireCoreEvent(
+                drop(interconnect.events.send(EventMessage::FireCoreEvent(
                     CoreContext::ClientDisconnect(ev),
-                ));
+                )));
             },
             GatewayEvent::HeartbeatAck(ev) => {
                 if let Some(nonce) = self.last_heartbeat_nonce.take() {

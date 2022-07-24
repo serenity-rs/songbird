@@ -1,23 +1,28 @@
 //! Handlers for sending packets over sharded connections.
 
-use crate::error::{JoinError, JoinResult};
+use crate::{error::JoinResult, id::*};
+use async_trait::async_trait;
+#[cfg(feature = "serenity")]
+use dashmap::DashMap;
+use derivative::Derivative;
 #[cfg(feature = "serenity")]
 use futures::channel::mpsc::{TrySendError, UnboundedSender as Sender};
 #[cfg(feature = "serenity")]
 use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock};
-#[cfg(not(feature = "serenity"))]
-use serde_json::Value;
+use serde_json::json;
 #[cfg(feature = "serenity")]
 use serenity::gateway::InterMessage;
 #[cfg(feature = "serenity")]
-use serenity::json::Value;
-#[cfg(feature = "serenity")]
-use std::{collections::HashMap, result::Result as StdResult, sync::Arc};
+use std::result::Result as StdResult;
+use std::sync::Arc;
 use tracing::{debug, error};
 #[cfg(feature = "twilight")]
 use twilight_gateway::{Cluster, Shard as TwilightShard};
+#[cfg(feature = "twilight")]
+use twilight_model::gateway::payload::outgoing::update_voice_state::UpdateVoiceState as TwilightVoiceState;
 
-#[derive(Debug)]
+#[derive(Derivative)]
+#[derivative(Debug)]
 #[non_exhaustive]
 /// Source of individual shard connection handles.
 pub enum Sharder {
@@ -26,19 +31,38 @@ pub enum Sharder {
     Serenity(SerenitySharder),
     #[cfg(feature = "twilight")]
     /// Twilight-specific wrapper for sharder state initialised by the user.
-    Twilight(Cluster),
+    TwilightCluster(Arc<Cluster>),
+    #[cfg(feature = "twilight")]
+    /// Twilight-specific wrapper for a single shard initialised by the user.
+    TwilightShard(Arc<TwilightShard>),
+    /// A generic shard handle source.
+    Generic(#[derivative(Debug = "ignore")] Arc<dyn GenericSharder + Send + Sync>),
+}
+
+/// Trait for a generic shard cluster or other handle source.
+///
+/// This allows any Discord library to be integrated with Songbird, and offers a source
+/// of generic shard handles.
+#[async_trait]
+pub trait GenericSharder {
+    /// Get access to a new shard
+    fn get_shard(&self, shard_id: u64) -> Option<Arc<dyn VoiceUpdate + Send + Sync>>;
 }
 
 impl Sharder {
-    #[allow(unreachable_patterns)]
     /// Returns a new handle to the required inner shard.
+    #[allow(clippy::must_use_candidate)] // get_or_insert_shard_handle has side effects
     pub fn get_shard(&self, shard_id: u64) -> Option<Shard> {
         match self {
             #[cfg(feature = "serenity")]
-            Sharder::Serenity(s) => Some(Shard::Serenity(s.get_or_insert_shard_handle(shard_id))),
+            Sharder::Serenity(s) => Some(Shard::Serenity(
+                s.get_or_insert_shard_handle(shard_id as u32),
+            )),
             #[cfg(feature = "twilight")]
-            Sharder::Twilight(t) => t.shard(shard_id).map(Shard::Twilight),
-            _ => None,
+            Sharder::TwilightCluster(t) => Some(Shard::TwilightCluster(t.clone(), shard_id)),
+            #[cfg(feature = "twilight")]
+            Sharder::TwilightShard(t) => Some(Shard::TwilightShard(t.clone())),
+            Sharder::Generic(src) => src.get_shard(shard_id).map(Shard::Generic),
         }
     }
 }
@@ -46,18 +70,20 @@ impl Sharder {
 #[cfg(feature = "serenity")]
 impl Sharder {
     #[allow(unreachable_patterns)]
-    pub(crate) fn register_shard_handle(&self, shard_id: u64, sender: Sender<InterMessage>) {
-        match self {
-            Sharder::Serenity(s) => s.register_shard_handle(shard_id, sender),
-            _ => error!("Called serenity management function on a non-serenity Songbird instance."),
+    pub(crate) fn register_shard_handle(&self, shard_id: u32, sender: Sender<InterMessage>) {
+        if let Sharder::Serenity(s) = self {
+            s.register_shard_handle(shard_id, sender);
+        } else {
+            error!("Called serenity management function on a non-serenity Songbird instance.");
         }
     }
 
     #[allow(unreachable_patterns)]
-    pub(crate) fn deregister_shard_handle(&self, shard_id: u64) {
-        match self {
-            Sharder::Serenity(s) => s.deregister_shard_handle(shard_id),
-            _ => error!("Called serenity management function on a non-serenity Songbird instance."),
+    pub(crate) fn deregister_shard_handle(&self, shard_id: u32) {
+        if let Sharder::Serenity(s) = self {
+            s.deregister_shard_handle(shard_id);
+        } else {
+            error!("Called serenity management function on a non-serenity Songbird instance.");
         }
     }
 }
@@ -68,29 +94,22 @@ impl Sharder {
 ///
 /// This is updated and maintained by the library, and is designed to prevent
 /// message loss during rebalances and reconnects.
-pub struct SerenitySharder(PRwLock<HashMap<u64, Arc<SerenityShardHandle>>>);
+pub struct SerenitySharder(DashMap<u32, Arc<SerenityShardHandle>>);
 
 #[cfg(feature = "serenity")]
 impl SerenitySharder {
-    fn get_or_insert_shard_handle(&self, shard_id: u64) -> Arc<SerenityShardHandle> {
-        ({
-            let map_read = self.0.read();
-            map_read.get(&shard_id).cloned()
-        })
-        .unwrap_or_else(|| {
-            let mut map_read = self.0.write();
-            map_read.entry(shard_id).or_default().clone()
-        })
+    fn get_or_insert_shard_handle(&self, shard_id: u32) -> Arc<SerenityShardHandle> {
+        self.0.entry(shard_id).or_default().clone()
     }
 
-    fn register_shard_handle(&self, shard_id: u64, sender: Sender<InterMessage>) {
+    fn register_shard_handle(&self, shard_id: u32, sender: Sender<InterMessage>) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 
         handle.register(sender);
     }
 
-    fn deregister_shard_handle(&self, shard_id: u64) {
+    fn deregister_shard_handle(&self, shard_id: u32) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 
@@ -98,7 +117,8 @@ impl SerenitySharder {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Derivative, Clone)]
+#[derivative(Debug)]
 #[non_exhaustive]
 /// A reference to an individual websocket connection.
 pub enum Shard {
@@ -107,22 +127,81 @@ pub enum Shard {
     Serenity(Arc<SerenityShardHandle>),
     #[cfg(feature = "twilight")]
     /// Handle to a twilight shard spawned from a cluster.
-    Twilight(TwilightShard),
+    TwilightCluster(Arc<Cluster>, u64),
+    #[cfg(feature = "twilight")]
+    /// Handle to a twilight shard spawned from a cluster.
+    TwilightShard(Arc<TwilightShard>),
+    /// Handle to a generic shard instance.
+    Generic(#[derivative(Debug = "ignore")] Arc<dyn VoiceUpdate + Send + Sync>),
 }
 
-impl Shard {
-    #[allow(unreachable_patterns)]
-    /// Send a JSON message to the inner shard handle.
-    pub async fn send(&mut self, msg: Value) -> JoinResult<()> {
+#[async_trait]
+impl VoiceUpdate for Shard {
+    async fn update_voice_state(
+        &self,
+        guild_id: GuildId,
+        channel_id: Option<ChannelId>,
+        self_deaf: bool,
+        self_mute: bool,
+    ) -> JoinResult<()> {
         match self {
             #[cfg(feature = "serenity")]
-            Shard::Serenity(s) => s.send(InterMessage::Json(msg))?,
+            Shard::Serenity(handle) => {
+                let map = json!({
+                    "op": 4,
+                    "d": {
+                        "channel_id": channel_id.map(|c| c.0),
+                        "guild_id": guild_id.0,
+                        "self_deaf": self_deaf,
+                        "self_mute": self_mute,
+                    }
+                });
+
+                handle.send(InterMessage::json(map.to_string()))?;
+                Ok(())
+            },
             #[cfg(feature = "twilight")]
-            Shard::Twilight(t) => t.command(&msg).await?,
-            _ => return Err(JoinError::NoSender),
+            Shard::TwilightCluster(handle, shard_id) => {
+                let channel_id = channel_id.map(|c| c.0).map(From::from);
+                let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
+                handle.command(*shard_id, &cmd).await?;
+                Ok(())
+            },
+            #[cfg(feature = "twilight")]
+            Shard::TwilightShard(handle) => {
+                let channel_id = channel_id.map(|c| c.0).map(From::from);
+                let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
+                handle.command(&cmd).await?;
+                Ok(())
+            },
+            Shard::Generic(g) =>
+                g.update_voice_state(guild_id, channel_id, self_deaf, self_mute)
+                    .await,
         }
-        Ok(())
     }
+}
+
+/// Trait for a generic shard handle to send voice state updates to Discord.
+///
+/// This allows any Discord library to be integrated with Songbird, and is intended to
+/// wrap a message channel to a single shard. Songbird only needs to send `VoiceStateUpdate`s
+/// to Discord to function.
+///
+/// Generic libraries must be sure to call [`Call::update_server`] and [`Call::update_state`]
+/// in response to their own received messages.
+///
+/// [`Call::update_server`]: crate::Call::update_server
+/// [`Call::update_state`]: crate::Call::update_state
+#[async_trait]
+pub trait VoiceUpdate {
+    /// Send a voice update message to the inner shard handle.
+    async fn update_voice_state(
+        &self,
+        guild_id: GuildId,
+        channel_id: Option<ChannelId>,
+        self_deaf: bool,
+        self_mute: bool,
+    ) -> JoinResult<()>;
 }
 
 #[cfg(feature = "serenity")]

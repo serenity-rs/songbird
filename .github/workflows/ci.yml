@@ -27,6 +27,7 @@ jobs:
   test:
     name: Test
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+    rustflags: ${{ matrix.rustflags || '' }}
 
     strategy:
       fail-fast: false
@@ -39,7 +40,7 @@ jobs:
           - Windows
           - driver only
           - gateway only
-          - legacy tokio
+          - simd json
 
         include:
           - name: beta
@@ -56,11 +57,9 @@ jobs:
           - name: gateway only
             features: serenity-rustls
             dont-test: true
-          - name: legacy tokio
-            features: serenity-rustls-tokio-02 driver-tokio-02
-            dont-test: true
-          - name: simd json 
+          - name: simd json
             features: simdjson serenity-rustls driver gateway serenity/simdjson
+            rustflags: -C target-cpu=native
             dont-test: true
 
     steps:
@@ -81,6 +80,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libopus-dev
 
+      - name: Install yt-dlp (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          sudo wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp
+          sudo chmod a+rx /usr/local/bin/yt-dlp
+
+      - name: Install yt-dlp (Windows)
+        if: runner.os == 'Windows'
+        run: choco install yt-dlp
+
       - name: Setup cache
         if: runner.os != 'macOS'
         uses: actions/cache@v2
@@ -90,6 +99,10 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-test-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Set RUSTFLAGS
+        if: runner.os != 'Windows'
+        run: echo "RUSTFLAGS=${{ runner.rustflags }}" >> $GITHUB_ENV
 
       - name: Build all features
         if: matrix.features == ''
@@ -181,9 +194,9 @@ jobs:
       - name: 'Build serenity/voice_receive'
         working-directory: examples
         run: cargo build -p voice_receive
-      - name: 'Build serenity/voice_storage'
+      - name: 'Build serenity/voice_cached_audio'
         working-directory: examples
-        run: cargo build -p voice_storage
+        run: cargo build -p voice_cached_audio
       - name: 'Build twilight'
         working-directory: examples
         run: cargo build -p twilight

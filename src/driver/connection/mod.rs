@@ -7,7 +7,6 @@ use super::{
 };
 use crate::{
     constants::*,
-    events::CoreContext,
     model::{
         payload::{Identify, Resume, SelectProtocol},
         Event as GatewayEvent,
@@ -20,10 +19,7 @@ use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPa
 use error::{Error, Result};
 use flume::Sender;
 use std::{net::IpAddr, str::FromStr, sync::Arc};
-#[cfg(not(feature = "tokio-02-marker"))]
 use tokio::{net::UdpSocket, spawn, time::timeout};
-#[cfg(feature = "tokio-02-marker")]
-use tokio_compat::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
 use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher};
@@ -116,11 +112,7 @@ impl Connection {
             return Err(Error::CryptoModeUnavailable);
         }
 
-        #[cfg(not(feature = "tokio-02-marker"))]
         let udp = UdpSocket::bind("0.0.0.0:0").await?;
-        #[cfg(feature = "tokio-02-marker")]
-        let mut udp = UdpSocket::bind("0.0.0.0:0").await?;
-
         udp.connect((ready.ip, ready.port)).await?;
 
         // Follow Discord's IP Discovery procedures, in case NAT tunnelling is needed.
@@ -185,14 +177,11 @@ impl Connection {
         let (udp_sender_msg_tx, udp_sender_msg_rx) = flume::unbounded();
         let (udp_receiver_msg_tx, udp_receiver_msg_rx) = flume::unbounded();
 
-        #[cfg(not(feature = "tokio-02-marker"))]
         let (udp_rx, udp_tx) = {
             let udp_rx = Arc::new(udp);
             let udp_tx = Arc::clone(&udp_rx);
             (udp_rx, udp_tx)
         };
-        #[cfg(feature = "tokio-02-marker")]
-        let (udp_rx, udp_tx) = udp.split();
 
         let ssrc = ready.ssrc;
 
@@ -210,10 +199,6 @@ impl Connection {
         interconnect
             .mixer
             .send(MixerMessage::SetConn(mix_conn, ready.ssrc))?;
-
-        let _ = interconnect
-            .events
-            .send(EventMessage::FireCoreEvent(CoreContext::SsrcKnown(ssrc)));
 
         spawn(ws_task::runner(
             interconnect.clone(),

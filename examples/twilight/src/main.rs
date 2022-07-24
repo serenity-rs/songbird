@@ -18,28 +18,31 @@
 //! THIS SOFTWARE.
 //!
 //!
-//! [basic lavalink bot]: https://github.com/twilight-rs/twilight/tree/main/lavalink/examples/basic-lavalink-bot
+//! [basic lavalink bot]: https://github.com/twilight-rs/twilight/tree/main/examples/lavalink-basic-bot.rs
 
 use futures::StreamExt;
 use songbird::{
-    input::{Input, Restartable},
+    input::{Compose, YoutubeDl},
     tracks::{PlayMode, TrackHandle},
     Songbird,
 };
-use std::{collections::HashMap, env, error::Error, future::Future, sync::Arc};
+use std::{collections::HashMap, env, error::Error, future::Future, num::NonZeroU64, sync::Arc};
 use tokio::sync::RwLock;
 use twilight_gateway::{Cluster, Event, Intents};
 use twilight_http::Client as HttpClient;
-use twilight_model::{channel::Message, gateway::payload::MessageCreate, id::GuildId};
+use twilight_model::{
+    channel::Message,
+    gateway::payload::incoming::MessageCreate,
+    id::{marker::GuildMarker, Id},
+};
 use twilight_standby::Standby;
 
 type State = Arc<StateRef>;
 
 #[derive(Debug)]
 struct StateRef {
-    cluster: Cluster,
     http: HttpClient,
-    trackdata: RwLock<HashMap<GuildId, TrackHandle>>,
+    trackdata: RwLock<HashMap<Id<GuildMarker>, TrackHandle>>,
     songbird: Songbird,
     standby: Standby,
 }
@@ -65,22 +68,21 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         let http = HttpClient::new(token.clone());
         let user_id = http.current_user().exec().await?.model().await?.id;
 
-        let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
+        let intents = Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT | Intents::GUILD_VOICE_STATES;
         let (cluster, events) = Cluster::new(token, intents).await?;
         cluster.up().await;
 
-        let songbird = Songbird::twilight(cluster.clone(), user_id);
+        let songbird = Songbird::twilight(Arc::new(cluster), user_id);
 
         (
             events,
             Arc::new(StateRef {
-                cluster,
                 http,
                 trackdata: Default::default(),
                 songbird,
                 standby: Standby::new(),
-            },
-        ))
+            }),
+        )
     };
 
     while let Some((_, event)) = events.next().await {
@@ -126,6 +128,8 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     let channel_id = msg.content.parse::<u64>()?;
 
     let guild_id = msg.guild_id.ok_or("Can't join a non-guild channel.")?;
+    let channel_id =
+        NonZeroU64::new(channel_id).ok_or("Joined voice channel must have nonzero ID.")?;
 
     let (_handle, success) = state.songbird.join(guild_id, channel_id).await;
 
@@ -188,21 +192,12 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 
     let guild_id = msg.guild_id.unwrap();
 
-    if let Ok(song) = Restartable::ytdl(msg.content.clone(), false).await {
-        let input = Input::from(song);
-
+    let mut src = YoutubeDl::new(reqwest::Client::new(), msg.content.clone());
+    if let Ok(metadata) = src.aux_metadata().await {
         let content = format!(
             "Playing **{:?}** by **{:?}**",
-            input
-                .metadata
-                .track
-                .as_ref()
-                .unwrap_or(&"<UNKNOWN>".to_string()),
-            input
-                .metadata
-                .artist
-                .as_ref()
-                .unwrap_or(&"<UNKNOWN>".to_string()),
+            metadata.track.as_ref().unwrap_or(&"<UNKNOWN>".to_string()),
+            metadata.artist.as_ref().unwrap_or(&"<UNKNOWN>".to_string()),
         );
 
         state
@@ -214,7 +209,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 
         if let Some(call_lock) = state.songbird.get(guild_id) {
             let mut call = call_lock.lock().await;
-            let handle = call.play_source(input);
+            let handle = call.play_input(src.into());
 
             let mut store = state.trackdata.write().await;
             store.insert(guild_id, handle);
@@ -249,11 +244,11 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
             PlayMode::Play => {
                 let _success = handle.pause();
                 false
-            }
+            },
             _ => {
                 let _success = handle.play();
                 true
-            }
+            },
         };
 
         let action = if paused { "Unpaused" } else { "Paused" };
@@ -299,12 +294,8 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     let store = state.trackdata.read().await;
 
     let content = if let Some(handle) = store.get(&guild_id) {
-        if handle.is_seekable() {
-            let _success = handle.seek_time(std::time::Duration::from_secs(position));
-            format!("Seeked to {}s", position)
-        } else {
-            format!("Track is not compatible with seeking!")
-        }
+        let _success = handle.seek(std::time::Duration::from_secs(position));
+        format!("Seeking to {}s", position)
     } else {
         format!("No track to seek over!")
     };

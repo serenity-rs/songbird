@@ -4,10 +4,7 @@ use crate::{
     model::{CloseCode as VoiceCloseCode, FromPrimitive},
     ws::Error as WsError,
 };
-#[cfg(not(feature = "tokio-02-marker"))]
 use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
-#[cfg(feature = "tokio-02-marker")]
-use async_tungstenite_compat::tungstenite::protocol::frame::coding::CloseCode;
 
 /// Voice connection details gathered at termination or failure.
 ///
@@ -87,21 +84,19 @@ pub enum DisconnectReason {
 
 impl From<&ConnectionError> for DisconnectReason {
     fn from(e: &ConnectionError) -> Self {
-        use ConnectionError::*;
-
         match e {
-            AttemptDiscarded => Self::AttemptDiscarded,
-            CryptoModeInvalid
-            | CryptoModeUnavailable
-            | EndpointUrl
-            | ExpectedHandshake
-            | IllegalDiscoveryResponse
-            | IllegalIp
-            | Json(_) => Self::ProtocolViolation,
-            Io(_) => Self::Io,
-            Crypto(_) | InterconnectFailure(_) => Self::Internal,
-            Ws(ws) => ws.into(),
-            TimedOut => Self::TimedOut,
+            ConnectionError::AttemptDiscarded => Self::AttemptDiscarded,
+            ConnectionError::CryptoModeInvalid
+            | ConnectionError::CryptoModeUnavailable
+            | ConnectionError::EndpointUrl
+            | ConnectionError::ExpectedHandshake
+            | ConnectionError::IllegalDiscoveryResponse
+            | ConnectionError::IllegalIp
+            | ConnectionError::Json(_) => Self::ProtocolViolation,
+            ConnectionError::Io(_) => Self::Io,
+            ConnectionError::Crypto(_) | ConnectionError::InterconnectFailure(_) => Self::Internal,
+            ConnectionError::Ws(ws) => ws.into(),
+            ConnectionError::TimedOut => Self::TimedOut,
         }
     }
 }
