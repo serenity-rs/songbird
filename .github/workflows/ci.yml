@@ -58,7 +58,7 @@ jobs:
             features: serenity-rustls
             dont-test: true
           - name: simd json
-            features: simdjson serenity-rustls driver gateway serenity/simdjson
+            features: simd-json serenity-rustls driver gateway serenity/simd_json
             rustflags: -C target-cpu=native
             dont-test: true
 
