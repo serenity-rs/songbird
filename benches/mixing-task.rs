@@ -23,6 +23,7 @@ use songbird::{
     },
     input::{cached::Compressed, codecs::*, Input, RawAdapter},
     tracks,
+    Config,
 };
 use std::io::Cursor;
 use tokio::runtime::{Handle, Runtime};
@@ -33,6 +34,7 @@ use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher, KEY_SIZE};
 
 fn dummied_mixer(
     handle: Handle,
+    softclip: bool,
 ) -> (
     Mixer,
     (
@@ -55,7 +57,9 @@ fn dummied_mixer(
         mixer: mix_tx,
     };
 
-    let mut out = Mixer::new(mix_rx, handle, ic, Default::default());
+    let config = Config::default().use_softclip(softclip);
+
+    let mut out = Mixer::new(mix_rx, handle, ic, config);
 
     let fake_conn = MixerConnection {
         cipher: Cipher::new_from_slice(&vec![0u8; KEY_SIZE]).unwrap(),
@@ -74,6 +78,7 @@ fn dummied_mixer(
 fn mixer_float(
     num_tracks: usize,
     handle: Handle,
+    softclip: bool,
 ) -> (
     Mixer,
     (
@@ -83,7 +88,7 @@ fn mixer_float(
         Receiver<UdpTxMessage>,
     ),
 ) {
-    let mut out = dummied_mixer(handle);
+    let mut out = dummied_mixer(handle, softclip);
 
     let floats = utils::make_sine(10 * STEREO_FRAME_SIZE, true);
 
@@ -113,7 +118,7 @@ fn mixer_float_drop(
         Receiver<UdpTxMessage>,
     ),
 ) {
-    let mut out = dummied_mixer(handle);
+    let mut out = dummied_mixer(handle, true);
 
     for i in 0..num_tracks {
         let floats = utils::make_sine((i / 5) * STEREO_FRAME_SIZE, true);
@@ -143,7 +148,7 @@ fn mixer_opus(
 ) {
     // should add a single opus-based track.
     // make this fully loaded to prevent any perf cost there.
-    let mut out = dummied_mixer(handle.clone());
+    let mut out = dummied_mixer(handle.clone(), false);
 
     let floats = utils::make_sine(6 * STEREO_FRAME_SIZE, true);
 
@@ -182,7 +187,20 @@ fn no_passthrough(c: &mut Criterion) {
             &track_count,
             |b, i| {
                 b.iter_batched_ref(
-                    || black_box(mixer_float(*i, rt.handle().clone())),
+                    || black_box(mixer_float(*i, rt.handle().clone(), true)),
+                    |input| {
+                        black_box(input.0.cycle());
+                    },
+                    BatchSize::SmallInput,
+                )
+            },
+        );
+        group.bench_with_input(
+            BenchmarkId::new("Single Packet (No Soft-Clip)", track_count),
+            &track_count,
+            |b, i| {
+                b.iter_batched_ref(
+                    || black_box(mixer_float(*i, rt.handle().clone(), false)),
                     |input| {
                         black_box(input.0.cycle());
                     },
@@ -195,7 +213,7 @@ fn no_passthrough(c: &mut Criterion) {
             &track_count,
             |b, i| {
                 b.iter_batched_ref(
-                    || black_box(mixer_float(*i, rt.handle().clone())),
+                    || black_box(mixer_float(*i, rt.handle().clone(), true)),
                     |input| {
                         for i in 0..5 {
                             black_box(input.0.cycle());

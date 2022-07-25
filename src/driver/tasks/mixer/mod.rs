@@ -569,7 +569,7 @@ impl Mixer {
     }
 
     pub fn cycle(&mut self) -> Result<()> {
-        let mut mix_buffer = [0f32; STEREO_FRAME_SIZE];
+        let mut softclip_buffer = [0f32; STEREO_FRAME_SIZE];
 
         // symph_mix is an `AudioBuffer` (planar format), we need to convert this
         // later into an interleaved `SampleBuffer` for libopus.
@@ -635,22 +635,31 @@ impl Mixer {
             self.silence_frames = 5;
 
             if let MixType::MixedPcm(n) = mix_len {
-                // FIXME: When impling #134, prevent this copy from happening if softclip disabled.
-                // Offer sample_buffer.samples() to prep_and_send_packet.
+                #[cfg(test)]
+                let do_copy = true;
+                #[cfg(not(test))]
+                let do_copy = self.config.use_softclip;
 
-                // to apply soft_clip, we need this to be in a normal f32 buffer.
-                // unfortunately, SampleBuffer does not expose a `.samples_mut()`.
-                // hence, an extra copy...
-                let samples_to_copy = self.config.mix_mode.channels() * n;
+                if do_copy {
+                    // to apply soft_clip, we need this to be in a normal f32 buffer.
+                    // unfortunately, SampleBuffer does not expose a `.samples_mut()`.
+                    // hence, an extra copy...
+                    //
+                    // also just copy in for #[cfg(test)] to simplify the below logic
+                    // for handing out audio data to the outside world.
+                    let samples_to_copy = self.config.mix_mode.channels() * n;
 
-                (&mut mix_buffer[..samples_to_copy])
-                    .copy_from_slice(&self.sample_buffer.samples()[..samples_to_copy]);
+                    (&mut softclip_buffer[..samples_to_copy])
+                        .copy_from_slice(&self.sample_buffer.samples()[..samples_to_copy]);
+                }
 
-                self.soft_clip.apply(
-                    (&mut mix_buffer[..])
-                        .try_into()
-                        .expect("Mix buffer is known to have a valid sample count (softclip)."),
-                )?;
+                if self.config.use_softclip {
+                    self.soft_clip.apply(
+                        (&mut softclip_buffer[..])
+                            .try_into()
+                            .expect("Mix buffer is known to have a valid sample count (softclip)."),
+                    )?;
+                }
             }
         }
 
@@ -661,6 +670,8 @@ impl Mixer {
         // Wait till the right time to send this packet:
         // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
         self.march_deadline();
+
+        let send_buffer = self.config.use_softclip.then(|| &softclip_buffer[..]);
 
         #[cfg(test)]
         if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
@@ -677,17 +688,17 @@ impl Mixer {
                     OutputMessage::Passthrough(opus_frame)
                 },
                 MixType::MixedPcm(_) => OutputMessage::Mixed(
-                    mix_buffer[..self.config.mix_mode.sample_count_in_frame()].to_vec(),
+                    softclip_buffer[..self.config.mix_mode.sample_count_in_frame()].to_vec(),
                 ),
             };
 
             drop(tx.send(msg.into()));
         } else {
-            self.prep_and_send_packet(&mix_buffer, mix_len)?;
+            self.prep_and_send_packet(send_buffer, mix_len)?;
         }
 
         #[cfg(not(test))]
-        self.prep_and_send_packet(&mix_buffer, mix_len)?;
+        self.prep_and_send_packet(send_buffer, mix_len)?;
 
         // Zero out all planes of the mix buffer if any audio was written.
         if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
@@ -704,7 +715,8 @@ impl Mixer {
     }
 
     #[inline]
-    fn prep_and_send_packet(&mut self, buffer: &[f32; 1920], mix_len: MixType) -> Result<()> {
+    fn prep_and_send_packet(&mut self, buffer: Option<&[f32]>, mix_len: MixType) -> Result<()> {
+        let send_buffer = buffer.unwrap_or_else(|| self.sample_buffer.samples());
         let conn = self
             .conn_active
             .as_mut()
@@ -726,7 +738,7 @@ impl Mixer {
                 MixType::MixedPcm(_samples) => {
                     let total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
                     self.encoder.encode_float(
-                        &buffer[..self.config.mix_mode.sample_count_in_frame()],
+                        &send_buffer[..self.config.mix_mode.sample_count_in_frame()],
                         &mut payload[TAG_SIZE..total_payload_space],
                     )?
                 },
