@@ -88,6 +88,20 @@ pub struct Config {
     /// [`Driver`]: crate::driver::Driver
     pub driver_retry: Retry,
     #[cfg(feature = "driver")]
+    /// Configures whether or not each mixed audio packet is [soft-clipped] into the
+    /// [-1, 1] audio range.
+    ///
+    /// Defaults to `true`, preventing clipping and dangerously loud audio from being sent.
+    ///
+    /// **This operation adds ~3% cost to a standard (non-passthrough) mix cycle.**
+    /// If you *know* that your bot will only play one sound at a time and that
+    /// your volume is between `0.0` and `1.0`, then you can disable soft-clipping
+    /// for a performance boost. If you are playing several sounds at once, do not
+    /// disable this unless you make sure to reduce the volume of each sound.
+    ///
+    /// [soft-clipped]: https://opus-codec.org/docs/opus_api-1.3.1/group__opus__decoder.html#gaff99598b352e8939dded08d96e125e0b
+    pub use_softclip: bool,
+    #[cfg(feature = "driver")]
     /// Configures the maximum amount of time to wait for an attempted voice
     /// connection to Discord.
     ///
@@ -137,6 +151,8 @@ impl Default for Config {
             #[cfg(feature = "driver")]
             preallocated_tracks: 1,
             #[cfg(feature = "driver")]
+            use_softclip: true,
+            #[cfg(feature = "driver")]
             driver_retry: Retry::default(),
             #[cfg(feature = "driver")]
             driver_timeout: Some(Duration::from_secs(10)),
@@ -181,6 +197,13 @@ impl Config {
     #[must_use]
     pub fn preallocated_tracks(mut self, preallocated_tracks: usize) -> Self {
         self.preallocated_tracks = preallocated_tracks;
+        self
+    }
+
+    /// Sets this `Config`'s number to enable/disable soft-clipping sent audio.
+    #[must_use]
+    pub fn use_softclip(mut self, use_softclip: bool) -> Self {
+        self.use_softclip = use_softclip;
         self
     }
 
