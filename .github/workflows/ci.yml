@@ -27,7 +27,6 @@ jobs:
   test:
     name: Test
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
-    rustflags: ${{ matrix.rustflags || '' }}
 
     strategy:
       fail-fast: false
@@ -102,7 +101,7 @@ jobs:
 
       - name: Set RUSTFLAGS
         if: runner.os != 'Windows'
-        run: echo "RUSTFLAGS=${{ runner.rustflags }}" >> $GITHUB_ENV
+        run: echo "RUSTFLAGS=${{ matrix.rustflags || '' }}" >> $GITHUB_ENV
 
       - name: Build all features
         if: matrix.features == ''
