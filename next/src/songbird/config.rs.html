@@ -479,14 +479,14 @@
 
     <span class="doccomment">/// Sets this `Config`&#39;s symphonia codec registry.</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codec_registry</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">codec_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CODEC_REGISTRY</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codec_registry</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">codec_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CodecRegistry</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">codec_registry</span> <span class="op">=</span> <span class="ident">codec_registry</span>;
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Sets this `Config`&#39;s symphonia format registry/probe set.</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_registry</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">PROBE</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_registry</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Probe</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">format_registry</span> <span class="op">=</span> <span class="ident">format_registry</span>;
         <span class="self">self</span>
     }

@@ -13,7 +13,7 @@ decoding and management of synchronous byte sources (i.e., any items which
 <code>impl</code> <a href="https://doc.rust-lang.org/std/io/trait.Read.html"><code>Read</code></a>).</p>
 <p>Songbird adds support for the Opus codec to symphonia via <a href="codecs/struct.OpusDecoder.html"><code>OpusDecoder</code></a>,
 the <a href="https://github.com/bwmarrin/dca">DCA1</a> file format via <a href="codecs/struct.DcaReader.html"><code>DcaReader</code></a>, and a simple PCM adapter via <a href="codecs/struct.RawReader.html"><code>RawReader</code></a>;
-the <a href="static@codecs::PROBE">format</a> and <a href="static@codecs::CODEC_REGISTRY">codec registries</a> in <a href="codecs/index.html" title="codecs"><code>codecs</code></a> install these on top of those
+the <a href="codecs/static.PROBE.html">format</a> and <a href="codecs/static.CODEC_REGISTRY.html">codec registries</a> in <a href="codecs/index.html" title="codecs"><code>codecs</code></a> install these on top of those
 enabled in your <code>Cargo.toml</code> when you include symphonia.</p>
 <h3 id="common-sources"><a href="#common-sources">Common sources</a></h3>
 <ul>

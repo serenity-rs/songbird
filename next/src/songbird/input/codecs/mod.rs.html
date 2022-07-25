@@ -35,11 +35,6 @@
 <span id="27">27</span>
 <span id="28">28</span>
 <span id="29">29</span>
-<span id="30">30</span>
-<span id="31">31</span>
-<span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Codec registries extending Symphonia&#39;s probe and registry formats with Opus and DCA support.</span>
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">dca</span>;
@@ -47,33 +42,28 @@
 <span class="kw">mod</span> <span class="ident">raw</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">dca::DcaReader</span>, <span class="ident">opus::OpusDecoder</span>, <span class="ident">raw</span>::<span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident">lazy_static::lazy_static</span>;
+<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 <span class="kw">use</span> <span class="ident">symphonia</span>::{
     <span class="ident">core</span>::{<span class="ident">codecs::CodecRegistry</span>, <span class="ident">probe::Probe</span>},
     <span class="ident">default</span>::<span class="kw-2">*</span>,
 };
 
-<span class="macro">lazy_static!</span> {
-    <span class="doccomment">/// Default Symphonia CodecRegistry, including the (audiopus-backed)</span>
-    <span class="doccomment">/// Opus codec.</span>
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">CODEC_REGISTRY</span>: <span class="ident">CodecRegistry</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">CodecRegistry::new</span>();
-        <span class="ident">register_enabled_codecs</span>(<span class="kw-2">&amp;mut</span> <span class="ident">registry</span>);
-        <span class="ident">registry</span>.<span class="ident">register_all</span>::<span class="op">&lt;</span><span class="ident">OpusDecoder</span><span class="op">&gt;</span>();
-        <span class="ident">registry</span>
-    };
-}
+<span class="doccomment">/// Default Symphonia [`CodecRegistry`], including the (audiopus-backed) Opus codec.</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">CODEC_REGISTRY</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">CodecRegistry</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">registry</span> <span class="op">=</span> <span class="ident">CodecRegistry::new</span>();
+    <span class="ident">register_enabled_codecs</span>(<span class="kw-2">&amp;mut</span> <span class="ident">registry</span>);
+    <span class="ident">registry</span>.<span class="ident">register_all</span>::<span class="op">&lt;</span><span class="ident">OpusDecoder</span><span class="op">&gt;</span>();
+    <span class="ident">registry</span>
+});
 
-<span class="macro">lazy_static!</span> {
-    <span class="doccomment">/// Default Symphonia Probe, including DCA format support.</span>
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">PROBE</span>: <span class="ident">Probe</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">probe</span> <span class="op">=</span> <span class="ident">Probe::default</span>();
-        <span class="ident">probe</span>.<span class="ident">register_all</span>::<span class="op">&lt;</span><span class="ident">DcaReader</span><span class="op">&gt;</span>();
-        <span class="ident">probe</span>.<span class="ident">register_all</span>::<span class="op">&lt;</span><span class="ident">RawReader</span><span class="op">&gt;</span>();
-        <span class="ident">register_enabled_formats</span>(<span class="kw-2">&amp;mut</span> <span class="ident">probe</span>);
-        <span class="ident">probe</span>
-    };
-}
+<span class="doccomment">/// Default Symphonia Probe, including DCA format support.</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">PROBE</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Probe</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">probe</span> <span class="op">=</span> <span class="ident">Probe::default</span>();
+    <span class="ident">probe</span>.<span class="ident">register_all</span>::<span class="op">&lt;</span><span class="ident">DcaReader</span><span class="op">&gt;</span>();
+    <span class="ident">probe</span>.<span class="ident">register_all</span>::<span class="op">&lt;</span><span class="ident">RawReader</span><span class="op">&gt;</span>();
+    <span class="ident">register_enabled_formats</span>(<span class="kw-2">&amp;mut</span> <span class="ident">probe</span>);
+    <span class="ident">probe</span>
+});
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
 </body></html>
