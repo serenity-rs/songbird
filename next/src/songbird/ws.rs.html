@@ -207,7 +207,7 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::model::Event</span>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::JsonError</span>, <span class="ident">model::Event</span>};
 
 <span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
 <span class="kw">use</span> <span class="ident">async_tungstenite</span>::{
@@ -217,7 +217,6 @@
     <span class="ident">WebSocketStream</span>,
 };
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">SinkExt</span>, <span class="ident">StreamExt</span>, <span class="ident">TryStreamExt</span>};
-<span class="kw">use</span> <span class="ident">serde_json::Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>;
 <span class="kw">use</span> <span class="ident">tokio::time</span>::{<span class="ident">timeout</span>, <span class="ident">Duration</span>};
 <span class="kw">use</span> <span class="ident">tracing::instrument</span>;
 
@@ -301,7 +300,7 @@
 <span class="attribute">#[<span class="ident">async_trait</span>]</span>
 <span class="kw">impl</span> <span class="ident">SenderExt</span> <span class="kw">for</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">WsStream</span>, <span class="ident">Message</span><span class="op">&gt;</span> {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_json</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">serde_json::to_string</span>(<span class="ident">value</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident"><span class="kw">crate</span>::json::to_string</span>(<span class="ident">value</span>)
             .<span class="ident">map</span>(<span class="ident">Message::Text</span>)
             .<span class="ident">map_err</span>(<span class="ident">Error::from</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">m</span>))<span class="question-mark">?</span>
@@ -312,7 +311,7 @@
 <span class="attribute">#[<span class="ident">async_trait</span>]</span>
 <span class="kw">impl</span> <span class="ident">SenderExt</span> <span class="kw">for</span> <span class="ident">WsStream</span> {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_json</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">serde_json::to_string</span>(<span class="ident">value</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident"><span class="kw">crate</span>::json::to_string</span>(<span class="ident">value</span>)
             .<span class="ident">map</span>(<span class="ident">Message::Text</span>)
             .<span class="ident">map_err</span>(<span class="ident">Error::from</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">m</span>))<span class="question-mark">?</span>
@@ -323,7 +322,8 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">convert_ws_message</span>(<span class="ident">message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">message</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">Message::Text</span>(<span class="ident">payload</span>)) =&gt; <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">payload</span>).<span class="ident">map</span>(<span class="prelude-val">Some</span>)<span class="question-mark">?</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">Message::Text</span>(<span class="kw-2">mut</span> <span class="ident">payload</span>)) =&gt;
+            <span class="ident"><span class="kw">crate</span>::json::from_str</span>(<span class="ident">payload</span>.<span class="ident">as_mut_str</span>()).<span class="ident">map</span>(<span class="prelude-val">Some</span>)<span class="question-mark">?</span>,
         <span class="prelude-val">Some</span>(<span class="ident">Message::Binary</span>(<span class="ident">bytes</span>)) =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedBinaryMessage</span>(<span class="ident">bytes</span>));
         },
@@ -409,5 +409,5 @@
     <span class="prelude-val">Ok</span>(<span class="ident">stream</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (848090dcd 2022-07-22)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
 </body></html>
