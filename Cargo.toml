@@ -21,19 +21,9 @@ serde_json = "1"
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
 
-[dependencies.once_cell]
-version = "1"
-optional = true
-
 [dependencies.async-trait]
 optional = true
 version = "0.1"
-
-[dependencies.async-tungstenite]
-default-features = false
-features = ["tokio-runtime"]
-optional = true
-version = "0.17"
 
 [dependencies.audiopus]
 optional = true
@@ -58,6 +48,10 @@ version = "0.10"
 
 [dependencies.futures]
 version = "0.3"
+
+[dependencies.once_cell]
+version = "1"
+optional = true
 
 [dependencies.parking_lot]
 optional = true
@@ -127,6 +121,10 @@ optional = true
 version = "1.0"
 default-features = false
 
+[dependencies.tokio-tungstenite]
+optional = true
+version = "0.17"
+
 [dependencies.tokio-util]
 optional = true
 version = "0.7"
@@ -184,7 +182,6 @@ gateway = [
 ]
 driver = [
     "async-trait",
-    "async-tungstenite",
     "audiopus",
     "byteorder",
     "discortp",
@@ -201,7 +198,6 @@ driver = [
     "symphonia",
     "symphonia-core",
     "rusty_pool",
-    "tokio-util",
     "tokio/fs",
     "tokio/io-util",
     "tokio/macros",
@@ -210,13 +206,15 @@ driver = [
     "tokio/rt",
     "tokio/sync",
     "tokio/time",
+    "tokio-tungstenite",
+    "tokio-util",
     "typemap_rev",
     "url",
     "uuid",
     "xsalsa20poly1305",
 ]
-rustls = ["async-tungstenite/tokio-rustls-webpki-roots", "reqwest/rustls-tls", "rustls-marker"]
-native = ["async-tungstenite/tokio-native-tls", "native-marker", "reqwest/native-tls"]
+rustls = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls", "rustls-marker"]
+native = ["tokio-tungstenite/native-tls", "native-marker", "reqwest/native-tls"]
 serenity-rustls = ["serenity/rustls_backend", "rustls", "gateway", "serenity-deps"]
 serenity-native = ["serenity/native_tls_backend", "native", "gateway", "serenity-deps"]
 twilight-rustls = ["twilight", "twilight-gateway/rustls-native-roots", "rustls", "gateway"]
