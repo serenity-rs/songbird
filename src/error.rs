@@ -2,8 +2,12 @@
 
 #[cfg(feature = "serenity")]
 use futures::channel::mpsc::TrySendError;
+#[cfg(not(feature = "simd-json"))]
+pub use serde_json::Error as JsonError;
 #[cfg(feature = "serenity")]
 use serenity::gateway::InterMessage;
+#[cfg(feature = "simd-json")]
+pub use simd_json::Error as JsonError;
 #[cfg(feature = "gateway")]
 use std::{error::Error, fmt};
 #[cfg(feature = "twilight")]

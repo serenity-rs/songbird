@@ -199,7 +199,7 @@ impl Compressed {
         )?;
         let mut metabytes = b"DCA1\0\0\0\0".to_vec();
         let orig_len = metabytes.len();
-        serde_json::to_writer(&mut metabytes, &metadata)?;
+        crate::json::to_writer(&mut metabytes, &metadata)?;
         let meta_len = (metabytes.len() - orig_len)
             .try_into()
             .map_err(|_| CodecCacheError::MetadataTooLarge)?;
