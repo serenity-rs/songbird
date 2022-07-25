@@ -126,7 +126,7 @@
     <span class="ident">model</span>::{<span class="ident">CloseCode</span> <span class="kw">as</span> <span class="ident">VoiceCloseCode</span>, <span class="ident">FromPrimitive</span>},
     <span class="ident">ws::Error</span> <span class="kw">as</span> <span class="ident">WsError</span>,
 };
-<span class="kw">use</span> <span class="ident">async_tungstenite::tungstenite::protocol::frame::coding::CloseCode</span>;
+<span class="kw">use</span> <span class="ident">tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode</span>;
 
 <span class="doccomment">/// Voice connection details gathered at termination or failure.</span>
 <span class="doccomment">///</span>
