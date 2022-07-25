@@ -277,6 +277,29 @@
 <span id="269">269</span>
 <span id="270">270</span>
 <span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">driver</span>::{<span class="ident">retry::Retry</span>, <span class="ident">CryptoMode</span>, <span class="ident">DecodeMode</span>, <span class="ident">MixMode</span>},
@@ -367,6 +390,20 @@
     <span class="doccomment">/// [`Driver`]: crate::driver::Driver</span>
     <span class="kw">pub</span> <span class="ident">driver_retry</span>: <span class="ident">Retry</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// Configures whether or not each mixed audio packet is [soft-clipped] into the</span>
+    <span class="doccomment">/// [-1, 1] audio range.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to `true`, preventing clipping and dangerously loud audio from being sent.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **This operation adds ~3% cost to a standard (non-passthrough) mix cycle.**</span>
+    <span class="doccomment">/// If you *know* that your bot will only play one sound at a time and that</span>
+    <span class="doccomment">/// your volume is between `0.0` and `1.0`, then you can disable soft-clipping</span>
+    <span class="doccomment">/// for a performance boost. If you are playing several sounds at once, do not</span>
+    <span class="doccomment">/// disable this unless you make sure to reduce the volume of each sound.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [soft-clipped]: https://opus-codec.org/docs/opus_api-1.3.1/group__opus__decoder.html#gaff99598b352e8939dded08d96e125e0b</span>
+    <span class="kw">pub</span> <span class="ident">use_softclip</span>: <span class="ident">bool</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
     <span class="doccomment">/// Configures the maximum amount of time to wait for an attempted voice</span>
     <span class="doccomment">/// connection to Discord.</span>
     <span class="doccomment">///</span>
@@ -416,6 +453,8 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
             <span class="ident">preallocated_tracks</span>: <span class="number">1</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
+            <span class="ident">use_softclip</span>: <span class="bool-val">true</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
             <span class="ident">driver_retry</span>: <span class="ident">Retry::default</span>(),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
             <span class="ident">driver_timeout</span>: <span class="prelude-val">Some</span>(<span class="ident">Duration::from_secs</span>(<span class="number">10</span>)),
@@ -460,6 +499,13 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">preallocated_tracks</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">preallocated_tracks</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">preallocated_tracks</span> <span class="op">=</span> <span class="ident">preallocated_tracks</span>;
+        <span class="self">self</span>
+    }
+
+    <span class="doccomment">/// Sets this `Config`&#39;s number to enable/disable soft-clipping sent audio.</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_softclip</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">use_softclip</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">use_softclip</span> <span class="op">=</span> <span class="ident">use_softclip</span>;
         <span class="self">self</span>
     }
 
