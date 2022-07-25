@@ -59,13 +59,15 @@ impl YoutubeDl {
     async fn query(&mut self) -> Result<Output, AudioStreamError> {
         let ytdl_args = ["-j", &self.url, "-f", "ba[abr>0][vcodec=none]/best"];
 
-        let output = Command::new(self.program)
+        let mut output = Command::new(self.program)
             .args(&ytdl_args)
             .output()
             .await
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
-        let stdout: Output = serde_json::from_slice(&output.stdout[..])
+        // NOTE: must be mut for simd-json.
+        #[allow(clippy::unnecessary_mut_passed)]
+        let stdout: Output = crate::json::from_slice(&mut output.stdout[..])
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
         self.metadata = Some(stdout.as_aux_metadata());

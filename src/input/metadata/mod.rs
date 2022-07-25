@@ -1,3 +1,4 @@
+use crate::error::JsonError;
 use std::time::Duration;
 use symphonia_core::{meta::Metadata as ContainerMetadata, probe::ProbedMetadata};
 
@@ -47,8 +48,8 @@ pub struct AuxMetadata {
 
 impl AuxMetadata {
     /// Extract metadata and details from the output of `ffprobe -of json`.
-    pub fn from_ffprobe_json(value: &[u8]) -> Result<Self, serde_json::Error> {
-        let output: ffprobe::Output = serde_json::from_slice(value)?;
+    pub fn from_ffprobe_json(value: &mut [u8]) -> Result<Self, JsonError> {
+        let output: ffprobe::Output = crate::json::from_slice(value)?;
 
         Ok(output.into_aux_metadata())
     }

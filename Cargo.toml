@@ -104,6 +104,11 @@ features = ["voice", "gateway"]
 optional = true
 version = "0.1"
 
+[dependencies.simd-json]
+optional = true
+features = ["serde_impl"]
+version = "0.6.0"
+
 [dependencies.streamcatcher]
 optional = true
 version = "1"
@@ -224,6 +229,8 @@ twilight = ["twilight-model"]
 zlib-simd = ["twilight-gateway/zlib-simd"]
 zlib-stock = ["twilight-gateway/zlib-stock"]
 serenity-deps = ["async-trait"]
+
+simdjson = []
 
 rustls-marker = []
 native-marker = []
