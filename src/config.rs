@@ -200,14 +200,14 @@ impl Config {
 
     /// Sets this `Config`'s symphonia codec registry.
     #[must_use]
-    pub fn codec_registry(mut self, codec_registry: &'static CODEC_REGISTRY) -> Self {
+    pub fn codec_registry(mut self, codec_registry: &'static CodecRegistry) -> Self {
         self.codec_registry = codec_registry;
         self
     }
 
     /// Sets this `Config`'s symphonia format registry/probe set.
     #[must_use]
-    pub fn format_registry(mut self, format_registry: &'static PROBE) -> Self {
+    pub fn format_registry(mut self, format_registry: &'static Probe) -> Self {
         self.format_registry = format_registry;
         self
     }
