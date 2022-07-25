@@ -68,13 +68,13 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
             "-i",
         ];
 
-        let output = Command::new("ffprobe")
+        let mut output = Command::new("ffprobe")
             .args(&args)
             .output()
             .await
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
-        AuxMetadata::from_ffprobe_json(&output.stdout[..])
+        AuxMetadata::from_ffprobe_json(&mut output.stdout[..])
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))
     }
 }

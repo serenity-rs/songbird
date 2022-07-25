@@ -107,6 +107,12 @@ pub use serenity_voice_model as model;
 #[cfg(feature = "driver")]
 pub use typemap_rev as typemap;
 
+// Re-export serde-json APIs locally to minimise conditional config elsewhere.
+#[cfg(not(feature = "simd-json"))]
+pub(crate) use serde_json as json;
+#[cfg(feature = "simd-json")]
+pub(crate) use simd_json::serde as json;
+
 #[cfg(feature = "driver")]
 pub use crate::{
     driver::Driver,

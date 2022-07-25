@@ -1,4 +1,4 @@
-use crate::model::Event;
+use crate::{error::JsonError, model::Event};
 
 use async_trait::async_trait;
 use async_tungstenite::{
@@ -8,7 +8,6 @@ use async_tungstenite::{
     WebSocketStream,
 };
 use futures::{SinkExt, StreamExt, TryStreamExt};
-use serde_json::Error as JsonError;
 use tokio::time::{timeout, Duration};
 use tracing::instrument;
 
@@ -92,7 +91,7 @@ impl ReceiverExt for WsStream {
 #[async_trait]
 impl SenderExt for SplitSink<WsStream, Message> {
     async fn send_json(&mut self, value: &Event) -> Result<()> {
-        Ok(serde_json::to_string(value)
+        Ok(crate::json::to_string(value)
             .map(Message::Text)
             .map_err(Error::from)
             .map(|m| self.send(m))?
@@ -103,7 +102,7 @@ impl SenderExt for SplitSink<WsStream, Message> {
 #[async_trait]
 impl SenderExt for WsStream {
     async fn send_json(&mut self, value: &Event) -> Result<()> {
-        Ok(serde_json::to_string(value)
+        Ok(crate::json::to_string(value)
             .map(Message::Text)
             .map_err(Error::from)
             .map(|m| self.send(m))?
@@ -114,7 +113,8 @@ impl SenderExt for WsStream {
 #[inline]
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     Ok(match message {
-        Some(Message::Text(payload)) => serde_json::from_str(&payload).map(Some)?,
+        Some(Message::Text(mut payload)) =>
+            crate::json::from_str(payload.as_mut_str()).map(Some)?,
         Some(Message::Binary(bytes)) => {
             return Err(Error::UnexpectedBinaryMessage(bytes));
         },

@@ -39,6 +39,7 @@ jobs:
           - Windows
           - driver only
           - gateway only
+          - simd json
 
         include:
           - name: beta
@@ -54,6 +55,10 @@ jobs:
             dont-test: true
           - name: gateway only
             features: serenity-rustls
+            dont-test: true
+          - name: simd json
+            features: simd-json serenity-rustls driver gateway serenity/simd_json
+            rustflags: -C target-cpu=native
             dont-test: true
 
     steps:
@@ -93,6 +98,10 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-test-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Set RUSTFLAGS
+        if: runner.os != 'Windows'
+        run: echo "RUSTFLAGS=${{ matrix.rustflags || '' }}" >> $GITHUB_ENV
 
       - name: Build all features
         if: matrix.features == ''
