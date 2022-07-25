@@ -1,6 +1,5 @@
-use crate::input::AudioStreamError;
+use crate::{error::JsonError, input::AudioStreamError};
 use audiopus::error::Error as OpusError;
-use serde_json::Error as JsonError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},

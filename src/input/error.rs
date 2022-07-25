@@ -1,11 +1,6 @@
 use std::{error::Error, fmt::Display, time::Duration};
 use symphonia_core::errors::Error as SymphError;
 
-#[cfg(not(feature = "serenity"))]
-use serde_json::{Error as JsonError, Value};
-#[cfg(feature = "serenity")]
-use serenity::json::prelude::{JsonError, Value};
-
 /// Errors encountered when creating an [`AudioStream`] or requesting metadata
 /// from a [`Compose`].
 ///
