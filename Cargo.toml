@@ -59,10 +59,6 @@ version = "0.10"
 [dependencies.futures]
 version = "0.3"
 
-[dependencies.lazy_static]
-optional = true
-version = "1"
-
 [dependencies.parking_lot]
 optional = true
 version = "0.12"
@@ -194,7 +190,7 @@ driver = [
     "discortp",
     "reqwest",
     "flume",
-    "lazy_static",
+    "once_cell",
     "parking_lot",
     "rand",
     "ringbuf",
