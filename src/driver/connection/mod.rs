@@ -12,7 +12,7 @@ use crate::{
         Event as GatewayEvent,
         ProtocolData,
     },
-    ws::{self, ReceiverExt, SenderExt, WsStream},
+    ws::WsStream,
     ConnectionInfo,
 };
 use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
@@ -23,12 +23,6 @@ use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
 use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher};
-
-#[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
-use ws::create_rustls_client;
-
-#[cfg(feature = "native-marker")]
-use ws::create_native_tls_client;
 
 pub(crate) struct Connection {
     pub(crate) info: ConnectionInfo,
@@ -58,11 +52,7 @@ impl Connection {
     ) -> Result<Connection> {
         let url = generate_url(&mut info.endpoint)?;
 
-        #[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
-        let mut client = create_rustls_client(url).await?;
-
-        #[cfg(feature = "native-marker")]
-        let mut client = create_native_tls_client(url).await?;
+        let mut client = WsStream::connect(url).await?;
 
         let mut hello = None;
         let mut ready = None;
@@ -241,12 +231,7 @@ impl Connection {
 
         // Thread may have died, we want to send to prompt a clean exit
         // (if at all possible) and then proceed as normal.
-
-        #[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
-        let mut client = create_rustls_client(url).await?;
-
-        #[cfg(feature = "native-marker")]
-        let mut client = create_native_tls_client(url).await?;
+        let mut client = WsStream::connect(url).await?;
 
         client
             .send_json(&GatewayEvent::from(Resume {

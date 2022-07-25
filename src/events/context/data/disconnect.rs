@@ -4,7 +4,7 @@ use crate::{
     model::{CloseCode as VoiceCloseCode, FromPrimitive},
     ws::Error as WsError,
 };
-use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
+use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 
 /// Voice connection details gathered at termination or failure.
 ///
