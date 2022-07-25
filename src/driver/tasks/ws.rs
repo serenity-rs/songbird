@@ -8,10 +8,9 @@ use crate::{
         FromPrimitive,
         SpeakingState,
     },
-    ws::{Error as WsError, ReceiverExt, SenderExt, WsStream},
+    ws::{Error as WsError, WsStream},
     ConnectionInfo,
 };
-use async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use flume::Receiver;
 use rand::random;
 use std::time::Duration;
@@ -19,6 +18,7 @@ use tokio::{
     select,
     time::{sleep_until, Instant},
 };
+use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tracing::{debug, info, instrument, trace, warn};
 
 struct AuxNetwork {
