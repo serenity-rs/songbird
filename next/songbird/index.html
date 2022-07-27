@@ -3,16 +3,16 @@
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"><a href="#">Crate songbird</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.2.2</li><li><a id="all-types" href="all.html">All Items</a></li></ul></div><section><div class="block"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div></section></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../songbird/index.html">
+        </a><h2 class="location"><a href="#">Crate songbird</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.3.0</li><li><a id="all-types" href="all.html">All Items</a></li></ul></div><section><div class="block"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div></section></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../songbird/index.html">
                         <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">songbird</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/songbird/lib.rs.html#1-129">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="project logo" /></p>
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">songbird</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/songbird/lib.rs.html#1-130">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="project logo" /></p>
 <p>Songbird is an async, cross-library compatible voice system for Discord, written in Rust.
 The library offers:</p>
 <ul>
 <li>A standalone gateway frontend compatible with <a href="https://github.com/serenity-rs/serenity">serenity</a> and <a href="https://github.com/twilight-rs/twilight">twilight</a> using the
-<code>&quot;gateway&quot;</code> and <code>&quot;[serenity/twilight]-[rustls/native]&quot;</code> features. You can even run
+<code>&quot;gateway&quot;</code> and <code>&quot;[serenity/twilight]&quot;</code> plus <code>&quot;[rustls/native]&quot;</code> features. You can even run
 driverless, to help manage your <a href="https://github.com/freyacodes/Lavalink">lavalink</a> sessions.</li>
 <li>A standalone driver for voice calls, via the <code>&quot;driver&quot;</code> feature. If you can create
 a <a href="struct.ConnectionInfo.html"><code>ConnectionInfo</code></a> using any other gateway, or language for your bot, then you
@@ -52,7 +52,7 @@ features = [&quot;aac&quot;, &quot;mp3&quot;, &quot;isomp4&quot;, &quot;alac&quo
 </div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="input/index.html" title="songbird::input mod">input</a></div><div class="item-right docblock-short"><p>Raw audio input data streams and sources.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="join/index.html" title="songbird::join mod">join</a></div><div class="item-right docblock-short"><p>Future types for gateway interactions.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="serenity/index.html" title="songbird::serenity mod">serenity</a></div><div class="item-right docblock-short"><p>Compatability and convenience methods for working with <a href="https://crates.io/crates/serenity/0.9.0-rc.2">serenity</a>.
-Requires the <code>&quot;serenity-rustls&quot;</code> or <code>&quot;serenity-native&quot;</code> features.</p>
+Requires the <code>&quot;serenity&quot;</code> feature.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="shards/index.html" title="songbird::shards mod">shards</a></div><div class="item-right docblock-short"><p>Handlers for sending packets over sharded connections.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="tracks/index.html" title="songbird::tracks mod">tracks</a></div><div class="item-right docblock-short"><p>Live, controllable audio instances.</p>
 </div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
@@ -70,5 +70,5 @@ voice packets and telemetry.</p>
 of state, such as a track finishing, looping, or being
 manually stopped. Voice core events occur on receipt of
 voice packets and telemetry.</p>
-</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (6dbae3ad1 2022-07-25)" ></div>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (4d6d601c8 2022-07-26)" ></div>
 </body></html>

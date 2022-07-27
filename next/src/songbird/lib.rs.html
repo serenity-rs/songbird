@@ -135,10 +135,12 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
+<span id="130">130</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span>(
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png&quot;</span>
 )]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">feature</span>(<span class="ident">doc_auto_cfg</span>))]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">rustdoc::broken_intra_doc_links</span>)]</span>
 <span class="doccomment">//! ![project logo][logo]</span>
@@ -146,7 +148,7 @@
 <span class="doccomment">//! Songbird is an async, cross-library compatible voice system for Discord, written in Rust.</span>
 <span class="doccomment">//! The library offers:</span>
 <span class="doccomment">//!  * A standalone gateway frontend compatible with [serenity] and [twilight] using the</span>
-<span class="doccomment">//!  `&quot;gateway&quot;` and `&quot;[serenity/twilight]-[rustls/native]&quot;` features. You can even run</span>
+<span class="doccomment">//!  `&quot;gateway&quot;` and `&quot;[serenity/twilight]&quot;` plus `&quot;[rustls/native]&quot;` features. You can even run</span>
 <span class="doccomment">//!  driverless, to help manage your [lavalink] sessions.</span>
 <span class="doccomment">//!  * A standalone driver for voice calls, via the `&quot;driver&quot;` feature. If you can create</span>
 <span class="doccomment">//!  a [`ConnectionInfo`] using any other gateway, or language for your bot, then you</span>
@@ -265,5 +267,5 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config::Config</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">info::ConnectionInfo</span>;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (6dbae3ad1 2022-07-25)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (4d6d601c8 2022-07-26)" ></div>
 </body></html>
