@@ -7,7 +7,7 @@
 Songbird is an async, cross-library compatible voice system for Discord, written in Rust.
 The library offers:
  * A standalone gateway frontend compatible with [serenity] and [twilight] using the
- `"gateway"` and `"[serenity/twilight]-[rustls/native]"` features. You can even run
+ `"gateway"` and `"[serenity/twilight]"` plus `"[rustls/native]"` features. You can even run
  driverless, to help manage your [lavalink] sessions.
  * A standalone driver for voice calls, via the `"driver"` feature. If you can create
  a `ConnectionInfo` using any other gateway, or language for your bot, then you
