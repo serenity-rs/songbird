@@ -9,7 +9,7 @@ args = ["build", "--features", "full-doc"]
 dependencies = ["format"]
 
 [tasks.build-simd]
-args = ["build", "--features", "full-doc,simd-json,serenity/simd_json,twilight-gateway/simd-json"]
+args = ["build", "--features", "full-doc,simd-json,serenity?/simd_json,twilight-gateway?/simd-json"]
 command = "cargo"
 dependencies = ["format"]
 env = { "RUSTFLAGS" = "-C target-cpu=native" }
@@ -20,7 +20,7 @@ command = "cargo"
 dependencies = ["format"]
 
 [tasks.build-gateway]
-args = ["build", "--no-default-features", "--features", "serenity-rustls"]
+args = ["build", "--no-default-features", "--features", "gateway,serenity,rustls"]
 command = "cargo"
 dependencies = ["format"]
 
@@ -44,7 +44,7 @@ dependencies = ["format"]
 args = ["test", "--features", "full-doc"]
 
 [tasks.test-simd]
-args = ["test", "--features", "full-doc,simd-json,serenity/simd_json,twilight-gateway/simd-json"]
+args = ["test", "--features", "full-doc,simd-json,serenity?/simd_json,twilight-gateway?/simd-json"]
 command = "cargo"
 env = { "RUSTFLAGS" = "-C target-cpu=native" }
 
