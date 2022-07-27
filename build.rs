@@ -1,7 +1,4 @@
-#[cfg(all(
-    feature = "driver",
-    not(any(feature = "rustls-marker", feature = "native-marker"))
-))]
+#[cfg(all(feature = "driver", not(any(feature = "rustls", feature = "native"))))]
 compile_error!(
     "You have the `driver` feature enabled: \
     either the `rustls` or `native` feature must be
@@ -10,17 +7,6 @@ compile_error!(
     - `native` uses SChannel on Windows, Secure Transport on macOS, \
     and OpenSSL on other platforms.\n\
     If you are unsure, go with `rustls`."
-);
-
-#[cfg(all(
-    feature = "twilight",
-    not(any(feature = "zlib-simd", feature = "zlib-stock"))
-))]
-compile_error!(
-    "Twilight requires you to specify a zlib backend: \
-    either the `zlib-simd` or `zlib-stock` feature must be
-    selected.\n\
-    If you are unsure, go with `zlib-stock`."
 );
 
 fn main() {}

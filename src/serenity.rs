@@ -1,5 +1,5 @@
 //! Compatability and convenience methods for working with [serenity].
-//! Requires the `"serenity-rustls"` or `"serenity-native"` features.
+//! Requires the `"serenity"` feature.
 //!
 //! [serenity]: https://crates.io/crates/serenity/0.9.0-rc.2
 

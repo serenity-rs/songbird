@@ -10,153 +10,65 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-version = "0.2.2"
 rust-version = "1.61"
+version = "0.3.0"
 
 [dependencies]
+async-trait = { optional = true, version = "0.1" }
+audiopus = { optional = true, version = "0.3.0-rc.0" }
+byteorder = { optional = true, version = "1" }
+dashmap = { optional = true, version = "5" }
 derivative = "2"
+discortp = { features = ["discord-full"], optional = true, version = "0.5" }
+flume = { optional = true, version = "0.10" }
+futures = "0.3"
+once_cell = { optional = true, version = "1" }
+parking_lot = { optional = true, version = "0.12" }
 pin-project = "1"
+rand = { optional = true, version = "0.8" }
+reqwest = { default-features = false, features = ["stream"], optional = true, version = "0.11" }
+ringbuf = { optional = true, version = "0.2" }
+rubato = { optional = true, version = "0.12" }
+rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
+serde-aux = { default-features = false, optional = true, version = "3"}
+simd-json = { features = ["serde_impl"], optional = true, version = "0.6.0" }
 serde_json = "1"
+streamcatcher = { optional = true, version = "1" }
+tokio = { default-features = false, optional = true, version = "1.0" }
+tokio-tungstenite = { optional = true, version = "0.17" }
+tokio-util = { features = ["io"], optional = true, version = "0.7" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
-
-[dependencies.async-trait]
-optional = true
-version = "0.1"
-
-[dependencies.audiopus]
-optional = true
-version = "0.3.0-rc.0"
-
-[dependencies.byteorder]
-optional = true
-version = "1"
-
-[dependencies.dashmap]
-optional = true
-version = "5"
-
-[dependencies.discortp]
-features = ["discord-full"]
-optional = true
-version = "0.5"
-
-[dependencies.flume]
-optional = true
-version = "0.10"
-
-[dependencies.futures]
-version = "0.3"
-
-[dependencies.once_cell]
-version = "1"
-optional = true
-
-[dependencies.parking_lot]
-optional = true
-version = "0.12"
-
-[dependencies.rand]
-optional = true
-version = "0.8"
-
-[dependencies.reqwest]
-optional = true
-default-features = false
-features = ["stream"]
-version = "0.11"
-
-[dependencies.ringbuf]
-optional = true
-version = "0.2"
-
-[dependencies.rubato]
-optional = true
-version = "0.12"
-
-[dependencies.rusty_pool]
-optional = true
-version = "0.7"
-
-[dependencies.serde-aux]
-default-features = false
-optional = true
-version = "3"
+twilight-gateway = { default-features = false, optional = true, version = "0.12.0" }
+twilight-model = { default-features = false, optional = true, version = "0.12.0" }
+typemap_rev = { optional = true, version = "0.1" }
+url = { optional = true, version = "2" }
+uuid = { features = ["v4"], optional = true, version = "1" }
+xsalsa20poly1305 = { features = ["std"], optional = true, version = "0.8" }
 
 [dependencies.serenity]
-optional = true
 version = "0.11"
 default-features = false
 features = ["voice", "gateway"]
+optional = true
 
 [dependencies.serenity-voice-model]
+version = "0.11"
 optional = true
-version = "0.1"
-
-[dependencies.simd-json]
-optional = true
-features = ["serde_impl"]
-version = "0.6.0"
-
-[dependencies.streamcatcher]
-optional = true
-version = "1"
 
 [dependencies.symphonia]
-optional = true
-default-features = false
-version = "0.5"
-git = "https://github.com/FelixMcFelix/Symphonia"
 branch = "songbird-fixes"
+git = "https://github.com/FelixMcFelix/Symphonia"
+default-features = false
+optional = true
+version = "0.5"
 
 [dependencies.symphonia-core]
+branch = "songbird-fixes"
+git = "https://github.com/FelixMcFelix/Symphonia"
 optional = true
 version = "0.5"
-git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "songbird-fixes"
-
-[dependencies.tokio]
-optional = true
-version = "1.0"
-default-features = false
-
-[dependencies.tokio-tungstenite]
-optional = true
-version = "0.17"
-
-[dependencies.tokio-util]
-optional = true
-version = "0.7"
-features = ["io"]
-
-[dependencies.twilight-gateway]
-optional = true
-version = "0.12.0"
-default-features = false
-
-[dependencies.twilight-model]
-optional = true
-version = "0.12.0"
-default-features = false
-
-[dependencies.typemap_rev]
-optional = true
-version = "0.1"
-
-[dependencies.url]
-optional = true
-version = "2"
-
-[dependencies.uuid]
-optional = true
-version = "1"
-features = ["v4"]
-
-[dependencies.xsalsa20poly1305]
-optional = true
-version = "0.8"
-features = ["std"]
 
 [dev-dependencies]
 criterion = "0.3"
@@ -168,72 +80,74 @@ tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 [features]
 # Core features
 default = [
-    "serenity-rustls",
     "driver",
     "gateway",
+    "rustls",
+    "serenity",
 ]
 gateway = [
-    "dashmap",
-    "flume",
-    "once_cell",
-    "parking_lot",
-    "tokio/sync",
-    "tokio/time",
+    "dep:async-trait",
+    "dep:dashmap",
+    "dep:flume",
+    "dep:once_cell",
+    "dep:parking_lot",
+    "dep:tokio",
+    "tokio?/sync",
+    "tokio?/time",
 ]
 driver = [
-    "async-trait",
-    "audiopus",
-    "byteorder",
-    "discortp",
-    "reqwest",
-    "flume",
-    "once_cell",
-    "parking_lot",
-    "rand",
-    "ringbuf",
-    "rubato",
-    "serde-aux",
-    "serenity-voice-model",
-    "streamcatcher",
-    "symphonia",
-    "symphonia-core",
-    "rusty_pool",
-    "tokio/fs",
-    "tokio/io-util",
-    "tokio/macros",
-    "tokio/net",
-    "tokio/process",
-    "tokio/rt",
-    "tokio/sync",
-    "tokio/time",
-    "tokio-tungstenite",
-    "tokio-util",
-    "typemap_rev",
-    "url",
-    "uuid",
-    "xsalsa20poly1305",
+    "dep:async-trait",
+    "dep:audiopus",
+    "dep:byteorder",
+    "dep:discortp",
+    "dep:reqwest",
+    "dep:flume",
+    "dep:once_cell",
+    "dep:parking_lot",
+    "dep:rand",
+    "dep:ringbuf",
+    "dep:rubato",
+    "dep:rusty_pool",
+    "dep:serde-aux",
+    "dep:serenity-voice-model",
+    "dep:streamcatcher",
+    "dep:symphonia",
+    "dep:symphonia-core",
+    "dep:tokio",
+    "dep:tokio-tungstenite",
+    "dep:tokio-util",
+    "dep:typemap_rev",
+    "dep:url",
+    "dep:uuid",
+    "dep:xsalsa20poly1305",
+    "tokio?/fs",
+    "tokio?/io-util",
+    "tokio?/macros",
+    "tokio?/net",
+    "tokio?/process",
+    "tokio?/rt",
+    "tokio?/sync",
+    "tokio?/time",
 ]
-rustls = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls", "rustls-marker"]
-native = ["tokio-tungstenite/native-tls", "native-marker", "reqwest/native-tls"]
-serenity-rustls = ["serenity/rustls_backend", "rustls", "gateway", "serenity-deps"]
-serenity-native = ["serenity/native_tls_backend", "native", "gateway", "serenity-deps"]
-twilight-rustls = ["twilight", "twilight-gateway/rustls-native-roots", "rustls", "gateway"]
-twilight-native = ["twilight", "twilight-gateway/native", "native", "gateway"]
-twilight = ["twilight-model"]
-zlib-simd = ["twilight-gateway/zlib-simd"]
-zlib-stock = ["twilight-gateway/zlib-stock"]
-serenity-deps = ["async-trait"]
-
-simdjson = []
-
-rustls-marker = []
-native-marker = []
+rustls = [
+    "reqwest?/rustls-tls",
+    "serenity?/rustls_backend",
+    "tokio-tungstenite?/rustls-tls-webpki-roots",
+    "twilight-gateway?/rustls-native-roots",
+]
+native = [
+    "reqwest?/native-tls",
+    "serenity?/native_tls_backend",
+    "tokio-tungstenite?/native-tls",
+    "twilight-gateway?/native",
+]
+twilight = ["dep:twilight-gateway","dep:twilight-model"]
 
 # Behaviour altering features.
 builtin-queue = []
 
 # Used for docgen/testing/benchmarking.
-full-doc = ["default", "twilight-rustls", "builtin-queue", "zlib-stock"]
+full-doc = ["default", "twilight", "builtin-queue"]
 internals = []
 
 [[bench]]
@@ -250,3 +164,4 @@ harness = false
 
 [package.metadata.docs.rs]
 features = ["full-doc"]
+rustdoc-args = ["--cfg", "docsrs"]
