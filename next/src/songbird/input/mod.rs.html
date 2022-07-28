@@ -388,6 +388,8 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Raw audio input data streams and sources.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [`Input`]s in Songbird are based on [symphonia], which provides demuxing,</span>
@@ -534,6 +536,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// // If we want to inspect metadata (and we can&#39;t use AuxMetadata for any reason), we have</span>
 <span class="doccomment">/// // to parse the track ourselves.</span>
+<span class="doccomment">/// //</span>
+<span class="doccomment">/// // We can access it on a live track using `TrackHandle::action()`.</span>
 <span class="doccomment">/// in_memory_input = in_memory_input</span>
 <span class="doccomment">///     .make_playable_async(&amp;CODEC_REGISTRY, &amp;PROBE)</span>
 <span class="doccomment">///     .await</span>
@@ -771,5 +775,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (4d6d601c8 2022-07-26)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (2643b1646 2022-07-27)" ></div>
 </body></html>

@@ -211,18 +211,20 @@
 </pre><pre class="rust"><code><span class="doccomment">//! Live, controllable audio instances.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Tracks add control and event data around the bytestreams offered by [`Input`],</span>
-<span class="doccomment">//! where each represents a live audio source inside of the driver&#39;s mixer.</span>
+<span class="doccomment">//! where each represents a live audio source inside of the driver&#39;s mixer. This includes</span>
+<span class="doccomment">//! play state, volume, and looping behaviour.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! To prevent locking and stalling of the driver, tracks are controlled from your bot using a</span>
-<span class="doccomment">//! [`TrackHandle`]. These handles remotely send commands from your bot&#39;s (a)sync</span>
-<span class="doccomment">//! context to control playback, register events, and execute synchronous closures.</span>
+<span class="doccomment">//! To configure an audio source as it is created, you can create a [`Track`] to set the</span>
+<span class="doccomment">//! above playback state [from any `Input` or `T: Into&lt;Input&gt;`](Track#trait-implementations)</span>
+<span class="doccomment">//! using `Track::from(...)`.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! If you want a new track from an [`Input`], i.e., for direct control before</span>
-<span class="doccomment">//! playing your source on the driver, use [`create_player`].</span>
+<span class="doccomment">//! To configure an audio source once it has been given to a [`Driver`], you are given a</span>
+<span class="doccomment">//! [`TrackHandle`] once you hand the [`Input`] and state over to be played. These handles</span>
+<span class="doccomment">//! remotely send commands from your bot&#39;s (a)sync context to control playback, register events,</span>
+<span class="doccomment">//! and execute synchronous closures. This design prevents user code from being able to lock</span>
+<span class="doccomment">//! or stall the audio mixer.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`Input`]: ../input/struct.Input.html</span>
-<span class="doccomment">//! [`TrackHandle`]: struct.TrackHandle.html</span>
-<span class="doccomment">//! [`create_player`]: fn.create_player.html</span>
+<span class="doccomment">//! [`Driver`]: crate::driver::Driver</span>
 
 <span class="kw">mod</span> <span class="ident">action</span>;
 <span class="kw">mod</span> <span class="ident">command</span>;
@@ -257,7 +259,7 @@
 <span class="doccomment">/// [`Track`]s allow you to configure play modes, volume, event handlers, and other track state</span>
 <span class="doccomment">/// before you pass an input to the [`Driver`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Live track data is accesseed via a [`TrackHandle`], returned by [`Driver::play`] and</span>
+<span class="doccomment">/// Live track data is accessed via a [`TrackHandle`], which is returned by [`Driver::play`] and</span>
 <span class="doccomment">/// related methods.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
@@ -265,15 +267,13 @@
 <span class="doccomment">/// ```rust,no_run</span>
 <span class="doccomment">/// use songbird::{driver::Driver, input::File, tracks::Track};</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// # async {</span>
 <span class="doccomment">/// // A Call is also valid here!</span>
-<span class="doccomment">/// let mut handler: Driver = Default::default();</span>
+<span class="doccomment">/// let mut driver: Driver = Default::default();</span>
 <span class="doccomment">/// let source = File::new(&quot;../audio/my-favourite-song.mp3&quot;);</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// handler.play_only(Track::new(source.into()).volume(0.5));</span>
+<span class="doccomment">/// let handle = driver.play_only(Track::from(source).volume(0.5));</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// // Future access occurs via audio_handle.</span>
-<span class="doccomment">/// # };</span>
+<span class="doccomment">/// // Future access occurs via audio.</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Driver`]: crate::driver::Driver</span>
@@ -411,5 +411,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (4d6d601c8 2022-07-26)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (2643b1646 2022-07-27)" ></div>
 </body></html>
