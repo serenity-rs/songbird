@@ -1,18 +1,20 @@
 //! Live, controllable audio instances.
 //!
 //! Tracks add control and event data around the bytestreams offered by [`Input`],
-//! where each represents a live audio source inside of the driver's mixer.
+//! where each represents a live audio source inside of the driver's mixer. This includes
+//! play state, volume, and looping behaviour.
 //!
-//! To prevent locking and stalling of the driver, tracks are controlled from your bot using a
-//! [`TrackHandle`]. These handles remotely send commands from your bot's (a)sync
-//! context to control playback, register events, and execute synchronous closures.
+//! To configure an audio source as it is created, you can create a [`Track`] to set the
+//! above playback state [from any `Input` or `T: Into<Input>`](Track#trait-implementations)
+//! using `Track::from(...)`.
 //!
-//! If you want a new track from an [`Input`], i.e., for direct control before
-//! playing your source on the driver, use [`create_player`].
+//! To configure an audio source once it has been given to a [`Driver`], you are given a
+//! [`TrackHandle`] once you hand the [`Input`] and state over to be played. These handles
+//! remotely send commands from your bot's (a)sync context to control playback, register events,
+//! and execute synchronous closures. This design prevents user code from being able to lock
+//! or stall the audio mixer.
 //!
-//! [`Input`]: ../input/struct.Input.html
-//! [`TrackHandle`]: struct.TrackHandle.html
-//! [`create_player`]: fn.create_player.html
+//! [`Driver`]: crate::driver::Driver
 
 mod action;
 mod command;
@@ -47,7 +49,7 @@ use uuid::Uuid;
 /// [`Track`]s allow you to configure play modes, volume, event handlers, and other track state
 /// before you pass an input to the [`Driver`].
 ///
-/// Live track data is accesseed via a [`TrackHandle`], returned by [`Driver::play`] and
+/// Live track data is accessed via a [`TrackHandle`], which is returned by [`Driver::play`] and
 /// related methods.
 ///
 /// # Example
@@ -55,15 +57,13 @@ use uuid::Uuid;
 /// ```rust,no_run
 /// use songbird::{driver::Driver, input::File, tracks::Track};
 ///
-/// # async {
 /// // A Call is also valid here!
-/// let mut handler: Driver = Default::default();
+/// let mut driver: Driver = Default::default();
 /// let source = File::new("../audio/my-favourite-song.mp3");
 ///
-/// handler.play_only(Track::new(source.into()).volume(0.5));
+/// let handle = driver.play_only(Track::from(source).volume(0.5));
 ///
-/// // Future access occurs via audio_handle.
-/// # };
+/// // Future access occurs via audio.
 /// ```
 ///
 /// [`Driver`]: crate::driver::Driver

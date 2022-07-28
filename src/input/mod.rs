@@ -144,6 +144,8 @@ use tokio::runtime::Handle as TokioHandle;
 ///
 /// // If we want to inspect metadata (and we can't use AuxMetadata for any reason), we have
 /// // to parse the track ourselves.
+/// //
+/// // We can access it on a live track using `TrackHandle::action()`.
 /// in_memory_input = in_memory_input
 ///     .make_playable_async(&CODEC_REGISTRY, &PROBE)
 ///     .await

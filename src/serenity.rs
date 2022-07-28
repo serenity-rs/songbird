@@ -1,7 +1,7 @@
-//! Compatability and convenience methods for working with [serenity].
+//! Compatibility and convenience methods for working with [serenity].
 //! Requires the `"serenity"` feature.
 //!
-//! [serenity]: https://crates.io/crates/serenity/0.9.0-rc.2
+//! [serenity]: https://crates.io/crates/serenity
 
 use crate::{Config, Songbird};
 use serenity::{
