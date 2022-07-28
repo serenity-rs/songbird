@@ -1,4 +1,4 @@
-[![docs-badge][]][docs] [![build badge]][build] [![guild-badge][]][guild] [![crates.io version]][crates.io link] [![rust 1.61.0+ badge]][rust 1.61.0+ link]
+[![docs-badge][]][docs] [![next-docs-badge][]][next-docs] [![build badge]][build] [![guild-badge][]][guild] [![crates.io version]][crates.io link] [![rust 1.61.0+ badge]][rust 1.61.0+ link]
 
 # Songbird
 
@@ -86,8 +86,11 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/CI?style=flat-square
 [build]: https://github.com/serenity-rs/songbird/actions
 
-[docs-badge]: https://img.shields.io/badge/docs-online-4d76ae.svg?style=flat-square
+[docs-badge]: https://img.shields.io/badge/docs-current-4d76ae.svg?style=flat-square
 [docs]: https://serenity-rs.github.io/songbird/current
+
+[next-docs-badge]: https://img.shields.io/badge/docs-next-4d76ae.svg?style=flat-square
+[next-docs]: https://serenity-rs.github.io/songbird/next
 
 [guild]: https://discord.gg/9X7vCus
 [guild-badge]: https://img.shields.io/discord/381880193251409931.svg?style=flat-square&colorB=7289DA
