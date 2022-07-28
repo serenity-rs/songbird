@@ -2,6 +2,7 @@ use super::message::*;
 use crate::constants::*;
 use discortp::discord::MutableKeepalivePacket;
 use flume::Receiver;
+#[cfg(feature = "receive")]
 use std::sync::Arc;
 use tokio::{
     net::UdpSocket,
@@ -12,7 +13,10 @@ use tracing::{error, instrument, trace};
 struct UdpTx {
     ssrc: u32,
     rx: Receiver<UdpTxMessage>,
+    #[cfg(feature = "receive")]
     udp_tx: Arc<UdpSocket>,
+    #[cfg(not(feature = "receive"))]
+    udp_tx: UdpSocket,
 }
 
 impl UdpTx {
@@ -48,7 +52,12 @@ impl UdpTx {
 }
 
 #[instrument(skip(udp_msg_rx))]
-pub(crate) async fn runner(udp_msg_rx: Receiver<UdpTxMessage>, ssrc: u32, udp_tx: Arc<UdpSocket>) {
+pub(crate) async fn runner(
+    udp_msg_rx: Receiver<UdpTxMessage>,
+    ssrc: u32,
+    #[cfg(feature = "receive")] udp_tx: Arc<UdpSocket>,
+    #[cfg(not(feature = "receive"))] udp_tx: UdpSocket,
+) {
     trace!("UDP transmit handle started.");
 
     let mut txer = UdpTx {

@@ -3,10 +3,11 @@ use byteorder::{NetworkEndian, WriteBytesExt};
 use discortp::{rtp::RtpPacket, MutablePacket};
 use rand::Rng;
 use std::num::Wrapping;
+#[cfg(any(feature = "receive", test))]
+use xsalsa20poly1305::Tag;
 use xsalsa20poly1305::{
     aead::{AeadInPlace, Error as CryptoError},
     Nonce,
-    Tag,
     XSalsa20Poly1305 as Cipher,
     NONCE_SIZE,
     TAG_SIZE,
@@ -110,6 +111,7 @@ impl CryptoMode {
         }
     }
 
+    #[cfg(any(feature = "receive", test))]
     /// Decrypts a Discord RT(C)P packet using the given key.
     ///
     /// If successful, this returns the number of bytes to be ignored from the

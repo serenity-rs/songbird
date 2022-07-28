@@ -10,6 +10,7 @@ pub enum Recipient {
     AuxNetwork,
     Event,
     Mixer,
+    #[cfg(feature = "receive")]
     UdpRx,
     UdpTx,
 }
@@ -20,6 +21,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[non_exhaustive]
 pub enum Error {
     Crypto(CryptoError),
+    #[cfg(feature = "receive")]
     /// Received an illegal voice packet on the voice UDP socket.
     IllegalVoicePacket,
     InterconnectFailure(Recipient),
@@ -30,10 +32,12 @@ pub enum Error {
 
 impl Error {
     pub(crate) fn should_trigger_connect(&self) -> bool {
-        matches!(
-            self,
-            Error::InterconnectFailure(Recipient::AuxNetwork | Recipient::UdpRx | Recipient::UdpTx)
-        )
+        match self {
+            Error::InterconnectFailure(Recipient::AuxNetwork | Recipient::UdpTx) => true,
+            #[cfg(feature = "receive")]
+            Error::InterconnectFailure(Recipient::UdpRx) => true,
+            _ => false,
+        }
     }
 
     pub(crate) fn should_trigger_interconnect_rebuild(&self) -> bool {
@@ -77,6 +81,7 @@ impl From<SendError<MixerMessage>> for Error {
     }
 }
 
+#[cfg(feature = "receive")]
 impl From<SendError<UdpRxMessage>> for Error {
     fn from(_e: SendError<UdpRxMessage>) -> Error {
         Error::InterconnectFailure(Recipient::UdpRx)

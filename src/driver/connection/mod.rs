@@ -1,7 +1,9 @@
 pub mod error;
 
+#[cfg(feature = "receive")]
+use super::tasks::udp_rx;
 use super::{
-    tasks::{message::*, udp_rx, udp_tx, ws as ws_task},
+    tasks::{message::*, udp_tx, ws as ws_task},
     Config,
     CryptoMode,
 };
@@ -18,7 +20,10 @@ use crate::{
 use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
 use error::{Error, Result};
 use flume::Sender;
-use std::{net::IpAddr, str::FromStr, sync::Arc};
+use socket2::Socket;
+#[cfg(feature = "receive")]
+use std::sync::Arc;
+use std::{net::IpAddr, str::FromStr};
 use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
@@ -103,6 +108,16 @@ impl Connection {
         }
 
         let udp = UdpSocket::bind("0.0.0.0:0").await?;
+
+        // Optimisation for non-receive case: set rx buffer size to zero.
+        let udp = if cfg!(feature = "receive") {
+            udp
+        } else {
+            let socket = Socket::from(udp.into_std()?);
+            socket.set_recv_buffer_size(0)?;
+            UdpSocket::from_std(socket.into())?
+        };
+
         udp.connect((ready.ip, ready.port)).await?;
 
         // Follow Discord's IP Discovery procedures, in case NAT tunnelling is needed.
@@ -165,19 +180,24 @@ impl Connection {
 
         let (ws_msg_tx, ws_msg_rx) = flume::unbounded();
         let (udp_sender_msg_tx, udp_sender_msg_rx) = flume::unbounded();
+        #[cfg(feature = "receive")]
         let (udp_receiver_msg_tx, udp_receiver_msg_rx) = flume::unbounded();
 
+        #[cfg(feature = "receive")]
         let (udp_rx, udp_tx) = {
             let udp_rx = Arc::new(udp);
             let udp_tx = Arc::clone(&udp_rx);
             (udp_rx, udp_tx)
         };
+        #[cfg(not(feature = "receive"))]
+        let udp_tx = udp;
 
         let ssrc = ready.ssrc;
 
         let mix_conn = MixerConnection {
             cipher: cipher.clone(),
             crypto_state: config.crypto_mode.into(),
+            #[cfg(feature = "receive")]
             udp_rx: udp_receiver_msg_tx,
             udp_tx: udp_sender_msg_tx,
         };
@@ -200,6 +220,7 @@ impl Connection {
             info.clone(),
         ));
 
+        #[cfg(feature = "receive")]
         spawn(udp_rx::runner(
             interconnect.clone(),
             udp_receiver_msg_rx,

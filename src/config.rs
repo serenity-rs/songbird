@@ -1,6 +1,8 @@
+#[cfg(feature = "receive")]
+use crate::driver::DecodeMode;
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, CryptoMode, DecodeMode, MixMode},
+    driver::{retry::Retry, CryptoMode, MixMode},
     input::codecs::*,
 };
 
@@ -29,7 +31,8 @@ pub struct Config {
     ///
     /// [`CryptoMode::Normal`]: CryptoMode::Normal
     pub crypto_mode: CryptoMode,
-    #[cfg(feature = "driver")]
+
+    #[cfg(all(feature = "driver", feature = "receive"))]
     /// Configures whether decoding and decryption occur for all received packets.
     ///
     /// If voice receiving voice packets, generally you should choose [`DecodeMode::Decode`].
@@ -45,6 +48,7 @@ pub struct Config {
     /// [`DecodeMode::Pass`]: DecodeMode::Pass
     /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
     pub decode_mode: DecodeMode,
+
     #[cfg(feature = "gateway")]
     /// Configures the amount of time to wait for Discord to reply with connection information
     /// if [`Call::join`]/[`join_gateway`] are used.
@@ -58,14 +62,16 @@ pub struct Config {
     /// [`Call::join`]: crate::Call::join
     /// [`join_gateway`]: crate::Call::join_gateway
     pub gateway_timeout: Option<Duration>,
+
     #[cfg(feature = "driver")]
-    /// Configures the maximum amount of time to wait for an attempted voice
-    /// connection to Discord.
+    /// Configures whether the driver will mix and output stereo or mono Opus data
+    /// over a voice channel.
     ///
     /// Defaults to [`Stereo`].
     ///
     /// [`Stereo`]: MixMode::Stereo
     pub mix_mode: MixMode,
+
     #[cfg(feature = "driver")]
     /// Number of concurrently active tracks to allocate memory for.
     ///
@@ -79,6 +85,7 @@ pub struct Config {
     /// Changes to this field in a running driver will only ever increase
     /// the capacity of the track store.
     pub preallocated_tracks: usize,
+
     #[cfg(feature = "driver")]
     /// Connection retry logic for the [`Driver`].
     ///
@@ -87,6 +94,7 @@ pub struct Config {
     ///
     /// [`Driver`]: crate::driver::Driver
     pub driver_retry: Retry,
+
     #[cfg(feature = "driver")]
     /// Configures whether or not each mixed audio packet is [soft-clipped] into the
     /// [-1, 1] audio range.
@@ -101,12 +109,14 @@ pub struct Config {
     ///
     /// [soft-clipped]: https://opus-codec.org/docs/opus_api-1.3.1/group__opus__decoder.html#gaff99598b352e8939dded08d96e125e0b
     pub use_softclip: bool,
+
     #[cfg(feature = "driver")]
     /// Configures the maximum amount of time to wait for an attempted voice
     /// connection to Discord.
     ///
     /// Defaults to 10 seconds. If set to `None`, connections will never time out.
     pub driver_timeout: Option<Duration>,
+
     #[cfg(feature = "driver")]
     #[derivative(Debug = "ignore")]
     /// Registry of the inner codecs supported by the driver, adding audiopus-based
@@ -116,6 +126,7 @@ pub struct Config {
     ///
     /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
     pub codec_registry: &'static CodecRegistry,
+
     #[cfg(feature = "driver")]
     #[derivative(Debug = "ignore")]
     /// Registry of the muxers and container formats supported by the driver.
@@ -142,7 +153,7 @@ impl Default for Config {
         Self {
             #[cfg(feature = "driver")]
             crypto_mode: CryptoMode::Normal,
-            #[cfg(feature = "driver")]
+            #[cfg(all(feature = "driver", feature = "receive"))]
             decode_mode: DecodeMode::Decrypt,
             #[cfg(feature = "gateway")]
             gateway_timeout: Some(Duration::from_secs(10)),
@@ -179,6 +190,7 @@ impl Config {
         self
     }
 
+    #[cfg(feature = "receive")]
     /// Sets this `Config`'s received packet decryption/decoding behaviour.
     #[must_use]
     pub fn decode_mode(mut self, decode_mode: DecodeMode) -> Self {

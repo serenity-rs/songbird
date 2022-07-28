@@ -5,6 +5,7 @@ pub mod error;
 mod events;
 pub mod message;
 pub mod mixer;
+#[cfg(feature = "receive")]
 pub(crate) mod udp_rx;
 pub(crate) mod udp_tx;
 pub(crate) mod ws;

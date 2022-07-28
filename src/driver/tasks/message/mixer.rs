@@ -1,6 +1,8 @@
 #![allow(missing_docs)]
 
-use super::{Interconnect, TrackContext, UdpRxMessage, UdpTxMessage, WsMessage};
+#[cfg(feature = "receive")]
+use super::UdpRxMessage;
+use super::{Interconnect, TrackContext, UdpTxMessage, WsMessage};
 
 use crate::{
     driver::{Bitrate, Config, CryptoState},
@@ -14,6 +16,7 @@ use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 pub struct MixerConnection {
     pub cipher: Cipher,
     pub crypto_state: CryptoState,
+    #[cfg(feature = "receive")]
     pub udp_rx: Sender<UdpRxMessage>,
     pub udp_tx: Sender<UdpTxMessage>,
 }

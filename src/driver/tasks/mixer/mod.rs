@@ -321,9 +321,12 @@ impl Mixer {
             },
             MixerMessage::ReplaceInterconnect(i) => {
                 self.prevent_events = false;
+
                 if let Some(ws) = &self.ws {
                     conn_failure |= ws.send(WsMessage::ReplaceInterconnect(i.clone())).is_err();
                 }
+
+                #[cfg(feature = "receive")]
                 if let Some(conn) = &self.conn_active {
                     conn_failure |= conn
                         .udp_rx
@@ -364,6 +367,7 @@ impl Mixer {
                         .reserve(self.config.preallocated_tracks - self.tracks.len());
                 }
 
+                #[cfg(feature = "receive")]
                 if let Some(conn) = &self.conn_active {
                     conn_failure |= conn
                         .udp_rx
