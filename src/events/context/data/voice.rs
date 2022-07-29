@@ -6,7 +6,7 @@ use super::*;
 /// `payload_offset` contains the true payload location within the raw packet's `payload()`,
 /// if extensions or raw packet data are required.
 ///
-/// Valid audio data (`Some(audio)` where `audio.len >= 0`) contains up to 20ms of 16-bit mono PCM audio
+/// Valid audio data (`Some(audio)` where `audio.len >= 0`) contains up to 20ms of 16-bit stereo PCM audio
 /// at 48kHz, using native endianness. Songbird will not send audio for silent regions, these should
 /// be inferred using [`SpeakingUpdate`]s (and filled in by the user if required using arrays of zeroes).
 ///
