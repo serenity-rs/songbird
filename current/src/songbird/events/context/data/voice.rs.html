@@ -42,7 +42,7 @@
 <span class="doccomment">/// `payload_offset` contains the true payload location within the raw packet&#39;s `payload()`,</span>
 <span class="doccomment">/// if extensions or raw packet data are required.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Valid audio data (`Some(audio)` where `audio.len &gt;= 0`) contains up to 20ms of 16-bit mono PCM audio</span>
+<span class="doccomment">/// Valid audio data (`Some(audio)` where `audio.len &gt;= 0`) contains up to 20ms of 16-bit stereo PCM audio</span>
 <span class="doccomment">/// at 48kHz, using native endianness. Songbird will not send audio for silent regions, these should</span>
 <span class="doccomment">/// be inferred using [`SpeakingUpdate`]s (and filled in by the user if required using arrays of zeroes).</span>
 <span class="doccomment">///</span>
@@ -63,5 +63,5 @@
     <span class="kw">pub</span> <span class="ident">payload_end_pad</span>: <span class="ident">usize</span>,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (62b272d25 2022-07-21)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
 </body></html>
