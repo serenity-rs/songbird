@@ -25,7 +25,7 @@ use songbird::{
     tracks,
     Config,
 };
-use std::io::Cursor;
+use std::{io::Cursor, net::UdpSocket};
 use tokio::runtime::{Handle, Runtime};
 use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher, KEY_SIZE};
 
@@ -41,14 +41,12 @@ fn dummied_mixer(
         Receiver<CoreMessage>,
         Receiver<EventMessage>,
         Receiver<UdpRxMessage>,
-        Receiver<UdpTxMessage>,
     ),
 ) {
     let (mix_tx, mix_rx) = flume::unbounded();
     let (core_tx, core_rx) = flume::unbounded();
     let (event_tx, event_rx) = flume::unbounded();
 
-    let (udp_sender_tx, udp_sender_rx) = flume::unbounded();
     let (udp_receiver_tx, udp_receiver_rx) = flume::unbounded();
 
     let ic = Interconnect {
@@ -61,18 +59,23 @@ fn dummied_mixer(
 
     let mut out = Mixer::new(mix_rx, handle, ic, config);
 
+    let udp_tx = UdpSocket::bind("0.0.0.0:0").expect("Failed to create send port.");
+    udp_tx
+        .connect("127.0.0.1:5316")
+        .expect("Failed to connect to local dest port.");
+
     let fake_conn = MixerConnection {
         cipher: Cipher::new_from_slice(&vec![0u8; KEY_SIZE]).unwrap(),
         crypto_state: CryptoState::Normal,
         udp_rx: udp_receiver_tx,
-        udp_tx: udp_sender_tx,
+        udp_tx,
     };
 
     out.conn_active = Some(fake_conn);
 
     out.skip_sleep = true;
 
-    (out, (core_rx, event_rx, udp_receiver_rx, udp_sender_rx))
+    (out, (core_rx, event_rx, udp_receiver_rx))
 }
 
 fn mixer_float(
@@ -85,7 +88,6 @@ fn mixer_float(
         Receiver<CoreMessage>,
         Receiver<EventMessage>,
         Receiver<UdpRxMessage>,
-        Receiver<UdpTxMessage>,
     ),
 ) {
     let mut out = dummied_mixer(handle, softclip);
@@ -115,7 +117,6 @@ fn mixer_float_drop(
         Receiver<CoreMessage>,
         Receiver<EventMessage>,
         Receiver<UdpRxMessage>,
-        Receiver<UdpTxMessage>,
     ),
 ) {
     let mut out = dummied_mixer(handle, true);
@@ -143,7 +144,6 @@ fn mixer_opus(
         Receiver<CoreMessage>,
         Receiver<EventMessage>,
         Receiver<UdpRxMessage>,
-        Receiver<UdpTxMessage>,
     ),
 ) {
     // should add a single opus-based track.

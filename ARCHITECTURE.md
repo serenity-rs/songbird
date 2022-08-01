@@ -35,13 +35,12 @@ Audio processing remains synchronous for the following reasons:
 Songbird subdivides voice connection handling into several long- and short-lived tasks.
 
 * **Core**: Handles and directs commands received from the driver. Responsible for connection/reconnection, and creates network tasks.
-* **Mixer**: Combines audio sources together, Opus encodes the result, and encrypts the built packets every 20ms. Responsible for handling track commands/state. ***Synchronous***.
+* **Mixer**: Combines audio sources together, Opus encodes the result, and encrypts the built packets every 20ms. Responsible for handling track commands/state, and transmitting completed voice packets and keepalive messages. ***Synchronous***.
 * **Thread Pool**: A dynamically sized thread-pool for I/O tasks. Creates lazy tracks using `Compose` if sync creation is needed, otherwise spawns a tokio task. Seek operations always go to the thread pool. ***Synchronous***.
 * **Disposer**: Used by mixer thread to dispose of data with potentially long/blocking `Drop` implementations (i.e., audio sources). ***Synchronous***.
 * **Events**: Stores and runs event handlers, tracks event timing, and handles 
 * **Websocket**: *Network task.* Sends speaking status updates and keepalives to Discord, and receives client (dis)connect events.
-* **UDP Tx**: *Network task.* Responsible for transmitting completed voice packets.
-* **UDP Rx**: *Network task.* Decrypts/decodes received voice packets and statistics information.
+* **UDP Rx**: *Optional network task.* Decrypts/decodes received voice packets and statistics information.
 
 *Note: all tasks are able to message the permanent tasks via a block of interconnecting channels.*
 

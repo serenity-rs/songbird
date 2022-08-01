@@ -2,14 +2,14 @@
 
 #[cfg(feature = "receive")]
 use super::UdpRxMessage;
-use super::{Interconnect, TrackContext, UdpTxMessage, WsMessage};
+use super::{Interconnect, TrackContext, WsMessage};
 
 use crate::{
     driver::{Bitrate, Config, CryptoState},
     input::{AudioStreamError, Compose, Parsed},
 };
 use flume::Sender;
-use std::sync::Arc;
+use std::{net::UdpSocket, sync::Arc};
 use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
@@ -18,7 +18,7 @@ pub struct MixerConnection {
     pub crypto_state: CryptoState,
     #[cfg(feature = "receive")]
     pub udp_rx: Sender<UdpRxMessage>,
-    pub udp_tx: Sender<UdpTxMessage>,
+    pub udp_tx: UdpSocket,
 }
 
 pub enum MixerMessage {

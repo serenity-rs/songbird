@@ -3,7 +3,7 @@ pub mod error;
 #[cfg(feature = "receive")]
 use super::tasks::udp_rx;
 use super::{
-    tasks::{message::*, udp_tx, ws as ws_task},
+    tasks::{message::*, ws as ws_task},
     Config,
     CryptoMode,
 };
@@ -21,8 +21,6 @@ use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPa
 use error::{Error, Result};
 use flume::Sender;
 use socket2::Socket;
-#[cfg(feature = "receive")]
-use std::sync::Arc;
 use std::{net::IpAddr, str::FromStr};
 use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
@@ -179,27 +177,36 @@ impl Connection {
         info!("WS heartbeat duration {}ms.", hello.heartbeat_interval,);
 
         let (ws_msg_tx, ws_msg_rx) = flume::unbounded();
-        let (udp_sender_msg_tx, udp_sender_msg_rx) = flume::unbounded();
         #[cfg(feature = "receive")]
         let (udp_receiver_msg_tx, udp_receiver_msg_rx) = flume::unbounded();
 
+        // NOTE: This causes the UDP Socket on "receive" to be non-blocking,
+        // and the standard to be blocking. A UDP send should only WouldBlock if
+        // you're sending more data than the OS can handle (not likely, and
+        // at that point you should scale horizontally).
+        //
+        // If this is a problem for anyone, we can make non-blocking sends
+        // queue up a delayed send up to a limit.
         #[cfg(feature = "receive")]
         let (udp_rx, udp_tx) = {
-            let udp_rx = Arc::new(udp);
-            let udp_tx = Arc::clone(&udp_rx);
+            let udp_tx = udp.into_std()?;
+            let udp_rx = UdpSocket::from_std(udp_tx.try_clone()?)?;
             (udp_rx, udp_tx)
         };
         #[cfg(not(feature = "receive"))]
-        let udp_tx = udp;
+        let udp_tx = udp.into_std()?;
 
         let ssrc = ready.ssrc;
 
         let mix_conn = MixerConnection {
+            #[cfg(feature = "receive")]
             cipher: cipher.clone(),
+            #[cfg(not(feature = "receive"))]
+            cipher,
             crypto_state: config.crypto_mode.into(),
             #[cfg(feature = "receive")]
             udp_rx: udp_receiver_msg_tx,
-            udp_tx: udp_sender_msg_tx,
+            udp_tx,
         };
 
         interconnect
@@ -228,7 +235,6 @@ impl Connection {
             config.clone(),
             udp_rx,
         ));
-        spawn(udp_tx::runner(udp_sender_msg_rx, ssrc, udp_tx));
 
         Ok(Connection {
             info,

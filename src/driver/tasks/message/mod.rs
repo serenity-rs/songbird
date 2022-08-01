@@ -6,12 +6,11 @@ mod events;
 mod mixer;
 #[cfg(feature = "receive")]
 mod udp_rx;
-mod udp_tx;
 mod ws;
 
 #[cfg(feature = "receive")]
 pub use self::udp_rx::*;
-pub use self::{core::*, disposal::*, events::*, mixer::*, udp_tx::*, ws::*};
+pub use self::{core::*, disposal::*, events::*, mixer::*, ws::*};
 
 use flume::Sender;
 use tokio::spawn;

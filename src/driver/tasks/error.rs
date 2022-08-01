@@ -2,7 +2,7 @@ use super::message::*;
 use crate::ws::Error as WsError;
 use audiopus::Error as OpusError;
 use flume::SendError;
-use std::io::Error as IoError;
+use std::io::{Error as IoError, ErrorKind as IoErrorKind};
 use xsalsa20poly1305::aead::Error as CryptoError;
 
 #[derive(Debug)]
@@ -12,7 +12,6 @@ pub enum Recipient {
     Mixer,
     #[cfg(feature = "receive")]
     UdpRx,
-    UdpTx,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -33,7 +32,7 @@ pub enum Error {
 impl Error {
     pub(crate) fn should_trigger_connect(&self) -> bool {
         match self {
-            Error::InterconnectFailure(Recipient::AuxNetwork | Recipient::UdpTx) => true,
+            Error::InterconnectFailure(Recipient::AuxNetwork) => true,
             #[cfg(feature = "receive")]
             Error::InterconnectFailure(Recipient::UdpRx) => true,
             _ => false,
@@ -42,6 +41,15 @@ impl Error {
 
     pub(crate) fn should_trigger_interconnect_rebuild(&self) -> bool {
         matches!(self, Error::InterconnectFailure(Recipient::Event))
+    }
+
+    // This prevents a `WouldBlock` from triggering a full reconnect,
+    // instead simply dropping the packet.
+    pub(crate) fn disarm_would_block(self) -> Result<()> {
+        match self {
+            Self::Io(i) if i.kind() == IoErrorKind::WouldBlock => Ok(()),
+            e => Err(e),
+        }
     }
 }
 
@@ -85,12 +93,6 @@ impl From<SendError<MixerMessage>> for Error {
 impl From<SendError<UdpRxMessage>> for Error {
     fn from(_e: SendError<UdpRxMessage>) -> Error {
         Error::InterconnectFailure(Recipient::UdpRx)
-    }
-}
-
-impl From<SendError<UdpTxMessage>> for Error {
-    fn from(_e: SendError<UdpTxMessage>) -> Error {
-        Error::InterconnectFailure(Recipient::UdpTx)
     }
 }
 

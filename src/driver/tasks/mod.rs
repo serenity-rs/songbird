@@ -7,7 +7,6 @@ pub mod message;
 pub mod mixer;
 #[cfg(feature = "receive")]
 pub(crate) mod udp_rx;
-pub(crate) mod udp_tx;
 pub(crate) mod ws;
 
 use std::time::Duration;

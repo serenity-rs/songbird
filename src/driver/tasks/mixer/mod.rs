@@ -10,7 +10,11 @@ use result::*;
 use state::*;
 pub use track::*;
 
-use super::{disposal, error::Result, message::*};
+use super::{
+    disposal,
+    error::{Error, Result},
+    message::*,
+};
 use crate::{
     constants::*,
     driver::MixMode,
@@ -26,6 +30,7 @@ use audiopus::{
     Bitrate,
 };
 use discortp::{
+    discord::MutableKeepalivePacket,
     rtp::{MutableRtpPacket, RtpPacket},
     MutablePacket,
 };
@@ -73,6 +78,9 @@ pub struct Mixer {
     thread_pool: BlockyTaskPool,
     pub ws: Option<Sender<WsMessage>>,
 
+    pub keepalive_deadline: Instant,
+    pub keepalive_packet: [u8; MutableKeepalivePacket::minimum_packet_size()],
+
     pub tracks: Vec<InternalTrack>,
     track_handles: Vec<TrackHandle>,
 
@@ -104,6 +112,7 @@ impl Mixer {
         let soft_clip = SoftClip::new(config.mix_mode.to_opus());
 
         let mut packet = [0u8; VOICE_PACKET_MAX];
+        let keepalive_packet = [0u8; MutableKeepalivePacket::minimum_packet_size()];
 
         let mut rtp = MutableRtpPacket::new(&mut packet[..]).expect(
             "FATAL: Too few bytes in self.packet for RTP header.\
@@ -146,12 +155,14 @@ impl Mixer {
             SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
         );
 
+        let deadline = Instant::now();
+
         Self {
             bitrate,
             config,
             conn_active: None,
             content_prep_sequence: 0,
-            deadline: Instant::now(),
+            deadline,
             disposer,
             encoder,
             interconnect,
@@ -164,6 +175,9 @@ impl Mixer {
             soft_clip,
             thread_pool,
             ws: None,
+
+            keepalive_deadline: deadline,
+            keepalive_packet,
 
             tracks,
             track_handles,
@@ -213,7 +227,14 @@ impl Mixer {
                 // The above action may have invalidated the connection; need to re-check!
                 // Also, if we're in a test mode we should unconditionally run packet mixing code.
                 if self.conn_active.is_some() || ignore_check {
-                    if let Err(e) = self.cycle().and_then(|_| self.audio_commands_events()) {
+                    if let Err(e) = self
+                        .cycle()
+                        .and_then(|_| self.audio_commands_events())
+                        .and_then(|_| {
+                            self.check_and_send_keepalive()
+                                .or_else(Error::disarm_would_block)
+                        })
+                    {
                         events_failure |= e.should_trigger_interconnect_rebuild();
                         conn_failure |= e.should_trigger_connect();
 
@@ -313,6 +334,11 @@ impl Mixer {
                 rtp.set_sequence(random::<u16>().into());
                 rtp.set_timestamp(random::<u32>().into());
                 self.deadline = Instant::now();
+
+                let mut ka = MutableKeepalivePacket::new(&mut self.keepalive_packet[..])
+                    .expect("FATAL: Insufficient bytes given to keepalive packet.");
+                ka.set_ssrc(ssrc);
+                self.keepalive_deadline = self.deadline + UDP_KEEPALIVE_GAP;
                 Ok(())
             },
             MixerMessage::DropConn => {
@@ -360,7 +386,12 @@ impl Mixer {
                     );
                 }
 
-                self.config = Arc::new(new_config.clone());
+                self.config = Arc::new(
+                    #[cfg(feature = "receive")]
+                    new_config.clone(),
+                    #[cfg(not(feature = "receive"))]
+                    new_config,
+                );
 
                 if self.tracks.capacity() < self.config.preallocated_tracks {
                     self.tracks
@@ -678,7 +709,7 @@ impl Mixer {
         let send_buffer = self.config.use_softclip.then(|| &softclip_buffer[..]);
 
         #[cfg(test)]
-        if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
+        let send_status = if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
             let msg = match mix_len {
                 MixType::Passthrough(len) if len == SILENT_FRAME.len() => OutputMessage::Silent,
                 MixType::Passthrough(len) => {
@@ -697,12 +728,18 @@ impl Mixer {
             };
 
             drop(tx.send(msg.into()));
+
+            Ok(())
         } else {
-            self.prep_and_send_packet(send_buffer, mix_len)?;
-        }
+            self.prep_and_send_packet(send_buffer, mix_len)
+        };
 
         #[cfg(not(test))]
-        self.prep_and_send_packet(send_buffer, mix_len)?;
+        let send_status = self.prep_and_send_packet(send_buffer, mix_len);
+
+        send_status.or_else(Error::disarm_would_block)?;
+
+        self.advance_rtp_counters();
 
         // Zero out all planes of the mix buffer if any audio was written.
         if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
@@ -774,25 +811,36 @@ impl Mixer {
             // Test mode: send unencrypted (compressed) packets to local receiver.
             drop(tx.send(self.packet[..index].to_vec().into()));
         } else {
-            conn.udp_tx.send(self.packet[..index].to_vec())?;
+            conn.udp_tx.send(&self.packet[..index])?;
         }
 
         #[cfg(not(test))]
         {
             // Normal operation: send encrypted payload to UDP Tx task.
-
-            // TODO: This is dog slow, don't do this.
-            // Can we replace this with a shared ring buffer + semaphore?
-            // or the BBQueue crate?
-            conn.udp_tx.send(self.packet[..index].to_vec())?;
+            conn.udp_tx.send(&self.packet[..index])?;
         }
 
+        Ok(())
+    }
+
+    #[inline]
+    fn advance_rtp_counters(&mut self) {
         let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
             "FATAL: Too few bytes in self.packet for RTP header.\
                 (Blame: VOICE_PACKET_MAX?)",
         );
         rtp.set_sequence(rtp.get_sequence() + 1);
         rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
+    }
+
+    #[inline]
+    fn check_and_send_keepalive(&mut self) -> Result<()> {
+        if let Some(conn) = self.conn_active.as_mut() {
+            if Instant::now() >= self.keepalive_deadline {
+                conn.udp_tx.send(&self.keepalive_packet)?;
+                self.keepalive_deadline += UDP_KEEPALIVE_GAP;
+            }
+        }
 
         Ok(())
     }

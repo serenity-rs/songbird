@@ -6,3 +6,6 @@ members = [
     "serenity/voice_receive",
     "twilight",
 ]
+
+[profile.release]
+debug = true
