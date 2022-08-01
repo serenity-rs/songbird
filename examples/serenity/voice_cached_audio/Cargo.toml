@@ -21,7 +21,7 @@ branch = "next"
 version = "0.5"
 features = ["mp3"]
 git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "songbird-fixes"
+branch = "samplebuffer_samples_mut"
 
 [dependencies.tokio]
 version = "1.0"

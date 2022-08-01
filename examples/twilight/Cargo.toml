@@ -24,4 +24,4 @@ features = ["driver", "gateway", "twilight", "rustls"]
 version = "0.5"
 features = ["aac", "mp3", "isomp4", "alac"]
 git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "songbird-fixes"
+branch = "samplebuffer_samples_mut"
