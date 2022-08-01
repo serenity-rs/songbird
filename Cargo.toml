@@ -19,7 +19,7 @@ audiopus = { optional = true, version = "0.3.0-rc.0" }
 byteorder = { optional = true, version = "1" }
 dashmap = { optional = true, version = "5" }
 derivative = "2"
-discortp = { features = ["discord-full"], optional = true, version = "0.5" }
+discortp = { default-features = false, features = ["discord", "pnet", "rtp"], optional = true, version = "0.5" }
 flume = { optional = true, version = "0.10" }
 futures = "0.3"
 once_cell = { optional = true, version = "1" }
@@ -32,8 +32,9 @@ rubato = { optional = true, version = "0.12" }
 rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
 serde-aux = { default-features = false, optional = true, version = "3"}
-simd-json = { features = ["serde_impl"], optional = true, version = "0.6.0" }
 serde_json = "1"
+simd-json = { features = ["serde_impl"], optional = true, version = "0.6.0" }
+socket2 = { optional = true, version = "0.4" }
 streamcatcher = { optional = true, version = "1" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tokio-tungstenite = { optional = true, version = "0.17" }
@@ -112,6 +113,7 @@ driver = [
     "dep:rusty_pool",
     "dep:serde-aux",
     "dep:serenity-voice-model",
+    "dep:socket2",
     "dep:streamcatcher",
     "dep:symphonia",
     "dep:symphonia-core",
@@ -147,9 +149,10 @@ twilight = ["dep:twilight-gateway","dep:twilight-model"]
 
 # Behaviour altering features.
 builtin-queue = []
+receive = ["discortp?/demux", "discortp?/rtcp"]
 
 # Used for docgen/testing/benchmarking.
-full-doc = ["default", "twilight", "builtin-queue"]
+full-doc = ["default", "twilight", "builtin-queue", "receive"]
 internals = []
 
 [[bench]]
