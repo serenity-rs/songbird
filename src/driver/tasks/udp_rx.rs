@@ -22,7 +22,7 @@ use discortp::{
     PacketSize,
 };
 use flume::Receiver;
-use std::{collections::HashMap, convert::TryInto, sync::Arc};
+use std::{collections::HashMap, convert::TryInto};
 use tokio::{net::UdpSocket, select};
 use tracing::{error, instrument, trace, warn};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
@@ -240,7 +240,7 @@ struct UdpRx {
     config: Config,
     packet_buffer: [u8; VOICE_PACKET_MAX],
     rx: Receiver<UdpRxMessage>,
-    udp_socket: Arc<UdpSocket>,
+    udp_socket: UdpSocket,
 }
 
 impl UdpRx {
@@ -395,7 +395,7 @@ pub(crate) async fn runner(
     rx: Receiver<UdpRxMessage>,
     cipher: Cipher,
     config: Config,
-    udp_socket: Arc<UdpSocket>,
+    udp_socket: UdpSocket,
 ) {
     trace!("UDP receive handle started.");
 

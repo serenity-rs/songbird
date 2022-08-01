@@ -12,11 +12,11 @@ The library offers:
  * A standalone driver for voice calls, via the `"driver"` feature. If you can create
  a `ConnectionInfo` using any other gateway, or language for your bot, then you
  can run the songbird voice driver.
- * And, by default, a fully featured voice system featuring events, queues, RT(C)P packet
- handling, seeking on compatible streams, shared multithreaded audio stream caches,
+ * Voice receive and RT(C)P packet handling via the `"receive"` feature.
+ * SIMD-accelerated JSON decoding via the `"simd-json"` feature.
+ * And, by default, a fully featured voice system featuring events, queues,
+ seeking on compatible streams, shared multithreaded audio stream caches,
  and direct Opus data passthrough from DCA files.
- * To be able to use `simd-json` from serenity, you will need to enable the `simdjson`
- feature on both songbird and serenity.
 
 ## Intents
 Songbird's gateway functionality requires you to specify the `GUILD_VOICE_STATES` intent.

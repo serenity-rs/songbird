@@ -26,24 +26,35 @@ pub enum EventContext<'a> {
     /// [`EventStore::add_event`]: EventStore::add_event
     /// [`TrackHandle::add_event`]: TrackHandle::add_event
     Track(&'a [(&'a TrackState, &'a TrackHandle)]),
+
     /// Speaking state update, typically describing how another voice
     /// user is transmitting audio data. Clients must send at least one such
     /// packet to allow SSRC/UserID matching.
     SpeakingStateUpdate(Speaking),
+
+    #[cfg(feature = "receive")]
     /// Speaking state transition, describing whether a given source has started/stopped
     /// transmitting. This fires in response to a silent burst, or the first packet
     /// breaking such a burst.
     SpeakingUpdate(SpeakingUpdateData),
+
+    #[cfg(feature = "receive")]
     /// Opus audio packet, received from another stream.
     VoicePacket(VoiceData<'a>),
+
+    #[cfg(feature = "receive")]
     /// Telemetry/statistics packet, received from another stream.
     RtcpPacket(RtcpData<'a>),
+
     /// Fired whenever a client disconnects.
     ClientDisconnect(ClientDisconnect),
+
     /// Fires when this driver successfully connects to a voice channel.
     DriverConnect(ConnectData<'a>),
+
     /// Fires when this driver successfully reconnects after a network error.
     DriverReconnect(ConnectData<'a>),
+
     /// Fires when this driver fails to connect to, or drops from, a voice channel.
     DriverDisconnect(DisconnectData<'a>),
 }
@@ -51,8 +62,11 @@ pub enum EventContext<'a> {
 #[derive(Debug)]
 pub enum CoreContext {
     SpeakingStateUpdate(Speaking),
+    #[cfg(feature = "receive")]
     SpeakingUpdate(InternalSpeakingUpdate),
+    #[cfg(feature = "receive")]
     VoicePacket(InternalVoicePacket),
+    #[cfg(feature = "receive")]
     RtcpPacket(InternalRtcpPacket),
     ClientDisconnect(ClientDisconnect),
     DriverConnect(InternalConnect),
@@ -64,9 +78,12 @@ impl<'a> CoreContext {
     pub(crate) fn to_user_context(&'a self) -> EventContext<'a> {
         match self {
             Self::SpeakingStateUpdate(evt) => EventContext::SpeakingStateUpdate(*evt),
+            #[cfg(feature = "receive")]
             Self::SpeakingUpdate(evt) =>
                 EventContext::SpeakingUpdate(SpeakingUpdateData::from(evt)),
+            #[cfg(feature = "receive")]
             Self::VoicePacket(evt) => EventContext::VoicePacket(VoiceData::from(evt)),
+            #[cfg(feature = "receive")]
             Self::RtcpPacket(evt) => EventContext::RtcpPacket(RtcpData::from(evt)),
             Self::ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),
             Self::DriverConnect(evt) => EventContext::DriverConnect(ConnectData::from(evt)),
@@ -84,8 +101,11 @@ impl EventContext<'_> {
     pub fn to_core_event(&self) -> Option<CoreEvent> {
         match self {
             Self::SpeakingStateUpdate(_) => Some(CoreEvent::SpeakingStateUpdate),
+            #[cfg(feature = "receive")]
             Self::SpeakingUpdate(_) => Some(CoreEvent::SpeakingUpdate),
+            #[cfg(feature = "receive")]
             Self::VoicePacket(_) => Some(CoreEvent::VoicePacket),
+            #[cfg(feature = "receive")]
             Self::RtcpPacket(_) => Some(CoreEvent::RtcpPacket),
             Self::ClientDisconnect(_) => Some(CoreEvent::ClientDisconnect),
             Self::DriverConnect(_) => Some(CoreEvent::DriverConnect),
