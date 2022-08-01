@@ -8,7 +8,7 @@
 }</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Opus audio packet, received from another stream (detailed in <code>packet</code>).
 <code>payload_offset</code> contains the true payload location within the raw packet’s <code>payload()</code>,
 if extensions or raw packet data are required.</p>
-<p>Valid audio data (<code>Some(audio)</code> where <code>audio.len &gt;= 0</code>) contains up to 20ms of 16-bit mono PCM audio
+<p>Valid audio data (<code>Some(audio)</code> where <code>audio.len &gt;= 0</code>) contains up to 20ms of 16-bit stereo PCM audio
 at 48kHz, using native endianness. Songbird will not send audio for silent regions, these should
 be inferred using <a href="../enum.CoreEvent.html#variant.SpeakingUpdate"><code>SpeakingUpdate</code></a>s (and filled in by the user if required using arrays of zeroes).</p>
 <p>If <code>audio.len() == 0</code>, then this packet arrived out-of-order. If <code>None</code>, songbird was not configured
