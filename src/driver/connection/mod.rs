@@ -3,7 +3,10 @@ pub mod error;
 #[cfg(feature = "receive")]
 use super::tasks::udp_rx;
 use super::{
-    tasks::{message::*, ws as ws_task},
+    tasks::{
+        message::*,
+        ws::{self as ws_task, AuxNetwork},
+    },
     Config,
     CryptoMode,
 };
@@ -21,6 +24,8 @@ use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPa
 use error::{Error, Result};
 use flume::Sender;
 use socket2::Socket;
+#[cfg(feature = "receive")]
+use std::sync::Arc;
 use std::{net::IpAddr, str::FromStr};
 use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
@@ -217,15 +222,21 @@ impl Connection {
             .mixer
             .send(MixerMessage::SetConn(mix_conn, ready.ssrc))?;
 
-        spawn(ws_task::runner(
-            interconnect.clone(),
+        #[cfg(feature = "receive")]
+        let ssrc_tracker = Arc::new(SsrcTracker::default());
+
+        let ws_state = AuxNetwork::new(
             ws_msg_rx,
             client,
             ssrc,
             hello.heartbeat_interval,
             idx,
             info.clone(),
-        ));
+            #[cfg(feature = "receive")]
+            ssrc_tracker.clone(),
+        );
+
+        spawn(ws_task::runner(interconnect.clone(), ws_state));
 
         #[cfg(feature = "receive")]
         spawn(udp_rx::runner(
@@ -234,6 +245,7 @@ impl Connection {
             cipher,
             config.clone(),
             udp_rx,
+            ssrc_tracker,
         ));
 
         Ok(Connection {

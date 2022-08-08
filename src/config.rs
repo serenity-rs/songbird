@@ -49,6 +49,13 @@ pub struct Config {
     /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
     pub decode_mode: DecodeMode,
 
+    #[cfg(all(feature = "driver", feature = "receive"))]
+    /// Configures the amount of time after a user/SSRC is inactive before their decoder state
+    /// should be removed.
+    ///
+    /// Defaults to 1 minute.
+    pub decode_state_timeout: Duration,
+
     #[cfg(feature = "gateway")]
     /// Configures the amount of time to wait for Discord to reply with connection information
     /// if [`Call::join`]/[`join_gateway`] are used.
@@ -155,6 +162,8 @@ impl Default for Config {
             crypto_mode: CryptoMode::Normal,
             #[cfg(all(feature = "driver", feature = "receive"))]
             decode_mode: DecodeMode::Decrypt,
+            #[cfg(all(feature = "driver", feature = "receive"))]
+            decode_state_timeout: Duration::from_secs(60),
             #[cfg(feature = "gateway")]
             gateway_timeout: Some(Duration::from_secs(10)),
             #[cfg(feature = "driver")]
@@ -195,6 +204,14 @@ impl Config {
     #[must_use]
     pub fn decode_mode(mut self, decode_mode: DecodeMode) -> Self {
         self.decode_mode = decode_mode;
+        self
+    }
+
+    #[cfg(feature = "receive")]
+    /// Sets this `Config`'s received packet decoder cleanup timer.
+    #[must_use]
+    pub fn decode_state_timeout(mut self, decode_state_timeout: Duration) -> Self {
+        self.decode_state_timeout = decode_state_timeout;
         self
     }
 

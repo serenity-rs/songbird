@@ -22,8 +22,8 @@ use discortp::{
     PacketSize,
 };
 use flume::Receiver;
-use std::{collections::HashMap, convert::TryInto};
-use tokio::{net::UdpSocket, select};
+use std::{collections::HashMap, convert::TryInto, sync::Arc, time::Duration};
+use tokio::{net::UdpSocket, select, time::Instant};
 use tracing::{error, instrument, trace, warn};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
@@ -33,6 +33,8 @@ struct SsrcState {
     decoder: OpusDecoder,
     last_seq: u16,
     decode_size: PacketDecodeSize,
+    prune_time: Instant,
+    disconnected: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -84,13 +86,21 @@ enum SpeakingDelta {
 }
 
 impl SsrcState {
-    fn new(pkt: &RtpPacket<'_>) -> Self {
+    fn new(pkt: &RtpPacket<'_>, state_timeout: Duration) -> Self {
         Self {
             silent_frame_count: 5, // We do this to make the first speech packet fire an event.
             decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
                 .expect("Failed to create new Opus decoder for source."),
             last_seq: pkt.get_sequence().into(),
             decode_size: PacketDecodeSize::TwentyMillis,
+            prune_time: Instant::now() + state_timeout,
+            disconnected: false,
+        }
+    }
+
+    fn refresh_timer(&mut self, state_timeout: Duration) {
+        if !self.disconnected {
+            self.prune_time = Instant::now() + state_timeout;
         }
     }
 
@@ -236,21 +246,23 @@ impl SsrcState {
 struct UdpRx {
     cipher: Cipher,
     decoder_map: HashMap<u32, SsrcState>,
-    #[allow(dead_code)]
     config: Config,
     packet_buffer: [u8; VOICE_PACKET_MAX],
     rx: Receiver<UdpRxMessage>,
+    ssrc_signalling: Arc<SsrcTracker>,
     udp_socket: UdpSocket,
 }
 
 impl UdpRx {
     #[instrument(skip(self))]
     async fn run(&mut self, interconnect: &mut Interconnect) {
+        let mut cleanup_time = Instant::now();
+
         loop {
             select! {
                 Ok((len, _addr)) = self.udp_socket.recv_from(&mut self.packet_buffer[..]) => {
                     self.process_udp_message(interconnect, len);
-                }
+                },
                 msg = self.rx.recv_async() => {
                     match msg {
                         Ok(UdpRxMessage::ReplaceInterconnect(i)) => {
@@ -261,7 +273,41 @@ impl UdpRx {
                         },
                         Err(flume::RecvError::Disconnected) => break,
                     }
-                }
+                },
+                _ = tokio::time::sleep_until(cleanup_time) => {
+                    // periodic cleanup.
+                    let now = Instant::now();
+
+                    // check ssrc map to see if the WS task has informed us of any disconnects.
+                    loop {
+                        // This is structured in an odd way to prevent deadlocks.
+                        // while-let seemed to keep the dashmap iter() alive for block scope, rather than
+                        // just the initialiser.
+                        let id = {
+                            if let Some(id) = self.ssrc_signalling.disconnected_users.iter().next().map(|v| *v.key()) {
+                                id
+                            } else {
+                                break;
+                            }
+                        };
+
+                        let _ = self.ssrc_signalling.disconnected_users.remove(&id);
+                        if let Some((_, ssrc)) = self.ssrc_signalling.user_ssrc_map.remove(&id) {
+                            if let Some(state) = self.decoder_map.get_mut(&ssrc) {
+                                // don't cleanup immediately: leave for later cycle
+                                // this is key with reorder/jitter buffers where we may
+                                // still need to decode post disconnect for ~0.2s.
+                                state.prune_time = now + Duration::from_secs(1);
+                                state.disconnected = true;
+                            }
+                        }
+                    }
+
+                    // now remove all dead ssrcs.
+                    self.decoder_map.retain(|_, v| v.prune_time > now);
+
+                    cleanup_time = now + Duration::from_secs(5);
+                },
             }
         }
     }
@@ -310,7 +356,11 @@ impl UdpRx {
                 let entry = self
                     .decoder_map
                     .entry(rtp.get_ssrc())
-                    .or_insert_with(|| SsrcState::new(&rtp));
+                    .or_insert_with(|| SsrcState::new(&rtp, self.config.decode_state_timeout));
+
+                // Only do this on RTP, rather than RTCP -- this pins decoder state liveness
+                // to *speech* rather than just presence.
+                entry.refresh_timer(self.config.decode_state_timeout);
 
                 if let Ok((delta, audio)) = entry.process(
                     &rtp,
@@ -396,6 +446,7 @@ pub(crate) async fn runner(
     cipher: Cipher,
     config: Config,
     udp_socket: UdpSocket,
+    ssrc_signalling: Arc<SsrcTracker>,
 ) {
     trace!("UDP receive handle started.");
 
@@ -405,6 +456,7 @@ pub(crate) async fn runner(
         config,
         packet_buffer: [0u8; VOICE_PACKET_MAX],
         rx,
+        ssrc_signalling,
         udp_socket,
     };
 
