@@ -260,6 +260,8 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::message</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">events::CoreContext</span>,
@@ -275,6 +277,8 @@
 };
 <span class="kw">use</span> <span class="ident">flume::Receiver</span>;
 <span class="kw">use</span> <span class="ident">rand::random</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 <span class="kw">use</span> <span class="ident">tokio</span>::{
     <span class="ident">select</span>,
@@ -283,7 +287,7 @@
 <span class="kw">use</span> <span class="ident">tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode</span>;
 <span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">info</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
 
-<span class="kw">struct</span> <span class="ident">AuxNetwork</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AuxNetwork</span> {
     <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>,
     <span class="ident">ws_client</span>: <span class="ident">WsStream</span>,
     <span class="ident">dont_send</span>: <span class="ident">bool</span>,
@@ -296,6 +300,9 @@
 
     <span class="ident">attempt_idx</span>: <span class="ident">usize</span>,
     <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
+    <span class="ident">ssrc_signalling</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SsrcTracker</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">AuxNetwork</span> {
@@ -306,6 +313,7 @@
         <span class="ident">heartbeat_interval</span>: <span class="ident">f64</span>,
         <span class="ident">attempt_idx</span>: <span class="ident">usize</span>,
         <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span> <span class="ident">ssrc_signalling</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SsrcTracker</span><span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">rx</span>: <span class="ident">evt_rx</span>,
@@ -320,6 +328,9 @@
 
             <span class="ident">attempt_idx</span>,
             <span class="ident">info</span>,
+
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
+            <span class="ident">ssrc_signalling</span>,
         }
     }
 
@@ -448,6 +459,11 @@
     <span class="kw">fn</span> <span class="ident">process_ws</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>, <span class="ident">value</span>: <span class="ident">GatewayEvent</span>) {
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="ident">GatewayEvent::Speaking</span>(<span class="ident">ev</span>) =&gt; {
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">user_id</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ev</span>.<span class="ident">user_id</span> {
+                    <span class="self">self</span>.<span class="ident">ssrc_signalling</span>.<span class="ident">user_ssrc_map</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">user_id</span>, <span class="ident">ev</span>.<span class="ident">ssrc</span>);
+                }
+
                 <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                     <span class="ident">CoreContext::SpeakingStateUpdate</span>(<span class="ident">ev</span>),
                 )));
@@ -456,6 +472,11 @@
                 <span class="macro">debug!</span>(<span class="string">&quot;Received discontinued ClientConnect: {:?}&quot;</span>, <span class="ident">ev</span>);
             },
             <span class="ident">GatewayEvent::ClientDisconnect</span>(<span class="ident">ev</span>) =&gt; {
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
+                {
+                    <span class="self">self</span>.<span class="ident">ssrc_signalling</span>.<span class="ident">disconnected_users</span>.<span class="ident">insert</span>(<span class="ident">ev</span>.<span class="ident">user_id</span>);
+                }
+
                 <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
                     <span class="ident">CoreContext::ClientDisconnect</span>(<span class="ident">ev</span>),
                 )));
@@ -479,26 +500,9 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">interconnect</span>, <span class="ident">ws_client</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(
-    <span class="kw-2">mut</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
-    <span class="ident">evt_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>,
-    <span class="ident">ws_client</span>: <span class="ident">WsStream</span>,
-    <span class="ident">ssrc</span>: <span class="ident">u32</span>,
-    <span class="ident">heartbeat_interval</span>: <span class="ident">f64</span>,
-    <span class="ident">attempt_idx</span>: <span class="ident">usize</span>,
-    <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
-) {
+<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">interconnect</span>, <span class="ident">aux</span>))]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(<span class="kw-2">mut</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>, <span class="kw-2">mut</span> <span class="ident">aux</span>: <span class="ident">AuxNetwork</span>) {
     <span class="macro">trace!</span>(<span class="string">&quot;WS thread started.&quot;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aux</span> <span class="op">=</span> <span class="ident">AuxNetwork::new</span>(
-        <span class="ident">evt_rx</span>,
-        <span class="ident">ws_client</span>,
-        <span class="ident">ssrc</span>,
-        <span class="ident">heartbeat_interval</span>,
-        <span class="ident">attempt_idx</span>,
-        <span class="ident">info</span>,
-    );
-
     <span class="ident">aux</span>.<span class="ident">run</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interconnect</span>).<span class="kw">await</span>;
     <span class="macro">trace!</span>(<span class="string">&quot;WS thread finished.&quot;</span>);
 }
@@ -521,4 +525,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (d394408fb 2022-08-07)" ></div></body></html>

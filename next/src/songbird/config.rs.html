@@ -306,6 +306,23 @@
 <span id="304">304</span>
 <span id="305">305</span>
 <span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::driver::DecodeMode</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
@@ -356,6 +373,13 @@
     <span class="doccomment">/// [`DecodeMode::Pass`]: DecodeMode::Pass</span>
     <span class="doccomment">/// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate</span>
     <span class="kw">pub</span> <span class="ident">decode_mode</span>: <span class="ident">DecodeMode</span>,
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>))]</span>
+    <span class="doccomment">/// Configures the amount of time after a user/SSRC is inactive before their decoder state</span>
+    <span class="doccomment">/// should be removed.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to 1 minute.</span>
+    <span class="kw">pub</span> <span class="ident">decode_state_timeout</span>: <span class="ident">Duration</span>,
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
     <span class="doccomment">/// Configures the amount of time to wait for Discord to reply with connection information</span>
@@ -463,6 +487,8 @@
             <span class="ident">crypto_mode</span>: <span class="ident">CryptoMode::Normal</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>))]</span>
             <span class="ident">decode_mode</span>: <span class="ident">DecodeMode::Decrypt</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>))]</span>
+            <span class="ident">decode_state_timeout</span>: <span class="ident">Duration::from_secs</span>(<span class="number">60</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
             <span class="ident">gateway_timeout</span>: <span class="prelude-val">Some</span>(<span class="ident">Duration::from_secs</span>(<span class="number">10</span>)),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
@@ -503,6 +529,14 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_mode</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">decode_mode</span>: <span class="ident">DecodeMode</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">decode_mode</span> <span class="op">=</span> <span class="ident">decode_mode</span>;
+        <span class="self">self</span>
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
+    <span class="doccomment">/// Sets this `Config`&#39;s received packet decoder cleanup timer.</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_state_timeout</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">decode_state_timeout</span>: <span class="ident">Duration</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">decode_state_timeout</span> <span class="op">=</span> <span class="ident">decode_state_timeout</span>;
         <span class="self">self</span>
     }
 
@@ -613,4 +647,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (d394408fb 2022-08-07)" ></div></body></html>
