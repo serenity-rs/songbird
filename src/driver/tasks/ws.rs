@@ -13,6 +13,8 @@ use crate::{
 };
 use flume::Receiver;
 use rand::random;
+#[cfg(feature = "receive")]
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::{
     select,
@@ -21,7 +23,7 @@ use tokio::{
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tracing::{debug, info, instrument, trace, warn};
 
-struct AuxNetwork {
+pub(crate) struct AuxNetwork {
     rx: Receiver<WsMessage>,
     ws_client: WsStream,
     dont_send: bool,
@@ -34,6 +36,9 @@ struct AuxNetwork {
 
     attempt_idx: usize,
     info: ConnectionInfo,
+
+    #[cfg(feature = "receive")]
+    ssrc_signalling: Arc<SsrcTracker>,
 }
 
 impl AuxNetwork {
@@ -44,6 +49,7 @@ impl AuxNetwork {
         heartbeat_interval: f64,
         attempt_idx: usize,
         info: ConnectionInfo,
+        #[cfg(feature = "receive")] ssrc_signalling: Arc<SsrcTracker>,
     ) -> Self {
         Self {
             rx: evt_rx,
@@ -58,6 +64,9 @@ impl AuxNetwork {
 
             attempt_idx,
             info,
+
+            #[cfg(feature = "receive")]
+            ssrc_signalling,
         }
     }
 
@@ -186,6 +195,11 @@ impl AuxNetwork {
     fn process_ws(&mut self, interconnect: &Interconnect, value: GatewayEvent) {
         match value {
             GatewayEvent::Speaking(ev) => {
+                #[cfg(feature = "receive")]
+                if let Some(user_id) = &ev.user_id {
+                    self.ssrc_signalling.user_ssrc_map.insert(*user_id, ev.ssrc);
+                }
+
                 drop(interconnect.events.send(EventMessage::FireCoreEvent(
                     CoreContext::SpeakingStateUpdate(ev),
                 )));
@@ -194,6 +208,11 @@ impl AuxNetwork {
                 debug!("Received discontinued ClientConnect: {:?}", ev);
             },
             GatewayEvent::ClientDisconnect(ev) => {
+                #[cfg(feature = "receive")]
+                {
+                    self.ssrc_signalling.disconnected_users.insert(ev.user_id);
+                }
+
                 drop(interconnect.events.send(EventMessage::FireCoreEvent(
                     CoreContext::ClientDisconnect(ev),
                 )));
@@ -217,26 +236,9 @@ impl AuxNetwork {
     }
 }
 
-#[instrument(skip(interconnect, ws_client))]
-pub(crate) async fn runner(
-    mut interconnect: Interconnect,
-    evt_rx: Receiver<WsMessage>,
-    ws_client: WsStream,
-    ssrc: u32,
-    heartbeat_interval: f64,
-    attempt_idx: usize,
-    info: ConnectionInfo,
-) {
+#[instrument(skip(interconnect, aux))]
+pub(crate) async fn runner(mut interconnect: Interconnect, mut aux: AuxNetwork) {
     trace!("WS thread started.");
-    let mut aux = AuxNetwork::new(
-        evt_rx,
-        ws_client,
-        ssrc,
-        heartbeat_interval,
-        attempt_idx,
-        info,
-    );
-
     aux.run(&mut interconnect).await;
     trace!("WS thread finished.");
 }
