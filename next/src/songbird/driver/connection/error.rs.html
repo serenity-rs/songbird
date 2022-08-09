@@ -137,6 +137,10 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Connection errors and convenience types.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -156,8 +160,10 @@
     <span class="doccomment">/// The driver hung up an internal signaller, either due to another connection attempt</span>
     <span class="doccomment">/// or a crash.</span>
     <span class="ident">AttemptDiscarded</span>,
-    <span class="doccomment">/// An error occurred during [en/de]cryption of voice packets or key generation.</span>
+    <span class="doccomment">/// An error occurred during [en/de]cryption of voice packets.</span>
     <span class="ident">Crypto</span>(<span class="ident">CryptoError</span>),
+    <span class="doccomment">/// The symmetric key supplied by Discord had the wrong size.</span>
+    <span class="ident">CryptoInvalidLength</span>,
     <span class="doccomment">/// Server did not return the expected crypto mode during negotiation.</span>
     <span class="ident">CryptoModeInvalid</span>,
     <span class="doccomment">/// Selected crypto mode was not offered by server.</span>
@@ -236,6 +242,7 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::AttemptDiscarded</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
             <span class="ident"><span class="self">Self</span>::Crypto</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::CryptoInvalidLength</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server supplied key of wrong length&quot;</span>),
             <span class="ident"><span class="self">Self</span>::CryptoModeInvalid</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
             <span class="ident"><span class="self">Self</span>::CryptoModeUnavailable</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
             <span class="ident"><span class="self">Self</span>::EndpointUrl</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
@@ -256,6 +263,7 @@
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Error::AttemptDiscarded</span>
+            <span class="op">|</span> <span class="ident">Error::CryptoInvalidLength</span>
             <span class="op">|</span> <span class="ident">Error::CryptoModeInvalid</span>
             <span class="op">|</span> <span class="ident">Error::CryptoModeUnavailable</span>
             <span class="op">|</span> <span class="ident">Error::EndpointUrl</span>
@@ -275,4 +283,4 @@
 <span class="doccomment">/// Convenience type for Discord voice/driver connection error handling.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (d394408fb 2022-08-07)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
