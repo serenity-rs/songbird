@@ -17,8 +17,10 @@ pub enum Error {
     /// The driver hung up an internal signaller, either due to another connection attempt
     /// or a crash.
     AttemptDiscarded,
-    /// An error occurred during [en/de]cryption of voice packets or key generation.
+    /// An error occurred during [en/de]cryption of voice packets.
     Crypto(CryptoError),
+    /// The symmetric key supplied by Discord had the wrong size.
+    CryptoInvalidLength,
     /// Server did not return the expected crypto mode during negotiation.
     CryptoModeInvalid,
     /// Selected crypto mode was not offered by server.
@@ -97,6 +99,7 @@ impl fmt::Display for Error {
         match self {
             Self::AttemptDiscarded => write!(f, "connection attempt was aborted/discarded"),
             Self::Crypto(e) => e.fmt(f),
+            Self::CryptoInvalidLength => write!(f, "server supplied key of wrong length"),
             Self::CryptoModeInvalid => write!(f, "server changed negotiated encryption mode"),
             Self::CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode"),
             Self::EndpointUrl => write!(f, "endpoint URL received from gateway was invalid"),
@@ -117,6 +120,7 @@ impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
             Error::AttemptDiscarded
+            | Error::CryptoInvalidLength
             | Error::CryptoModeInvalid
             | Error::CryptoModeUnavailable
             | Error::EndpointUrl
