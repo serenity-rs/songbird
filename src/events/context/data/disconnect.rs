@@ -86,7 +86,8 @@ impl From<&ConnectionError> for DisconnectReason {
     fn from(e: &ConnectionError) -> Self {
         match e {
             ConnectionError::AttemptDiscarded => Self::AttemptDiscarded,
-            ConnectionError::CryptoModeInvalid
+            ConnectionError::CryptoInvalidLength
+            | ConnectionError::CryptoModeInvalid
             | ConnectionError::CryptoModeUnavailable
             | ConnectionError::EndpointUrl
             | ConnectionError::ExpectedHandshake

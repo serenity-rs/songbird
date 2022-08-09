@@ -46,7 +46,7 @@ twilight-model = { default-features = false, optional = true, version = "0.12.0"
 typemap_rev = { optional = true, version = "0.1" }
 url = { optional = true, version = "2" }
 uuid = { features = ["v4"], optional = true, version = "1" }
-xsalsa20poly1305 = { features = ["std"], optional = true, version = "0.8" }
+xsalsa20poly1305 = { features = ["std"], optional = true, version = "0.9" }
 
 [dependencies.serenity]
 branch = "next"

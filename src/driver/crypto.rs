@@ -254,7 +254,7 @@ impl CryptoState {
 mod test {
     use super::*;
     use discortp::rtp::MutableRtpPacket;
-    use xsalsa20poly1305::{aead::NewAead, KEY_SIZE, TAG_SIZE};
+    use xsalsa20poly1305::{KeyInit, KEY_SIZE, TAG_SIZE};
 
     #[test]
     fn small_packet_decrypts_error() {
