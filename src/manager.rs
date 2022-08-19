@@ -359,7 +359,8 @@ impl Songbird {
     pub async fn process(&self, event: &TwilightEvent) {
         match event {
             TwilightEvent::VoiceServerUpdate(v) => {
-                let call = v.guild_id.map(GuildId::from).and_then(|id| self.get(id));
+                let id = GuildId::from(v.guild_id);
+                let call =  self.get(id);
 
                 if let Some(call) = call {
                     let mut handler = call.lock().await;
