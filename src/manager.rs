@@ -360,7 +360,7 @@ impl Songbird {
         match event {
             TwilightEvent::VoiceServerUpdate(v) => {
                 let id = GuildId::from(v.guild_id);
-                let call =  self.get(id);
+                let call = self.get(id);
 
                 if let Some(call) = call {
                     let mut handler = call.lock().await;
