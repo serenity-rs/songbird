@@ -305,310 +305,310 @@
 <span id="303">303</span>
 <span id="304">304</span>
 <span id="305">305</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Encryption schemes supported by Discord&#39;s secure RTP negotiation.</span>
-<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">NetworkEndian</span>, <span class="ident">WriteBytesExt</span>};
-<span class="kw">use</span> <span class="ident">discortp</span>::{<span class="ident">rtp::RtpPacket</span>, <span class="ident">MutablePacket</span>};
-<span class="kw">use</span> <span class="ident">rand::Rng</span>;
-<span class="kw">use</span> <span class="ident">std::num::Wrapping</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305::Tag</span>;
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::{
-    <span class="ident">aead</span>::{<span class="ident">AeadInPlace</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">CryptoError</span>},
-    <span class="ident">Nonce</span>,
-    <span class="ident">XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>,
-    <span class="ident">NONCE_SIZE</span>,
-    <span class="ident">TAG_SIZE</span>,
+</pre><pre class="rust"><code><span class="doccomment">//! Encryption schemes supported by Discord&#39;s secure RTP negotiation.
+</span><span class="kw">use </span>byteorder::{NetworkEndian, WriteBytesExt};
+<span class="kw">use </span>discortp::{rtp::RtpPacket, MutablePacket};
+<span class="kw">use </span>rand::Rng;
+<span class="kw">use </span>std::num::Wrapping;
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;receive&quot;</span>, test))]</span>
+<span class="kw">use </span>xsalsa20poly1305::Tag;
+<span class="kw">use </span>xsalsa20poly1305::{
+    aead::{AeadInPlace, Error <span class="kw">as </span>CryptoError},
+    Nonce,
+    XSalsa20Poly1305 <span class="kw">as </span>Cipher,
+    NONCE_SIZE,
+    TAG_SIZE,
 };
 
-<span class="doccomment">/// Variants of the `XSalsa20Poly1305` encryption scheme.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CryptoMode</span> {
-    <span class="doccomment">/// The RTP header is used as the source of nonce bytes for the packet.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Equivalent to a nonce of at most 48b (6B) at no extra packet overhead:</span>
-    <span class="doccomment">/// the RTP sequence number and timestamp are the varying quantities.</span>
-    <span class="ident">Normal</span>,
-    <span class="doccomment">/// An additional random 24B suffix is used as the source of nonce bytes for the packet.</span>
-    <span class="doccomment">/// This is regenerated randomly for each packet.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Full nonce width of 24B (192b), at an extra 24B per packet (~1.2 kB/s).</span>
-    <span class="ident">Suffix</span>,
-    <span class="doccomment">/// An additional random 4B suffix is used as the source of nonce bytes for the packet.</span>
-    <span class="doccomment">/// This nonce value increments by `1` with each packet.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Nonce width of 4B (32b), at an extra 4B per packet (~0.2 kB/s).</span>
-    <span class="ident">Lite</span>,
+<span class="doccomment">/// Variants of the `XSalsa20Poly1305` encryption scheme.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>CryptoMode {
+    <span class="doccomment">/// The RTP header is used as the source of nonce bytes for the packet.
+    ///
+    /// Equivalent to a nonce of at most 48b (6B) at no extra packet overhead:
+    /// the RTP sequence number and timestamp are the varying quantities.
+    </span>Normal,
+    <span class="doccomment">/// An additional random 24B suffix is used as the source of nonce bytes for the packet.
+    /// This is regenerated randomly for each packet.
+    ///
+    /// Full nonce width of 24B (192b), at an extra 24B per packet (~1.2 kB/s).
+    </span>Suffix,
+    <span class="doccomment">/// An additional random 4B suffix is used as the source of nonce bytes for the packet.
+    /// This nonce value increments by `1` with each packet.
+    ///
+    /// Nonce width of 4B (32b), at an extra 4B per packet (~0.2 kB/s).
+    </span>Lite,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CryptoState</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CryptoMode</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">CryptoState</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">val</span> {
-            <span class="ident">CryptoState::Normal</span> =&gt; <span class="ident"><span class="self">Self</span>::Normal</span>,
-            <span class="ident">CryptoState::Suffix</span> =&gt; <span class="ident"><span class="self">Self</span>::Suffix</span>,
-            <span class="ident">CryptoState::Lite</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::Lite</span>,
+<span class="kw">impl </span>From&lt;CryptoState&gt; <span class="kw">for </span>CryptoMode {
+    <span class="kw">fn </span>from(val: CryptoState) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>val {
+            CryptoState::Normal =&gt; <span class="self">Self</span>::Normal,
+            CryptoState::Suffix =&gt; <span class="self">Self</span>::Suffix,
+            CryptoState::Lite(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::Lite,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">CryptoMode</span> {
-    <span class="doccomment">/// Returns the name of a mode as it will appear during negotiation.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_request_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Normal</span> =&gt; <span class="string">&quot;xsalsa20_poly1305&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Suffix</span> =&gt; <span class="string">&quot;xsalsa20_poly1305_suffix&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Lite</span> =&gt; <span class="string">&quot;xsalsa20_poly1305_lite&quot;</span>,
+<span class="kw">impl </span>CryptoMode {
+    <span class="doccomment">/// Returns the name of a mode as it will appear during negotiation.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>to_request_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Normal =&gt; <span class="string">&quot;xsalsa20_poly1305&quot;</span>,
+            <span class="self">Self</span>::Suffix =&gt; <span class="string">&quot;xsalsa20_poly1305_suffix&quot;</span>,
+            <span class="self">Self</span>::Lite =&gt; <span class="string">&quot;xsalsa20_poly1305_lite&quot;</span>,
         }
     }
 
-    <span class="doccomment">/// Returns the number of bytes each nonce is stored as within</span>
-    <span class="doccomment">/// a packet.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nonce_size</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Normal</span> =&gt; <span class="ident">RtpPacket::minimum_packet_size</span>(),
-            <span class="ident"><span class="self">Self</span>::Suffix</span> =&gt; <span class="ident">NONCE_SIZE</span>,
-            <span class="ident"><span class="self">Self</span>::Lite</span> =&gt; <span class="number">4</span>,
+    <span class="doccomment">/// Returns the number of bytes each nonce is stored as within
+    /// a packet.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>nonce_size(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Normal =&gt; RtpPacket::minimum_packet_size(),
+            <span class="self">Self</span>::Suffix =&gt; NONCE_SIZE,
+            <span class="self">Self</span>::Lite =&gt; <span class="number">4</span>,
         }
     }
 
-    <span class="doccomment">/// Returns the number of bytes occupied by the encryption scheme</span>
-    <span class="doccomment">/// which fall before the payload.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">payload_prefix_len</span>() -&gt; <span class="ident">usize</span> {
-        <span class="ident">TAG_SIZE</span>
+    <span class="doccomment">/// Returns the number of bytes occupied by the encryption scheme
+    /// which fall before the payload.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>payload_prefix_len() -&gt; usize {
+        TAG_SIZE
     }
 
-    <span class="doccomment">/// Returns the number of bytes occupied by the encryption scheme</span>
-    <span class="doccomment">/// which fall after the payload.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">payload_suffix_len</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Normal</span> =&gt; <span class="number">0</span>,
-            <span class="ident"><span class="self">Self</span>::Suffix</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Lite</span> =&gt; <span class="self">self</span>.<span class="ident">nonce_size</span>(),
+    <span class="doccomment">/// Returns the number of bytes occupied by the encryption scheme
+    /// which fall after the payload.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>payload_suffix_len(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Normal =&gt; <span class="number">0</span>,
+            <span class="self">Self</span>::Suffix | <span class="self">Self</span>::Lite =&gt; <span class="self">self</span>.nonce_size(),
         }
     }
 
-    <span class="doccomment">/// Calculates the number of additional bytes required compared</span>
-    <span class="doccomment">/// to an unencrypted payload.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">payload_overhead</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="ident"><span class="self">Self</span>::payload_prefix_len</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">payload_suffix_len</span>()
+    <span class="doccomment">/// Calculates the number of additional bytes required compared
+    /// to an unencrypted payload.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>payload_overhead(<span class="self">self</span>) -&gt; usize {
+        <span class="self">Self</span>::payload_prefix_len() + <span class="self">self</span>.payload_suffix_len()
     }
 
-    <span class="doccomment">/// Extracts the byte slice in a packet used as the nonce, and the remaining mutable</span>
-    <span class="doccomment">/// portion of the packet.</span>
-    <span class="kw">fn</span> <span class="ident">nonce_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Extracts the byte slice in a packet used as the nonce, and the remaining mutable
+    /// portion of the packet.
+    </span><span class="kw">fn </span>nonce_slice&lt;<span class="lifetime">&#39;a</span>&gt;(
         <span class="self">self</span>,
-        <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
-        <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]), <span class="ident">CryptoError</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Normal</span> =&gt; <span class="prelude-val">Ok</span>((<span class="ident">header</span>, <span class="ident">body</span>)),
-            <span class="ident"><span class="self">Self</span>::Suffix</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Lite</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">len</span>();
-                <span class="kw">if</span> <span class="ident">len</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">payload_suffix_len</span>() {
-                    <span class="prelude-val">Err</span>(<span class="ident">CryptoError</span>)
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> (<span class="ident">body_left</span>, <span class="ident">nonce_loc</span>) <span class="op">=</span> <span class="ident">body</span>.<span class="ident">split_at_mut</span>(<span class="ident">len</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">payload_suffix_len</span>());
-                    <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">nonce_loc</span>[..<span class="self">self</span>.<span class="ident">nonce_size</span>()], <span class="ident">body_left</span>))
+        header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+        body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]), CryptoError&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Normal =&gt; <span class="prelude-val">Ok</span>((header, body)),
+            <span class="self">Self</span>::Suffix | <span class="self">Self</span>::Lite =&gt; {
+                <span class="kw">let </span>len = body.len();
+                <span class="kw">if </span>len &lt; <span class="self">self</span>.payload_suffix_len() {
+                    <span class="prelude-val">Err</span>(CryptoError)
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>(body_left, nonce_loc) = body.split_at_mut(len - <span class="self">self</span>.payload_suffix_len());
+                    <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span>nonce_loc[..<span class="self">self</span>.nonce_size()], body_left))
                 }
             },
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>, <span class="ident">test</span>))]</span>
-    <span class="doccomment">/// Decrypts a Discord RT(C)P packet using the given key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If successful, this returns the number of bytes to be ignored from the</span>
-    <span class="doccomment">/// start and end of the packet payload.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">decrypt_in_place</span>(
+    <span class="attribute">#[cfg(any(feature = <span class="string">&quot;receive&quot;</span>, test))]</span>
+    <span class="doccomment">/// Decrypts a Discord RT(C)P packet using the given key.
+    ///
+    /// If successful, this returns the number of bytes to be ignored from the
+    /// start and end of the packet payload.
+    </span><span class="attribute">#[inline]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decrypt_in_place(
         <span class="self">self</span>,
-        <span class="ident">packet</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">MutablePacket</span>,
-        <span class="ident">cipher</span>: <span class="kw-2">&amp;</span><span class="ident">Cipher</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>), <span class="ident">CryptoError</span><span class="op">&gt;</span> {
-        <span class="comment">// FIXME on next: packet encrypt/decrypt should use an internal error</span>
-        <span class="comment">//  to denote &quot;too small&quot; vs. &quot;opaque&quot;.</span>
-        <span class="kw">let</span> <span class="ident">header_len</span> <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">packet</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">packet</span>.<span class="ident">payload</span>().<span class="ident">len</span>();
-        <span class="kw">let</span> (<span class="ident">header</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">packet_mut</span>().<span class="ident">split_at_mut</span>(<span class="ident">header_len</span>);
-        <span class="kw">let</span> (<span class="ident">slice_to_use</span>, <span class="ident">body_remaining</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">nonce_slice</span>(<span class="ident">header</span>, <span class="ident">body</span>)<span class="question-mark">?</span>;
+        packet: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>MutablePacket,
+        cipher: <span class="kw-2">&amp;</span>Cipher,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize), CryptoError&gt; {
+        <span class="comment">// FIXME on next: packet encrypt/decrypt should use an internal error
+        //  to denote &quot;too small&quot; vs. &quot;opaque&quot;.
+        </span><span class="kw">let </span>header_len = packet.packet().len() - packet.payload().len();
+        <span class="kw">let </span>(header, body) = packet.packet_mut().split_at_mut(header_len);
+        <span class="kw">let </span>(slice_to_use, body_remaining) = <span class="self">self</span>.nonce_slice(header, body)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">Nonce::default</span>();
-        <span class="kw">let</span> <span class="ident">nonce_slice</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">slice_to_use</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">NONCE_SIZE</span> {
-            <span class="ident">Nonce::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">slice_to_use</span>[..<span class="ident">NONCE_SIZE</span>])
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">max_bytes_avail</span> <span class="op">=</span> <span class="ident">slice_to_use</span>.<span class="ident">len</span>();
-            <span class="ident">nonce</span>[..<span class="self">self</span>.<span class="ident">nonce_size</span>().<span class="ident">min</span>(<span class="ident">max_bytes_avail</span>)].<span class="ident">copy_from_slice</span>(<span class="ident">slice_to_use</span>);
-            <span class="kw-2">&amp;</span><span class="ident">nonce</span>
+        <span class="kw">let </span><span class="kw-2">mut </span>nonce = Nonce::default();
+        <span class="kw">let </span>nonce_slice = <span class="kw">if </span>slice_to_use.len() == NONCE_SIZE {
+            Nonce::from_slice(<span class="kw-2">&amp;</span>slice_to_use[..NONCE_SIZE])
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>max_bytes_avail = slice_to_use.len();
+            nonce[..<span class="self">self</span>.nonce_size().min(max_bytes_avail)].copy_from_slice(slice_to_use);
+            <span class="kw-2">&amp;</span>nonce
         };
 
-        <span class="kw">let</span> <span class="ident">body_start</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::payload_prefix_len</span>();
-        <span class="kw">let</span> <span class="ident">body_tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">payload_suffix_len</span>();
+        <span class="kw">let </span>body_start = <span class="self">Self</span>::payload_prefix_len();
+        <span class="kw">let </span>body_tail = <span class="self">self</span>.payload_suffix_len();
 
-        <span class="kw">if</span> <span class="ident">body_start</span> <span class="op">&gt;</span> <span class="ident">body_remaining</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CryptoError</span>);
+        <span class="kw">if </span>body_start &gt; body_remaining.len() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(CryptoError);
         }
 
-        <span class="kw">let</span> (<span class="ident">tag_bytes</span>, <span class="ident">data_bytes</span>) <span class="op">=</span> <span class="ident">body_remaining</span>.<span class="ident">split_at_mut</span>(<span class="ident">body_start</span>);
-        <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">Tag::from_slice</span>(<span class="ident">tag_bytes</span>);
+        <span class="kw">let </span>(tag_bytes, data_bytes) = body_remaining.split_at_mut(body_start);
+        <span class="kw">let </span>tag = Tag::from_slice(tag_bytes);
 
-        <span class="ident">cipher</span>
-            .<span class="ident">decrypt_in_place_detached</span>(<span class="ident">nonce_slice</span>, <span class="string">b&quot;&quot;</span>, <span class="ident">data_bytes</span>, <span class="ident">tag</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> (<span class="ident">body_start</span>, <span class="ident">body_tail</span>))
+        cipher
+            .decrypt_in_place_detached(nonce_slice, <span class="string">b&quot;&quot;</span>, data_bytes, tag)
+            .map(|<span class="kw">_</span>| (body_start, body_tail))
     }
 
-    <span class="doccomment">/// Encrypts a Discord RT(C)P packet using the given key.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use of this requires that the input packet has had a nonce generated in the correct location,</span>
-    <span class="doccomment">/// and `payload_len` specifies the number of bytes after the header including this nonce.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encrypt_in_place</span>(
+    <span class="doccomment">/// Encrypts a Discord RT(C)P packet using the given key.
+    ///
+    /// Use of this requires that the input packet has had a nonce generated in the correct location,
+    /// and `payload_len` specifies the number of bytes after the header including this nonce.
+    </span><span class="attribute">#[inline]</span>
+    <span class="kw">pub fn </span>encrypt_in_place(
         <span class="self">self</span>,
-        <span class="ident">packet</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">MutablePacket</span>,
-        <span class="ident">cipher</span>: <span class="kw-2">&amp;</span><span class="ident">Cipher</span>,
-        <span class="ident">payload_len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CryptoError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">header_len</span> <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">packet</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">packet</span>.<span class="ident">payload</span>().<span class="ident">len</span>();
-        <span class="kw">let</span> (<span class="ident">header</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">packet_mut</span>().<span class="ident">split_at_mut</span>(<span class="ident">header_len</span>);
-        <span class="kw">let</span> (<span class="ident">slice_to_use</span>, <span class="ident">body_remaining</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">nonce_slice</span>(<span class="ident">header</span>, <span class="kw-2">&amp;mut</span> <span class="ident">body</span>[..<span class="ident">payload_len</span>])<span class="question-mark">?</span>;
+        packet: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>MutablePacket,
+        cipher: <span class="kw-2">&amp;</span>Cipher,
+        payload_len: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), CryptoError&gt; {
+        <span class="kw">let </span>header_len = packet.packet().len() - packet.payload().len();
+        <span class="kw">let </span>(header, body) = packet.packet_mut().split_at_mut(header_len);
+        <span class="kw">let </span>(slice_to_use, body_remaining) = <span class="self">self</span>.nonce_slice(header, <span class="kw-2">&amp;mut </span>body[..payload_len])<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">Nonce::default</span>();
-        <span class="kw">let</span> <span class="ident">nonce_slice</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">slice_to_use</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">NONCE_SIZE</span> {
-            <span class="ident">Nonce::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">slice_to_use</span>[..<span class="ident">NONCE_SIZE</span>])
-        } <span class="kw">else</span> {
-            <span class="ident">nonce</span>[..<span class="self">self</span>.<span class="ident">nonce_size</span>()].<span class="ident">copy_from_slice</span>(<span class="ident">slice_to_use</span>);
-            <span class="kw-2">&amp;</span><span class="ident">nonce</span>
+        <span class="kw">let </span><span class="kw-2">mut </span>nonce = Nonce::default();
+        <span class="kw">let </span>nonce_slice = <span class="kw">if </span>slice_to_use.len() == NONCE_SIZE {
+            Nonce::from_slice(<span class="kw-2">&amp;</span>slice_to_use[..NONCE_SIZE])
+        } <span class="kw">else </span>{
+            nonce[..<span class="self">self</span>.nonce_size()].copy_from_slice(slice_to_use);
+            <span class="kw-2">&amp;</span>nonce
         };
 
-        <span class="comment">// body_remaining is now correctly truncated by this point.</span>
-        <span class="comment">// the true_payload to encrypt follows after the first TAG_LEN bytes.</span>
-        <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span>
-            <span class="ident">cipher</span>.<span class="ident">encrypt_in_place_detached</span>(<span class="ident">nonce_slice</span>, <span class="string">b&quot;&quot;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">body_remaining</span>[<span class="ident">TAG_SIZE</span>..])<span class="question-mark">?</span>;
-        <span class="ident">body_remaining</span>[..<span class="ident">TAG_SIZE</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">tag</span>[..]);
+        <span class="comment">// body_remaining is now correctly truncated by this point.
+        // the true_payload to encrypt follows after the first TAG_LEN bytes.
+        </span><span class="kw">let </span>tag =
+            cipher.encrypt_in_place_detached(nonce_slice, <span class="string">b&quot;&quot;</span>, <span class="kw-2">&amp;mut </span>body_remaining[TAG_SIZE..])<span class="question-mark">?</span>;
+        body_remaining[..TAG_SIZE].copy_from_slice(<span class="kw-2">&amp;</span>tag[..]);
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="doccomment">/// State used in nonce generation for the `XSalsa20Poly1305` encryption variants</span>
-<span class="doccomment">/// in [`CryptoMode`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CryptoState</span> {
-    <span class="doccomment">/// The RTP header is used as the source of nonce bytes for the packet.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// No state is required.</span>
-    <span class="ident">Normal</span>,
-    <span class="doccomment">/// An additional random 24B suffix is used as the source of nonce bytes for the packet.</span>
-    <span class="doccomment">/// This is regenerated randomly for each packet.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// No state is required.</span>
-    <span class="ident">Suffix</span>,
-    <span class="doccomment">/// An additional random 4B suffix is used as the source of nonce bytes for the packet.</span>
-    <span class="doccomment">/// This nonce value increments by `1` with each packet.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The last used nonce is stored.</span>
-    <span class="ident">Lite</span>(<span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>),
+<span class="doccomment">/// State used in nonce generation for the `XSalsa20Poly1305` encryption variants
+/// in [`CryptoMode`].
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>CryptoState {
+    <span class="doccomment">/// The RTP header is used as the source of nonce bytes for the packet.
+    ///
+    /// No state is required.
+    </span>Normal,
+    <span class="doccomment">/// An additional random 24B suffix is used as the source of nonce bytes for the packet.
+    /// This is regenerated randomly for each packet.
+    ///
+    /// No state is required.
+    </span>Suffix,
+    <span class="doccomment">/// An additional random 4B suffix is used as the source of nonce bytes for the packet.
+    /// This nonce value increments by `1` with each packet.
+    ///
+    /// The last used nonce is stored.
+    </span>Lite(Wrapping&lt;u32&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CryptoMode</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CryptoState</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">CryptoMode</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">val</span> {
-            <span class="ident">CryptoMode::Normal</span> =&gt; <span class="ident">CryptoState::Normal</span>,
-            <span class="ident">CryptoMode::Suffix</span> =&gt; <span class="ident">CryptoState::Suffix</span>,
-            <span class="ident">CryptoMode::Lite</span> =&gt; <span class="ident">CryptoState::Lite</span>(<span class="ident">Wrapping</span>(<span class="ident">rand::random</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>())),
+<span class="kw">impl </span>From&lt;CryptoMode&gt; <span class="kw">for </span>CryptoState {
+    <span class="kw">fn </span>from(val: CryptoMode) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>val {
+            CryptoMode::Normal =&gt; CryptoState::Normal,
+            CryptoMode::Suffix =&gt; CryptoState::Suffix,
+            CryptoMode::Lite =&gt; CryptoState::Lite(Wrapping(rand::random::&lt;u32&gt;())),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">CryptoState</span> {
-    <span class="doccomment">/// Writes packet nonce into the body, if required, returning the new length.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_packet_nonce</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">packet</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">MutablePacket</span>,
-        <span class="ident">payload_end</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">kind</span>();
-        <span class="kw">let</span> <span class="ident">endpoint</span> <span class="op">=</span> <span class="ident">payload_end</span> <span class="op">+</span> <span class="ident">mode</span>.<span class="ident">payload_suffix_len</span>();
+<span class="kw">impl </span>CryptoState {
+    <span class="doccomment">/// Writes packet nonce into the body, if required, returning the new length.
+    </span><span class="kw">pub fn </span>write_packet_nonce(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        packet: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>MutablePacket,
+        payload_end: usize,
+    ) -&gt; usize {
+        <span class="kw">let </span>mode = <span class="self">self</span>.kind();
+        <span class="kw">let </span>endpoint = payload_end + mode.payload_suffix_len();
 
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Suffix</span> =&gt; {
-                <span class="ident">rand::thread_rng</span>().<span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="ident">packet</span>.<span class="ident">payload_mut</span>()[<span class="ident">payload_end</span>..<span class="ident">endpoint</span>]);
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Suffix =&gt; {
+                rand::thread_rng().fill(<span class="kw-2">&amp;mut </span>packet.payload_mut()[payload_end..endpoint]);
             },
-            <span class="ident"><span class="self">Self</span>::Lite</span>(<span class="kw-2">mut</span> <span class="ident">i</span>) =&gt; {
-                (<span class="kw-2">&amp;mut</span> <span class="ident">packet</span>.<span class="ident">payload_mut</span>()[<span class="ident">payload_end</span>..<span class="ident">endpoint</span>])
-                    .<span class="ident">write_u32</span>::<span class="op">&lt;</span><span class="ident">NetworkEndian</span><span class="op">&gt;</span>(<span class="ident">i</span>.<span class="number">0</span>)
-                    .<span class="ident">expect</span>(
+            <span class="self">Self</span>::Lite(<span class="kw-2">mut </span>i) =&gt; {
+                (<span class="kw-2">&amp;mut </span>packet.payload_mut()[payload_end..endpoint])
+                    .write_u32::&lt;NetworkEndian&gt;(i.<span class="number">0</span>)
+                    .expect(
                         <span class="string">&quot;Nonce size is guaranteed to be sufficient to write u32 for lite tagging.&quot;</span>,
                     );
-                <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Wrapping</span>(<span class="number">1</span>);
+                i += Wrapping(<span class="number">1</span>);
             },
-            <span class="kw">_</span> =&gt; {},
+            <span class="kw">_ </span>=&gt; {},
         }
 
-        <span class="ident">endpoint</span>
+        endpoint
     }
 
-    <span class="doccomment">/// Returns the underlying (stateless) type of the active crypto mode.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="self">self</span>) -&gt; <span class="ident">CryptoMode</span> {
-        <span class="ident">CryptoMode::from</span>(<span class="self">self</span>)
+    <span class="doccomment">/// Returns the underlying (stateless) type of the active crypto mode.
+    </span><span class="kw">pub fn </span>kind(<span class="self">self</span>) -&gt; CryptoMode {
+        CryptoMode::from(<span class="self">self</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">discortp::rtp::MutableRtpPacket</span>;
-    <span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::{<span class="ident">KeyInit</span>, <span class="ident">KEY_SIZE</span>, <span class="ident">TAG_SIZE</span>};
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>discortp::rtp::MutableRtpPacket;
+    <span class="kw">use </span>xsalsa20poly1305::{KeyInit, KEY_SIZE, TAG_SIZE};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">small_packet_decrypts_error</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">MutableRtpPacket::minimum_packet_size</span>()];
-        <span class="kw">let</span> <span class="ident">modes</span> <span class="op">=</span> [<span class="ident">CryptoMode::Normal</span>, <span class="ident">CryptoMode::Suffix</span>, <span class="ident">CryptoMode::Lite</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pkt</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]</span>
+    <span class="kw">fn </span>small_packet_decrypts_error() {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; MutableRtpPacket::minimum_packet_size()];
+        <span class="kw">let </span>modes = [CryptoMode::Normal, CryptoMode::Suffix, CryptoMode::Lite];
+        <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
 
-        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <span class="ident">Cipher::new_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="number">1u8</span>; <span class="ident">KEY_SIZE</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>cipher = Cipher::new_from_slice(<span class="kw-2">&amp;</span>[<span class="number">1u8</span>; KEY_SIZE]).unwrap();
 
-        <span class="kw">for</span> <span class="ident">mode</span> <span class="kw">in</span> <span class="ident">modes</span> {
-            <span class="comment">// AIM: should error, and not panic.</span>
-            <span class="macro">assert!</span>(<span class="ident">mode</span>.<span class="ident">decrypt_in_place</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pkt</span>, <span class="kw-2">&amp;</span><span class="ident">cipher</span>).<span class="ident">is_err</span>());
+        <span class="kw">for </span>mode <span class="kw">in </span>modes {
+            <span class="comment">// AIM: should error, and not panic.
+            </span><span class="macro">assert!</span>(mode.decrypt_in_place(<span class="kw-2">&amp;mut </span>pkt, <span class="kw-2">&amp;</span>cipher).is_err());
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">symmetric_encrypt_decrypt</span>() {
-        <span class="kw">const</span> <span class="ident">TRUE_PAYLOAD</span>: [<span class="ident">u8</span>; <span class="number">8</span>] <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">MutableRtpPacket::minimum_packet_size</span>()
-            <span class="op">+</span> <span class="ident">TRUE_PAYLOAD</span>.<span class="ident">len</span>()
-            <span class="op">+</span> <span class="ident">TAG_SIZE</span>
-            <span class="op">+</span> <span class="ident">NONCE_SIZE</span>];
-        <span class="kw">let</span> <span class="ident">modes</span> <span class="op">=</span> [<span class="ident">CryptoMode::Normal</span>, <span class="ident">CryptoMode::Lite</span>, <span class="ident">CryptoMode::Suffix</span>];
-        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <span class="ident">Cipher::new_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="number">7u8</span>; <span class="ident">KEY_SIZE</span>]).<span class="ident">unwrap</span>();
+    <span class="attribute">#[test]</span>
+    <span class="kw">fn </span>symmetric_encrypt_decrypt() {
+        <span class="kw">const </span>TRUE_PAYLOAD: [u8; <span class="number">8</span>] = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; MutableRtpPacket::minimum_packet_size()
+            + TRUE_PAYLOAD.len()
+            + TAG_SIZE
+            + NONCE_SIZE];
+        <span class="kw">let </span>modes = [CryptoMode::Normal, CryptoMode::Lite, CryptoMode::Suffix];
+        <span class="kw">let </span>cipher = Cipher::new_from_slice(<span class="kw-2">&amp;</span>[<span class="number">7u8</span>; KEY_SIZE]).unwrap();
 
-        <span class="kw">for</span> <span class="ident">mode</span> <span class="kw">in</span> <span class="ident">modes</span> {
-            <span class="ident">buf</span>.<span class="ident">fill</span>(<span class="number">0</span>);
+        <span class="kw">for </span>mode <span class="kw">in </span>modes {
+            buf.fill(<span class="number">0</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pkt</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">crypto_state</span> <span class="op">=</span> <span class="ident">CryptoState::from</span>(<span class="ident">mode</span>);
-            <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">payload_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="ident">payload</span>[<span class="ident">TAG_SIZE</span>..<span class="ident">TAG_SIZE</span> <span class="op">+</span> <span class="ident">TRUE_PAYLOAD</span>.<span class="ident">len</span>()])
-                .<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">TRUE_PAYLOAD</span>[..]);
+            <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>crypto_state = CryptoState::from(mode);
+            <span class="kw">let </span>payload = pkt.payload_mut();
+            (<span class="kw-2">&amp;mut </span>payload[TAG_SIZE..TAG_SIZE + TRUE_PAYLOAD.len()])
+                .copy_from_slice(<span class="kw-2">&amp;</span>TRUE_PAYLOAD[..]);
 
-            <span class="kw">let</span> <span class="ident">final_payload_size</span> <span class="op">=</span>
-                <span class="ident">crypto_state</span>.<span class="ident">write_packet_nonce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pkt</span>, <span class="ident">TAG_SIZE</span> <span class="op">+</span> <span class="ident">TRUE_PAYLOAD</span>.<span class="ident">len</span>());
+            <span class="kw">let </span>final_payload_size =
+                crypto_state.write_packet_nonce(<span class="kw-2">&amp;mut </span>pkt, TAG_SIZE + TRUE_PAYLOAD.len());
 
-            <span class="kw">let</span> <span class="ident">enc_succ</span> <span class="op">=</span> <span class="ident">mode</span>.<span class="ident">encrypt_in_place</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pkt</span>, <span class="kw-2">&amp;</span><span class="ident">cipher</span>, <span class="ident">final_payload_size</span>);
+            <span class="kw">let </span>enc_succ = mode.encrypt_in_place(<span class="kw-2">&amp;mut </span>pkt, <span class="kw-2">&amp;</span>cipher, final_payload_size);
 
-            <span class="macro">assert!</span>(<span class="ident">enc_succ</span>.<span class="ident">is_ok</span>());
+            <span class="macro">assert!</span>(enc_succ.is_ok());
 
-            <span class="kw">let</span> <span class="ident">final_pkt_len</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::minimum_packet_size</span>() <span class="op">+</span> <span class="ident">final_payload_size</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pkt</span> <span class="op">=</span> <span class="ident">MutableRtpPacket::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="ident">final_pkt_len</span>]).<span class="ident">unwrap</span>();
+            <span class="kw">let </span>final_pkt_len = MutableRtpPacket::minimum_packet_size() + final_payload_size;
+            <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..final_pkt_len]).unwrap();
 
-            <span class="macro">assert!</span>(<span class="ident">mode</span>.<span class="ident">decrypt_in_place</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pkt</span>, <span class="kw-2">&amp;</span><span class="ident">cipher</span>).<span class="ident">is_ok</span>());
+            <span class="macro">assert!</span>(mode.decrypt_in_place(<span class="kw-2">&amp;mut </span>pkt, <span class="kw-2">&amp;</span>cipher).is_ok());
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

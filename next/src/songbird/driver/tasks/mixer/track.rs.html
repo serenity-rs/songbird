@@ -400,405 +400,405 @@
 <span id="398">398</span>
 <span id="399">399</span>
 <span id="400">400</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tracks</span>::{<span class="ident">ReadyState</span>, <span class="ident">SeekRequest</span>};
-<span class="kw">use</span> <span class="ident">std::result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
-<span class="kw">use</span> <span class="ident">symphonia_core::errors::Error</span> <span class="kw">as</span> <span class="ident">SymphError</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::tracks::{ReadyState, SeekRequest};
+<span class="kw">use </span>std::result::Result <span class="kw">as </span>StdResult;
+<span class="kw">use </span>symphonia_core::errors::Error <span class="kw">as </span>SymphError;
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InternalTrack</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">playing</span>: <span class="ident">PlayMode</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">volume</span>: <span class="ident">f32</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">input</span>: <span class="ident">InputState</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mix_state</span>: <span class="ident">DecodeState</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">position</span>: <span class="ident">Duration</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">play_time</span>: <span class="ident">Duration</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">commands</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">loops</span>: <span class="ident">LoopState</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">callbacks</span>: <span class="ident">Callbacks</span>,
+<span class="kw">pub struct </span>InternalTrack {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) playing: PlayMode,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) volume: f32,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) input: InputState,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) mix_state: DecodeState,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) position: Duration,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) play_time: Duration,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) commands: Receiver&lt;TrackCommand&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) loops: LoopState,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) callbacks: Callbacks,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">InternalTrack</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">decompose_track</span>(
-        <span class="ident">val</span>: <span class="ident">TrackContext</span>,
-    ) -&gt; (<span class="self">Self</span>, <span class="ident">EventStore</span>, <span class="ident">TrackState</span>, <span class="ident">TrackHandle</span>) {
-        <span class="kw">let</span> <span class="ident">TrackContext</span> {
-            <span class="ident">handle</span>,
-            <span class="ident">track</span>,
-            <span class="ident">receiver</span>,
-        } <span class="op">=</span> <span class="ident">val</span>;
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">InternalTrack</span> {
-            <span class="ident">playing</span>: <span class="ident">track</span>.<span class="ident">playing</span>,
-            <span class="ident">volume</span>: <span class="ident">track</span>.<span class="ident">volume</span>,
-            <span class="ident">input</span>: <span class="ident">InputState::from</span>(<span class="ident">track</span>.<span class="ident">input</span>),
-            <span class="ident">mix_state</span>: <span class="ident">DecodeState::default</span>(),
-            <span class="ident">position</span>: <span class="ident">Duration::default</span>(),
-            <span class="ident">play_time</span>: <span class="ident">Duration::default</span>(),
-            <span class="ident">commands</span>: <span class="ident">receiver</span>,
-            <span class="ident">loops</span>: <span class="ident">track</span>.<span class="ident">loops</span>,
-            <span class="ident">callbacks</span>: <span class="ident">Callbacks::default</span>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; InternalTrack {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decompose_track(
+        val: TrackContext,
+    ) -&gt; (<span class="self">Self</span>, EventStore, TrackState, TrackHandle) {
+        <span class="kw">let </span>TrackContext {
+            handle,
+            track,
+            receiver,
+        } = val;
+        <span class="kw">let </span>out = InternalTrack {
+            playing: track.playing,
+            volume: track.volume,
+            input: InputState::from(track.input),
+            mix_state: DecodeState::default(),
+            position: Duration::default(),
+            play_time: Duration::default(),
+            commands: receiver,
+            loops: track.loops,
+            callbacks: Callbacks::default(),
         };
 
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">out</span>.<span class="ident">state</span>();
+        <span class="kw">let </span>state = out.state();
 
-        (<span class="ident">out</span>, <span class="ident">track</span>.<span class="ident">events</span>, <span class="ident">state</span>, <span class="ident">handle</span>)
+        (out, track.events, state, handle)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackState</span> {
-        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">ready_state</span>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackState {
+        <span class="kw">let </span>ready = <span class="self">self</span>.input.ready_state();
 
-        <span class="ident">TrackState</span> {
-            <span class="ident">playing</span>: <span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">clone</span>(),
-            <span class="ident">volume</span>: <span class="self">self</span>.<span class="ident">volume</span>,
-            <span class="ident">position</span>: <span class="self">self</span>.<span class="ident">position</span>,
-            <span class="ident">play_time</span>: <span class="self">self</span>.<span class="ident">play_time</span>,
-            <span class="ident">loops</span>: <span class="self">self</span>.<span class="ident">loops</span>,
-            <span class="ident">ready</span>,
+        TrackState {
+            playing: <span class="self">self</span>.playing.clone(),
+            volume: <span class="self">self</span>.volume,
+            position: <span class="self">self</span>.position,
+            play_time: <span class="self">self</span>.play_time,
+            loops: <span class="self">self</span>.loops,
+            ready,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">view</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">View</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">ready_state</span>();
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>view(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; View&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>ready = <span class="self">self</span>.input.ready_state();
 
-        <span class="ident">View</span> {
-            <span class="ident">position</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">position</span>,
-            <span class="ident">play_time</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">play_time</span>,
-            <span class="ident">volume</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">volume</span>,
-            <span class="ident">meta</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">metadata</span>(),
-            <span class="ident">ready</span>,
-            <span class="ident">playing</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">playing</span>,
-            <span class="ident">loops</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">loops</span>,
+        View {
+            position: <span class="kw-2">&amp;</span><span class="self">self</span>.position,
+            play_time: <span class="kw-2">&amp;</span><span class="self">self</span>.play_time,
+            volume: <span class="kw-2">&amp;mut </span><span class="self">self</span>.volume,
+            meta: <span class="self">self</span>.input.metadata(),
+            ready,
+            playing: <span class="kw-2">&amp;mut </span><span class="self">self</span>.playing,
+            loops: <span class="kw-2">&amp;mut </span><span class="self">self</span>.loops,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">process_commands</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">ic</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>) -&gt; <span class="ident">Action</span> {
-        <span class="comment">// Note: disconnection and an empty channel are both valid,</span>
-        <span class="comment">// and should allow the audio object to keep running as intended.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>process_commands(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize, ic: <span class="kw-2">&amp;</span>Interconnect) -&gt; Action {
+        <span class="comment">// Note: disconnection and an empty channel are both valid,
+        // and should allow the audio object to keep running as intended.
 
-        <span class="comment">// We also need to export a target seek point to the mixer, if known.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">action</span> <span class="op">=</span> <span class="ident">Action::default</span>();
+        // We also need to export a target seek point to the mixer, if known.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>action = Action::default();
 
-        <span class="comment">// Note that interconnect failures are not currently errors.</span>
-        <span class="comment">// In correct operation, the event thread should never panic,</span>
-        <span class="comment">// but it receiving status updates is secondary do actually</span>
-        <span class="comment">// doing the work.</span>
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">cmd</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">try_recv</span>() {
-            <span class="kw">match</span> <span class="ident">cmd</span> {
-                <span class="ident">TrackCommand::Play</span> =&gt; {
-                    <span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">change_to</span>(<span class="ident">PlayMode::Play</span>);
-                    <span class="ident">drop</span>(<span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                        <span class="ident">index</span>,
-                        <span class="ident">TrackStateChange::Mode</span>(<span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">clone</span>()),
+        <span class="comment">// Note that interconnect failures are not currently errors.
+        // In correct operation, the event thread should never panic,
+        // but it receiving status updates is secondary do actually
+        // doing the work.
+        </span><span class="kw">while let </span><span class="prelude-val">Ok</span>(cmd) = <span class="self">self</span>.commands.try_recv() {
+            <span class="kw">match </span>cmd {
+                TrackCommand::Play =&gt; {
+                    <span class="self">self</span>.playing.change_to(PlayMode::Play);
+                    drop(ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Mode(<span class="self">self</span>.playing.clone()),
                     )));
                 },
-                <span class="ident">TrackCommand::Pause</span> =&gt; {
-                    <span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">change_to</span>(<span class="ident">PlayMode::Pause</span>);
-                    <span class="ident">drop</span>(<span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                        <span class="ident">index</span>,
-                        <span class="ident">TrackStateChange::Mode</span>(<span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">clone</span>()),
+                TrackCommand::Pause =&gt; {
+                    <span class="self">self</span>.playing.change_to(PlayMode::Pause);
+                    drop(ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Mode(<span class="self">self</span>.playing.clone()),
                     )));
                 },
-                <span class="ident">TrackCommand::Stop</span> =&gt; {
-                    <span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">change_to</span>(<span class="ident">PlayMode::Stop</span>);
-                    <span class="ident">drop</span>(<span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                        <span class="ident">index</span>,
-                        <span class="ident">TrackStateChange::Mode</span>(<span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">clone</span>()),
+                TrackCommand::Stop =&gt; {
+                    <span class="self">self</span>.playing.change_to(PlayMode::Stop);
+                    drop(ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Mode(<span class="self">self</span>.playing.clone()),
                     )));
                 },
-                <span class="ident">TrackCommand::Volume</span>(<span class="ident">vol</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">volume</span> <span class="op">=</span> <span class="ident">vol</span>;
-                    <span class="ident">drop</span>(<span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                        <span class="ident">index</span>,
-                        <span class="ident">TrackStateChange::Volume</span>(<span class="self">self</span>.<span class="ident">volume</span>),
+                TrackCommand::Volume(vol) =&gt; {
+                    <span class="self">self</span>.volume = vol;
+                    drop(ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Volume(<span class="self">self</span>.volume),
                     )));
                 },
-                <span class="ident">TrackCommand::Seek</span>(<span class="ident">req</span>) =&gt; <span class="ident">action</span>.<span class="ident">seek_point</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">req</span>),
-                <span class="ident">TrackCommand::AddEvent</span>(<span class="ident">evt</span>) =&gt; {
-                    <span class="ident">drop</span>(<span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::AddTrackEvent</span>(<span class="ident">index</span>, <span class="ident">evt</span>)));
+                TrackCommand::Seek(req) =&gt; action.seek_point = <span class="prelude-val">Some</span>(req),
+                TrackCommand::AddEvent(evt) =&gt; {
+                    drop(ic.events.send(EventMessage::AddTrackEvent(index, evt)));
                 },
-                <span class="ident">TrackCommand::Do</span>(<span class="ident">func</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">indiv_action</span>) <span class="op">=</span> <span class="ident">func</span>(<span class="self">self</span>.<span class="ident">view</span>()) {
-                        <span class="ident">action</span>.<span class="ident">combine</span>(<span class="ident">indiv_action</span>);
+                TrackCommand::Do(func) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(indiv_action) = func(<span class="self">self</span>.view()) {
+                        action.combine(indiv_action);
                     }
 
-                    <span class="ident">drop</span>(<span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                        <span class="ident">index</span>,
-                        <span class="ident">TrackStateChange::Total</span>(<span class="self">self</span>.<span class="ident">state</span>()),
+                    drop(ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Total(<span class="self">self</span>.state()),
                     )));
                 },
-                <span class="ident">TrackCommand::Request</span>(<span class="ident">tx</span>) =&gt; {
-                    <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send</span>(<span class="self">self</span>.<span class="ident">state</span>()));
+                TrackCommand::Request(tx) =&gt; {
+                    drop(tx.send(<span class="self">self</span>.state()));
                 },
-                <span class="ident">TrackCommand::Loop</span>(<span class="ident">loops</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">loops</span> <span class="op">=</span> <span class="ident">loops</span>;
-                    <span class="ident">drop</span>(<span class="ident">ic</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                        <span class="ident">index</span>,
-                        <span class="ident">TrackStateChange::Loops</span>(<span class="self">self</span>.<span class="ident">loops</span>, <span class="bool-val">true</span>),
+                TrackCommand::Loop(loops) =&gt; {
+                    <span class="self">self</span>.loops = loops;
+                    drop(ic.events.send(EventMessage::ChangeState(
+                        index,
+                        TrackStateChange::Loops(<span class="self">self</span>.loops, <span class="bool-val">true</span>),
                     )));
                 },
-                <span class="ident">TrackCommand::MakePlayable</span>(<span class="ident">callback</span>) =&gt; <span class="ident">action</span>.<span class="ident">make_playable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">callback</span>),
+                TrackCommand::MakePlayable(callback) =&gt; action.make_playable = <span class="prelude-val">Some</span>(callback),
             }
         }
 
-        <span class="ident">action</span>
+        action
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">do_loop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">loops</span> {
-            <span class="ident">LoopState::Infinite</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident">LoopState::Finite</span>(<span class="number">0</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="ident">LoopState::Finite</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">n</span>) =&gt; {
-                <span class="kw-2">*</span><span class="ident">n</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="bool-val">true</span>
-            },
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>do_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self</span>.loops {
+            LoopState::Infinite =&gt; <span class="bool-val">true</span>,
+            LoopState::Finite(<span class="number">0</span>) =&gt; <span class="bool-val">false</span>,
+            LoopState::Finite(<span class="kw-2">ref mut </span>n) =&gt; {
+                <span class="kw-2">*</span>n -= <span class="number">1</span>;
+                <span class="bool-val">true
+            </span>},
         }
     }
 
-    <span class="doccomment">/// Steps playback location forward by one frame.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">step_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">TIMESTEP_LENGTH</span>;
-        <span class="self">self</span>.<span class="ident">play_time</span> <span class="op">+</span><span class="op">=</span> <span class="ident">TIMESTEP_LENGTH</span>;
+    <span class="doccomment">/// Steps playback location forward by one frame.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.position += TIMESTEP_LENGTH;
+        <span class="self">self</span>.play_time += TIMESTEP_LENGTH;
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">should_check_input</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">is_playing</span>() <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">input</span>, <span class="ident">InputState::Preparing</span>(<span class="kw">_</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>should_check_input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.playing.is_playing() || <span class="macro">matches!</span>(<span class="self">self</span>.input, InputState::Preparing(<span class="kw">_</span>))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">playing</span>.<span class="ident">change_to</span>(<span class="ident">PlayMode::End</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>end(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="self">self</span>.playing.change_to(PlayMode::End);
 
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Readies the requested input state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the usable version of the audio if available, and whether the track should be deleted.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_or_ready_input</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident">usize</span>,
-        <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>,
-        <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="ident">BlockyTaskPool</span>,
-        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
-        <span class="ident">prevent_events</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="ident">StdResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Parsed</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">DecodeState</span>), <span class="ident">InputReadyingError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">input</span>;
-        <span class="kw">let</span> <span class="ident">mix_state</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">mix_state</span>;
+    <span class="doccomment">/// Readies the requested input state.
+    ///
+    /// Returns the usable version of the audio if available, and whether the track should be deleted.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_or_ready_input(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        id: usize,
+        interconnect: <span class="kw-2">&amp;</span>Interconnect,
+        pool: <span class="kw-2">&amp;</span>BlockyTaskPool,
+        config: <span class="kw-2">&amp;</span>Arc&lt;Config&gt;,
+        prevent_events: bool,
+    ) -&gt; StdResult&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Parsed, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>DecodeState), InputReadyingError&gt; {
+        <span class="kw">let </span>input = <span class="kw-2">&amp;mut </span><span class="self">self</span>.input;
+        <span class="kw">let </span>mix_state = <span class="kw-2">&amp;mut </span><span class="self">self</span>.mix_state;
 
-        <span class="kw">let</span> (<span class="ident">out</span>, <span class="ident">queued_seek</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span> {
-            <span class="ident">InputState::NotReady</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
+        <span class="kw">let </span>(out, queued_seek) = <span class="kw">match </span>input {
+            InputState::NotReady(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">InputState::Preparing</span>(<span class="ident">PreparingInfo</span> {
-                    <span class="ident">time</span>: <span class="ident">Instant::now</span>(),
-                    <span class="ident">queued_seek</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">callback</span>: <span class="ident">rx</span>,
+                <span class="kw">let </span><span class="kw-2">mut </span>state = InputState::Preparing(PreparingInfo {
+                    time: Instant::now(),
+                    queued_seek: <span class="prelude-val">None</span>,
+                    callback: rx,
                 });
 
-                <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="ident">input</span>);
+                std::mem::swap(<span class="kw-2">&amp;mut </span>state, input);
 
-                <span class="kw">match</span> <span class="ident">state</span> {
-                    <span class="ident">InputState::NotReady</span>(<span class="ident">a</span> @ <span class="ident">Input::Lazy</span>(<span class="kw">_</span>)) =&gt; {
-                        <span class="ident">pool</span>.<span class="ident">create</span>(<span class="ident">tx</span>, <span class="ident">a</span>, <span class="prelude-val">None</span>, <span class="ident">config</span>.<span class="ident">clone</span>());
+                <span class="kw">match </span>state {
+                    InputState::NotReady(a @ Input::Lazy(<span class="kw">_</span>)) =&gt; {
+                        pool.create(tx, a, <span class="prelude-val">None</span>, config.clone());
                     },
-                    <span class="ident">InputState::NotReady</span>(<span class="ident">Input::Live</span>(<span class="ident">audio</span>, <span class="ident">rec</span>)) =&gt; {
-                        <span class="ident">pool</span>.<span class="ident">parse</span>(<span class="ident">config</span>.<span class="ident">clone</span>(), <span class="ident">tx</span>, <span class="ident">audio</span>, <span class="ident">rec</span>, <span class="prelude-val">None</span>);
+                    InputState::NotReady(Input::Live(audio, rec)) =&gt; {
+                        pool.parse(config.clone(), tx, audio, rec, <span class="prelude-val">None</span>);
                     },
-                    <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 }
 
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">prevent_events</span> {
-                    <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                        <span class="ident">id</span>,
-                        <span class="ident">TrackStateChange::Ready</span>(<span class="ident">ReadyState::Preparing</span>),
+                <span class="kw">if </span>!prevent_events {
+                    drop(interconnect.events.send(EventMessage::ChangeState(
+                        id,
+                        TrackStateChange::Ready(ReadyState::Preparing),
                     )));
                 }
 
-                (<span class="prelude-val">Err</span>(<span class="ident">InputReadyingError::Waiting</span>), <span class="prelude-val">None</span>)
+                (<span class="prelude-val">Err</span>(InputReadyingError::Waiting), <span class="prelude-val">None</span>)
             },
-            <span class="ident">InputState::Preparing</span>(<span class="ident">info</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">queued_seek</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">queued_seek</span>.<span class="ident">take</span>();
+            InputState::Preparing(info) =&gt; {
+                <span class="kw">let </span>queued_seek = info.queued_seek.take();
 
-                <span class="kw">let</span> <span class="ident">orig_out</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">callback</span>.<span class="ident">try_recv</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">MixerInputResultMessage::Built</span>(<span class="ident">parsed</span>, <span class="ident">rec</span>)) =&gt; {
-                        <span class="kw-2">*</span><span class="ident">input</span> <span class="op">=</span> <span class="ident">InputState::Ready</span>(<span class="ident">parsed</span>, <span class="ident">rec</span>);
-                        <span class="ident">mix_state</span>.<span class="ident">reset</span>();
+                <span class="kw">let </span>orig_out = <span class="kw">match </span>info.callback.try_recv() {
+                    <span class="prelude-val">Ok</span>(MixerInputResultMessage::Built(parsed, rec)) =&gt; {
+                        <span class="kw-2">*</span>input = InputState::Ready(parsed, rec);
+                        mix_state.reset();
 
-                        <span class="comment">// possible TODO: set position to the true track position here?</span>
-                        <span class="comment">// ISSUE: need to get next_packet to see its `ts`, but inner_pos==0</span>
-                        <span class="comment">// will trigger next packet to be taken at mix time.</span>
+                        <span class="comment">// possible TODO: set position to the true track position here?
+                        // ISSUE: need to get next_packet to see its `ts`, but inner_pos==0
+                        // will trigger next packet to be taken at mix time.
 
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">prevent_events</span> {
-                            <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                                <span class="ident">id</span>,
-                                <span class="ident">TrackStateChange::Ready</span>(<span class="ident">ReadyState::Playable</span>),
+                        </span><span class="kw">if </span>!prevent_events {
+                            drop(interconnect.events.send(EventMessage::ChangeState(
+                                id,
+                                TrackStateChange::Ready(ReadyState::Playable),
                             )));
                         }
 
-                        <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">playable</span>();
+                        <span class="self">self</span>.callbacks.playable();
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">InputState::Ready</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">parsed</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">input</span> {
-                            <span class="prelude-val">Ok</span>(<span class="ident">parsed</span>)
-                        } <span class="kw">else</span> {
+                        <span class="kw">if let </span>InputState::Ready(<span class="kw-2">ref mut </span>parsed, <span class="kw">_</span>) = input {
+                            <span class="prelude-val">Ok</span>(parsed)
+                        } <span class="kw">else </span>{
                             <span class="macro">unreachable!</span>()
                         }
                     },
-                    <span class="prelude-val">Ok</span>(<span class="ident">MixerInputResultMessage::Seek</span>(<span class="ident">parsed</span>, <span class="ident">rec</span>, <span class="ident">seek_res</span>)) =&gt; {
-                        <span class="kw">match</span> <span class="ident">seek_res</span> {
-                            <span class="prelude-val">Ok</span>(<span class="ident">pos</span>) =&gt;
-                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time_base</span>) <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">decoder</span>.<span class="ident">codec_params</span>().<span class="ident">time_base</span> {
-                                    <span class="comment">// Update track&#39;s position to match the actual timestamp the</span>
-                                    <span class="comment">// seek landed at.</span>
-                                    <span class="kw">let</span> <span class="ident">new_time</span> <span class="op">=</span> <span class="ident">time_base</span>.<span class="ident">calc_time</span>(<span class="ident">pos</span>.<span class="ident">actual_ts</span>);
-                                    <span class="kw">let</span> <span class="ident">time_in_float</span> <span class="op">=</span> <span class="ident">new_time</span>.<span class="ident">seconds</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">+</span> <span class="ident">new_time</span>.<span class="ident">frac</span>;
-                                    <span class="self">self</span>.<span class="ident">position</span> <span class="op">=</span>
-                                        <span class="ident">std::time::Duration::from_secs_f64</span>(<span class="ident">time_in_float</span>);
+                    <span class="prelude-val">Ok</span>(MixerInputResultMessage::Seek(parsed, rec, seek_res)) =&gt; {
+                        <span class="kw">match </span>seek_res {
+                            <span class="prelude-val">Ok</span>(pos) =&gt;
+                                <span class="kw">if let </span><span class="prelude-val">Some</span>(time_base) = parsed.decoder.codec_params().time_base {
+                                    <span class="comment">// Update track&#39;s position to match the actual timestamp the
+                                    // seek landed at.
+                                    </span><span class="kw">let </span>new_time = time_base.calc_time(pos.actual_ts);
+                                    <span class="kw">let </span>time_in_float = new_time.seconds <span class="kw">as </span>f64 + new_time.frac;
+                                    <span class="self">self</span>.position =
+                                        std::time::Duration::from_secs_f64(time_in_float);
 
-                                    <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">seeked</span>(<span class="self">self</span>.<span class="ident">position</span>);
-                                    <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">playable</span>();
+                                    <span class="self">self</span>.callbacks.seeked(<span class="self">self</span>.position);
+                                    <span class="self">self</span>.callbacks.playable();
 
-                                    <span class="kw">if</span> <span class="op">!</span><span class="ident">prevent_events</span> {
-                                        <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                                            <span class="ident">id</span>,
-                                            <span class="ident">TrackStateChange::Position</span>(<span class="self">self</span>.<span class="ident">position</span>),
+                                    <span class="kw">if </span>!prevent_events {
+                                        drop(interconnect.events.send(EventMessage::ChangeState(
+                                            id,
+                                            TrackStateChange::Position(<span class="self">self</span>.position),
                                         )));
 
-                                        <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                                            <span class="ident">id</span>,
-                                            <span class="ident">TrackStateChange::Ready</span>(<span class="ident">ReadyState::Playable</span>),
+                                        drop(interconnect.events.send(EventMessage::ChangeState(
+                                            id,
+                                            TrackStateChange::Ready(ReadyState::Playable),
                                         )));
                                     }
 
-                                    <span class="comment">// Our decoder state etc. must be reset.</span>
-                                    <span class="comment">// (Symphonia decoder state reset in the thread pool during</span>
-                                    <span class="comment">// the operation.)</span>
-                                    <span class="ident">mix_state</span>.<span class="ident">reset</span>();
-                                    <span class="kw-2">*</span><span class="ident">input</span> <span class="op">=</span> <span class="ident">InputState::Ready</span>(<span class="ident">parsed</span>, <span class="ident">rec</span>);
+                                    <span class="comment">// Our decoder state etc. must be reset.
+                                    // (Symphonia decoder state reset in the thread pool during
+                                    // the operation.)
+                                    </span>mix_state.reset();
+                                    <span class="kw-2">*</span>input = InputState::Ready(parsed, rec);
 
-                                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">InputState::Ready</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">parsed</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">input</span> {
-                                        <span class="prelude-val">Ok</span>(<span class="ident">parsed</span>)
-                                    } <span class="kw">else</span> {
+                                    <span class="kw">if let </span>InputState::Ready(<span class="kw-2">ref mut </span>parsed, <span class="kw">_</span>) = input {
+                                        <span class="prelude-val">Ok</span>(parsed)
+                                    } <span class="kw">else </span>{
                                         <span class="macro">unreachable!</span>()
                                     }
-                                } <span class="kw">else</span> {
-                                    <span class="prelude-val">Err</span>(<span class="ident">InputReadyingError::Seeking</span>(
-                                        <span class="ident">SymphError::Unsupported</span>(<span class="string">&quot;Track had no recorded time base.&quot;</span>)
-                                            .<span class="ident">into</span>(),
+                                } <span class="kw">else </span>{
+                                    <span class="prelude-val">Err</span>(InputReadyingError::Seeking(
+                                        SymphError::Unsupported(<span class="string">&quot;Track had no recorded time base.&quot;</span>)
+                                            .into(),
                                     ))
                                 },
-                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">InputReadyingError::Seeking</span>(<span class="ident">e</span>)),
+                            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(InputReadyingError::Seeking(e)),
                         }
                     },
-                    <span class="prelude-val">Ok</span>(<span class="ident">MixerInputResultMessage::CreateErr</span>(<span class="ident">e</span>)) =&gt;
-                        <span class="prelude-val">Err</span>(<span class="ident">InputReadyingError::Creation</span>(<span class="ident">e</span>)),
-                    <span class="prelude-val">Ok</span>(<span class="ident">MixerInputResultMessage::ParseErr</span>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="ident">InputReadyingError::Parsing</span>(<span class="ident">e</span>)),
-                    <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Disconnected</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">InputReadyingError::Dropped</span>),
-                    <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">InputReadyingError::Waiting</span>),
+                    <span class="prelude-val">Ok</span>(MixerInputResultMessage::CreateErr(e)) =&gt;
+                        <span class="prelude-val">Err</span>(InputReadyingError::Creation(e)),
+                    <span class="prelude-val">Ok</span>(MixerInputResultMessage::ParseErr(e)) =&gt; <span class="prelude-val">Err</span>(InputReadyingError::Parsing(e)),
+                    <span class="prelude-val">Err</span>(TryRecvError::Disconnected) =&gt; <span class="prelude-val">Err</span>(InputReadyingError::Dropped),
+                    <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; <span class="prelude-val">Err</span>(InputReadyingError::Waiting),
                 };
 
-                <span class="kw">let</span> <span class="ident">orig_out</span> <span class="op">=</span> <span class="ident">orig_out</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> (<span class="ident">a</span>, <span class="ident">mix_state</span>));
+                <span class="kw">let </span>orig_out = orig_out.map(|a| (a, mix_state));
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span> <span class="ident">orig_out</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">e</span>.<span class="ident">as_user</span>() {
-                        <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">readying_error</span>(<span class="ident">e</span>);
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) = orig_out {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = e.as_user() {
+                        <span class="self">self</span>.callbacks.readying_error(e);
                     }
                 }
 
-                (<span class="ident">orig_out</span>, <span class="ident">queued_seek</span>)
+                (orig_out, queued_seek)
             },
-            <span class="ident">InputState::Ready</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">parsed</span>, <span class="kw">_</span>) =&gt; (<span class="prelude-val">Ok</span>((<span class="ident">parsed</span>, <span class="ident">mix_state</span>)), <span class="prelude-val">None</span>),
+            InputState::Ready(<span class="kw-2">ref mut </span>parsed, <span class="kw">_</span>) =&gt; (<span class="prelude-val">Ok</span>((parsed, mix_state)), <span class="prelude-val">None</span>),
         };
 
-        <span class="kw">match</span> (<span class="ident">out</span>, <span class="ident">queued_seek</span>) {
-            (<span class="prelude-val">Ok</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="ident">request</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="ident">InputReadyingError::NeedsSeek</span>(<span class="ident">request</span>)),
-            (<span class="ident">a</span>, <span class="kw">_</span>) =&gt; <span class="ident">a</span>,
+        <span class="kw">match </span>(out, queued_seek) {
+            (<span class="prelude-val">Ok</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(request)) =&gt; <span class="prelude-val">Err</span>(InputReadyingError::NeedsSeek(request)),
+            (a, <span class="kw">_</span>) =&gt; a,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">seek</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident">usize</span>,
-        <span class="ident">request</span>: <span class="ident">SeekRequest</span>,
-        <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>,
-        <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="ident">BlockyTaskPool</span>,
-        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
-        <span class="ident">prevent_events</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>seek(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        id: usize,
+        request: SeekRequest,
+        interconnect: <span class="kw-2">&amp;</span>Interconnect,
+        pool: <span class="kw-2">&amp;</span>BlockyTaskPool,
+        config: <span class="kw-2">&amp;</span>Arc&lt;Config&gt;,
+        prevent_events: bool,
     ) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">InputState::Preparing</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">input</span> {
-            <span class="ident">p</span>.<span class="ident">queued_seek</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">request</span>);
+        <span class="kw">if let </span>InputState::Preparing(p) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.input {
+            p.queued_seek = <span class="prelude-val">Some</span>(request);
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// might be a little topsy turvy: rethink me.</span>
-        <span class="kw">let</span> <span class="ident">SeekRequest</span> { <span class="ident">time</span>, <span class="ident">callback</span> } <span class="op">=</span> <span class="ident">request</span>;
+        <span class="comment">// might be a little topsy turvy: rethink me.
+        </span><span class="kw">let </span>SeekRequest { time, callback } = request;
 
-        <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">seek</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">callback</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">prevent_events</span> {
-            <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::ChangeState</span>(
-                <span class="ident">id</span>,
-                <span class="ident">TrackStateChange::Ready</span>(<span class="ident">ReadyState::Preparing</span>),
+        <span class="self">self</span>.callbacks.seek = <span class="prelude-val">Some</span>(callback);
+        <span class="kw">if </span>!prevent_events {
+            drop(interconnect.events.send(EventMessage::ChangeState(
+                id,
+                TrackStateChange::Ready(ReadyState::Preparing),
             )));
         }
 
-        <span class="kw">let</span> <span class="ident">backseek_needed</span> <span class="op">=</span> <span class="ident">time</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">position</span>;
+        <span class="kw">let </span>backseek_needed = time &lt; <span class="self">self</span>.position;
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Time::from</span>(<span class="ident">time</span>.<span class="ident">as_secs_f64</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ts</span> <span class="op">=</span> <span class="ident">SeekTo::Time</span> {
-            <span class="ident">time</span>,
-            <span class="ident">track_id</span>: <span class="prelude-val">None</span>,
+        <span class="kw">let </span>time = Time::from(time.as_secs_f64());
+        <span class="kw">let </span><span class="kw-2">mut </span>ts = SeekTo::Time {
+            time,
+            track_id: <span class="prelude-val">None</span>,
         };
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">input</span>,
-            <span class="ident">InputState::Preparing</span>(<span class="ident">PreparingInfo</span> {
-                <span class="ident">time</span>: <span class="ident">Instant::now</span>(),
-                <span class="ident">callback</span>: <span class="ident">rx</span>,
-                <span class="ident">queued_seek</span>: <span class="prelude-val">None</span>,
+        <span class="kw">let </span>state = std::mem::replace(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.input,
+            InputState::Preparing(PreparingInfo {
+                time: Instant::now(),
+                callback: rx,
+                queued_seek: <span class="prelude-val">None</span>,
             }),
         );
 
-        <span class="kw">match</span> <span class="ident">state</span> {
-            <span class="ident">InputState::Ready</span>(<span class="ident">p</span>, <span class="ident">r</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SeekTo::Time</span> { <span class="ident">time</span>: <span class="kw">_</span>, <span class="ident">track_id</span> } <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">ts</span> {
-                    <span class="kw-2">*</span><span class="ident">track_id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>.<span class="ident">track_id</span>);
+        <span class="kw">match </span>state {
+            InputState::Ready(p, r) =&gt; {
+                <span class="kw">if let </span>SeekTo::Time { time: <span class="kw">_</span>, track_id } = <span class="kw-2">&amp;mut </span>ts {
+                    <span class="kw-2">*</span>track_id = <span class="prelude-val">Some</span>(p.track_id);
                 }
 
-                <span class="ident">pool</span>.<span class="ident">seek</span>(<span class="ident">tx</span>, <span class="ident">p</span>, <span class="ident">r</span>, <span class="ident">ts</span>, <span class="ident">backseek_needed</span>, <span class="ident">config</span>.<span class="ident">clone</span>());
+                pool.seek(tx, p, r, ts, backseek_needed, config.clone());
             },
-            <span class="ident">InputState::NotReady</span>(<span class="ident">lazy</span>) =&gt; <span class="ident">pool</span>.<span class="ident">create</span>(<span class="ident">tx</span>, <span class="ident">lazy</span>, <span class="prelude-val">Some</span>(<span class="ident">ts</span>), <span class="ident">config</span>.<span class="ident">clone</span>()),
-            <span class="ident">InputState::Preparing</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(), <span class="comment">// Covered above.</span>
-        }
+            InputState::NotReady(lazy) =&gt; pool.create(tx, lazy, <span class="prelude-val">Some</span>(ts), config.clone()),
+            InputState::Preparing(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(), <span class="comment">// Covered above.
+        </span>}
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Callbacks</span> {
-    <span class="kw">pub</span> <span class="ident">seek</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">StdResult</span><span class="op">&lt;</span><span class="ident">Duration</span>, <span class="ident">PlayError</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">make_playable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">StdResult</span><span class="op">&lt;</span>(), <span class="ident">PlayError</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Default)]</span>
+<span class="kw">pub struct </span>Callbacks {
+    <span class="kw">pub </span>seek: <span class="prelude-ty">Option</span>&lt;Sender&lt;StdResult&lt;Duration, PlayError&gt;&gt;&gt;,
+    <span class="kw">pub </span>make_playable: <span class="prelude-ty">Option</span>&lt;Sender&lt;StdResult&lt;(), PlayError&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Callbacks</span> {
-    <span class="kw">fn</span> <span class="ident">readying_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">err</span>: <span class="ident">PlayError</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">callback</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">seek</span>.<span class="ident">take</span>() {
-            <span class="ident">drop</span>(<span class="ident">callback</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>.<span class="ident">clone</span>())));
+<span class="kw">impl </span>Callbacks {
+    <span class="kw">fn </span>readying_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, err: PlayError) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(callback) = <span class="self">self</span>.seek.take() {
+            drop(callback.send(<span class="prelude-val">Err</span>(err.clone())));
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">callback</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">make_playable</span>.<span class="ident">take</span>() {
-            <span class="ident">drop</span>(<span class="ident">callback</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)));
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">playable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">callback</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">make_playable</span>.<span class="ident">take</span>() {
-            <span class="ident">drop</span>(<span class="ident">callback</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(())));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(callback) = <span class="self">self</span>.make_playable.take() {
+            drop(callback.send(<span class="prelude-val">Err</span>(err)));
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">seeked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="ident">Duration</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">callback</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">seek</span>.<span class="ident">take</span>() {
-            <span class="ident">drop</span>(<span class="ident">callback</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(<span class="ident">time</span>)));
+    <span class="kw">fn </span>playable(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(callback) = <span class="self">self</span>.make_playable.take() {
+            drop(callback.send(<span class="prelude-val">Ok</span>(())));
+        }
+    }
+
+    <span class="kw">fn </span>seeked(<span class="kw-2">&amp;mut </span><span class="self">self</span>, time: Duration) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(callback) = <span class="self">self</span>.seek.take() {
+            drop(callback.send(<span class="prelude-val">Ok</span>(time)));
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

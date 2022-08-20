@@ -172,177 +172,177 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Future types for gateway interactions.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Future types for gateway interactions.
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::ConnectionResult</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::{<span class="ident">JoinError</span>, <span class="ident">JoinResult</span>},
-    <span class="ident">ConnectionInfo</span>,
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">use </span><span class="kw">crate</span>::error::ConnectionResult;
+<span class="kw">use crate</span>::{
+    error::{JoinError, JoinResult},
+    ConnectionInfo,
 };
-<span class="kw">use</span> <span class="ident">core</span>::{
-    <span class="ident">convert</span>,
-    <span class="ident">future::Future</span>,
-    <span class="ident">marker::Unpin</span>,
-    <span class="ident">pin::Pin</span>,
-    <span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
-    <span class="ident">time::Duration</span>,
+<span class="kw">use </span>core::{
+    convert,
+    future::Future,
+    marker::Unpin,
+    pin::Pin,
+    task::{Context, Poll},
+    time::Duration,
 };
-<span class="kw">use</span> <span class="ident">flume</span>::<span class="ident">r#async</span><span class="ident">::RecvFut</span>;
-<span class="kw">use</span> <span class="ident">pin_project::pin_project</span>;
-<span class="kw">use</span> <span class="ident">tokio::time</span>::{<span class="self">self</span>, <span class="ident">Timeout</span>};
+<span class="kw">use </span>flume::r#async::RecvFut;
+<span class="kw">use </span>pin_project::pin_project;
+<span class="kw">use </span>tokio::time::{<span class="self">self</span>, Timeout};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="doccomment">/// Future for a call to [`Call::join`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This future `await`s Discord&#39;s response *and*</span>
-<span class="doccomment">/// connection via the [`Driver`]. Both phases have</span>
-<span class="doccomment">/// separate timeouts and failure conditions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This future ***must not*** be `await`ed while</span>
-<span class="doccomment">/// holding the lock around a [`Call`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Call::join`]: crate::Call::join</span>
-<span class="doccomment">/// [`Call`]: crate::Call</span>
-<span class="doccomment">/// [`Driver`]: crate::driver::Driver</span>
-<span class="attribute">#[<span class="ident">pin_project</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Join</span> {
-    <span class="attribute">#[<span class="ident">pin</span>]</span>
-    <span class="ident">gw</span>: <span class="ident">JoinClass</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">pin</span>]</span>
-    <span class="ident">driver</span>: <span class="ident">JoinClass</span><span class="op">&lt;</span><span class="ident">ConnectionResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">state</span>: <span class="ident">JoinState</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="doccomment">/// Future for a call to [`Call::join`].
+///
+/// This future `await`s Discord&#39;s response *and*
+/// connection via the [`Driver`]. Both phases have
+/// separate timeouts and failure conditions.
+///
+/// This future ***must not*** be `await`ed while
+/// holding the lock around a [`Call`].
+///
+/// [`Call::join`]: crate::Call::join
+/// [`Call`]: crate::Call
+/// [`Driver`]: crate::driver::Driver
+</span><span class="attribute">#[pin_project]</span>
+<span class="kw">pub struct </span>Join {
+    <span class="attribute">#[pin]</span>
+    gw: JoinClass&lt;()&gt;,
+    <span class="attribute">#[pin]</span>
+    driver: JoinClass&lt;ConnectionResult&lt;()&gt;&gt;,
+    state: JoinState,
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Join</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">driver</span>: <span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">ConnectionResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">gw_recv</span>: <span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>,
-        <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">gw</span>: <span class="ident">JoinClass::new</span>(<span class="ident">gw_recv</span>, <span class="ident">timeout</span>),
-            <span class="ident">driver</span>: <span class="ident">JoinClass::new</span>(<span class="ident">driver</span>, <span class="prelude-val">None</span>),
-            <span class="ident">state</span>: <span class="ident">JoinState::BeforeGw</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">impl </span>Join {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        driver: RecvFut&lt;<span class="lifetime">&#39;static</span>, ConnectionResult&lt;()&gt;&gt;,
+        gw_recv: RecvFut&lt;<span class="lifetime">&#39;static</span>, ()&gt;,
+        timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            gw: JoinClass::new(gw_recv, timeout),
+            driver: JoinClass::new(driver, <span class="prelude-val">None</span>),
+            state: JoinState::BeforeGw,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Join</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">impl </span>Future <span class="kw">for </span>Join {
+    <span class="kw">type </span>Output = JoinResult&lt;()&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
 
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">JoinState::BeforeGw</span> {
-            <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">gw</span>.<span class="ident">poll</span>(<span class="ident">cx</span>);
-            <span class="kw">match</span> <span class="ident">poll</span> {
-                <span class="ident">Poll::Ready</span>(<span class="ident">a</span>) <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">is_ok</span>() =&gt; {
-                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState::AfterGw</span>;
+        <span class="kw">if </span><span class="kw-2">*</span>this.state == JoinState::BeforeGw {
+            <span class="kw">let </span>poll = this.gw.poll(cx);
+            <span class="kw">match </span>poll {
+                Poll::Ready(a) <span class="kw">if </span>a.is_ok() =&gt; {
+                    <span class="kw-2">*</span>this.state = JoinState::AfterGw;
                 },
-                <span class="ident">Poll::Ready</span>(<span class="ident">a</span>) =&gt; {
-                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState::Finalised</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">a</span>);
+                Poll::Ready(a) =&gt; {
+                    <span class="kw-2">*</span>this.state = JoinState::Finalised;
+                    <span class="kw">return </span>Poll::Ready(a);
                 },
-                <span class="ident">Poll::Pending</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
+                Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
             }
         }
 
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">==</span> <span class="ident">JoinState::AfterGw</span> {
-            <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="ident">this</span>
-                .<span class="ident">driver</span>
-                .<span class="ident">poll</span>(<span class="ident">cx</span>)
-                .<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="ident">JoinError::Driver</span>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">and_then</span>(<span class="ident">convert::identity</span>));
+        <span class="kw">if </span><span class="kw-2">*</span>this.state == JoinState::AfterGw {
+            <span class="kw">let </span>poll = this
+                .driver
+                .poll(cx)
+                .map_ok(|res| res.map_err(JoinError::Driver))
+                .map(|res| res.and_then(convert::identity));
 
-            <span class="kw">match</span> <span class="ident">poll</span> {
-                <span class="ident">Poll::Ready</span>(<span class="ident">a</span>) =&gt; {
-                    <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">JoinState::Finalised</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">a</span>);
+            <span class="kw">match </span>poll {
+                Poll::Ready(a) =&gt; {
+                    <span class="kw-2">*</span>this.state = JoinState::Finalised;
+                    <span class="kw">return </span>Poll::Ready(a);
                 },
-                <span class="ident">Poll::Pending</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
+                Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
             }
         }
 
-        <span class="ident">Poll::Pending</span>
+        Poll::Pending
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">JoinState</span> {
-    <span class="ident">BeforeGw</span>,
-    <span class="ident">AfterGw</span>,
-    <span class="ident">Finalised</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="attribute">#[derive(Copy, Clone, Eq, PartialEq)]</span>
+<span class="kw">enum </span>JoinState {
+    BeforeGw,
+    AfterGw,
+    Finalised,
 }
 
-<span class="doccomment">/// Future for a call to [`Call::join_gateway`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This future `await`s Discord&#39;s gateway response, subject</span>
-<span class="doccomment">/// to any timeouts.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This future ***must not*** be `await`ed while</span>
-<span class="doccomment">/// holding the lock around a [`Call`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Call::join_gateway`]: crate::Call::join_gateway</span>
-<span class="doccomment">/// [`Call`]: crate::Call</span>
-<span class="doccomment">/// [`Driver`]: crate::driver::Driver</span>
-<span class="attribute">#[<span class="ident">pin_project</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JoinGateway</span> {
-    <span class="attribute">#[<span class="ident">pin</span>]</span>
-    <span class="ident">inner</span>: <span class="ident">JoinClass</span><span class="op">&lt;</span><span class="ident">ConnectionInfo</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Future for a call to [`Call::join_gateway`].
+///
+/// This future `await`s Discord&#39;s gateway response, subject
+/// to any timeouts.
+///
+/// This future ***must not*** be `await`ed while
+/// holding the lock around a [`Call`].
+///
+/// [`Call::join_gateway`]: crate::Call::join_gateway
+/// [`Call`]: crate::Call
+/// [`Driver`]: crate::driver::Driver
+</span><span class="attribute">#[pin_project]</span>
+<span class="kw">pub struct </span>JoinGateway {
+    <span class="attribute">#[pin]</span>
+    inner: JoinClass&lt;ConnectionInfo&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">JoinGateway</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">recv</span>: <span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">ConnectionInfo</span><span class="op">&gt;</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">JoinClass::new</span>(<span class="ident">recv</span>, <span class="ident">timeout</span>),
+<span class="kw">impl </span>JoinGateway {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(recv: RecvFut&lt;<span class="lifetime">&#39;static</span>, ConnectionInfo&gt;, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: JoinClass::new(recv, timeout),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">JoinGateway</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">ConnectionInfo</span><span class="op">&gt;</span>;
+<span class="kw">impl </span>Future <span class="kw">for </span>JoinGateway {
+    <span class="kw">type </span>Output = JoinResult&lt;ConnectionInfo&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">project</span>().<span class="ident">inner</span>.<span class="ident">poll</span>(<span class="ident">cx</span>)
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="self">self</span>.project().inner.poll(cx)
     }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::large_enum_variant</span>)]</span>
-<span class="attribute">#[<span class="ident">pin_project</span>(<span class="ident">project</span> <span class="op">=</span> <span class="ident">JoinClassProj</span>)]</span>
-<span class="kw">enum</span> <span class="ident">JoinClass</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="ident">WithTimeout</span>(<span class="attribute">#[<span class="ident">pin</span>]</span> <span class="ident">Timeout</span><span class="op">&lt;</span><span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>),
-    <span class="ident">Vanilla</span>(<span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span>),
+<span class="attribute">#[allow(clippy::large_enum_variant)]</span>
+<span class="attribute">#[pin_project(project = JoinClassProj)]</span>
+<span class="kw">enum </span>JoinClass&lt;T: <span class="lifetime">&#39;static</span>&gt; {
+    WithTimeout(<span class="attribute">#[pin]</span> Timeout&lt;RecvFut&lt;<span class="lifetime">&#39;static</span>, T&gt;&gt;),
+    Vanilla(RecvFut&lt;<span class="lifetime">&#39;static</span>, T&gt;),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">JoinClass</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">recv</span>: <span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">timeout</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">t</span>) =&gt; <span class="ident">JoinClass::WithTimeout</span>(<span class="ident">time::timeout</span>(<span class="ident">t</span>, <span class="ident">recv</span>)),
-            <span class="prelude-val">None</span> =&gt; <span class="ident">JoinClass::Vanilla</span>(<span class="ident">recv</span>),
+<span class="kw">impl</span>&lt;T: <span class="lifetime">&#39;static</span>&gt; JoinClass&lt;T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(recv: RecvFut&lt;<span class="lifetime">&#39;static</span>, T&gt;, timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>timeout {
+            <span class="prelude-val">Some</span>(t) =&gt; JoinClass::WithTimeout(time::timeout(t, recv)),
+            <span class="prelude-val">None </span>=&gt; JoinClass::Vanilla(recv),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">JoinClass</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Unpin</span>,
+<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>JoinClass&lt;T&gt;
+<span class="kw">where
+    </span>T: Unpin,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">type </span>Output = JoinResult&lt;T&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">project</span>() {
-            <span class="ident">JoinClassProj::WithTimeout</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>
-                .<span class="ident">poll</span>(<span class="ident">cx</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError::TimedOut</span>)
-                .<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError::Dropped</span>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">and_then</span>(<span class="ident">convert::identity</span>)),
-            <span class="ident">JoinClassProj::Vanilla</span>(<span class="ident">t</span>) =&gt; <span class="ident">Pin::new</span>(<span class="ident">t</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinError::Dropped</span>),
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">match </span><span class="self">self</span>.project() {
+            JoinClassProj::WithTimeout(t) =&gt; t
+                .poll(cx)
+                .map_err(|<span class="kw">_</span>| JoinError::TimedOut)
+                .map_ok(|res| res.map_err(|<span class="kw">_</span>| JoinError::Dropped))
+                .map(|m| m.and_then(convert::identity)),
+            JoinClassProj::Vanilla(t) =&gt; Pin::new(t).poll(cx).map_err(|<span class="kw">_</span>| JoinError::Dropped),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

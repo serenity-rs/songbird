@@ -80,85 +80,85 @@
 <span id="78">78</span>
 <span id="79">79</span>
 <span id="80">80</span>
-</pre><pre class="rust"><code><span class="doccomment">/// Voice core events occur on receipt of</span>
-<span class="doccomment">/// voice packets and telemetry.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Core events persist while the `action` in [`EventData`]</span>
-<span class="doccomment">/// returns `None`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Events from other users</span>
-<span class="doccomment">/// Songbird can observe when a user *speaks for the first time* ([`SpeakingStateUpdate`]),</span>
-<span class="doccomment">/// when a client leaves the session ([`ClientDisconnect`]).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When the `&quot;receive&quot;` feature is enabled, songbird can also handle voice packets</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;([`VoicePacket`](Self::VoicePacket)),&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;(`VoicePacket`),&quot;</span>)]</span>
-<span class="doccomment">/// detect speech starting/stopping</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>,
-    <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;([`SpeakingUpdate`](Self::SpeakingUpdate)),&quot;</span>
-)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;(`SpeakingUpdate`),&quot;</span>)]</span>
-<span class="doccomment">/// and handle telemetry data</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;([`RtcpPacket`](Self::RtcpPacket)).&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;(`RtcpPacket`).&quot;</span>)]</span>
-<span class="doccomment">/// The format of voice packets is described by</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>,
-    <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;[`VoiceData`](super::context::data::VoiceData).&quot;</span>
-)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;`VoiceData`.&quot;</span>)]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To detect when a user connects, you must correlate gateway (e.g., `VoiceStateUpdate`) events</span>
-<span class="doccomment">/// from the main part of your bot.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To obtain a user&#39;s SSRC, you must use [`SpeakingStateUpdate`] events.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`EventData`]: super::EventData</span>
-<span class="doccomment">/// [`SpeakingStateUpdate`]: Self::SpeakingStateUpdate</span>
-<span class="doccomment">/// [`ClientDisconnect`]: Self::ClientDisconnect</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CoreEvent</span> {
-    <span class="doccomment">/// Speaking state update from the WS gateway, typically describing how another voice</span>
-    <span class="doccomment">/// user is transmitting audio data. Clients must send at least one such</span>
-    <span class="doccomment">/// packet to allow SSRC/UserID matching.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Fired on receipt of a speaking state update from another host.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note: this will fire when a user starts speaking for the first time,</span>
-    <span class="doccomment">/// or changes their capabilities.</span>
-    <span class="ident">SpeakingStateUpdate</span>,
+</pre><pre class="rust"><code><span class="doccomment">/// Voice core events occur on receipt of
+/// voice packets and telemetry.
+///
+/// Core events persist while the `action` in [`EventData`]
+/// returns `None`.
+///
+/// ## Events from other users
+/// Songbird can observe when a user *speaks for the first time* ([`SpeakingStateUpdate`]),
+/// when a client leaves the session ([`ClientDisconnect`]).
+///
+/// When the `&quot;receive&quot;` feature is enabled, songbird can also handle voice packets
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;receive&quot;</span>, doc = <span class="string">&quot;([`VoicePacket`](Self::VoicePacket)),&quot;</span>)]</span>
+<span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;receive&quot;</span>), doc = <span class="string">&quot;(`VoicePacket`),&quot;</span>)]</span>
+<span class="doccomment">/// detect speech starting/stopping
+</span><span class="attribute">#[cfg_attr(
+    feature = <span class="string">&quot;receive&quot;</span>,
+    doc = <span class="string">&quot;([`SpeakingUpdate`](Self::SpeakingUpdate)),&quot;
+</span>)]</span>
+<span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;receive&quot;</span>), doc = <span class="string">&quot;(`SpeakingUpdate`),&quot;</span>)]</span>
+<span class="doccomment">/// and handle telemetry data
+</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;receive&quot;</span>, doc = <span class="string">&quot;([`RtcpPacket`](Self::RtcpPacket)).&quot;</span>)]</span>
+<span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;receive&quot;</span>), doc = <span class="string">&quot;(`RtcpPacket`).&quot;</span>)]</span>
+<span class="doccomment">/// The format of voice packets is described by
+</span><span class="attribute">#[cfg_attr(
+    feature = <span class="string">&quot;receive&quot;</span>,
+    doc = <span class="string">&quot;[`VoiceData`](super::context::data::VoiceData).&quot;
+</span>)]</span>
+<span class="attribute">#[cfg_attr(not(feature = <span class="string">&quot;receive&quot;</span>), doc = <span class="string">&quot;`VoiceData`.&quot;</span>)]</span>
+<span class="doccomment">///
+/// To detect when a user connects, you must correlate gateway (e.g., `VoiceStateUpdate`) events
+/// from the main part of your bot.
+///
+/// To obtain a user&#39;s SSRC, you must use [`SpeakingStateUpdate`] events.
+///
+/// [`EventData`]: super::EventData
+/// [`SpeakingStateUpdate`]: Self::SpeakingStateUpdate
+/// [`ClientDisconnect`]: Self::ClientDisconnect
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>CoreEvent {
+    <span class="doccomment">/// Speaking state update from the WS gateway, typically describing how another voice
+    /// user is transmitting audio data. Clients must send at least one such
+    /// packet to allow SSRC/UserID matching.
+    ///
+    /// Fired on receipt of a speaking state update from another host.
+    ///
+    /// Note: this will fire when a user starts speaking for the first time,
+    /// or changes their capabilities.
+    </span>SpeakingStateUpdate,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-    <span class="doccomment">/// Fires when a source starts speaking, or stops speaking</span>
-    <span class="doccomment">/// (*i.e.*, 5 consecutive silent frames).</span>
-    <span class="ident">SpeakingUpdate</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+    <span class="doccomment">/// Fires when a source starts speaking, or stops speaking
+    /// (*i.e.*, 5 consecutive silent frames).
+    </span>SpeakingUpdate,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-    <span class="doccomment">/// Fires on receipt of a voice packet from another stream in the voice call.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// As RTP packets do not map to Discord&#39;s notion of users, SSRCs must be mapped</span>
-    <span class="doccomment">/// back using the user IDs seen through client connection, disconnection,</span>
-    <span class="doccomment">/// or speaking state update.</span>
-    <span class="ident">VoicePacket</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+    <span class="doccomment">/// Fires on receipt of a voice packet from another stream in the voice call.
+    ///
+    /// As RTP packets do not map to Discord&#39;s notion of users, SSRCs must be mapped
+    /// back using the user IDs seen through client connection, disconnection,
+    /// or speaking state update.
+    </span>VoicePacket,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-    <span class="doccomment">/// Fires on receipt of an RTCP packet, containing various call stats</span>
-    <span class="doccomment">/// such as latency reports.</span>
-    <span class="ident">RtcpPacket</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+    <span class="doccomment">/// Fires on receipt of an RTCP packet, containing various call stats
+    /// such as latency reports.
+    </span>RtcpPacket,
 
-    <span class="doccomment">/// Fires whenever a user disconnects from the same stream as the bot.</span>
-    <span class="ident">ClientDisconnect</span>,
+    <span class="doccomment">/// Fires whenever a user disconnects from the same stream as the bot.
+    </span>ClientDisconnect,
 
-    <span class="doccomment">/// Fires when this driver successfully connects to a voice channel.</span>
-    <span class="ident">DriverConnect</span>,
+    <span class="doccomment">/// Fires when this driver successfully connects to a voice channel.
+    </span>DriverConnect,
 
-    <span class="doccomment">/// Fires when this driver successfully reconnects after a network error.</span>
-    <span class="ident">DriverReconnect</span>,
+    <span class="doccomment">/// Fires when this driver successfully reconnects after a network error.
+    </span>DriverReconnect,
 
-    <span class="doccomment">/// Fires when this driver fails to connect to, or drops from, a voice channel.</span>
-    <span class="ident">DriverDisconnect</span>,
+    <span class="doccomment">/// Fires when this driver fails to connect to, or drops from, a voice channel.
+    </span>DriverDisconnect,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

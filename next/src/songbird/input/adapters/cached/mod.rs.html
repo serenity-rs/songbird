@@ -49,54 +49,54 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
-</pre><pre class="rust"><code><span class="doccomment">//! In-memory, shared input sources for reuse between calls, fast seeking, and</span>
-<span class="doccomment">//! direct Opus frame passthrough.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! In-memory, shared input sources for reuse between calls, fast seeking, and
+//! direct Opus frame passthrough.
 
-<span class="kw">mod</span> <span class="ident">compressed</span>;
-<span class="kw">mod</span> <span class="ident">decompressed</span>;
-<span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">mod</span> <span class="ident">hint</span>;
-<span class="kw">mod</span> <span class="ident">memory</span>;
-<span class="kw">mod</span> <span class="ident">util</span>;
+</span><span class="kw">mod </span>compressed;
+<span class="kw">mod </span>decompressed;
+<span class="kw">mod </span>error;
+<span class="kw">mod </span>hint;
+<span class="kw">mod </span>memory;
+<span class="kw">mod </span>util;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::util</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">compressed</span>::<span class="kw-2">*</span>, <span class="ident">decompressed</span>::<span class="kw-2">*</span>, <span class="ident">error</span>::<span class="kw-2">*</span>, <span class="ident">hint</span>::<span class="kw-2">*</span>, <span class="ident">memory</span>::<span class="kw-2">*</span>};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::util::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::{compressed::<span class="kw-2">*</span>, decompressed::<span class="kw-2">*</span>, error::<span class="kw-2">*</span>, hint::<span class="kw-2">*</span>, memory::<span class="kw-2">*</span>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input::utils</span>;
-<span class="kw">use</span> <span class="ident">audiopus::Bitrate</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">time::Duration</span>};
-<span class="kw">use</span> <span class="ident">streamcatcher</span>::{<span class="ident">Config</span>, <span class="ident">GrowthStrategy</span>};
+<span class="kw">use </span><span class="kw">crate</span>::constants::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::input::utils;
+<span class="kw">use </span>audiopus::Bitrate;
+<span class="kw">use </span>std::{mem, time::Duration};
+<span class="kw">use </span>streamcatcher::{Config, GrowthStrategy};
 
-<span class="doccomment">/// Estimates the cost, in B/s, of audio data compressed at the given bitrate.</span>
-<span class="attribute">#[<span class="ident">must_use</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compressed_cost_per_sec</span>(<span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) -&gt; <span class="ident">usize</span> {
-    <span class="kw">let</span> <span class="ident">framing_cost_per_sec</span> <span class="op">=</span> <span class="ident">AUDIO_FRAME_RATE</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>();
+<span class="doccomment">/// Estimates the cost, in B/s, of audio data compressed at the given bitrate.
+</span><span class="attribute">#[must_use]</span>
+<span class="kw">pub fn </span>compressed_cost_per_sec(bitrate: Bitrate) -&gt; usize {
+    <span class="kw">let </span>framing_cost_per_sec = AUDIO_FRAME_RATE * mem::size_of::&lt;u16&gt;();
 
-    <span class="kw">let</span> <span class="ident">bitrate_raw</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bitrate</span> {
-        <span class="ident">Bitrate::BitsPerSecond</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
-        <span class="ident">Bitrate::Auto</span> =&gt; <span class="number">64_000</span>,
-        <span class="ident">Bitrate::Max</span> =&gt; <span class="number">512_000</span>,
-    } <span class="kw">as</span> <span class="ident">usize</span>;
+    <span class="kw">let </span>bitrate_raw = <span class="kw">match </span>bitrate {
+        Bitrate::BitsPerSecond(i) =&gt; i,
+        Bitrate::Auto =&gt; <span class="number">64_000</span>,
+        Bitrate::Max =&gt; <span class="number">512_000</span>,
+    } <span class="kw">as </span>usize;
 
-    (<span class="ident">bitrate_raw</span> <span class="op">/</span> <span class="number">8</span>) <span class="op">+</span> <span class="ident">framing_cost_per_sec</span>
+    (bitrate_raw / <span class="number">8</span>) + framing_cost_per_sec
 }
 
-<span class="doccomment">/// Calculates the cost, in B/s, of raw floating-point audio data.</span>
-<span class="attribute">#[<span class="ident">must_use</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_cost_per_sec</span>(<span class="ident">stereo</span>: <span class="ident">bool</span>) -&gt; <span class="ident">usize</span> {
-    <span class="ident">utils::timestamp_to_byte_count</span>(<span class="ident">Duration::from_secs</span>(<span class="number">1</span>), <span class="ident">stereo</span>)
+<span class="doccomment">/// Calculates the cost, in B/s, of raw floating-point audio data.
+</span><span class="attribute">#[must_use]</span>
+<span class="kw">pub fn </span>raw_cost_per_sec(stereo: bool) -&gt; usize {
+    utils::timestamp_to_byte_count(Duration::from_secs(<span class="number">1</span>), stereo)
 }
 
-<span class="doccomment">/// Provides the default config used by a cached source.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This maps to the default configuration in [`streamcatcher`], using</span>
-<span class="doccomment">/// a constant chunk size of 5s worth of audio at the given bitrate estimate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`streamcatcher`]: https://docs.rs/streamcatcher/0.1.0/streamcatcher/struct.Config.html</span>
-<span class="attribute">#[<span class="ident">must_use</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_config</span>(<span class="ident">cost_per_sec</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Config</span> {
-    <span class="ident">Config::new</span>().<span class="ident">chunk_size</span>(<span class="ident">GrowthStrategy::Constant</span>(<span class="number">5</span> <span class="op">*</span> <span class="ident">cost_per_sec</span>))
+<span class="doccomment">/// Provides the default config used by a cached source.
+///
+/// This maps to the default configuration in [`streamcatcher`], using
+/// a constant chunk size of 5s worth of audio at the given bitrate estimate.
+///
+/// [`streamcatcher`]: https://docs.rs/streamcatcher/0.1.0/streamcatcher/struct.Config.html
+</span><span class="attribute">#[must_use]</span>
+<span class="kw">pub fn </span>default_config(cost_per_sec: usize) -&gt; Config {
+    Config::new().chunk_size(GrowthStrategy::Constant(<span class="number">5 </span>* cost_per_sec))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

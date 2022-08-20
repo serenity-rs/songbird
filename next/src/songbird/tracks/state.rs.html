@@ -70,75 +70,75 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// State of an [`Track`] object, designed to be passed to event handlers</span>
-<span class="doccomment">/// and retrieved remotely via [`TrackHandle::get_info`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Track`]: Track</span>
-<span class="doccomment">/// [`TrackHandle::get_info`]: TrackHandle::get_info</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrackState</span> {
-    <span class="doccomment">/// Play status (e.g., active, paused, stopped) of this track.</span>
-    <span class="kw">pub</span> <span class="ident">playing</span>: <span class="ident">PlayMode</span>,
+<span class="doccomment">/// State of an [`Track`] object, designed to be passed to event handlers
+/// and retrieved remotely via [`TrackHandle::get_info`].
+///
+/// [`Track`]: Track
+/// [`TrackHandle::get_info`]: TrackHandle::get_info
+</span><span class="attribute">#[derive(Clone, Debug, Default, PartialEq)]</span>
+<span class="kw">pub struct </span>TrackState {
+    <span class="doccomment">/// Play status (e.g., active, paused, stopped) of this track.
+    </span><span class="kw">pub </span>playing: PlayMode,
 
-    <span class="doccomment">/// Current volume of this track.</span>
-    <span class="kw">pub</span> <span class="ident">volume</span>: <span class="ident">f32</span>,
+    <span class="doccomment">/// Current volume of this track.
+    </span><span class="kw">pub </span>volume: f32,
 
-    <span class="doccomment">/// Current playback position in the source.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is altered by loops and seeks, and represents this track&#39;s</span>
-    <span class="doccomment">/// position in its underlying input stream.</span>
-    <span class="kw">pub</span> <span class="ident">position</span>: <span class="ident">Duration</span>,
+    <span class="doccomment">/// Current playback position in the source.
+    ///
+    /// This is altered by loops and seeks, and represents this track&#39;s
+    /// position in its underlying input stream.
+    </span><span class="kw">pub </span>position: Duration,
 
-    <span class="doccomment">/// Total playback time, increasing monotonically.</span>
-    <span class="kw">pub</span> <span class="ident">play_time</span>: <span class="ident">Duration</span>,
+    <span class="doccomment">/// Total playback time, increasing monotonically.
+    </span><span class="kw">pub </span>play_time: Duration,
 
-    <span class="doccomment">/// Remaining loops on this track.</span>
-    <span class="kw">pub</span> <span class="ident">loops</span>: <span class="ident">LoopState</span>,
+    <span class="doccomment">/// Remaining loops on this track.
+    </span><span class="kw">pub </span>loops: LoopState,
 
-    <span class="doccomment">/// Whether this track has been made live, is being processed, or is</span>
-    <span class="doccomment">/// currently uninitialised.</span>
-    <span class="kw">pub</span> <span class="ident">ready</span>: <span class="ident">ReadyState</span>,
+    <span class="doccomment">/// Whether this track has been made live, is being processed, or is
+    /// currently uninitialised.
+    </span><span class="kw">pub </span>ready: ReadyState,
 }
 
-<span class="kw">impl</span> <span class="ident">TrackState</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">step_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">TIMESTEP_LENGTH</span>;
-        <span class="self">self</span>.<span class="ident">play_time</span> <span class="op">+</span><span class="op">=</span> <span class="ident">TIMESTEP_LENGTH</span>;
+<span class="kw">impl </span>TrackState {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.position += TIMESTEP_LENGTH;
+        <span class="self">self</span>.play_time += TIMESTEP_LENGTH;
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{
-        <span class="ident">constants::test_data::YTDL_TARGET</span>,
-        <span class="ident">driver::Driver</span>,
-        <span class="ident">input::YoutubeDl</span>,
-        <span class="ident">tracks::Track</span>,
-        <span class="ident">Config</span>,
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use crate</span>::{
+        constants::test_data::YTDL_TARGET,
+        driver::Driver,
+        input::YoutubeDl,
+        tracks::Track,
+        Config,
     };
-    <span class="kw">use</span> <span class="ident">reqwest::Client</span>;
+    <span class="kw">use </span>reqwest::Client;
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">times_unchanged_while_not_ready</span>() {
-        <span class="kw">let</span> (<span class="ident">t_handle</span>, <span class="ident">config</span>) <span class="op">=</span> <span class="ident">Config::test_cfg</span>(<span class="bool-val">true</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">driver</span> <span class="op">=</span> <span class="ident">Driver::new</span>(<span class="ident">config</span>.<span class="ident">clone</span>());
+    <span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>times_unchanged_while_not_ready() {
+        <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
 
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">YoutubeDl::new</span>(<span class="ident">Client::new</span>(), <span class="ident">YTDL_TARGET</span>.<span class="ident">into</span>());
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">driver</span>.<span class="ident">play</span>(<span class="ident">Track::from</span>(<span class="ident">file</span>));
+        <span class="kw">let </span>file = YoutubeDl::new(Client::new(), YTDL_TARGET.into());
+        <span class="kw">let </span>handle = driver.play(Track::from(file));
 
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">t_handle</span>
-            .<span class="ident">ready_track</span>(<span class="kw-2">&amp;</span><span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">Duration::from_millis</span>(<span class="number">5</span>)))
+        <span class="kw">let </span>state = t_handle
+            .ready_track(<span class="kw-2">&amp;</span>handle, <span class="prelude-val">Some</span>(Duration::from_millis(<span class="number">5</span>)))
             .<span class="kw">await</span>;
 
-        <span class="comment">// As state is `play`, the instant we ready we&#39;ll have playout.</span>
-        <span class="comment">// Naturally, fetching a ytdl request takes far longer than this.</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">state</span>.<span class="ident">position</span>, <span class="ident">Duration::from_millis</span>(<span class="number">20</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">state</span>.<span class="ident">play_time</span>, <span class="ident">Duration::from_millis</span>(<span class="number">20</span>));
+        <span class="comment">// As state is `play`, the instant we ready we&#39;ll have playout.
+        // Naturally, fetching a ytdl request takes far longer than this.
+        </span><span class="macro">assert_eq!</span>(state.position, Duration::from_millis(<span class="number">20</span>));
+        <span class="macro">assert_eq!</span>(state.play_time, Duration::from_millis(<span class="number">20</span>));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

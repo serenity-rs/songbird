@@ -84,89 +84,89 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rand::random</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>rand::random;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="doccomment">/// Logic used to determine how long to wait between retry attempts.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Strategy</span> {
-    <span class="doccomment">/// The driver will wait for the same amount of time between each retry.</span>
-    <span class="ident">Every</span>(<span class="ident">Duration</span>),
-    <span class="doccomment">/// Exponential backoff waiting strategy, where the duration between</span>
-    <span class="doccomment">/// attempts (approximately) doubles each time.</span>
-    <span class="ident">Backoff</span>(<span class="ident">ExponentialBackoff</span>),
+<span class="doccomment">/// Logic used to determine how long to wait between retry attempts.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>Strategy {
+    <span class="doccomment">/// The driver will wait for the same amount of time between each retry.
+    </span>Every(Duration),
+    <span class="doccomment">/// Exponential backoff waiting strategy, where the duration between
+    /// attempts (approximately) doubles each time.
+    </span>Backoff(ExponentialBackoff),
 }
 
-<span class="kw">impl</span> <span class="ident">Strategy</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">retry_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="ident">Duration</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Every</span>(<span class="ident">t</span>) =&gt; <span class="kw-2">*</span><span class="ident">t</span>,
-            <span class="ident"><span class="self">Self</span>::Backoff</span>(<span class="ident">exp</span>) =&gt; <span class="ident">exp</span>.<span class="ident">retry_in</span>(<span class="ident">last_wait</span>),
+<span class="kw">impl </span>Strategy {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>retry_in(<span class="kw-2">&amp;</span><span class="self">self</span>, last_wait: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; Duration {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Every(t) =&gt; <span class="kw-2">*</span>t,
+            <span class="self">Self</span>::Backoff(exp) =&gt; exp.retry_in(last_wait),
         }
     }
 }
 
-<span class="doccomment">/// Exponential backoff waiting strategy.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Each attempt waits for twice the last delay plus/minus a</span>
-<span class="doccomment">/// random jitter, clamped to a min and max value.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExponentialBackoff</span> {
-    <span class="doccomment">/// Minimum amount of time to wait between retries.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *Defaults to 0.25s.*</span>
-    <span class="kw">pub</span> <span class="ident">min</span>: <span class="ident">Duration</span>,
-    <span class="doccomment">/// Maximum amount of time to wait between retries.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will be clamped to `&gt;=` min.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *Defaults to 10s.*</span>
-    <span class="kw">pub</span> <span class="ident">max</span>: <span class="ident">Duration</span>,
-    <span class="doccomment">/// Amount of uniform random jitter to apply to generated wait times.</span>
-    <span class="doccomment">/// I.e., 0.1 will add +/-10% to generated intervals.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is restricted to within +/-100%.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *Defaults to `0.1`.*</span>
-    <span class="kw">pub</span> <span class="ident">jitter</span>: <span class="ident">f32</span>,
+<span class="doccomment">/// Exponential backoff waiting strategy.
+///
+/// Each attempt waits for twice the last delay plus/minus a
+/// random jitter, clamped to a min and max value.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, PartialEq)]</span>
+<span class="kw">pub struct </span>ExponentialBackoff {
+    <span class="doccomment">/// Minimum amount of time to wait between retries.
+    ///
+    /// *Defaults to 0.25s.*
+    </span><span class="kw">pub </span>min: Duration,
+    <span class="doccomment">/// Maximum amount of time to wait between retries.
+    ///
+    /// This will be clamped to `&gt;=` min.
+    ///
+    /// *Defaults to 10s.*
+    </span><span class="kw">pub </span>max: Duration,
+    <span class="doccomment">/// Amount of uniform random jitter to apply to generated wait times.
+    /// I.e., 0.1 will add +/-10% to generated intervals.
+    ///
+    /// This is restricted to within +/-100%.
+    ///
+    /// *Defaults to `0.1`.*
+    </span><span class="kw">pub </span>jitter: f32,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ExponentialBackoff</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">min</span>: <span class="ident">Duration::from_millis</span>(<span class="number">250</span>),
-            <span class="ident">max</span>: <span class="ident">Duration::from_secs</span>(<span class="number">10</span>),
-            <span class="ident">jitter</span>: <span class="number">0.1</span>,
+<span class="kw">impl </span>Default <span class="kw">for </span>ExponentialBackoff {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            min: Duration::from_millis(<span class="number">250</span>),
+            max: Duration::from_secs(<span class="number">10</span>),
+            jitter: <span class="number">0.1</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ExponentialBackoff</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">retry_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="ident">Duration</span> {
-        <span class="kw">let</span> <span class="ident">attempt</span> <span class="op">=</span> <span class="ident">last_wait</span>.<span class="ident">map_or</span>(<span class="self">self</span>.<span class="ident">min</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">t</span>);
-        <span class="kw">let</span> <span class="ident">perturb</span> <span class="op">=</span> (<span class="number">1.0</span> <span class="op">-</span> (<span class="self">self</span>.<span class="ident">jitter</span> <span class="op">*</span> <span class="number">2.0</span> <span class="op">*</span> (<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>() <span class="op">-</span> <span class="number">1.0</span>)))
-            .<span class="ident">max</span>(<span class="number">0.0</span>)
-            .<span class="ident">min</span>(<span class="number">2.0</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target_time</span> <span class="op">=</span> <span class="ident">attempt</span>.<span class="ident">mul_f32</span>(<span class="ident">perturb</span>);
+<span class="kw">impl </span>ExponentialBackoff {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>retry_in(<span class="kw-2">&amp;</span><span class="self">self</span>, last_wait: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; Duration {
+        <span class="kw">let </span>attempt = last_wait.map_or(<span class="self">self</span>.min, |t| <span class="number">2 </span>* t);
+        <span class="kw">let </span>perturb = (<span class="number">1.0 </span>- (<span class="self">self</span>.jitter * <span class="number">2.0 </span>* (random::&lt;f32&gt;() - <span class="number">1.0</span>)))
+            .max(<span class="number">0.0</span>)
+            .min(<span class="number">2.0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>target_time = attempt.mul_f32(perturb);
 
-        <span class="comment">// Now clamp target time into given range.</span>
-        <span class="kw">let</span> <span class="ident">safe_max</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">max</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">min</span> {
-            <span class="self">self</span>.<span class="ident">min</span>
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">max</span>
+        <span class="comment">// Now clamp target time into given range.
+        </span><span class="kw">let </span>safe_max = <span class="kw">if </span><span class="self">self</span>.max &lt; <span class="self">self</span>.min {
+            <span class="self">self</span>.min
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.max
         };
 
-        <span class="kw">if</span> <span class="ident">target_time</span> <span class="op">&gt;</span> <span class="ident">safe_max</span> {
-            <span class="ident">target_time</span> <span class="op">=</span> <span class="ident">safe_max</span>;
+        <span class="kw">if </span>target_time &gt; safe_max {
+            target_time = safe_max;
         }
 
-        <span class="kw">if</span> <span class="ident">target_time</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">min</span> {
-            <span class="ident">target_time</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">min</span>;
+        <span class="kw">if </span>target_time &lt; <span class="self">self</span>.min {
+            target_time = <span class="self">self</span>.min;
         }
 
-        <span class="ident">target_time</span>
+        target_time
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

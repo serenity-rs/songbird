@@ -33,38 +33,38 @@
 <span id="31">31</span>
 <span id="32">32</span>
 <span id="33">33</span>
-</pre><pre class="rust"><code><span class="doccomment">/// Decode behaviour for received RTP packets within the driver.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DecodeMode</span> {
-    <span class="doccomment">/// Packets received from Discord are handed over to events without any</span>
-    <span class="doccomment">/// changes applied.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// No CPU work involved.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *BEWARE: this will almost certainly break [user speaking events].</span>
-    <span class="doccomment">/// Silent frame detection only works if extensions can be parsed or</span>
-    <span class="doccomment">/// are not present, as they are encrypted.</span>
-    <span class="doccomment">/// This event requires such functionality.*</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate</span>
-    <span class="ident">Pass</span>,
-    <span class="doccomment">/// Decrypts the body of each received packet.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Small per-packet CPU use.</span>
-    <span class="ident">Decrypt</span>,
-    <span class="doccomment">/// Decrypts and decodes each received packet, correctly accounting for losses.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Larger per-packet CPU use.</span>
-    <span class="ident">Decode</span>,
+</pre><pre class="rust"><code><span class="doccomment">/// Decode behaviour for received RTP packets within the driver.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>DecodeMode {
+    <span class="doccomment">/// Packets received from Discord are handed over to events without any
+    /// changes applied.
+    ///
+    /// No CPU work involved.
+    ///
+    /// *BEWARE: this will almost certainly break [user speaking events].
+    /// Silent frame detection only works if extensions can be parsed or
+    /// are not present, as they are encrypted.
+    /// This event requires such functionality.*
+    ///
+    /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
+    </span>Pass,
+    <span class="doccomment">/// Decrypts the body of each received packet.
+    ///
+    /// Small per-packet CPU use.
+    </span>Decrypt,
+    <span class="doccomment">/// Decrypts and decodes each received packet, correctly accounting for losses.
+    ///
+    /// Larger per-packet CPU use.
+    </span>Decode,
 }
 
-<span class="kw">impl</span> <span class="ident">DecodeMode</span> {
-    <span class="doccomment">/// Returns whether this mode will decrypt received packets.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_decrypt</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">!</span><span class="op">=</span> <span class="ident">DecodeMode::Pass</span>
+<span class="kw">impl </span>DecodeMode {
+    <span class="doccomment">/// Returns whether this mode will decrypt received packets.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>should_decrypt(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self </span>!= DecodeMode::Pass
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

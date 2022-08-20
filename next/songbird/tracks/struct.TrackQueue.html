@@ -10,29 +10,29 @@ the <code>&quot;builtin-queue&quot;</code> feature is enabled.</p>
 track and use this to run a song queue in many guilds in parallel.
 This code is trivial to extend if extra functionality is needed.</p>
 <h2 id="example"><a href="#example">Example</a></h2>
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">songbird</span>::{
-    <span class="ident">driver::Driver</span>,
-    <span class="ident">id::GuildId</span>,
-    <span class="ident">input::File</span>,
-    <span class="ident">tracks::TrackQueue</span>,
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>songbird::{
+    driver::Driver,
+    id::GuildId,
+    input::File,
+    tracks::TrackQueue,
 };
-<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
-<span class="kw">use</span> <span class="ident">std::num::NonZeroU64</span>;
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::num::NonZeroU64;
 
-<span class="kw">let</span> <span class="ident">guild</span> <span class="op">=</span> <span class="ident">GuildId</span>(<span class="ident">NonZeroU64::new</span>(<span class="number">1</span>).<span class="ident">unwrap</span>());
-<span class="comment">// A Call is also valid here!</span>
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">driver</span>: <span class="ident">Driver</span> <span class="op">=</span> <span class="ident">Default::default</span>();
+<span class="kw">let </span>guild = GuildId(NonZeroU64::new(<span class="number">1</span>).unwrap());
+<span class="comment">// A Call is also valid here!
+</span><span class="kw">let </span><span class="kw-2">mut </span>driver: Driver = Default::default();
 
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queues</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">GuildId</span>, <span class="ident">TrackQueue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Default::default</span>();
+<span class="kw">let </span><span class="kw-2">mut </span>queues: HashMap&lt;GuildId, TrackQueue&gt; = Default::default();
 
-<span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">File::new</span>(<span class="string">&quot;../audio/my-favourite-song.mp3&quot;</span>);
+<span class="kw">let </span>source = File::new(<span class="string">&quot;../audio/my-favourite-song.mp3&quot;</span>);
 
-<span class="comment">// We need to ensure that this guild has a TrackQueue created for it.</span>
-<span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">queues</span>.<span class="ident">entry</span>(<span class="ident">guild</span>)
-    .<span class="ident">or_default</span>();
+<span class="comment">// We need to ensure that this guild has a TrackQueue created for it.
+</span><span class="kw">let </span>queue = queues.entry(guild)
+    .or_default();
 
-<span class="comment">// Queueing a track is this easy!</span>
-<span class="ident">queue</span>.<span class="ident">add_source</span>(<span class="ident">source</span>.<span class="ident">into</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">driver</span>);</code></pre></div>
+<span class="comment">// Queueing a track is this easy!
+</span>queue.add_source(source.into(), <span class="kw-2">&amp;mut </span>driver);</code></pre></div>
 </div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor"></a></h2><div id="implementations-list"><details class="rustdoc-toggle implementors-toggle" open><summary><section id="impl-TrackQueue" class="impl has-srclink"><span class="rightside"><a class="srclink" href="../../src/songbird/tracks/queue.rs.html#159-356">source</a></span><a href="#impl-TrackQueue" class="anchor"></a><h3 class="code-header in-band">impl <a class="struct" href="struct.TrackQueue.html" title="struct songbird::tracks::TrackQueue">TrackQueue</a></h3></section></summary><div class="impl-items"><details class="rustdoc-toggle method-toggle" open><summary><section id="method.new" class="method has-srclink"><span class="rightside"><a class="srclink" href="../../src/songbird/tracks/queue.rs.html#162-168">source</a></span><h4 class="code-header">pub fn <a href="#method.new" class="fnname">new</a>() -&gt; Self</h4></section></summary><div class="docblock"><p>Create a new, empty, track queue.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.add_source" class="method has-srclink"><span class="rightside"><a class="srclink" href="../../src/songbird/tracks/queue.rs.html#176-178">source</a></span><h4 class="code-header">pub async fn <a href="#method.add_source" class="fnname">add_source</a>(&amp;self, input: <a class="enum" href="../input/enum.Input.html" title="enum songbird::input::Input">Input</a>, driver: &amp;mut <a class="struct" href="../driver/struct.Driver.html" title="struct songbird::driver::Driver">Driver</a>) -&gt; <a class="struct" href="struct.TrackHandle.html" title="struct songbird::tracks::TrackHandle">TrackHandle</a></h4></section></summary><div class="docblock"><p>Adds an audio source to the queue, to be played in the channel managed by <code>driver</code>.</p>
 <p>This method will preload the next track 5 seconds before the current track ends, if
@@ -90,4 +90,4 @@ resource leaks.</p>
 <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="WithDispatch"><code>WithDispatch</code></a> wrapper. <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_subscriber">Read more</a></p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.with_current_subscriber" class="method trait-impl has-srclink"><span class="rightside"><a class="srclink" href="https://docs.rs/tracing/0.1.36/src/tracing/instrument.rs.html#221">source</a></span><a href="#method.with_current_subscriber" class="anchor"></a><h4 class="code-header">fn <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_current_subscriber" class="fnname">with_current_subscriber</a>(self) -&gt; <a class="struct" href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="struct tracing::instrument::WithDispatch">WithDispatch</a>&lt;Self&gt;</h4></section></summary><div class='docblock'><p>Attaches the current <a href="https://docs.rs/tracing/0.1.36/tracing/dispatcher/index.html#setting-the-default-subscriber">default</a> <a href="https://docs.rs/tracing-core/0.1.22/tracing_core/subscriber/trait.Subscriber.html"><code>Subscriber</code></a> to this type, returning a
 <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="WithDispatch"><code>WithDispatch</code></a> wrapper. <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_current_subscriber">Read more</a></p>
-</div></details></div></details></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</div></details></div></details></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

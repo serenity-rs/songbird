@@ -18,23 +18,23 @@
 <span id="16">16</span>
 <span id="17">17</span>
 <span id="18">18</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Types containing the main body of an [`EventContext`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`EventContext`]: super::EventContext</span>
-<span class="kw">mod</span> <span class="ident">connect</span>;
-<span class="kw">mod</span> <span class="ident">disconnect</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">rtcp</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">speaking</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">voice</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Types containing the main body of an [`EventContext`].
+//!
+//! [`EventContext`]: super::EventContext
+</span><span class="kw">mod </span>connect;
+<span class="kw">mod </span>disconnect;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">mod </span>rtcp;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">mod </span>speaking;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">mod </span>voice;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">discortp</span>::{<span class="ident">rtcp::Rtcp</span>, <span class="ident">rtp::Rtp</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">use </span>discortp::{rtcp::Rtcp, rtp::Rtp};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">connect</span>::<span class="kw-2">*</span>, <span class="ident">disconnect</span>::<span class="kw-2">*</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">rtcp</span>::<span class="kw-2">*</span>, <span class="ident">speaking</span>::<span class="kw-2">*</span>, <span class="ident">voice</span>::<span class="kw-2">*</span>};
+<span class="kw">pub use </span><span class="self">self</span>::{connect::<span class="kw-2">*</span>, disconnect::<span class="kw-2">*</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">pub use </span><span class="self">self</span>::{rtcp::<span class="kw-2">*</span>, speaking::<span class="kw-2">*</span>, voice::<span class="kw-2">*</span>};
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -145,150 +145,150 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::JsonError</span>, <span class="ident">input::AudioStreamError</span>};
-<span class="kw">use</span> <span class="ident">audiopus::error::Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">StdError</span>,
-    <span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">FmtResult</span>},
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{error::JsonError, input::AudioStreamError};
+<span class="kw">use </span>audiopus::error::Error <span class="kw">as </span>OpusError;
+<span class="kw">use </span>std::{
+    error::Error <span class="kw">as </span>StdError,
+    fmt::{Display, Formatter, <span class="prelude-ty">Result </span><span class="kw">as </span>FmtResult},
 };
-<span class="kw">use</span> <span class="ident">streamcatcher::CatcherError</span>;
-<span class="kw">use</span> <span class="ident">symphonia_core::errors::Error</span> <span class="kw">as</span> <span class="ident">SymphError</span>;
-<span class="kw">use</span> <span class="ident">tokio::task::JoinError</span>;
+<span class="kw">use </span>streamcatcher::CatcherError;
+<span class="kw">use </span>symphonia_core::errors::Error <span class="kw">as </span>SymphError;
+<span class="kw">use </span>tokio::task::JoinError;
 
-<span class="doccomment">/// Errors encountered using a [`Memory`] cached source.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Memory`]: super::Memory</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// The audio stream could not be created.</span>
-    <span class="ident">Create</span>(<span class="ident">AudioStreamError</span>),
-    <span class="doccomment">/// The audio stream failed to be created due to a panic in `spawn_blocking`.</span>
-    <span class="ident">CreatePanicked</span>,
-    <span class="doccomment">/// Streamcatcher&#39;s configuration was illegal, and the cache could not be created.</span>
-    <span class="ident">Streamcatcher</span>(<span class="ident">CatcherError</span>),
-    <span class="doccomment">/// The input stream had already been read (i.e., `Parsed`) and so the whole stream</span>
-    <span class="doccomment">/// could not be used.</span>
-    <span class="ident">StreamNotAtStart</span>,
+<span class="doccomment">/// Errors encountered using a [`Memory`] cached source.
+///
+/// [`Memory`]: super::Memory
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>Error {
+    <span class="doccomment">/// The audio stream could not be created.
+    </span>Create(AudioStreamError),
+    <span class="doccomment">/// The audio stream failed to be created due to a panic in `spawn_blocking`.
+    </span>CreatePanicked,
+    <span class="doccomment">/// Streamcatcher&#39;s configuration was illegal, and the cache could not be created.
+    </span>Streamcatcher(CatcherError),
+    <span class="doccomment">/// The input stream had already been read (i.e., `Parsed`) and so the whole stream
+    /// could not be used.
+    </span>StreamNotAtStart,
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">FmtResult</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Create</span>(<span class="ident">c</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create audio stream: {}&quot;</span>, <span class="ident">c</span>)),
-            <span class="ident"><span class="self">Self</span>::CreatePanicked</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;sync thread panicked while creating stream&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Streamcatcher</span>(<span class="ident">s</span>) =&gt;
-                <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;illegal streamcatcher config: {}&quot;</span>, <span class="ident">s</span>)),
-            <span class="ident"><span class="self">Self</span>::StreamNotAtStart</span> =&gt;
-                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;stream cannot have been pre-read/parsed, missing headers&quot;</span>),
+<span class="kw">impl </span>Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; FmtResult {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Create(c) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create audio stream: {}&quot;</span>, c)),
+            <span class="self">Self</span>::CreatePanicked =&gt; f.write_str(<span class="string">&quot;sync thread panicked while creating stream&quot;</span>),
+            <span class="self">Self</span>::Streamcatcher(s) =&gt;
+                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;illegal streamcatcher config: {}&quot;</span>, s)),
+            <span class="self">Self</span>::StreamNotAtStart =&gt;
+                f.write_str(<span class="string">&quot;stream cannot have been pre-read/parsed, missing headers&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">Error</span> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>Error {}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AudioStreamError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">AudioStreamError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Create</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;AudioStreamError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(val: AudioStreamError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Create(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CatcherError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">CatcherError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Streamcatcher</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;CatcherError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(val: CatcherError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Streamcatcher(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JoinError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_val</span>: <span class="ident">JoinError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::CreatePanicked</span>
+<span class="kw">impl </span>From&lt;JoinError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(_val: JoinError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::CreatePanicked
     }
 }
 
-<span class="doccomment">/// Errors encountered using a [`Compressed`] or [`Decompressed`] cached source.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Compressed`]: super::Compressed</span>
-<span class="doccomment">/// [`Decompressed`]: super::Decompressed</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CodecCacheError</span> {
-    <span class="doccomment">/// The audio stream could not be created.</span>
-    <span class="ident">Create</span>(<span class="ident">AudioStreamError</span>),
-    <span class="doccomment">/// Symphonia failed to parse the container or decode the default stream.</span>
-    <span class="ident">Parse</span>(<span class="ident">SymphError</span>),
-    <span class="doccomment">/// The Opus encoder could not be created.</span>
-    <span class="ident">Opus</span>(<span class="ident">OpusError</span>),
-    <span class="doccomment">/// The file&#39;s metadata could not be converted to JSON.</span>
-    <span class="ident">MetadataEncoding</span>(<span class="ident">JsonError</span>),
-    <span class="doccomment">/// The input&#39;s metadata was too large after conversion to JSON to fit in a DCA file.</span>
-    <span class="ident">MetadataTooLarge</span>,
-    <span class="doccomment">/// The audio stream failed to be created due to a panic in `spawn_blocking`.</span>
-    <span class="ident">CreatePanicked</span>,
-    <span class="doccomment">/// The audio stream&#39;s channel count could not be determined.</span>
-    <span class="ident">UnknownChannelCount</span>,
-    <span class="doccomment">/// Streamcatcher&#39;s configuration was illegal, and the cache could not be created.</span>
-    <span class="ident">Streamcatcher</span>(<span class="ident">CatcherError</span>),
-    <span class="doccomment">/// The input stream had already been read (i.e., `Parsed`) and so the whole stream</span>
-    <span class="doccomment">/// could not be used.</span>
-    <span class="ident">StreamNotAtStart</span>,
+<span class="doccomment">/// Errors encountered using a [`Compressed`] or [`Decompressed`] cached source.
+///
+/// [`Compressed`]: super::Compressed
+/// [`Decompressed`]: super::Decompressed
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>CodecCacheError {
+    <span class="doccomment">/// The audio stream could not be created.
+    </span>Create(AudioStreamError),
+    <span class="doccomment">/// Symphonia failed to parse the container or decode the default stream.
+    </span>Parse(SymphError),
+    <span class="doccomment">/// The Opus encoder could not be created.
+    </span>Opus(OpusError),
+    <span class="doccomment">/// The file&#39;s metadata could not be converted to JSON.
+    </span>MetadataEncoding(JsonError),
+    <span class="doccomment">/// The input&#39;s metadata was too large after conversion to JSON to fit in a DCA file.
+    </span>MetadataTooLarge,
+    <span class="doccomment">/// The audio stream failed to be created due to a panic in `spawn_blocking`.
+    </span>CreatePanicked,
+    <span class="doccomment">/// The audio stream&#39;s channel count could not be determined.
+    </span>UnknownChannelCount,
+    <span class="doccomment">/// Streamcatcher&#39;s configuration was illegal, and the cache could not be created.
+    </span>Streamcatcher(CatcherError),
+    <span class="doccomment">/// The input stream had already been read (i.e., `Parsed`) and so the whole stream
+    /// could not be used.
+    </span>StreamNotAtStart,
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">CodecCacheError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">FmtResult</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Create</span>(<span class="ident">c</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create audio stream: {}&quot;</span>, <span class="ident">c</span>)),
-            <span class="ident"><span class="self">Self</span>::Parse</span>(<span class="ident">p</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;failed to parse audio format: {}&quot;</span>, <span class="ident">p</span>)),
-            <span class="ident"><span class="self">Self</span>::Opus</span>(<span class="ident">o</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create Opus encoder: {}&quot;</span>, <span class="ident">o</span>)),
-            <span class="ident"><span class="self">Self</span>::MetadataEncoding</span>(<span class="ident">m</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+<span class="kw">impl </span>Display <span class="kw">for </span>CodecCacheError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; FmtResult {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Create(c) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create audio stream: {}&quot;</span>, c)),
+            <span class="self">Self</span>::Parse(p) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to parse audio format: {}&quot;</span>, p)),
+            <span class="self">Self</span>::Opus(o) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create Opus encoder: {}&quot;</span>, o)),
+            <span class="self">Self</span>::MetadataEncoding(m) =&gt; f.write_fmt(<span class="macro">format_args!</span>(
                 <span class="string">&quot;failed to convert track metadata to JSON: {}&quot;</span>,
-                <span class="ident">m</span>
+                m
             )),
-            <span class="ident"><span class="self">Self</span>::MetadataTooLarge</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;track metadata was too large, &gt;= 32kiB&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::CreatePanicked</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;sync thread panicked while creating stream&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::UnknownChannelCount</span> =&gt;
-                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;audio stream&#39;s channel count could not be determined&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Streamcatcher</span>(<span class="ident">s</span>) =&gt;
-                <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;illegal streamcatcher config: {}&quot;</span>, <span class="ident">s</span>)),
-            <span class="ident"><span class="self">Self</span>::StreamNotAtStart</span> =&gt;
-                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;stream cannot have been pre-read/parsed, missing headers&quot;</span>),
+            <span class="self">Self</span>::MetadataTooLarge =&gt; f.write_str(<span class="string">&quot;track metadata was too large, &gt;= 32kiB&quot;</span>),
+            <span class="self">Self</span>::CreatePanicked =&gt; f.write_str(<span class="string">&quot;sync thread panicked while creating stream&quot;</span>),
+            <span class="self">Self</span>::UnknownChannelCount =&gt;
+                f.write_str(<span class="string">&quot;audio stream&#39;s channel count could not be determined&quot;</span>),
+            <span class="self">Self</span>::Streamcatcher(s) =&gt;
+                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;illegal streamcatcher config: {}&quot;</span>, s)),
+            <span class="self">Self</span>::StreamNotAtStart =&gt;
+                f.write_str(<span class="string">&quot;stream cannot have been pre-read/parsed, missing headers&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">CodecCacheError</span> {}
+<span class="kw">impl </span>StdError <span class="kw">for </span>CodecCacheError {}
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AudioStreamError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CodecCacheError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">AudioStreamError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Create</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;AudioStreamError&gt; <span class="kw">for </span>CodecCacheError {
+    <span class="kw">fn </span>from(val: AudioStreamError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Create(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CatcherError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CodecCacheError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">CatcherError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Streamcatcher</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;CatcherError&gt; <span class="kw">for </span>CodecCacheError {
+    <span class="kw">fn </span>from(val: CatcherError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Streamcatcher(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JoinError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CodecCacheError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_val</span>: <span class="ident">JoinError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::CreatePanicked</span>
+<span class="kw">impl </span>From&lt;JoinError&gt; <span class="kw">for </span>CodecCacheError {
+    <span class="kw">fn </span>from(_val: JoinError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::CreatePanicked
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsonError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CodecCacheError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">JsonError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::MetadataEncoding</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;JsonError&gt; <span class="kw">for </span>CodecCacheError {
+    <span class="kw">fn </span>from(val: JsonError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::MetadataEncoding(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">OpusError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CodecCacheError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">OpusError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Opus</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;OpusError&gt; <span class="kw">for </span>CodecCacheError {
+    <span class="kw">fn </span>from(val: OpusError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Opus(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SymphError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CodecCacheError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">SymphError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Parse</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;SymphError&gt; <span class="kw">for </span>CodecCacheError {
+    <span class="kw">fn </span>from(val: SymphError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Parse(val)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

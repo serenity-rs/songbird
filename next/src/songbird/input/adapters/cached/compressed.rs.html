@@ -537,446 +537,446 @@
 <span id="535">535</span>
 <span id="536">536</span>
 <span id="537">537</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">compressed_cost_per_sec</span>, <span class="ident">default_config</span>, <span class="ident">CodecCacheError</span>, <span class="ident">ToAudioBytes</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">constants</span>::<span class="kw-2">*</span>,
-    <span class="ident">input</span>::{
-        <span class="ident">codecs</span>::{<span class="ident">dca</span>::<span class="kw-2">*</span>, <span class="ident">CODEC_REGISTRY</span>, <span class="ident">PROBE</span>},
-        <span class="ident">AudioStream</span>,
-        <span class="ident">Input</span>,
-        <span class="ident">LiveInput</span>,
+</pre><pre class="rust"><code><span class="kw">use super</span>::{compressed_cost_per_sec, default_config, CodecCacheError, ToAudioBytes};
+<span class="kw">use crate</span>::{
+    constants::<span class="kw-2">*</span>,
+    input::{
+        codecs::{dca::<span class="kw-2">*</span>, CODEC_REGISTRY, PROBE},
+        AudioStream,
+        Input,
+        LiveInput,
     },
 };
-<span class="kw">use</span> <span class="ident">audiopus</span>::{
-    <span class="ident">coder</span>::{<span class="ident">Encoder</span> <span class="kw">as</span> <span class="ident">OpusEncoder</span>, <span class="ident">GenericCtl</span>},
-    <span class="ident">Application</span>,
-    <span class="ident">Bitrate</span>,
-    <span class="ident">Channels</span>,
-    <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>,
-    <span class="ident">ErrorCode</span> <span class="kw">as</span> <span class="ident">OpusErrorCode</span>,
-    <span class="ident">SampleRate</span>,
+<span class="kw">use </span>audiopus::{
+    coder::{Encoder <span class="kw">as </span>OpusEncoder, GenericCtl},
+    Application,
+    Bitrate,
+    Channels,
+    Error <span class="kw">as </span>OpusError,
+    ErrorCode <span class="kw">as </span>OpusErrorCode,
+    SampleRate,
 };
-<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>, <span class="ident">WriteBytesExt</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">convert::TryInto</span>,
-    <span class="ident">io</span>::{
-        <span class="ident">Cursor</span>,
-        <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>,
-        <span class="ident">ErrorKind</span> <span class="kw">as</span> <span class="ident">IoErrorKind</span>,
-        <span class="ident">Read</span>,
-        <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>,
-        <span class="ident">Seek</span>,
-        <span class="ident">SeekFrom</span>,
+<span class="kw">use </span>byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+<span class="kw">use </span>std::{
+    convert::TryInto,
+    io::{
+        Cursor,
+        Error <span class="kw">as </span>IoError,
+        ErrorKind <span class="kw">as </span>IoErrorKind,
+        Read,
+        <span class="prelude-ty">Result </span><span class="kw">as </span>IoResult,
+        Seek,
+        SeekFrom,
     },
-    <span class="ident">mem</span>,
-    <span class="ident">sync::atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>},
+    mem,
+    sync::atomic::{AtomicUsize, Ordering},
 };
-<span class="kw">use</span> <span class="ident">streamcatcher</span>::{
-    <span class="ident">Config</span> <span class="kw">as</span> <span class="ident">ScConfig</span>,
-    <span class="ident">NeedsBytes</span>,
-    <span class="ident">Stateful</span>,
-    <span class="ident">Transform</span>,
-    <span class="ident">TransformPosition</span>,
-    <span class="ident">TxCatcher</span>,
+<span class="kw">use </span>streamcatcher::{
+    Config <span class="kw">as </span>ScConfig,
+    NeedsBytes,
+    Stateful,
+    Transform,
+    TransformPosition,
+    TxCatcher,
 };
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{
-    <span class="ident">audio::Channels</span> <span class="kw">as</span> <span class="ident">SChannels</span>,
-    <span class="ident">codecs::CodecRegistry</span>,
-    <span class="ident">io::MediaSource</span>,
-    <span class="ident">meta</span>::{<span class="ident">MetadataRevision</span>, <span class="ident">StandardTagKey</span>, <span class="ident">Value</span>},
-    <span class="ident">probe</span>::{<span class="ident">Probe</span>, <span class="ident">ProbedMetadata</span>},
+<span class="kw">use </span>symphonia_core::{
+    audio::Channels <span class="kw">as </span>SChannels,
+    codecs::CodecRegistry,
+    io::MediaSource,
+    meta::{MetadataRevision, StandardTagKey, Value},
+    probe::{Probe, ProbedMetadata},
 };
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
+<span class="kw">use </span>tracing::{debug, trace};
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Config</span> {
-    <span class="doccomment">/// Registry of audio codecs supported by the driver.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`CODEC_REGISTRY`], which adds audiopus-based Opus codec support</span>
-    <span class="doccomment">/// to all of Symphonia&#39;s default codecs.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY</span>
-    <span class="kw">pub</span> <span class="ident">codec_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CodecRegistry</span>,
-    <span class="doccomment">/// Registry of the muxers and container formats supported by the driver.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`PROBE`], which includes all of Symphonia&#39;s default format handlers</span>
-    <span class="doccomment">/// and DCA format support.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`PROBE`]: static@PROBE</span>
-    <span class="kw">pub</span> <span class="ident">format_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Probe</span>,
-    <span class="doccomment">/// Configuration for the inner streamcatcher instance.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Notably, this governs size hints and resize logic.</span>
-    <span class="kw">pub</span> <span class="ident">streamcatcher</span>: <span class="ident">ScConfig</span>,
+<span class="kw">pub struct </span>Config {
+    <span class="doccomment">/// Registry of audio codecs supported by the driver.
+    ///
+    /// Defaults to [`CODEC_REGISTRY`], which adds audiopus-based Opus codec support
+    /// to all of Symphonia&#39;s default codecs.
+    ///
+    /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
+    </span><span class="kw">pub </span>codec_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>CodecRegistry,
+    <span class="doccomment">/// Registry of the muxers and container formats supported by the driver.
+    ///
+    /// Defaults to [`PROBE`], which includes all of Symphonia&#39;s default format handlers
+    /// and DCA format support.
+    ///
+    /// [`PROBE`]: static@PROBE
+    </span><span class="kw">pub </span>format_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Probe,
+    <span class="doccomment">/// Configuration for the inner streamcatcher instance.
+    ///
+    /// Notably, this governs size hints and resize logic.
+    </span><span class="kw">pub </span>streamcatcher: ScConfig,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Config</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">codec_registry</span>: <span class="kw-2">&amp;</span><span class="ident">CODEC_REGISTRY</span>,
-            <span class="ident">format_registry</span>: <span class="kw-2">&amp;</span><span class="ident">PROBE</span>,
-            <span class="ident">streamcatcher</span>: <span class="ident">ScConfig::default</span>(),
+<span class="kw">impl </span>Default <span class="kw">for </span>Config {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            codec_registry: <span class="kw-2">&amp;</span>CODEC_REGISTRY,
+            format_registry: <span class="kw-2">&amp;</span>PROBE,
+            streamcatcher: ScConfig::default(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Config</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_from_cost</span>(<span class="ident">cost_per_sec</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">streamcatcher</span> <span class="op">=</span> <span class="ident">default_config</span>(<span class="ident">cost_per_sec</span>);
-        <span class="self">Self</span> {
-            <span class="ident">streamcatcher</span>,
-            ..<span class="ident">Default::default</span>()
+<span class="kw">impl </span>Config {
+    <span class="kw">pub fn </span>default_from_cost(cost_per_sec: usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>streamcatcher = default_config(cost_per_sec);
+        <span class="self">Self </span>{
+            streamcatcher,
+            ..Default::default()
         }
     }
 }
 
-<span class="doccomment">/// A wrapper around an existing [`Input`] which compresses</span>
-<span class="doccomment">/// the input using the Opus codec before storing it in memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The main purpose of this wrapper is to enable seeking on</span>
-<span class="doccomment">/// incompatible sources and to ease resource consumption for</span>
-<span class="doccomment">/// commonly reused/shared tracks. If only one Opus-compressed track</span>
-<span class="doccomment">/// is playing at a time, then this removes the runtime decode cost</span>
-<span class="doccomment">/// from the driver.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is intended for use with larger, repeatedly used audio</span>
-<span class="doccomment">/// tracks shared between sources, and stores the sound data</span>
-<span class="doccomment">/// retrieved as **compressed Opus audio**.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Internally, this stores the stream and its metadata as a DCA1 file,</span>
-<span class="doccomment">/// which can be written out to disk for later use.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: crate::input::Input</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Compressed</span> {
-    <span class="doccomment">/// Inner shared bytestore.</span>
-    <span class="kw">pub</span> <span class="ident">raw</span>: <span class="ident">TxCatcher</span><span class="op">&lt;</span><span class="ident">ToAudioBytes</span>, <span class="ident">OpusCompressor</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A wrapper around an existing [`Input`] which compresses
+/// the input using the Opus codec before storing it in memory.
+///
+/// The main purpose of this wrapper is to enable seeking on
+/// incompatible sources and to ease resource consumption for
+/// commonly reused/shared tracks. If only one Opus-compressed track
+/// is playing at a time, then this removes the runtime decode cost
+/// from the driver.
+///
+/// This is intended for use with larger, repeatedly used audio
+/// tracks shared between sources, and stores the sound data
+/// retrieved as **compressed Opus audio**.
+///
+/// Internally, this stores the stream and its metadata as a DCA1 file,
+/// which can be written out to disk for later use.
+///
+/// [`Input`]: crate::input::Input
+</span><span class="attribute">#[derive(Clone)]</span>
+<span class="kw">pub struct </span>Compressed {
+    <span class="doccomment">/// Inner shared bytestore.
+    </span><span class="kw">pub </span>raw: TxCatcher&lt;ToAudioBytes, OpusCompressor&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Compressed</span> {
-    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: Input</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">CodecCacheError</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::with_config</span>(<span class="ident">source</span>, <span class="ident">bitrate</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>
-    }
+<span class="kw">impl </span>Compressed {
+    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, compressed using Opus.
+    ///
+    /// [`Input`]: Input
+    </span><span class="kw">pub async fn </span>new(source: Input, bitrate: Bitrate) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CodecCacheError&gt; {
+        <span class="self">Self</span>::with_config(source, bitrate, <span class="prelude-val">None</span>).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, compressed using Opus, with</span>
-    <span class="doccomment">/// custom configuration for both Symphonia and the backing store.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: Input</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">with_config</span>(
-        <span class="ident">source</span>: <span class="ident">Input</span>,
-        <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>,
-        <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">CodecCacheError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source</span> {
-            <span class="ident">Input::Lazy</span>(<span class="kw-2">mut</span> <span class="ident">r</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">created</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">should_create_async</span>() {
-                    <span class="ident">r</span>.<span class="ident">create_async</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">CodecCacheError::from</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">create</span>().<span class="ident">map_err</span>(<span class="ident">CodecCacheError::from</span>))
-                        .<span class="kw">await</span>
-                        .<span class="ident">map_err</span>(<span class="ident">CodecCacheError::from</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>)
+    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, compressed using Opus, with
+    /// custom configuration for both Symphonia and the backing store.
+    ///
+    /// [`Input`]: Input
+    </span><span class="kw">pub async fn </span>with_config(
+        source: Input,
+        bitrate: Bitrate,
+        config: <span class="prelude-ty">Option</span>&lt;Config&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CodecCacheError&gt; {
+        <span class="kw">let </span>input = <span class="kw">match </span>source {
+            Input::Lazy(<span class="kw-2">mut </span>r) =&gt; {
+                <span class="kw">let </span>created = <span class="kw">if </span>r.should_create_async() {
+                    r.create_async().<span class="kw">await</span>.map_err(CodecCacheError::from)
+                } <span class="kw">else </span>{
+                    tokio::task::spawn_blocking(<span class="kw">move </span>|| r.create().map_err(CodecCacheError::from))
+                        .<span class="kw">await
+                        </span>.map_err(CodecCacheError::from)
+                        .and_then(|v| v)
                 };
 
-                <span class="ident">created</span>.<span class="ident">map</span>(<span class="ident">LiveInput::Raw</span>)
+                created.map(LiveInput::Raw)
             },
-            <span class="ident">Input::Live</span>(<span class="ident">LiveInput::Parsed</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">CodecCacheError::StreamNotAtStart</span>),
-            <span class="ident">Input::Live</span>(<span class="ident">a</span>, <span class="ident">_rec</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">a</span>),
+            Input::Live(LiveInput::Parsed(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(CodecCacheError::StreamNotAtStart),
+            Input::Live(a, _rec) =&gt; <span class="prelude-val">Ok</span>(a),
         }<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">cost_per_sec</span> <span class="op">=</span> <span class="ident">compressed_cost_per_sec</span>(<span class="ident">bitrate</span>);
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Config::default_from_cost</span>(<span class="ident">cost_per_sec</span>));
+        <span class="kw">let </span>cost_per_sec = compressed_cost_per_sec(bitrate);
+        <span class="kw">let </span>config = config.unwrap_or_else(|| Config::default_from_cost(cost_per_sec));
 
-        <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-            <span class="ident">input</span>.<span class="ident">promote</span>(<span class="ident">config</span>.<span class="ident">codec_registry</span>, <span class="ident">config</span>.<span class="ident">format_registry</span>)
+        <span class="kw">let </span>promoted = tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+            input.promote(config.codec_registry, config.format_registry)
         })
-        .<span class="kw">await</span><span class="question-mark">?</span><span class="question-mark">?</span>;
+        .<span class="kw">await</span><span class="question-mark">??</span>;
 
-        <span class="comment">// If success, guaranteed to be Parsed</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">LiveInput::Parsed</span>(<span class="ident">parsed</span>) <span class="op">=</span> <span class="ident">promoted</span> {
-            <span class="ident">parsed</span>
-        } <span class="kw">else</span> {
+        <span class="comment">// If success, guaranteed to be Parsed
+        </span><span class="kw">let </span><span class="kw-2">mut </span>parsed = <span class="kw">if let </span>LiveInput::Parsed(parsed) = promoted {
+            parsed
+        } <span class="kw">else </span>{
             <span class="macro">unreachable!</span>()
         };
 
-        <span class="comment">// TODO: apply length hint.</span>
-        <span class="comment">// if config.length_hint.is_none() {</span>
-        <span class="comment">//     if let Some(dur) = metadata.duration {</span>
-        <span class="comment">//         apply_length_hint(&amp;mut config, dur, cost_per_sec);</span>
-        <span class="comment">//     }</span>
-        <span class="comment">// }</span>
+        <span class="comment">// TODO: apply length hint.
+        // if config.length_hint.is_none() {
+        //     if let Some(dur) = metadata.duration {
+        //         apply_length_hint(&amp;mut config, dur, cost_per_sec);
+        //     }
+        // }
 
-        <span class="kw">let</span> <span class="ident">track_info</span> <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">decoder</span>.<span class="ident">codec_params</span>();
-        <span class="kw">let</span> <span class="ident">chan_count</span> <span class="op">=</span> <span class="ident">track_info</span>.<span class="ident">channels</span>.<span class="ident">map_or</span>(<span class="number">2</span>, <span class="ident">SChannels::count</span>);
+        </span><span class="kw">let </span>track_info = parsed.decoder.codec_params();
+        <span class="kw">let </span>chan_count = track_info.channels.map_or(<span class="number">2</span>, SChannels::count);
 
-        <span class="kw">let</span> (<span class="ident">channels</span>, <span class="ident">stereo</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">chan_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
-            (<span class="ident">Channels::Stereo</span>, <span class="bool-val">true</span>)
-        } <span class="kw">else</span> {
-            (<span class="ident">Channels::Mono</span>, <span class="bool-val">false</span>)
+        <span class="kw">let </span>(channels, stereo) = <span class="kw">if </span>chan_count &gt;= <span class="number">2 </span>{
+            (Channels::Stereo, <span class="bool-val">true</span>)
+        } <span class="kw">else </span>{
+            (Channels::Mono, <span class="bool-val">false</span>)
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">OpusEncoder::new</span>(<span class="ident">SampleRate::Hz48000</span>, <span class="ident">channels</span>, <span class="ident">Application::Audio</span>)<span class="question-mark">?</span>;
-        <span class="ident">encoder</span>.<span class="ident">set_bitrate</span>(<span class="ident">bitrate</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>encoder = OpusEncoder::new(SampleRate::Hz48000, channels, Application::Audio)<span class="question-mark">?</span>;
+        encoder.set_bitrate(bitrate)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">codec_type</span> <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">decoder</span>.<span class="ident">codec_params</span>().<span class="ident">codec</span>;
-        <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <span class="ident">config</span>
-            .<span class="ident">codec_registry</span>
-            .<span class="ident">get_codec</span>(<span class="ident">codec_type</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">short_name</span>.<span class="ident">to_string</span>());
+        <span class="kw">let </span>codec_type = parsed.decoder.codec_params().codec;
+        <span class="kw">let </span>encoding = config
+            .codec_registry
+            .get_codec(codec_type)
+            .map(|v| v.short_name.to_string());
 
-        <span class="kw">let</span> <span class="ident">format_meta_hold</span> <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">format</span>.<span class="ident">metadata</span>();
-        <span class="kw">let</span> <span class="ident">format_meta</span> <span class="op">=</span> <span class="ident">format_meta_hold</span>.<span class="ident">current</span>();
+        <span class="kw">let </span>format_meta_hold = parsed.format.metadata();
+        <span class="kw">let </span>format_meta = format_meta_hold.current();
 
-        <span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">create_metadata</span>(
-            <span class="kw-2">&amp;mut</span> <span class="ident">parsed</span>.<span class="ident">meta</span>,
-            <span class="ident">format_meta</span>,
-            <span class="kw-2">&amp;</span><span class="ident">encoder</span>,
-            <span class="ident">chan_count</span> <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="ident">encoding</span>,
+        <span class="kw">let </span>metadata = create_metadata(
+            <span class="kw-2">&amp;mut </span>parsed.meta,
+            format_meta,
+            <span class="kw-2">&amp;</span>encoder,
+            chan_count <span class="kw">as </span>u8,
+            encoding,
         )<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">metabytes</span> <span class="op">=</span> <span class="string">b&quot;DCA1\0\0\0\0&quot;</span>.<span class="ident">to_vec</span>();
-        <span class="kw">let</span> <span class="ident">orig_len</span> <span class="op">=</span> <span class="ident">metabytes</span>.<span class="ident">len</span>();
-        <span class="ident"><span class="kw">crate</span>::json::to_writer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">metabytes</span>, <span class="kw-2">&amp;</span><span class="ident">metadata</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">meta_len</span> <span class="op">=</span> (<span class="ident">metabytes</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">orig_len</span>)
-            .<span class="ident">try_into</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">CodecCacheError::MetadataTooLarge</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>metabytes = <span class="string">b&quot;DCA1\0\0\0\0&quot;</span>.to_vec();
+        <span class="kw">let </span>orig_len = metabytes.len();
+        <span class="kw">crate</span>::json::to_writer(<span class="kw-2">&amp;mut </span>metabytes, <span class="kw-2">&amp;</span>metadata)<span class="question-mark">?</span>;
+        <span class="kw">let </span>meta_len = (metabytes.len() - orig_len)
+            .try_into()
+            .map_err(|<span class="kw">_</span>| CodecCacheError::MetadataTooLarge)<span class="question-mark">?</span>;
 
-        (<span class="kw-2">&amp;mut</span> <span class="ident">metabytes</span>[<span class="number">4</span>..][..<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>()])
-            .<span class="ident">write_i32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="ident">meta_len</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Magic byte writing location guaranteed to be well-founded.&quot;</span>);
+        (<span class="kw-2">&amp;mut </span>metabytes[<span class="number">4</span>..][..mem::size_of::&lt;i32&gt;()])
+            .write_i32::&lt;LittleEndian&gt;(meta_len)
+            .expect(<span class="string">&quot;Magic byte writing location guaranteed to be well-founded.&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">ToAudioBytes::new</span>(<span class="ident">parsed</span>, <span class="prelude-val">Some</span>(<span class="number">2</span>));
+        <span class="kw">let </span>source = ToAudioBytes::new(parsed, <span class="prelude-val">Some</span>(<span class="number">2</span>));
 
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">config</span>
-            .<span class="ident">streamcatcher</span>
-            .<span class="ident">build_tx</span>(<span class="ident">source</span>, <span class="ident">OpusCompressor::new</span>(<span class="ident">encoder</span>, <span class="ident">stereo</span>, <span class="ident">metabytes</span>))<span class="question-mark">?</span>;
+        <span class="kw">let </span>raw = config
+            .streamcatcher
+            .build_tx(source, OpusCompressor::new(encoder, stereo, metabytes))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">raw</span> })
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ raw })
     }
 
-    <span class="doccomment">/// Acquire a new handle to this object, creating a new</span>
-    <span class="doccomment">/// view of the existing cached data from the beginning.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">raw</span>: <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">new_handle</span>(),
+    <span class="doccomment">/// Acquire a new handle to this object, creating a new
+    /// view of the existing cached data from the beginning.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>new_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            raw: <span class="self">self</span>.raw.new_handle(),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">create_metadata</span>(
-    <span class="ident">probe_metadata</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ProbedMetadata</span>,
-    <span class="ident">track_metadata</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MetadataRevision</span><span class="op">&gt;</span>,
-    <span class="ident">opus</span>: <span class="kw-2">&amp;</span><span class="ident">OpusEncoder</span>,
-    <span class="ident">channels</span>: <span class="ident">u8</span>,
-    <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DcaMetadata</span>, <span class="ident">CodecCacheError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">dca</span> <span class="op">=</span> <span class="ident">DcaInfo</span> {
-        <span class="ident">version</span>: <span class="number">1</span>,
-        <span class="ident">tool</span>: <span class="ident">Tool</span> {
-            <span class="ident">name</span>: <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>).<span class="ident">into</span>(),
-            <span class="ident">version</span>: <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>).<span class="ident">into</span>(),
-            <span class="ident">url</span>: <span class="prelude-val">Some</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_HOMEPAGE&quot;</span>).<span class="ident">into</span>()),
-            <span class="ident">author</span>: <span class="prelude-val">Some</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_AUTHORS&quot;</span>).<span class="ident">into</span>()),
+<span class="kw">fn </span>create_metadata(
+    probe_metadata: <span class="kw-2">&amp;mut </span>ProbedMetadata,
+    track_metadata: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MetadataRevision&gt;,
+    opus: <span class="kw-2">&amp;</span>OpusEncoder,
+    channels: u8,
+    encoding: <span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;DcaMetadata, CodecCacheError&gt; {
+    <span class="kw">let </span>dca = DcaInfo {
+        version: <span class="number">1</span>,
+        tool: Tool {
+            name: <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>).into(),
+            version: <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>).into(),
+            url: <span class="prelude-val">Some</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_HOMEPAGE&quot;</span>).into()),
+            author: <span class="prelude-val">Some</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_AUTHORS&quot;</span>).into()),
         },
     };
 
-    <span class="kw">let</span> <span class="ident">abr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">opus</span>.<span class="ident">bitrate</span>()<span class="question-mark">?</span> {
-        <span class="ident">Bitrate::BitsPerSecond</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span>),
-        <span class="ident">Bitrate::Auto</span> =&gt; <span class="prelude-val">None</span>,
-        <span class="ident">Bitrate::Max</span> =&gt; <span class="prelude-val">Some</span>(<span class="number">510_000</span>),
+    <span class="kw">let </span>abr = <span class="kw">match </span>opus.bitrate()<span class="question-mark">? </span>{
+        Bitrate::BitsPerSecond(i) =&gt; <span class="prelude-val">Some</span>(i <span class="kw">as </span>u64),
+        Bitrate::Auto =&gt; <span class="prelude-val">None</span>,
+        Bitrate::Max =&gt; <span class="prelude-val">Some</span>(<span class="number">510_000</span>),
     };
 
-    <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">opus</span>.<span class="ident">application</span>()<span class="question-mark">?</span> {
-        <span class="ident">Application::Voip</span> =&gt; <span class="string">&quot;voip&quot;</span>,
-        <span class="ident">Application::Audio</span> =&gt; <span class="string">&quot;music&quot;</span>,
-        <span class="ident">Application::LowDelay</span> =&gt; <span class="string">&quot;lowdelay&quot;</span>,
+    <span class="kw">let </span>mode = <span class="kw">match </span>opus.application()<span class="question-mark">? </span>{
+        Application::Voip =&gt; <span class="string">&quot;voip&quot;</span>,
+        Application::Audio =&gt; <span class="string">&quot;music&quot;</span>,
+        Application::LowDelay =&gt; <span class="string">&quot;lowdelay&quot;</span>,
     }
-    .<span class="ident">to_string</span>();
+    .to_string();
 
-    <span class="kw">let</span> <span class="ident">sample_rate</span> <span class="op">=</span> <span class="ident">opus</span>.<span class="ident">sample_rate</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u32</span>;
+    <span class="kw">let </span>sample_rate = opus.sample_rate()<span class="question-mark">? </span><span class="kw">as </span>u32;
 
-    <span class="kw">let</span> <span class="ident">opus</span> <span class="op">=</span> <span class="ident">Opus</span> {
-        <span class="ident">mode</span>,
-        <span class="ident">sample_rate</span>,
-        <span class="ident">frame_size</span>: <span class="ident">MONO_FRAME_BYTE_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span>,
-        <span class="ident">abr</span>,
-        <span class="ident">vbr</span>: <span class="ident">opus</span>.<span class="ident">vbr</span>()<span class="question-mark">?</span>,
-        <span class="ident">channels</span>: <span class="ident">channels</span>.<span class="ident">min</span>(<span class="number">2</span>),
+    <span class="kw">let </span>opus = Opus {
+        mode,
+        sample_rate,
+        frame_size: MONO_FRAME_BYTE_SIZE <span class="kw">as </span>u64,
+        abr,
+        vbr: opus.vbr()<span class="question-mark">?</span>,
+        channels: channels.min(<span class="number">2</span>),
     };
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Origin</span> {
-        <span class="ident">source</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;file&quot;</span>.<span class="ident">into</span>()),
-        <span class="ident">abr</span>: <span class="prelude-val">None</span>,
-        <span class="ident">channels</span>: <span class="prelude-val">Some</span>(<span class="ident">channels</span>),
-        <span class="ident">encoding</span>,
-        <span class="ident">url</span>: <span class="prelude-val">None</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>origin = Origin {
+        source: <span class="prelude-val">Some</span>(<span class="string">&quot;file&quot;</span>.into()),
+        abr: <span class="prelude-val">None</span>,
+        channels: <span class="prelude-val">Some</span>(channels),
+        encoding,
+        url: <span class="prelude-val">None</span>,
     };
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">Info</span> {
-        <span class="ident">title</span>: <span class="prelude-val">None</span>,
-        <span class="ident">artist</span>: <span class="prelude-val">None</span>,
-        <span class="ident">album</span>: <span class="prelude-val">None</span>,
-        <span class="ident">genre</span>: <span class="prelude-val">None</span>,
-        <span class="ident">cover</span>: <span class="prelude-val">None</span>,
-        <span class="ident">comments</span>: <span class="prelude-val">None</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>info = Info {
+        title: <span class="prelude-val">None</span>,
+        artist: <span class="prelude-val">None</span>,
+        album: <span class="prelude-val">None</span>,
+        genre: <span class="prelude-val">None</span>,
+        cover: <span class="prelude-val">None</span>,
+        comments: <span class="prelude-val">None</span>,
     };
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <span class="ident">probe_metadata</span>.<span class="ident">get</span>() {
-        <span class="ident">apply_meta_to_dca</span>(<span class="kw-2">&amp;mut</span> <span class="ident">info</span>, <span class="kw-2">&amp;mut</span> <span class="ident">origin</span>, <span class="ident">meta</span>.<span class="ident">current</span>());
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = probe_metadata.get() {
+        apply_meta_to_dca(<span class="kw-2">&amp;mut </span>info, <span class="kw-2">&amp;mut </span>origin, meta.current());
     }
 
-    <span class="ident">apply_meta_to_dca</span>(<span class="kw-2">&amp;mut</span> <span class="ident">info</span>, <span class="kw-2">&amp;mut</span> <span class="ident">origin</span>, <span class="ident">track_metadata</span>);
+    apply_meta_to_dca(<span class="kw-2">&amp;mut </span>info, <span class="kw-2">&amp;mut </span>origin, track_metadata);
 
-    <span class="prelude-val">Ok</span>(<span class="ident">DcaMetadata</span> {
-        <span class="ident">dca</span>,
-        <span class="ident">opus</span>,
-        <span class="ident">info</span>: <span class="prelude-val">Some</span>(<span class="ident">info</span>),
-        <span class="ident">origin</span>: <span class="prelude-val">Some</span>(<span class="ident">origin</span>),
-        <span class="ident">extra</span>: <span class="prelude-val">None</span>,
+    <span class="prelude-val">Ok</span>(DcaMetadata {
+        dca,
+        opus,
+        info: <span class="prelude-val">Some</span>(info),
+        origin: <span class="prelude-val">Some</span>(origin),
+        extra: <span class="prelude-val">None</span>,
     })
 }
 
-<span class="kw">fn</span> <span class="ident">apply_meta_to_dca</span>(<span class="ident">info</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Info</span>, <span class="ident">origin</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Origin</span>, <span class="ident">src_meta</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MetadataRevision</span><span class="op">&gt;</span>) {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <span class="ident">src_meta</span> {
-        <span class="kw">for</span> <span class="ident">tag</span> <span class="kw">in</span> <span class="ident">meta</span>.<span class="ident">tags</span>() {
-            <span class="kw">match</span> <span class="ident">tag</span>.<span class="ident">std_key</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Album</span>) =&gt;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tag</span>.<span class="ident">value</span> {
-                        <span class="ident">info</span>.<span class="ident">album</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
+<span class="kw">fn </span>apply_meta_to_dca(info: <span class="kw-2">&amp;mut </span>Info, origin: <span class="kw-2">&amp;mut </span>Origin, src_meta: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MetadataRevision&gt;) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(meta) = src_meta {
+        <span class="kw">for </span>tag <span class="kw">in </span>meta.tags() {
+            <span class="kw">match </span>tag.std_key {
+                <span class="prelude-val">Some</span>(StandardTagKey::Album) =&gt;
+                    <span class="kw">if let </span>Value::String(s) = <span class="kw-2">&amp;</span>tag.value {
+                        info.album = <span class="prelude-val">Some</span>(s.clone());
                     },
-                <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Artist</span>) =&gt;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tag</span>.<span class="ident">value</span> {
-                        <span class="ident">info</span>.<span class="ident">artist</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
+                <span class="prelude-val">Some</span>(StandardTagKey::Artist) =&gt;
+                    <span class="kw">if let </span>Value::String(s) = <span class="kw-2">&amp;</span>tag.value {
+                        info.artist = <span class="prelude-val">Some</span>(s.clone());
                     },
-                <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Comment</span>) =&gt;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tag</span>.<span class="ident">value</span> {
-                        <span class="ident">info</span>.<span class="ident">comments</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
+                <span class="prelude-val">Some</span>(StandardTagKey::Comment) =&gt;
+                    <span class="kw">if let </span>Value::String(s) = <span class="kw-2">&amp;</span>tag.value {
+                        info.comments = <span class="prelude-val">Some</span>(s.clone());
                     },
-                <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Genre</span>) =&gt;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tag</span>.<span class="ident">value</span> {
-                        <span class="ident">info</span>.<span class="ident">genre</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
+                <span class="prelude-val">Some</span>(StandardTagKey::Genre) =&gt;
+                    <span class="kw">if let </span>Value::String(s) = <span class="kw-2">&amp;</span>tag.value {
+                        info.genre = <span class="prelude-val">Some</span>(s.clone());
                     },
-                <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::TrackTitle</span>) =&gt;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tag</span>.<span class="ident">value</span> {
-                        <span class="ident">info</span>.<span class="ident">title</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
+                <span class="prelude-val">Some</span>(StandardTagKey::TrackTitle) =&gt;
+                    <span class="kw">if let </span>Value::String(s) = <span class="kw-2">&amp;</span>tag.value {
+                        info.title = <span class="prelude-val">Some</span>(s.clone());
                     },
-                <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Url</span> <span class="op">|</span> <span class="ident">StandardTagKey::UrlSource</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tag</span>.<span class="ident">value</span> {
-                        <span class="ident">origin</span>.<span class="ident">url</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">clone</span>());
+                <span class="prelude-val">Some</span>(StandardTagKey::Url | StandardTagKey::UrlSource) =&gt; {
+                    <span class="kw">if let </span>Value::String(s) = <span class="kw-2">&amp;</span>tag.value {
+                        origin.url = <span class="prelude-val">Some</span>(s.clone());
                     }
                 },
-                <span class="kw">_</span> =&gt; {},
+                <span class="kw">_ </span>=&gt; {},
             }
         }
 
-        <span class="kw">for</span> <span class="ident">_visual</span> <span class="kw">in</span> <span class="ident">meta</span>.<span class="ident">visuals</span>() {
-            <span class="comment">// FIXME: will require MIME type inspection and Base64 conversion.</span>
+        <span class="kw">for </span>_visual <span class="kw">in </span>meta.visuals() {
+            <span class="comment">// FIXME: will require MIME type inspection and Base64 conversion.
+        </span>}
+    }
+}
+
+<span class="doccomment">/// Transform applied inside [`Compressed`], converting a floating-point PCM
+/// input stream into a DCA-framed Opus stream.
+///
+/// Created and managed by [`Compressed`].
+///
+/// [`Compressed`]: Compressed
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>OpusCompressor {
+    prepend: <span class="prelude-ty">Option</span>&lt;Cursor&lt;Vec&lt;u8&gt;&gt;&gt;,
+    encoder: OpusEncoder,
+    last_frame: Vec&lt;u8&gt;,
+    stereo_input: bool,
+    frame_pos: usize,
+    audio_bytes: AtomicUsize,
+}
+
+<span class="kw">impl </span>OpusCompressor {
+    <span class="kw">fn </span>new(encoder: OpusEncoder, stereo_input: bool, prepend: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            prepend: <span class="prelude-val">Some</span>(Cursor::new(prepend)),
+            encoder,
+            last_frame: Vec::with_capacity(<span class="number">4000</span>),
+            stereo_input,
+            frame_pos: <span class="number">0</span>,
+            audio_bytes: AtomicUsize::default(),
         }
     }
 }
 
-<span class="doccomment">/// Transform applied inside [`Compressed`], converting a floating-point PCM</span>
-<span class="doccomment">/// input stream into a DCA-framed Opus stream.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Created and managed by [`Compressed`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Compressed`]: Compressed</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OpusCompressor</span> {
-    <span class="ident">prepend</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">encoder</span>: <span class="ident">OpusEncoder</span>,
-    <span class="ident">last_frame</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="ident">stereo_input</span>: <span class="ident">bool</span>,
-    <span class="ident">frame_pos</span>: <span class="ident">usize</span>,
-    <span class="ident">audio_bytes</span>: <span class="ident">AtomicUsize</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">OpusCompressor</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">encoder</span>: <span class="ident">OpusEncoder</span>, <span class="ident">stereo_input</span>: <span class="ident">bool</span>, <span class="ident">prepend</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">prepend</span>: <span class="prelude-val">Some</span>(<span class="ident">Cursor::new</span>(<span class="ident">prepend</span>)),
-            <span class="ident">encoder</span>,
-            <span class="ident">last_frame</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">4000</span>),
-            <span class="ident">stereo_input</span>,
-            <span class="ident">frame_pos</span>: <span class="number">0</span>,
-            <span class="ident">audio_bytes</span>: <span class="ident">AtomicUsize::default</span>(),
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Transform</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">OpusCompressor</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Read</span>,
+<span class="kw">impl</span>&lt;T&gt; Transform&lt;T&gt; <span class="kw">for </span>OpusCompressor
+<span class="kw">where
+    </span>T: Read,
 {
-    <span class="kw">fn</span> <span class="ident">transform_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;mut</span> <span class="ident">T</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">TransformPosition</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prepend</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prepend</span>.<span class="ident">as_mut</span>() {
-            <span class="kw">match</span> <span class="ident">prepend</span>.<span class="ident">read</span>(<span class="ident">buf</span>)<span class="question-mark">?</span> {
-                <span class="number">0</span> =&gt; {},
-                <span class="ident">n</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TransformPosition::Read</span>(<span class="ident">n</span>)),
+    <span class="kw">fn </span>transform_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;mut </span>T, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; IoResult&lt;TransformPosition&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(prepend) = <span class="self">self</span>.prepend.as_mut() {
+            <span class="kw">match </span>prepend.read(buf)<span class="question-mark">? </span>{
+                <span class="number">0 </span>=&gt; {},
+                n =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(TransformPosition::Read(n)),
             }
         }
 
-        <span class="self">self</span>.<span class="ident">prepend</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="self">self</span>.prepend = <span class="prelude-val">None</span>;
 
-        <span class="kw">let</span> <span class="ident">output_start</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eof</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let </span>output_start = mem::size_of::&lt;u16&gt;();
+        <span class="kw">let </span><span class="kw-2">mut </span>eof = <span class="bool-val">false</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_len</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sample_buf</span> <span class="op">=</span> [<span class="number">0f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>];
-        <span class="kw">let</span> (<span class="ident">samples_in_frame</span>, <span class="ident">interleaved_count</span>) <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">stereo_input</span> {
-            (<span class="ident">STEREO_FRAME_SIZE</span>, <span class="number">2</span>)
-        } <span class="kw">else</span> {
-            (<span class="ident">MONO_FRAME_SIZE</span>, <span class="number">1</span>)
+        <span class="kw">let </span><span class="kw-2">mut </span>raw_len = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>sample_buf = [<span class="number">0f32</span>; STEREO_FRAME_SIZE];
+        <span class="kw">let </span>(samples_in_frame, interleaved_count) = <span class="kw">if </span><span class="self">self</span>.stereo_input {
+            (STEREO_FRAME_SIZE, <span class="number">2</span>)
+        } <span class="kw">else </span>{
+            (MONO_FRAME_SIZE, <span class="number">1</span>)
         };
 
-        <span class="comment">// Purge old frame and read new, if needed.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">frame_pos</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">output_start</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">is_empty</span>() {
-            <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">resize</span>(<span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="comment">// Purge old frame and read new, if needed.
+        </span><span class="kw">if </span><span class="self">self</span>.frame_pos == <span class="self">self</span>.last_frame.len() + output_start || <span class="self">self</span>.last_frame.is_empty() {
+            <span class="self">self</span>.last_frame.resize(<span class="self">self</span>.last_frame.capacity(), <span class="number">0</span>);
 
-            <span class="comment">// We can&#39;t use `read_f32_into` because we can&#39;t guarantee the buffer will be filled.</span>
-            <span class="comment">// However, we can guarantee that reads will be channel aligned at least!</span>
-            <span class="kw">for</span> <span class="ident">el</span> <span class="kw">in</span> <span class="ident">sample_buf</span>[..<span class="ident">samples_in_frame</span>].<span class="ident">chunks_mut</span>(<span class="ident">interleaved_count</span>) {
-                <span class="kw">match</span> <span class="ident">src</span>.<span class="ident">read_f32_into</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="ident">el</span>) {
+            <span class="comment">// We can&#39;t use `read_f32_into` because we can&#39;t guarantee the buffer will be filled.
+            // However, we can guarantee that reads will be channel aligned at least!
+            </span><span class="kw">for </span>el <span class="kw">in </span>sample_buf[..samples_in_frame].chunks_mut(interleaved_count) {
+                <span class="kw">match </span>src.read_f32_into::&lt;LittleEndian&gt;(el) {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="ident">raw_len</span> <span class="op">+</span><span class="op">=</span> <span class="ident">interleaved_count</span>;
+                        raw_len += interleaved_count;
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">IoErrorKind::UnexpectedEof</span> =&gt; {
-                        <span class="ident">eof</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <span class="prelude-val">Err</span>(e) <span class="kw">if </span>e.kind() == IoErrorKind::UnexpectedEof =&gt; {
+                        eof = <span class="bool-val">true</span>;
                         <span class="kw">break</span>;
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                        <span class="ident">out</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+                    <span class="prelude-val">Err</span>(e) =&gt; {
+                        out = <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e));
                         <span class="kw">break</span>;
                     },
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">out</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">raw_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="kw">loop</span> {
-                    <span class="comment">// NOTE: we don&#39;t index by raw_len because the last frame can be too small</span>
-                    <span class="comment">// to occupy a &quot;whole packet&quot;. Zero-padding is the correct behaviour.</span>
-                    <span class="kw">match</span> <span class="self">self</span>
-                        .<span class="ident">encoder</span>
-                        .<span class="ident">encode_float</span>(<span class="kw-2">&amp;</span><span class="ident">sample_buf</span>[..<span class="ident">samples_in_frame</span>], <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">last_frame</span>[..])
+            <span class="kw">if </span>out.is_none() &amp;&amp; raw_len &gt; <span class="number">0 </span>{
+                <span class="kw">loop </span>{
+                    <span class="comment">// NOTE: we don&#39;t index by raw_len because the last frame can be too small
+                    // to occupy a &quot;whole packet&quot;. Zero-padding is the correct behaviour.
+                    </span><span class="kw">match </span><span class="self">self
+                        </span>.encoder
+                        .encode_float(<span class="kw-2">&amp;</span>sample_buf[..samples_in_frame], <span class="kw-2">&amp;mut </span><span class="self">self</span>.last_frame[..])
                     {
-                        <span class="prelude-val">Ok</span>(<span class="ident">pkt_len</span>) =&gt; {
-                            <span class="macro">trace!</span>(<span class="string">&quot;Next packet to write has {:?}&quot;</span>, <span class="ident">pkt_len</span>);
-                            <span class="self">self</span>.<span class="ident">frame_pos</span> <span class="op">=</span> <span class="number">0</span>;
-                            <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">truncate</span>(<span class="ident">pkt_len</span>);
+                        <span class="prelude-val">Ok</span>(pkt_len) =&gt; {
+                            <span class="macro">trace!</span>(<span class="string">&quot;Next packet to write has {:?}&quot;</span>, pkt_len);
+                            <span class="self">self</span>.frame_pos = <span class="number">0</span>;
+                            <span class="self">self</span>.last_frame.truncate(pkt_len);
                             <span class="kw">break</span>;
                         },
-                        <span class="prelude-val">Err</span>(<span class="ident">OpusError::Opus</span>(<span class="ident">OpusErrorCode::BufferTooSmall</span>)) =&gt; {
-                            <span class="comment">// If we need more capacity to encode this frame, then take it.</span>
-                            <span class="macro">trace!</span>(<span class="string">&quot;Resizing inner buffer (+256).&quot;</span>);
-                            <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">resize</span>(<span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">256</span>, <span class="number">0</span>);
+                        <span class="prelude-val">Err</span>(OpusError::Opus(OpusErrorCode::BufferTooSmall)) =&gt; {
+                            <span class="comment">// If we need more capacity to encode this frame, then take it.
+                            </span><span class="macro">trace!</span>(<span class="string">&quot;Resizing inner buffer (+256).&quot;</span>);
+                            <span class="self">self</span>.last_frame.resize(<span class="self">self</span>.last_frame.len() + <span class="number">256</span>, <span class="number">0</span>);
                         },
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;Read error {:?} {:?} {:?}.&quot;</span>, <span class="ident">e</span>, <span class="ident">out</span>, <span class="ident">raw_len</span>);
-                            <span class="ident">out</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(<span class="ident">IoErrorKind::Other</span>, <span class="ident">e</span>)));
+                        <span class="prelude-val">Err</span>(e) =&gt; {
+                            <span class="macro">debug!</span>(<span class="string">&quot;Read error {:?} {:?} {:?}.&quot;</span>, e, out, raw_len);
+                            out = <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(IoError::new(IoErrorKind::Other, e)));
                             <span class="kw">break</span>;
                         },
                     }
@@ -984,95 +984,95 @@
             }
         }
 
-        <span class="kw">if</span> <span class="ident">out</span>.<span class="ident">is_none</span>() {
-            <span class="comment">// Write from frame we have.</span>
-            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">frame_pos</span> <span class="op">&lt;</span> <span class="ident">output_start</span> {
-                (<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="ident">output_start</span>])
-                    .<span class="ident">write_i16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i16</span>)
-                    .<span class="ident">expect</span>(
+        <span class="kw">if </span>out.is_none() {
+            <span class="comment">// Write from frame we have.
+            </span><span class="kw">let </span>start = <span class="kw">if </span><span class="self">self</span>.frame_pos &lt; output_start {
+                (<span class="kw-2">&amp;mut </span>buf[..output_start])
+                    .write_i16::&lt;LittleEndian&gt;(<span class="self">self</span>.last_frame.len() <span class="kw">as </span>i16)
+                    .expect(
                         <span class="string">&quot;Minimum bytes requirement for Opus (2) should mean that an i16 \
                              may always be written.&quot;</span>,
                     );
-                <span class="self">self</span>.<span class="ident">frame_pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">output_start</span>;
+                <span class="self">self</span>.frame_pos += output_start;
 
-                <span class="macro">trace!</span>(<span class="string">&quot;Wrote frame header: {}.&quot;</span>, <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">len</span>());
+                <span class="macro">trace!</span>(<span class="string">&quot;Wrote frame header: {}.&quot;</span>, <span class="self">self</span>.last_frame.len());
 
-                <span class="ident">output_start</span>
-            } <span class="kw">else</span> {
-                <span class="number">0</span>
-            };
+                output_start
+            } <span class="kw">else </span>{
+                <span class="number">0
+            </span>};
 
-            <span class="kw">let</span> <span class="ident">out_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">frame_pos</span> <span class="op">-</span> <span class="ident">output_start</span>;
-            <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">last_frame</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">out_pos</span>;
-            <span class="kw">let</span> <span class="ident">write_len</span> <span class="op">=</span> <span class="ident">remaining</span>.<span class="ident">min</span>(<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">start</span>);
-            <span class="ident">buf</span>[<span class="ident">start</span>..<span class="ident">start</span> <span class="op">+</span> <span class="ident">write_len</span>]
-                .<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">last_frame</span>[<span class="ident">out_pos</span>..<span class="ident">out_pos</span> <span class="op">+</span> <span class="ident">write_len</span>]);
-            <span class="self">self</span>.<span class="ident">frame_pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">write_len</span>;
-            <span class="macro">trace!</span>(<span class="string">&quot;Appended {} to inner store&quot;</span>, <span class="ident">write_len</span>);
-            <span class="ident">out</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">write_len</span> <span class="op">+</span> <span class="ident">start</span>));
+            <span class="kw">let </span>out_pos = <span class="self">self</span>.frame_pos - output_start;
+            <span class="kw">let </span>remaining = <span class="self">self</span>.last_frame.len() - out_pos;
+            <span class="kw">let </span>write_len = remaining.min(buf.len() - start);
+            buf[start..start + write_len]
+                .copy_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.last_frame[out_pos..out_pos + write_len]);
+            <span class="self">self</span>.frame_pos += write_len;
+            <span class="macro">trace!</span>(<span class="string">&quot;Appended {} to inner store&quot;</span>, write_len);
+            out = <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(write_len + start));
         }
 
-        <span class="comment">// NOTE: use of raw_len here preserves true sample length even if</span>
-        <span class="comment">// stream is extended to 20ms boundary.</span>
-        <span class="ident">out</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(<span class="ident">IoErrorKind::Other</span>, <span class="string">&quot;Unclear.&quot;</span>)))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">compressed_sz</span><span class="op">|</span> {
-                <span class="self">self</span>.<span class="ident">audio_bytes</span>
-                    .<span class="ident">fetch_add</span>(<span class="ident">raw_len</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(), <span class="ident">Ordering::Release</span>);
+        <span class="comment">// NOTE: use of raw_len here preserves true sample length even if
+        // stream is extended to 20ms boundary.
+        </span>out.unwrap_or_else(|| <span class="prelude-val">Err</span>(IoError::new(IoErrorKind::Other, <span class="string">&quot;Unclear.&quot;</span>)))
+            .map(|compressed_sz| {
+                <span class="self">self</span>.audio_bytes
+                    .fetch_add(raw_len * mem::size_of::&lt;f32&gt;(), Ordering::Release);
 
-                <span class="kw">if</span> <span class="ident">eof</span> {
-                    <span class="ident">TransformPosition::Finished</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">TransformPosition::Read</span>(<span class="ident">compressed_sz</span>)
+                <span class="kw">if </span>eof {
+                    TransformPosition::Finished
+                } <span class="kw">else </span>{
+                    TransformPosition::Read(compressed_sz)
                 }
             })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">NeedsBytes</span> <span class="kw">for</span> <span class="ident">OpusCompressor</span> {
-    <span class="kw">fn</span> <span class="ident">min_bytes_required</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="number">2</span>
+<span class="kw">impl </span>NeedsBytes <span class="kw">for </span>OpusCompressor {
+    <span class="kw">fn </span>min_bytes_required(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="number">2
+    </span>}
+}
+
+<span class="kw">impl </span>Stateful <span class="kw">for </span>OpusCompressor {
+    <span class="kw">type </span>State = usize;
+
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::State {
+        <span class="self">self</span>.audio_bytes.load(Ordering::Acquire)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Stateful</span> <span class="kw">for</span> <span class="ident">OpusCompressor</span> {
-    <span class="kw">type</span> <span class="ident">State</span> <span class="op">=</span> <span class="ident">usize</span>;
-
-    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::State</span> {
-        <span class="self">self</span>.<span class="ident">audio_bytes</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>)
+<span class="kw">impl </span>Read <span class="kw">for </span>Compressed {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; IoResult&lt;usize&gt; {
+        <span class="self">self</span>.raw.read(buf)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">Compressed</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">read</span>(<span class="ident">buf</span>)
+<span class="kw">impl </span>Seek <span class="kw">for </span>Compressed {
+    <span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: SeekFrom) -&gt; IoResult&lt;u64&gt; {
+        <span class="self">self</span>.raw.seek(pos)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">Compressed</span> {
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">seek</span>(<span class="ident">pos</span>)
+<span class="kw">impl </span>MediaSource <span class="kw">for </span>Compressed {
+    <span class="kw">fn </span>is_seekable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">true
+    </span>}
+
+    <span class="kw">fn </span>byte_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="kw">if </span><span class="self">self</span>.raw.is_finished() {
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.raw.len() <span class="kw">as </span>u64)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <span class="ident">MediaSource</span> <span class="kw">for</span> <span class="ident">Compressed</span> {
-    <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="bool-val">true</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">byte_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">is_finished</span>() {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Compressed</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">Compressed</span>) -&gt; <span class="ident">Input</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">val</span>);
-        <span class="ident">Input::Live</span>(<span class="ident">LiveInput::Raw</span>(<span class="ident">AudioStream</span> { <span class="ident">input</span>, <span class="ident">hint</span>: <span class="prelude-val">None</span> }), <span class="prelude-val">None</span>)
+<span class="kw">impl </span>From&lt;Compressed&gt; <span class="kw">for </span>Input {
+    <span class="kw">fn </span>from(val: Compressed) -&gt; Input {
+        <span class="kw">let </span>input = Box::new(val);
+        Input::Live(LiveInput::Raw(AudioStream { input, hint: <span class="prelude-val">None </span>}), <span class="prelude-val">None</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

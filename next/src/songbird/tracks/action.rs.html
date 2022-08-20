@@ -43,48 +43,48 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">flume::Sender</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>flume::Sender;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">PlayError</span>, <span class="ident">SeekRequest</span>};
+<span class="kw">use super</span>::{PlayError, SeekRequest};
 
-<span class="doccomment">/// Actions for the mixer to take after inspecting track state via</span>
-<span class="doccomment">/// [`TrackHandle::action`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`TrackHandle::action`]: super::TrackHandle::action</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Action</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">make_playable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PlayError</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">seek_point</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SeekRequest</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Actions for the mixer to take after inspecting track state via
+/// [`TrackHandle::action`].
+///
+/// [`TrackHandle::action`]: super::TrackHandle::action
+</span><span class="attribute">#[derive(Clone, Default)]</span>
+<span class="kw">pub struct </span>Action {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) make_playable: <span class="prelude-ty">Option</span>&lt;Sender&lt;<span class="prelude-ty">Result</span>&lt;(), PlayError&gt;&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) seek_point: <span class="prelude-ty">Option</span>&lt;SeekRequest&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Action</span> {
-    <span class="doccomment">/// Requests a seek to the given time for this track.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="ident">Duration</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> (<span class="ident">callback</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
-        <span class="self">self</span>.<span class="ident">seek_point</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">SeekRequest</span> { <span class="ident">time</span>, <span class="ident">callback</span> });
+<span class="kw">impl </span>Action {
+    <span class="doccomment">/// Requests a seek to the given time for this track.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>seek(<span class="kw-2">mut </span><span class="self">self</span>, time: Duration) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>(callback, <span class="kw">_</span>) = flume::bounded(<span class="number">1</span>);
+        <span class="self">self</span>.seek_point = <span class="prelude-val">Some</span>(SeekRequest { time, callback });
 
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Readies the track to be playable, if this is not already the case.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_playable</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
-        <span class="self">self</span>.<span class="ident">make_playable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">tx</span>);
+    <span class="doccomment">/// Readies the track to be playable, if this is not already the case.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>make_playable(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>(tx, <span class="kw">_</span>) = flume::bounded(<span class="number">1</span>);
+        <span class="self">self</span>.make_playable = <span class="prelude-val">Some</span>(tx);
 
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">combine</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) {
-        <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">make_playable</span>.<span class="ident">is_some</span>() {
-            <span class="self">self</span>.<span class="ident">make_playable</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">make_playable</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>combine(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="self">Self</span>) {
+        <span class="kw">if </span>other.make_playable.is_some() {
+            <span class="self">self</span>.make_playable = other.make_playable;
         }
-        <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">seek_point</span>.<span class="ident">is_some</span>() {
-            <span class="self">self</span>.<span class="ident">seek_point</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">seek_point</span>;
+        <span class="kw">if </span>other.seek_point.is_some() {
+            <span class="self">self</span>.seek_point = other.seek_point;
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -35,40 +35,40 @@
 <span id="33">33</span>
 <span id="34">34</span>
 <span id="35">35</span>
-</pre><pre class="rust"><code><span class="comment">// TODO: Could this be a bitset? Could accelerate lookups,</span>
-<span class="comment">// allow easy joint subscription &amp; remove Vecs for related evt handling?</span>
+</pre><pre class="rust"><code><span class="comment">// TODO: Could this be a bitset? Could accelerate lookups,
+// allow easy joint subscription &amp; remove Vecs for related evt handling?
 
-<span class="doccomment">/// Track events correspond to certain actions or changes</span>
-<span class="doccomment">/// of state, such as a track finishing, looping, or being</span>
-<span class="doccomment">/// manually stopped. Voice core events occur on receipt of</span>
-<span class="doccomment">/// voice packets and telemetry.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Track events persist while the `action` in [`EventData`]</span>
-<span class="doccomment">/// returns `None`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`EventData`]: super::EventData</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TrackEvent</span> {
-    <span class="doccomment">/// The attached track has resumed playing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This event will not fire when a track first starts,</span>
-    <span class="doccomment">/// but will fire when a track changes from, e.g., paused to playing.</span>
-    <span class="doccomment">/// This is most relevant for queue users: queued tracks placed into a</span>
-    <span class="doccomment">/// non-empty queue are initlally paused, and are later moved to `Play`.</span>
-    <span class="ident">Play</span>,
-    <span class="doccomment">/// The attached track has been paused.</span>
-    <span class="ident">Pause</span>,
-    <span class="doccomment">/// The attached track has ended.</span>
-    <span class="ident">End</span>,
-    <span class="doccomment">/// The attached track has looped.</span>
-    <span class="ident">Loop</span>,
-    <span class="doccomment">/// The attached track is being readied or recreated.</span>
-    <span class="ident">Preparing</span>,
-    <span class="doccomment">/// The attached track has become playable.</span>
-    <span class="ident">Playable</span>,
-    <span class="doccomment">/// The attached track has encountered a runtime or initialisation error.</span>
-    <span class="ident">Error</span>,
+</span><span class="doccomment">/// Track events correspond to certain actions or changes
+/// of state, such as a track finishing, looping, or being
+/// manually stopped. Voice core events occur on receipt of
+/// voice packets and telemetry.
+///
+/// Track events persist while the `action` in [`EventData`]
+/// returns `None`.
+///
+/// [`EventData`]: super::EventData
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>TrackEvent {
+    <span class="doccomment">/// The attached track has resumed playing.
+    ///
+    /// This event will not fire when a track first starts,
+    /// but will fire when a track changes from, e.g., paused to playing.
+    /// This is most relevant for queue users: queued tracks placed into a
+    /// non-empty queue are initlally paused, and are later moved to `Play`.
+    </span>Play,
+    <span class="doccomment">/// The attached track has been paused.
+    </span>Pause,
+    <span class="doccomment">/// The attached track has ended.
+    </span>End,
+    <span class="doccomment">/// The attached track has looped.
+    </span>Loop,
+    <span class="doccomment">/// The attached track is being readied or recreated.
+    </span>Preparing,
+    <span class="doccomment">/// The attached track has become playable.
+    </span>Playable,
+    <span class="doccomment">/// The attached track has encountered a runtime or initialisation error.
+    </span>Error,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

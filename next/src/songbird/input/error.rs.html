@@ -169,174 +169,174 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span>, <span class="ident">fmt::Display</span>, <span class="ident">time::Duration</span>};
-<span class="kw">use</span> <span class="ident">symphonia_core::errors::Error</span> <span class="kw">as</span> <span class="ident">SymphError</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::{error::Error, fmt::Display, time::Duration};
+<span class="kw">use </span>symphonia_core::errors::Error <span class="kw">as </span>SymphError;
 
-<span class="doccomment">/// Errors encountered when creating an [`AudioStream`] or requesting metadata</span>
-<span class="doccomment">/// from a [`Compose`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`AudioStream`]: super::AudioStream</span>
-<span class="doccomment">/// [`Compose`]: super::Compose</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AudioStreamError</span> {
-    <span class="doccomment">/// The operation failed, and should be retried after a given time.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Create operations invoked by the driver will retry on the first tick</span>
-    <span class="doccomment">/// after this time has passed.</span>
-    <span class="ident">RetryIn</span>(<span class="ident">Duration</span>),
-    <span class="doccomment">/// The operation failed, and should not be retried.</span>
-    <span class="ident">Fail</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// The operation was not supported, and will never succeed.</span>
-    <span class="ident">Unsupported</span>,
+<span class="doccomment">/// Errors encountered when creating an [`AudioStream`] or requesting metadata
+/// from a [`Compose`].
+///
+/// [`AudioStream`]: super::AudioStream
+/// [`Compose`]: super::Compose
+</span><span class="attribute">#[non_exhaustive]</span>
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>AudioStreamError {
+    <span class="doccomment">/// The operation failed, and should be retried after a given time.
+    ///
+    /// Create operations invoked by the driver will retry on the first tick
+    /// after this time has passed.
+    </span>RetryIn(Duration),
+    <span class="doccomment">/// The operation failed, and should not be retried.
+    </span>Fail(Box&lt;<span class="kw">dyn </span>Error + Send + Sync&gt;),
+    <span class="doccomment">/// The operation was not supported, and will never succeed.
+    </span>Unsupported,
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AudioStreamError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;failed to create audio: &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::RetryIn</span>(<span class="ident">t</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;retry in {:.2}s&quot;</span>, <span class="ident">t</span>.<span class="ident">as_secs_f32</span>())),
-            <span class="ident"><span class="self">Self</span>::Fail</span>(<span class="ident">why</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">why</span>)),
-            <span class="ident"><span class="self">Self</span>::Unsupported</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;operation was not supported&quot;</span>),
+<span class="kw">impl </span>Display <span class="kw">for </span>AudioStreamError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">&quot;failed to create audio: &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::RetryIn(t) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;retry in {:.2}s&quot;</span>, t.as_secs_f32())),
+            <span class="self">Self</span>::Fail(why) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, why)),
+            <span class="self">Self</span>::Unsupported =&gt; f.write_str(<span class="string">&quot;operation was not supported&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">AudioStreamError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+<span class="kw">impl </span>Error <span class="kw">for </span>AudioStreamError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="doccomment">/// Errors encountered when readying or pre-processing an [`Input`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: super::Input</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MakePlayableError</span> {
-    <span class="doccomment">/// Failed to create a [`LiveInput`] from the lazy [`Compose`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`LiveInput`]: super::LiveInput</span>
-    <span class="doccomment">/// [`Compose`]: super::Compose</span>
-    <span class="ident">Create</span>(<span class="ident">AudioStreamError</span>),
-    <span class="doccomment">/// Failed to read headers, codecs, or a valid stream from a [`LiveInput`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`LiveInput`]: super::LiveInput</span>
-    <span class="ident">Parse</span>(<span class="ident">SymphError</span>),
-    <span class="doccomment">/// A blocking thread panicked or failed to return a parsed input.</span>
-    <span class="ident">Panicked</span>,
+<span class="doccomment">/// Errors encountered when readying or pre-processing an [`Input`].
+///
+/// [`Input`]: super::Input
+</span><span class="attribute">#[non_exhaustive]</span>
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>MakePlayableError {
+    <span class="doccomment">/// Failed to create a [`LiveInput`] from the lazy [`Compose`].
+    ///
+    /// [`LiveInput`]: super::LiveInput
+    /// [`Compose`]: super::Compose
+    </span>Create(AudioStreamError),
+    <span class="doccomment">/// Failed to read headers, codecs, or a valid stream from a [`LiveInput`].
+    ///
+    /// [`LiveInput`]: super::LiveInput
+    </span>Parse(SymphError),
+    <span class="doccomment">/// A blocking thread panicked or failed to return a parsed input.
+    </span>Panicked,
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">MakePlayableError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;failed to make track playable: &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Create</span>(<span class="ident">c</span>) =&gt; {
-                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;input creation [&quot;</span>)<span class="question-mark">?</span>;
-                <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">c</span>))<span class="question-mark">?</span>;
-                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;]&quot;</span>)
+<span class="kw">impl </span>Display <span class="kw">for </span>MakePlayableError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">&quot;failed to make track playable: &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Create(c) =&gt; {
+                f.write_str(<span class="string">&quot;input creation [&quot;</span>)<span class="question-mark">?</span>;
+                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span>c))<span class="question-mark">?</span>;
+                f.write_str(<span class="string">&quot;]&quot;</span>)
             },
-            <span class="ident"><span class="self">Self</span>::Parse</span>(<span class="ident">p</span>) =&gt; {
-                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;parsing formats/codecs [&quot;</span>)<span class="question-mark">?</span>;
-                <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">p</span>))<span class="question-mark">?</span>;
-                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;]&quot;</span>)
+            <span class="self">Self</span>::Parse(p) =&gt; {
+                f.write_str(<span class="string">&quot;parsing formats/codecs [&quot;</span>)<span class="question-mark">?</span>;
+                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span>p))<span class="question-mark">?</span>;
+                f.write_str(<span class="string">&quot;]&quot;</span>)
             },
-            <span class="ident"><span class="self">Self</span>::Panicked</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;panic during blocking I/O in parse&quot;</span>),
+            <span class="self">Self</span>::Panicked =&gt; f.write_str(<span class="string">&quot;panic during blocking I/O in parse&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">MakePlayableError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
+<span class="kw">impl </span>Error <span class="kw">for </span>MakePlayableError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="prelude-val">None
+    </span>}
+}
+
+<span class="kw">impl </span>From&lt;AudioStreamError&gt; <span class="kw">for </span>MakePlayableError {
+    <span class="kw">fn </span>from(val: AudioStreamError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Create(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AudioStreamError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MakePlayableError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">AudioStreamError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Create</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;SymphError&gt; <span class="kw">for </span>MakePlayableError {
+    <span class="kw">fn </span>from(val: SymphError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Parse(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SymphError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MakePlayableError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">SymphError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Parse</span>(<span class="ident">val</span>)
-    }
+<span class="doccomment">/// Errors encountered when trying to access in-stream [`Metadata`] for an [`Input`].
+///
+/// Both cases can be solved by using [`Input::make_playable`] or [`LiveInput::promote`].
+///
+/// [`Input`]: super::Input
+/// [`Metadata`]: super::Metadata
+/// [`Input::make_playable`]: super::Input::make_playable
+/// [`LiveInput::promote`]: super::LiveInput::promote
+</span><span class="attribute">#[non_exhaustive]</span>
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>MetadataError {
+    <span class="doccomment">/// This input is currently lazily initialised, and must be made live.
+    </span>NotLive,
+    <span class="doccomment">/// This input is ready, but has not had its headers parsed.
+    </span>NotParsed,
 }
 
-<span class="doccomment">/// Errors encountered when trying to access in-stream [`Metadata`] for an [`Input`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Both cases can be solved by using [`Input::make_playable`] or [`LiveInput::promote`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: super::Input</span>
-<span class="doccomment">/// [`Metadata`]: super::Metadata</span>
-<span class="doccomment">/// [`Input::make_playable`]: super::Input::make_playable</span>
-<span class="doccomment">/// [`LiveInput::promote`]: super::LiveInput::promote</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MetadataError</span> {
-    <span class="doccomment">/// This input is currently lazily initialised, and must be made live.</span>
-    <span class="ident">NotLive</span>,
-    <span class="doccomment">/// This input is ready, but has not had its headers parsed.</span>
-    <span class="ident">NotParsed</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">MetadataError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;failed to get metadata: &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::NotLive</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;the input is not live, and hasn&#39;t been parsed&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::NotParsed</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;the input is live but hasn&#39;t been parsed&quot;</span>),
+<span class="kw">impl </span>Display <span class="kw">for </span>MetadataError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">&quot;failed to get metadata: &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::NotLive =&gt; f.write_str(<span class="string">&quot;the input is not live, and hasn&#39;t been parsed&quot;</span>),
+            <span class="self">Self</span>::NotParsed =&gt; f.write_str(<span class="string">&quot;the input is live but hasn&#39;t been parsed&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">MetadataError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+<span class="kw">impl </span>Error <span class="kw">for </span>MetadataError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="doccomment">/// Errors encountered when trying to access out-of-band [`AuxMetadata`] for an [`Input`]</span>
-<span class="doccomment">/// or [`Compose`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: super::Input</span>
-<span class="doccomment">/// [`AuxMetadata`]: super::AuxMetadata</span>
-<span class="doccomment">/// [`Compose`]: super::Compose</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AuxMetadataError</span> {
-    <span class="doccomment">/// This input has no lazy [`Compose`] initialiser, which is needed to</span>
-    <span class="doccomment">/// retrieve [`AuxMetadata`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Compose`]: super::Compose</span>
-    <span class="doccomment">/// [`AuxMetadata`]: super::AuxMetadata</span>
-    <span class="ident">NoCompose</span>,
-    <span class="doccomment">/// There was an error when trying to access auxiliary metadata.</span>
-    <span class="ident">Retrieve</span>(<span class="ident">AudioStreamError</span>),
+<span class="doccomment">/// Errors encountered when trying to access out-of-band [`AuxMetadata`] for an [`Input`]
+/// or [`Compose`].
+///
+/// [`Input`]: super::Input
+/// [`AuxMetadata`]: super::AuxMetadata
+/// [`Compose`]: super::Compose
+</span><span class="attribute">#[non_exhaustive]</span>
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>AuxMetadataError {
+    <span class="doccomment">/// This input has no lazy [`Compose`] initialiser, which is needed to
+    /// retrieve [`AuxMetadata`].
+    ///
+    /// [`Compose`]: super::Compose
+    /// [`AuxMetadata`]: super::AuxMetadata
+    </span>NoCompose,
+    <span class="doccomment">/// There was an error when trying to access auxiliary metadata.
+    </span>Retrieve(AudioStreamError),
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AuxMetadataError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;failed to get aux_metadata: &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::NoCompose</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;the input has no Compose object&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Retrieve</span>(<span class="ident">e</span>) =&gt;
-                <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;aux_metadata error from Compose: {}&quot;</span>, <span class="ident">e</span>)),
+<span class="kw">impl </span>Display <span class="kw">for </span>AuxMetadataError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">&quot;failed to get aux_metadata: &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::NoCompose =&gt; f.write_str(<span class="string">&quot;the input has no Compose object&quot;</span>),
+            <span class="self">Self</span>::Retrieve(e) =&gt;
+                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;aux_metadata error from Compose: {}&quot;</span>, e)),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">AuxMetadataError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+<span class="kw">impl </span>Error <span class="kw">for </span>AuxMetadataError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AudioStreamError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AuxMetadataError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">AudioStreamError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Retrieve</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;AudioStreamError&gt; <span class="kw">for </span>AuxMetadataError {
+    <span class="kw">fn </span>from(val: AudioStreamError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Retrieve(val)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

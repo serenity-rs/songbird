@@ -342,347 +342,347 @@
 <span id="340">340</span>
 <span id="341">341</span>
 <span id="342">342</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Runner for a voice connection.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Songbird&#39;s driver is a mixed-sync system, using:</span>
-<span class="doccomment">//!  * Asynchronous connection management, event-handling, and gateway integration.</span>
-<span class="doccomment">//!  * Synchronous audio mixing, packet generation, and encoding.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This splits up work according to its IO/compute bound nature, preventing packet</span>
-<span class="doccomment">//! generation from being slowed down past its deadline, or from affecting other</span>
-<span class="doccomment">//! asynchronous tasks your bot must handle.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Runner for a voice connection.
+//!
+//! Songbird&#39;s driver is a mixed-sync system, using:
+//!  * Asynchronous connection management, event-handling, and gateway integration.
+//!  * Synchronous audio mixing, packet generation, and encoding.
+//!
+//! This splits up work according to its IO/compute bound nature, preventing packet
+//! generation from being slowed down past its deadline, or from affecting other
+//! asynchronous tasks your bot must handle.
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internals&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bench_internals</span>;
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;internals&quot;</span>)]</span>
+<span class="kw">pub mod </span>bench_internals;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">connection</span>;
-<span class="kw">mod</span> <span class="ident">crypto</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">decode_mode</span>;
-<span class="kw">mod</span> <span class="ident">mix_mode</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">retry</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">tasks</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">test_config</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>connection;
+<span class="kw">mod </span>crypto;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">mod </span>decode_mode;
+<span class="kw">mod </span>mix_mode;
+<span class="kw">pub mod </span>retry;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tasks;
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>test_config;
 
-<span class="kw">use</span> <span class="ident">connection::error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crypto::CryptoMode</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">crypto::CryptoState</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">decode_mode::DecodeMode</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mix_mode::MixMode</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">test_config</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>connection::error::{Error, <span class="prelude-ty">Result</span>};
+<span class="kw">pub use </span>crypto::CryptoMode;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>crypto::CryptoState;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">pub use </span>decode_mode::DecodeMode;
+<span class="kw">pub use </span>mix_mode::MixMode;
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">pub use </span>test_config::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tracks::TrackQueue</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">events::EventData</span>,
-    <span class="ident">input::Input</span>,
-    <span class="ident">tracks</span>::{<span class="ident">Track</span>, <span class="ident">TrackHandle</span>},
-    <span class="ident">Config</span>,
-    <span class="ident">ConnectionInfo</span>,
-    <span class="ident">Event</span>,
-    <span class="ident">EventHandler</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+<span class="kw">use </span><span class="kw">crate</span>::tracks::TrackQueue;
+<span class="kw">use crate</span>::{
+    events::EventData,
+    input::Input,
+    tracks::{Track, TrackHandle},
+    Config,
+    ConnectionInfo,
+    Event,
+    EventHandler,
 };
-<span class="doccomment">/// Opus encoder bitrate settings.</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">opus</span>, <span class="ident">Bitrate</span>};
-<span class="kw">use</span> <span class="ident">core</span>::{
-    <span class="ident">future::Future</span>,
-    <span class="ident">pin::Pin</span>,
-    <span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
+<span class="doccomment">/// Opus encoder bitrate settings.
+</span><span class="kw">pub use </span>audiopus::{<span class="self">self </span><span class="kw">as </span>opus, Bitrate};
+<span class="kw">use </span>core::{
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
 };
-<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">r#async</span><span class="ident">::RecvFut</span>, <span class="ident">SendError</span>, <span class="ident">Sender</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
-<span class="kw">use</span> <span class="ident">tasks::message::CoreMessage</span>;
-<span class="kw">use</span> <span class="ident">tracing::instrument</span>;
+<span class="kw">use </span>flume::{r#async::RecvFut, SendError, Sender};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>tasks::message::CoreMessage;
+<span class="kw">use </span>tracing::instrument;
 
-<span class="doccomment">/// The control object for a Discord voice connection, handling connection,</span>
-<span class="doccomment">/// mixing, encoding, en/decryption, and event generation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When compiled with the `&quot;builtin-queue&quot;` feature, each driver includes a track queue</span>
-<span class="doccomment">/// as a convenience to prevent the additional overhead of per-guild state management.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Driver</span> {
-    <span class="ident">config</span>: <span class="ident">Config</span>,
-    <span class="ident">self_mute</span>: <span class="ident">bool</span>,
-    <span class="ident">sender</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>,
-    <span class="comment">// Making this an Option is an abhorrent hack to coerce the borrow checker</span>
-    <span class="comment">// into letting us have an &amp;TrackQueue at the same time as an &amp;mut Driver.</span>
-    <span class="comment">// This is probably preferable to cloning the driver: Arc&lt;...&gt; should be nonzero</span>
-    <span class="comment">// and if the compiler&#39;s smart we&#39;ll just codegen a pointer swap. It definitely makes</span>
-    <span class="comment">// use of NonZero.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-    <span class="ident">queue</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TrackQueue</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The control object for a Discord voice connection, handling connection,
+/// mixing, encoding, en/decryption, and event generation.
+///
+/// When compiled with the `&quot;builtin-queue&quot;` feature, each driver includes a track queue
+/// as a convenience to prevent the additional overhead of per-guild state management.
+</span><span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="kw">pub struct </span>Driver {
+    config: Config,
+    self_mute: bool,
+    sender: Sender&lt;CoreMessage&gt;,
+    <span class="comment">// Making this an Option is an abhorrent hack to coerce the borrow checker
+    // into letting us have an &amp;TrackQueue at the same time as an &amp;mut Driver.
+    // This is probably preferable to cloning the driver: Arc&lt;...&gt; should be nonzero
+    // and if the compiler&#39;s smart we&#39;ll just codegen a pointer swap. It definitely makes
+    // use of NonZero.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+    queue: <span class="prelude-ty">Option</span>&lt;TrackQueue&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Driver</span> {
-    <span class="doccomment">/// Creates a new voice driver.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will create the core voice tasks in the background.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::start_inner</span>(<span class="ident">config</span>.<span class="ident">clone</span>());
+<span class="kw">impl </span>Driver {
+    <span class="doccomment">/// Creates a new voice driver.
+    ///
+    /// This will create the core voice tasks in the background.
+    </span><span class="attribute">#[inline]</span>
+    <span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>new(config: Config) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>sender = <span class="self">Self</span>::start_inner(config.clone());
 
-        <span class="ident">Driver</span> {
-            <span class="ident">config</span>,
-            <span class="ident">self_mute</span>: <span class="bool-val">false</span>,
-            <span class="ident">sender</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-            <span class="ident">queue</span>: <span class="prelude-val">Some</span>(<span class="ident">TrackQueue::default</span>()),
+        Driver {
+            config,
+            self_mute: <span class="bool-val">false</span>,
+            sender,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+            queue: <span class="prelude-val">Some</span>(TrackQueue::default()),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">start_inner</span>(<span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+    <span class="kw">fn </span>start_inner(config: Config) -&gt; Sender&lt;CoreMessage&gt; {
+        <span class="kw">let </span>(tx, rx) = flume::unbounded();
 
-        <span class="ident">tasks::start</span>(<span class="ident">config</span>, <span class="ident">rx</span>, <span class="ident">tx</span>.<span class="ident">clone</span>());
+        tasks::start(config, rx, tx.clone());
 
-        <span class="ident">tx</span>
+        tx
     }
 
-    <span class="kw">fn</span> <span class="ident">restart_inner</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">sender</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::start_inner</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>());
+    <span class="kw">fn </span>restart_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.sender = <span class="self">Self</span>::start_inner(<span class="self">self</span>.config.clone());
 
-        <span class="self">self</span>.<span class="ident">mute</span>(<span class="self">self</span>.<span class="ident">self_mute</span>);
+        <span class="self">self</span>.mute(<span class="self">self</span>.self_mute);
     }
 
-    <span class="doccomment">/// Connects to a voice channel using the specified server.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method instantly contacts the driver tasks, and its</span>
-    <span class="doccomment">/// does not need to be `await`ed to start the actual connection.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>) -&gt; <span class="ident">Connect</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
+    <span class="doccomment">/// Connects to a voice channel using the specified server.
+    ///
+    /// This method instantly contacts the driver tasks, and its
+    /// does not need to be `await`ed to start the actual connection.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: ConnectionInfo) -&gt; Connect {
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
 
-        <span class="self">self</span>.<span class="ident">raw_connect</span>(<span class="ident">info</span>, <span class="ident">tx</span>);
+        <span class="self">self</span>.raw_connect(info, tx);
 
-        <span class="ident">Connect</span> {
-            <span class="ident">inner</span>: <span class="ident">rx</span>.<span class="ident">into_recv_async</span>(),
+        Connect {
+            inner: rx.into_recv_async(),
         }
     }
 
-    <span class="doccomment">/// Connects to a voice channel using the specified server.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">raw_connect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::ConnectWithResult</span>(<span class="ident">info</span>, <span class="ident">tx</span>));
+    <span class="doccomment">/// Connects to a voice channel using the specified server.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>raw_connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: ConnectionInfo, tx: Sender&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt;) {
+        <span class="self">self</span>.send(CoreMessage::ConnectWithResult(info, tx));
     }
 
-    <span class="doccomment">/// Leaves the current voice channel, disconnecting from it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This does *not* forget settings, like whether to be self-deafened or</span>
-    <span class="doccomment">/// self-muted.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leave</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Disconnect</span>);
+    <span class="doccomment">/// Leaves the current voice channel, disconnecting from it.
+    ///
+    /// This does *not* forget settings, like whether to be self-deafened or
+    /// self-muted.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>leave(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.send(CoreMessage::Disconnect);
     }
 
-    <span class="doccomment">/// Sets whether the current connection is to be muted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is no live voice connection, then this only acts as a settings</span>
-    <span class="doccomment">/// update for future connections.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mute</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">mute</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">self_mute</span> <span class="op">=</span> <span class="ident">mute</span>;
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Mute</span>(<span class="ident">mute</span>));
+    <span class="doccomment">/// Sets whether the current connection is to be muted.
+    ///
+    /// If there is no live voice connection, then this only acts as a settings
+    /// update for future connections.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>mute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mute: bool) {
+        <span class="self">self</span>.self_mute = mute;
+        <span class="self">self</span>.send(CoreMessage::Mute(mute));
     }
 
-    <span class="doccomment">/// Returns whether the driver is muted (i.e., processes audio internally</span>
-    <span class="doccomment">/// but submits none).</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_mute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">self_mute</span>
+    <span class="doccomment">/// Returns whether the driver is muted (i.e., processes audio internally
+    /// but submits none).
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>is_mute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.self_mute
     }
 
-    <span class="doccomment">/// Plays audio from an input, returning a handle for further control.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">input</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_input</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="ident">Input</span>) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="self">self</span>.<span class="ident">play</span>(<span class="ident">input</span>.<span class="ident">into</span>())
+    <span class="doccomment">/// Plays audio from an input, returning a handle for further control.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, input))]</span>
+    <span class="kw">pub fn </span>play_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: Input) -&gt; TrackHandle {
+        <span class="self">self</span>.play(input.into())
     }
 
-    <span class="doccomment">/// Plays audio from an input, returning a handle for further control.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Unlike [`Self::play_input`], this stops all other inputs attached</span>
-    <span class="doccomment">/// to the channel.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">input</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_only_input</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="ident">Input</span>) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="self">self</span>.<span class="ident">play_only</span>(<span class="ident">input</span>.<span class="ident">into</span>())
+    <span class="doccomment">/// Plays audio from an input, returning a handle for further control.
+    ///
+    /// Unlike [`Self::play_input`], this stops all other inputs attached
+    /// to the channel.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, input))]</span>
+    <span class="kw">pub fn </span>play_only_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: Input) -&gt; TrackHandle {
+        <span class="self">self</span>.play_only(input.into())
     }
 
-    <span class="doccomment">/// Plays audio from a [`Track`] object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The main difference between this function and [`Self::play_input`] is</span>
-    <span class="doccomment">/// that this allows for direct manipulation of the [`Track`] object</span>
-    <span class="doccomment">/// before it is passed over to the voice and mixing contexts.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">track</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">track</span>: <span class="ident">Track</span>) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> (<span class="ident">handle</span>, <span class="ident">ctx</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">into_context</span>();
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::AddTrack</span>(<span class="ident">ctx</span>));
+    <span class="doccomment">/// Plays audio from a [`Track`] object.
+    ///
+    /// The main difference between this function and [`Self::play_input`] is
+    /// that this allows for direct manipulation of the [`Track`] object
+    /// before it is passed over to the voice and mixing contexts.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, track))]</span>
+    <span class="kw">pub fn </span>play(<span class="kw-2">&amp;mut </span><span class="self">self</span>, track: Track) -&gt; TrackHandle {
+        <span class="kw">let </span>(handle, ctx) = track.into_context();
+        <span class="self">self</span>.send(CoreMessage::AddTrack(ctx));
 
-        <span class="ident">handle</span>
+        handle
     }
 
-    <span class="doccomment">/// Exclusively plays audio from a [`Track`] object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// As in [`Self::play_only_input`], this stops all other sources attached to the</span>
-    <span class="doccomment">/// channel. Like [`Self::play`], however, this allows for direct manipulation of the</span>
-    <span class="doccomment">/// [`Track`] object before it is passed over to the voice and mixing contexts.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">track</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play_only</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">track</span>: <span class="ident">Track</span>) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> (<span class="ident">handle</span>, <span class="ident">ctx</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">into_context</span>();
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="prelude-val">Some</span>(<span class="ident">ctx</span>)));
+    <span class="doccomment">/// Exclusively plays audio from a [`Track`] object.
+    ///
+    /// As in [`Self::play_only_input`], this stops all other sources attached to the
+    /// channel. Like [`Self::play`], however, this allows for direct manipulation of the
+    /// [`Track`] object before it is passed over to the voice and mixing contexts.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, track))]</span>
+    <span class="kw">pub fn </span>play_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>, track: Track) -&gt; TrackHandle {
+        <span class="kw">let </span>(handle, ctx) = track.into_context();
+        <span class="self">self</span>.send(CoreMessage::SetTrack(<span class="prelude-val">Some</span>(ctx)));
 
-        <span class="ident">handle</span>
+        handle
     }
 
-    <span class="doccomment">/// Sets the bitrate for encoding Opus packets sent along</span>
-    <span class="doccomment">/// the channel being managed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The default rate is 128 kbps.</span>
-    <span class="doccomment">/// Sensible values range between `Bits(512)` and `Bits(512_000)`</span>
-    <span class="doccomment">/// bits per second.</span>
-    <span class="doccomment">/// Alternatively, `Auto` and `Max` remain available.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bitrate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bitrate</span>: <span class="ident">Bitrate</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetBitrate</span>(<span class="ident">bitrate</span>));
+    <span class="doccomment">/// Sets the bitrate for encoding Opus packets sent along
+    /// the channel being managed.
+    ///
+    /// The default rate is 128 kbps.
+    /// Sensible values range between `Bits(512)` and `Bits(512_000)`
+    /// bits per second.
+    /// Alternatively, `Auto` and `Max` remain available.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>set_bitrate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bitrate: Bitrate) {
+        <span class="self">self</span>.send(CoreMessage::SetBitrate(bitrate));
     }
 
-    <span class="doccomment">/// Stops playing audio from all sources, if any are set.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetTrack</span>(<span class="prelude-val">None</span>));
+    <span class="doccomment">/// Stops playing audio from all sources, if any are set.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.send(CoreMessage::SetTrack(<span class="prelude-val">None</span>));
     }
 
-    <span class="doccomment">/// Sets the configuration for this driver (and parent `Call`, if applicable).</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_config</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>) {
-        <span class="self">self</span>.<span class="ident">config</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">clone</span>();
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SetConfig</span>(<span class="ident">config</span>));
+    <span class="doccomment">/// Sets the configuration for this driver (and parent `Call`, if applicable).
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>set_config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: Config) {
+        <span class="self">self</span>.config = config.clone();
+        <span class="self">self</span>.send(CoreMessage::SetConfig(config));
     }
 
-    <span class="doccomment">/// Returns a view of this driver&#39;s configuration.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Config</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>
+    <span class="doccomment">/// Returns a view of this driver&#39;s configuration.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Config {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.config
     }
 
-    <span class="doccomment">/// Attach a global event handler to an audio context. Global events may receive</span>
-    <span class="doccomment">/// any [`EventContext`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Global timing events will tick regardless of whether audio is playing,</span>
-    <span class="doccomment">/// so long as the bot is connected to a voice channel, and have no tracks.</span>
-    <span class="doccomment">/// [`TrackEvent`]s will respond to all relevant tracks, giving some audio elements.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Users **must** ensure that no costly work or blocking occurs</span>
-    <span class="doccomment">/// within the supplied function or closure. *Taking excess time could prevent</span>
-    <span class="doccomment">/// timely sending of packets, causing audio glitches and delays*.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TrackEvent`]: crate::events::TrackEvent</span>
-    <span class="doccomment">/// [`EventContext`]: crate::events::EventContext</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">action</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_global_event</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">EventHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>, <span class="ident">action</span>: <span class="ident">F</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::AddEvent</span>(<span class="ident">EventData::new</span>(<span class="ident">event</span>, <span class="ident">action</span>)));
+    <span class="doccomment">/// Attach a global event handler to an audio context. Global events may receive
+    /// any [`EventContext`].
+    ///
+    /// Global timing events will tick regardless of whether audio is playing,
+    /// so long as the bot is connected to a voice channel, and have no tracks.
+    /// [`TrackEvent`]s will respond to all relevant tracks, giving some audio elements.
+    ///
+    /// Users **must** ensure that no costly work or blocking occurs
+    /// within the supplied function or closure. *Taking excess time could prevent
+    /// timely sending of packets, causing audio glitches and delays*.
+    ///
+    /// [`TrackEvent`]: crate::events::TrackEvent
+    /// [`EventContext`]: crate::events::EventContext
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, action))]</span>
+    <span class="kw">pub fn </span>add_global_event&lt;F: EventHandler + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event, action: F) {
+        <span class="self">self</span>.send(CoreMessage::AddEvent(EventData::new(event, action)));
     }
 
-    <span class="doccomment">/// Removes all global event handlers from an audio context.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_all_global_events</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::RemoveGlobalEvents</span>);
+    <span class="doccomment">/// Removes all global event handlers from an audio context.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>remove_all_global_events(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.send(CoreMessage::RemoveGlobalEvents);
     }
 
-    <span class="doccomment">/// Sends a message to the inner tasks, restarting it if necessary.</span>
-    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">status</span>: <span class="ident">CoreMessage</span>) {
-        <span class="comment">// Restart thread if it errored.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">SendError</span>(<span class="ident">status</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">status</span>) {
-            <span class="self">self</span>.<span class="ident">restart_inner</span>();
+    <span class="doccomment">/// Sends a message to the inner tasks, restarting it if necessary.
+    </span><span class="kw">fn </span>send(<span class="kw-2">&amp;mut </span><span class="self">self</span>, status: CoreMessage) {
+        <span class="comment">// Restart thread if it errored.
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(SendError(status)) = <span class="self">self</span>.sender.send(status) {
+            <span class="self">self</span>.restart_inner();
 
-            <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">status</span>).<span class="ident">unwrap</span>();
+            <span class="self">self</span>.sender.send(status).unwrap();
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Driver</span> {
-    <span class="doccomment">/// Returns a reference to this driver&#39;s built-in queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires the `&quot;builtin-queue&quot;` feature.</span>
-    <span class="doccomment">/// Queue additions should be made via [`Driver::enqueue`] and</span>
-    <span class="doccomment">/// [`Driver::enqueue_input`].</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">queue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">TrackQueue</span> {
-        <span class="self">self</span>.<span class="ident">queue</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Queue: The only case this can fail is if a previous queue operation panicked.&quot;</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
+<span class="kw">impl </span>Driver {
+    <span class="doccomment">/// Returns a reference to this driver&#39;s built-in queue.
+    ///
+    /// Requires the `&quot;builtin-queue&quot;` feature.
+    /// Queue additions should be made via [`Driver::enqueue`] and
+    /// [`Driver::enqueue_input`].
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TrackQueue {
+        <span class="self">self</span>.queue
+            .as_ref()
+            .expect(<span class="string">&quot;Queue: The only case this can fail is if a previous queue operation panicked.&quot;</span>)
     }
 
-    <span class="doccomment">/// Adds an audio [`Input`] to this driver&#39;s built-in queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires the `&quot;builtin-queue&quot;` feature.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">enqueue_input</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="ident">Input</span>) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="self">self</span>.<span class="ident">enqueue</span>(<span class="ident">input</span>.<span class="ident">into</span>()).<span class="kw">await</span>
+    <span class="doccomment">/// Adds an audio [`Input`] to this driver&#39;s built-in queue.
+    ///
+    /// Requires the `&quot;builtin-queue&quot;` feature.
+    </span><span class="kw">pub async fn </span>enqueue_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: Input) -&gt; TrackHandle {
+        <span class="self">self</span>.enqueue(input.into()).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Adds an existing [`Track`] to this driver&#39;s built-in queue.
+    ///
+    /// Requires the `&quot;builtin-queue&quot;` feature.
+    </span><span class="kw">pub async fn </span>enqueue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>track: Track) -&gt; TrackHandle {
+        <span class="kw">let </span>preload_time = TrackQueue::get_preload_time(<span class="kw-2">&amp;mut </span>track).<span class="kw">await</span>;
+        <span class="self">self</span>.enqueue_with_preload(track, preload_time)
     }
 
-    <span class="doccomment">/// Adds an existing [`Track`] to this driver&#39;s built-in queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires the `&quot;builtin-queue&quot;` feature.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">enqueue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">track</span>: <span class="ident">Track</span>) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> <span class="ident">preload_time</span> <span class="op">=</span> <span class="ident">TrackQueue::get_preload_time</span>(<span class="kw-2">&amp;mut</span> <span class="ident">track</span>).<span class="kw">await</span>;
-        <span class="self">self</span>.<span class="ident">enqueue_with_preload</span>(<span class="ident">track</span>, <span class="ident">preload_time</span>)
-    }
-
-    <span class="doccomment">/// Add an existing [`Track`] to the queue, using a known time to preload the next track.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [`TrackQueue::add_with_preload`] for how `preload_time` is used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Requires the `&quot;builtin-queue&quot;` feature.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enqueue_with_preload</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">track</span>: <span class="ident">Track</span>,
-        <span class="ident">preload_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">take</span>().<span class="ident">expect</span>(
+    <span class="doccomment">/// Add an existing [`Track`] to the queue, using a known time to preload the next track.
+    ///
+    /// See [`TrackQueue::add_with_preload`] for how `preload_time` is used.
+    ///
+    /// Requires the `&quot;builtin-queue&quot;` feature.
+    </span><span class="kw">pub fn </span>enqueue_with_preload(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        track: Track,
+        preload_time: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    ) -&gt; TrackHandle {
+        <span class="kw">let </span>queue = <span class="self">self</span>.queue.take().expect(
             <span class="string">&quot;Enqueue: The only case this can fail is if a previous queue operation panicked.&quot;</span>,
         );
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">add_with_preload</span>(<span class="ident">track</span>, <span class="self">self</span>, <span class="ident">preload_time</span>);
-        <span class="self">self</span>.<span class="ident">queue</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">queue</span>);
+        <span class="kw">let </span>handle = queue.add_with_preload(track, <span class="self">self</span>, preload_time);
+        <span class="self">self</span>.queue = <span class="prelude-val">Some</span>(queue);
 
-        <span class="ident">handle</span>
+        handle
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Driver</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">Config::default</span>())
+<span class="kw">impl </span>Default <span class="kw">for </span>Driver {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(Config::default())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Driver</span> {
-    <span class="doccomment">/// Leaves the current connected voice channel, if connected to one, and</span>
-    <span class="doccomment">/// forgets all configurations relevant to this Handler.</span>
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="ident">drop</span>(<span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Poison</span>));
+<span class="kw">impl </span>Drop <span class="kw">for </span>Driver {
+    <span class="doccomment">/// Leaves the current connected voice channel, if connected to one, and
+    /// forgets all configurations relevant to this Handler.
+    </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        drop(<span class="self">self</span>.sender.send(CoreMessage::Poison));
     }
 }
 
-<span class="doccomment">/// Future for a call to [`Driver::connect`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This future awaits the *result* of a connection; the driver</span>
-<span class="doccomment">/// is messaged at the time of the call.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Connect</span> {
-    <span class="ident">inner</span>: <span class="ident">RecvFut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Future for a call to [`Driver::connect`].
+///
+/// This future awaits the *result* of a connection; the driver
+/// is messaged at the time of the call.
+</span><span class="kw">pub struct </span>Connect {
+    inner: RecvFut&lt;<span class="lifetime">&#39;static</span>, <span class="prelude-ty">Result</span>&lt;()&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Connect</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="kw">impl </span>Future <span class="kw">for </span>Connect {
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll</span>(<span class="ident">cx</span>) {
-            <span class="ident">Poll::Ready</span>(<span class="ident">r</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="ident">r</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error::AttemptDiscarded</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>)),
-            <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll(cx) {
+            Poll::Ready(r) =&gt; Poll::Ready(r.map_err(|<span class="kw">_</span>| Error::AttemptDiscarded).and_then(|x| x)),
+            Poll::Pending =&gt; Poll::Pending,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

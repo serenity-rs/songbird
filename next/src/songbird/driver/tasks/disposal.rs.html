@@ -13,18 +13,18 @@
 <span id="11">11</span>
 <span id="12">12</span>
 <span id="13">13</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::message</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
-<span class="kw">use</span> <span class="ident">tracing::instrument</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::message::<span class="kw-2">*</span>;
+<span class="kw">use </span>flume::Receiver;
+<span class="kw">use </span>tracing::instrument;
 
-<span class="doccomment">/// The mixer&#39;s disposal thread is also synchronous, due to tracks,</span>
-<span class="doccomment">/// inputs, etc. being based on synchronous I/O.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The mixer uses this to offload heavy and expensive drop operations</span>
-<span class="doccomment">/// to prevent deadline misses.</span>
-<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">mix_rx</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">runner</span>(<span class="ident">mix_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">DisposalMessage</span><span class="op">&gt;</span>) {
-    <span class="kw">while</span> <span class="ident">mix_rx</span>.<span class="ident">recv</span>().<span class="ident">is_ok</span>() {}
+<span class="doccomment">/// The mixer&#39;s disposal thread is also synchronous, due to tracks,
+/// inputs, etc. being based on synchronous I/O.
+///
+/// The mixer uses this to offload heavy and expensive drop operations
+/// to prevent deadline misses.
+</span><span class="attribute">#[instrument(skip(mix_rx))]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>runner(mix_rx: Receiver&lt;DisposalMessage&gt;) {
+    <span class="kw">while </span>mix_rx.recv().is_ok() {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

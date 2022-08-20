@@ -56,61 +56,61 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(missing_docs)]</span>
 
-<span class="kw">mod</span> <span class="ident">core</span>;
-<span class="kw">mod</span> <span class="ident">disposal</span>;
-<span class="kw">mod</span> <span class="ident">events</span>;
-<span class="kw">mod</span> <span class="ident">mixer</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">udp_rx</span>;
-<span class="kw">mod</span> <span class="ident">ws</span>;
+<span class="kw">mod </span>core;
+<span class="kw">mod </span>disposal;
+<span class="kw">mod </span>events;
+<span class="kw">mod </span>mixer;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">mod </span>udp_rx;
+<span class="kw">mod </span>ws;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::udp_rx</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">core</span>::<span class="kw-2">*</span>, <span class="ident">disposal</span>::<span class="kw-2">*</span>, <span class="ident">events</span>::<span class="kw-2">*</span>, <span class="ident">mixer</span>::<span class="kw-2">*</span>, <span class="ident">ws</span>::<span class="kw-2">*</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">pub use </span><span class="self">self</span>::udp_rx::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::{core::<span class="kw-2">*</span>, disposal::<span class="kw-2">*</span>, events::<span class="kw-2">*</span>, mixer::<span class="kw-2">*</span>, ws::<span class="kw-2">*</span>};
 
-<span class="kw">use</span> <span class="ident">flume::Sender</span>;
-<span class="kw">use</span> <span class="ident">tokio::spawn</span>;
-<span class="kw">use</span> <span class="ident">tracing::trace</span>;
+<span class="kw">use </span>flume::Sender;
+<span class="kw">use </span>tokio::spawn;
+<span class="kw">use </span>tracing::trace;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interconnect</span> {
-    <span class="kw">pub</span> <span class="ident">core</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">CoreMessage</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">events</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">mixer</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="kw">pub struct </span>Interconnect {
+    <span class="kw">pub </span>core: Sender&lt;CoreMessage&gt;,
+    <span class="kw">pub </span>events: Sender&lt;EventMessage&gt;,
+    <span class="kw">pub </span>mixer: Sender&lt;MixerMessage&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Interconnect</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poison</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="ident">drop</span>(<span class="self">self</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::Poison</span>));
+<span class="kw">impl </span>Interconnect {
+    <span class="kw">pub fn </span>poison(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        drop(<span class="self">self</span>.events.send(EventMessage::Poison));
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poison_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="ident">drop</span>(<span class="self">self</span>.<span class="ident">mixer</span>.<span class="ident">send</span>(<span class="ident">MixerMessage::Poison</span>));
-        <span class="self">self</span>.<span class="ident">poison</span>();
+    <span class="kw">pub fn </span>poison_all(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        drop(<span class="self">self</span>.mixer.send(MixerMessage::Poison));
+        <span class="self">self</span>.poison();
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">restart_volatile_internals</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">poison</span>();
+    <span class="kw">pub fn </span>restart_volatile_internals(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.poison();
 
-        <span class="kw">let</span> (<span class="ident">evt_tx</span>, <span class="ident">evt_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+        <span class="kw">let </span>(evt_tx, evt_rx) = flume::unbounded();
 
-        <span class="self">self</span>.<span class="ident">events</span> <span class="op">=</span> <span class="ident">evt_tx</span>;
+        <span class="self">self</span>.events = evt_tx;
 
-        <span class="kw">let</span> <span class="ident">ic</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
-        <span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
+        <span class="kw">let </span>ic = <span class="self">self</span>.clone();
+        spawn(<span class="kw">async move </span>{
             <span class="macro">trace!</span>(<span class="string">&quot;Event processor restarted.&quot;</span>);
-            <span class="ident"><span class="kw">super</span>::events::runner</span>(<span class="ident">ic</span>, <span class="ident">evt_rx</span>).<span class="kw">await</span>;
+            <span class="kw">super</span>::events::runner(ic, evt_rx).<span class="kw">await</span>;
             <span class="macro">trace!</span>(<span class="string">&quot;Event processor finished.&quot;</span>);
         });
 
-        <span class="comment">// Make mixer aware of new targets...</span>
-        <span class="ident">drop</span>(
-            <span class="self">self</span>.<span class="ident">mixer</span>
-                .<span class="ident">send</span>(<span class="ident">MixerMessage::ReplaceInterconnect</span>(<span class="self">self</span>.<span class="ident">clone</span>())),
+        <span class="comment">// Make mixer aware of new targets...
+        </span>drop(
+            <span class="self">self</span>.mixer
+                .send(MixerMessage::ReplaceInterconnect(<span class="self">self</span>.clone())),
         );
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

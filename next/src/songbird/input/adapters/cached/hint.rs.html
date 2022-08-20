@@ -40,45 +40,45 @@
 <span id="38">38</span>
 <span id="39">39</span>
 <span id="40">40</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::time::Duration</span>;
-<span class="kw">use</span> <span class="ident">streamcatcher::Config</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>streamcatcher::Config;
 
-<span class="doccomment">/// Expected amount of time that an input should last.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LengthHint</span> {
-    <span class="doccomment">/// Estimate of a source&#39;s length in bytes.</span>
-    <span class="ident">Bytes</span>(<span class="ident">usize</span>),
-    <span class="doccomment">/// Estimate of a source&#39;s length in time.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will be converted to a bytecount at setup.</span>
-    <span class="ident">Time</span>(<span class="ident">Duration</span>),
+<span class="doccomment">/// Expected amount of time that an input should last.
+</span><span class="attribute">#[derive(Copy, Clone, Debug)]</span>
+<span class="kw">pub enum </span>LengthHint {
+    <span class="doccomment">/// Estimate of a source&#39;s length in bytes.
+    </span>Bytes(usize),
+    <span class="doccomment">/// Estimate of a source&#39;s length in time.
+    ///
+    /// This will be converted to a bytecount at setup.
+    </span>Time(Duration),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LengthHint</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">LengthHint::Bytes</span>(<span class="ident">size</span>)
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>LengthHint {
+    <span class="kw">fn </span>from(size: usize) -&gt; <span class="self">Self </span>{
+        LengthHint::Bytes(size)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LengthHint</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">size</span>: <span class="ident">Duration</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">LengthHint::Time</span>(<span class="ident">size</span>)
+<span class="kw">impl </span>From&lt;Duration&gt; <span class="kw">for </span>LengthHint {
+    <span class="kw">fn </span>from(size: Duration) -&gt; <span class="self">Self </span>{
+        LengthHint::Time(size)
     }
 }
 
-<span class="doccomment">/// Modify the given cache configuration to initially allocate</span>
-<span class="doccomment">/// enough bytes to store a length of audio at the given bitrate.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply_length_hint</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">config</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Config</span>, <span class="ident">hint</span>: <span class="ident">H</span>, <span class="ident">cost_per_sec</span>: <span class="ident">usize</span>)
-<span class="kw">where</span>
-    <span class="ident">H</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">LengthHint</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Modify the given cache configuration to initially allocate
+/// enough bytes to store a length of audio at the given bitrate.
+</span><span class="kw">pub fn </span>apply_length_hint&lt;H&gt;(config: <span class="kw-2">&amp;mut </span>Config, hint: H, cost_per_sec: usize)
+<span class="kw">where
+    </span>H: Into&lt;LengthHint&gt;,
 {
-    <span class="ident">config</span>.<span class="ident">length_hint</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">hint</span>.<span class="ident">into</span>() {
-        <span class="ident">LengthHint::Bytes</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
-        <span class="ident">LengthHint::Time</span>(<span class="ident">t</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">as_secs</span>() <span class="op">+</span> <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">subsec_millis</span>() <span class="op">&gt;</span> <span class="number">0</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
-            (<span class="ident">s</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">*</span> <span class="ident">cost_per_sec</span>
+    config.length_hint = <span class="prelude-val">Some</span>(<span class="kw">match </span>hint.into() {
+        LengthHint::Bytes(a) =&gt; a,
+        LengthHint::Time(t) =&gt; {
+            <span class="kw">let </span>s = t.as_secs() + <span class="kw">if </span>t.subsec_millis() &gt; <span class="number">0 </span>{ <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
+            (s <span class="kw">as </span>usize) * cost_per_sec
         },
     });
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -345,25 +345,25 @@
 <span id="343">343</span>
 <span id="344">344</span>
 <span id="345">345</span>
-</pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">metadata</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::metadata</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">mod </span>metadata;
+<span class="kw">pub use </span><span class="self">self</span>::metadata::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::{<span class="ident">SAMPLE_RATE</span>, <span class="ident">SAMPLE_RATE_RAW</span>};
+<span class="kw">use </span><span class="kw">crate</span>::constants::{SAMPLE_RATE, SAMPLE_RATE_RAW};
 
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Seek</span>, <span class="ident">SeekFrom</span>};
-<span class="kw">use</span> <span class="ident">symphonia::core</span>::{
-    <span class="ident">codecs</span>::{<span class="ident">CodecParameters</span>, <span class="ident">CODEC_TYPE_OPUS</span>},
-    <span class="ident">errors</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">symph_err</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">SymphError</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">SymphResult</span>, <span class="ident">SeekErrorKind</span>},
-    <span class="ident">formats::prelude</span>::<span class="kw-2">*</span>,
-    <span class="ident">io</span>::{<span class="ident">MediaSource</span>, <span class="ident">MediaSourceStream</span>, <span class="ident">ReadBytes</span>, <span class="ident">SeekBuffered</span>},
-    <span class="ident">meta</span>::{<span class="ident">Metadata</span> <span class="kw">as</span> <span class="ident">SymphMetadata</span>, <span class="ident">MetadataBuilder</span>, <span class="ident">MetadataLog</span>, <span class="ident">StandardTagKey</span>, <span class="ident">Tag</span>, <span class="ident">Value</span>},
-    <span class="ident">probe</span>::{<span class="ident">Descriptor</span>, <span class="ident">Instantiate</span>, <span class="ident">QueryDescriptor</span>},
-    <span class="ident">sample::SampleFormat</span>,
-    <span class="ident">units::TimeStamp</span>,
+<span class="kw">use </span>std::io::{Seek, SeekFrom};
+<span class="kw">use </span>symphonia::core::{
+    codecs::{CodecParameters, CODEC_TYPE_OPUS},
+    errors::{<span class="self">self </span><span class="kw">as </span>symph_err, Error <span class="kw">as </span>SymphError, <span class="prelude-ty">Result </span><span class="kw">as </span>SymphResult, SeekErrorKind},
+    formats::prelude::<span class="kw-2">*</span>,
+    io::{MediaSource, MediaSourceStream, ReadBytes, SeekBuffered},
+    meta::{Metadata <span class="kw">as </span>SymphMetadata, MetadataBuilder, MetadataLog, StandardTagKey, Tag, Value},
+    probe::{Descriptor, Instantiate, QueryDescriptor},
+    sample::SampleFormat,
+    units::TimeStamp,
 };
 
-<span class="kw">impl</span> <span class="ident">QueryDescriptor</span> <span class="kw">for</span> <span class="ident">DcaReader</span> {
-    <span class="kw">fn</span> <span class="ident">query</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">Descriptor</span>] {
+<span class="kw">impl </span>QueryDescriptor <span class="kw">for </span>DcaReader {
+    <span class="kw">fn </span>query() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[Descriptor] {
         <span class="kw-2">&amp;</span>[<span class="macro">symphonia_core::support_format!</span>(
             <span class="string">&quot;dca&quot;</span>,
             <span class="string">&quot;DCA[0/1] Opus Wrapper&quot;</span>,
@@ -373,322 +373,322 @@
         )]
     }
 
-    <span class="kw">fn</span> <span class="ident">score</span>(<span class="ident">_context</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">u8</span> {
-        <span class="number">255</span>
-    }
+    <span class="kw">fn </span>score(_context: <span class="kw-2">&amp;</span>[u8]) -&gt; u8 {
+        <span class="number">255
+    </span>}
 }
 
-<span class="kw">struct</span> <span class="ident">SeekAccel</span> {
-    <span class="ident">frame_offsets</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">TimeStamp</span>, <span class="ident">u64</span>)<span class="op">&gt;</span>,
-    <span class="ident">seek_index_fill_rate</span>: <span class="ident">u16</span>,
-    <span class="ident">next_ts</span>: <span class="ident">TimeStamp</span>,
+<span class="kw">struct </span>SeekAccel {
+    frame_offsets: Vec&lt;(TimeStamp, u64)&gt;,
+    seek_index_fill_rate: u16,
+    next_ts: TimeStamp,
 }
 
-<span class="kw">impl</span> <span class="ident">SeekAccel</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">options</span>: <span class="ident">FormatOptions</span>, <span class="ident">first_frame_byte_pos</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">per_s</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">seek_index_fill_rate</span>;
-        <span class="kw">let</span> <span class="ident">next_ts</span> <span class="op">=</span> (<span class="ident">per_s</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">*</span> (<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u64</span>);
+<span class="kw">impl </span>SeekAccel {
+    <span class="kw">fn </span>new(options: FormatOptions, first_frame_byte_pos: u64) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>per_s = options.seek_index_fill_rate;
+        <span class="kw">let </span>next_ts = (per_s <span class="kw">as </span>u64) * (SAMPLE_RATE_RAW <span class="kw">as </span>u64);
 
-        <span class="self">Self</span> {
-            <span class="ident">frame_offsets</span>: <span class="macro">vec!</span>[(<span class="number">0</span>, <span class="ident">first_frame_byte_pos</span>)],
-            <span class="ident">seek_index_fill_rate</span>: <span class="ident">per_s</span>,
-            <span class="ident">next_ts</span>,
+        <span class="self">Self </span>{
+            frame_offsets: <span class="macro">vec!</span>[(<span class="number">0</span>, first_frame_byte_pos)],
+            seek_index_fill_rate: per_s,
+            next_ts,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ts</span>: <span class="ident">TimeStamp</span>, <span class="ident">pos</span>: <span class="ident">u64</span>) {
-        <span class="kw">if</span> <span class="ident">ts</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">next_ts</span> {
-            <span class="self">self</span>.<span class="ident">next_ts</span> <span class="op">+</span><span class="op">=</span> (<span class="self">self</span>.<span class="ident">seek_index_fill_rate</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">*</span> (<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u64</span>);
-            <span class="self">self</span>.<span class="ident">frame_offsets</span>.<span class="ident">push</span>((<span class="ident">ts</span>, <span class="ident">pos</span>));
+    <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ts: TimeStamp, pos: u64) {
+        <span class="kw">if </span>ts &gt;= <span class="self">self</span>.next_ts {
+            <span class="self">self</span>.next_ts += (<span class="self">self</span>.seek_index_fill_rate <span class="kw">as </span>u64) * (SAMPLE_RATE_RAW <span class="kw">as </span>u64);
+            <span class="self">self</span>.frame_offsets.push((ts, pos));
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">get_seek_pos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ts</span>: <span class="ident">TimeStamp</span>) -&gt; (<span class="ident">TimeStamp</span>, <span class="ident">u64</span>) {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">frame_offsets</span>.<span class="ident">partition_point</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">o_ts</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">o_ts</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ts</span>) <span class="op">-</span> <span class="number">1</span>;
-        <span class="self">self</span>.<span class="ident">frame_offsets</span>[<span class="ident">index</span>]
+    <span class="kw">fn </span>get_seek_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: TimeStamp) -&gt; (TimeStamp, u64) {
+        <span class="kw">let </span>index = <span class="self">self</span>.frame_offsets.partition_point(|<span class="kw-2">&amp;</span>(o_ts, <span class="kw">_</span>)| o_ts &lt;= ts) - <span class="number">1</span>;
+        <span class="self">self</span>.frame_offsets[index]
     }
 }
 
-<span class="doccomment">/// [DCA\[0/1\]](https://github.com/bwmarrin/dca) Format reader for Symphonia.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DcaReader</span> {
-    <span class="ident">source</span>: <span class="ident">MediaSourceStream</span>,
-    <span class="ident">track</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Track</span><span class="op">&gt;</span>,
-    <span class="ident">metas</span>: <span class="ident">MetadataLog</span>,
-    <span class="ident">seek_accel</span>: <span class="ident">SeekAccel</span>,
-    <span class="ident">curr_ts</span>: <span class="ident">TimeStamp</span>,
-    <span class="ident">max_ts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TimeStamp</span><span class="op">&gt;</span>,
-    <span class="ident">held_packet</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Packet</span><span class="op">&gt;</span>,
+<span class="doccomment">/// [DCA\[0/1\]](https://github.com/bwmarrin/dca) Format reader for Symphonia.
+</span><span class="kw">pub struct </span>DcaReader {
+    source: MediaSourceStream,
+    track: <span class="prelude-ty">Option</span>&lt;Track&gt;,
+    metas: MetadataLog,
+    seek_accel: SeekAccel,
+    curr_ts: TimeStamp,
+    max_ts: <span class="prelude-ty">Option</span>&lt;TimeStamp&gt;,
+    held_packet: <span class="prelude-ty">Option</span>&lt;Packet&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">FormatReader</span> <span class="kw">for</span> <span class="ident">DcaReader</span> {
-    <span class="kw">fn</span> <span class="ident">try_new</span>(<span class="kw-2">mut</span> <span class="ident">source</span>: <span class="ident">MediaSourceStream</span>, <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">FormatOptions</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="comment">// Read in the magic number to verify it&#39;s a DCA file.</span>
-        <span class="kw">let</span> <span class="ident">magic</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">read_quad_bytes</span>()<span class="question-mark">?</span>;
+<span class="kw">impl </span>FormatReader <span class="kw">for </span>DcaReader {
+    <span class="kw">fn </span>try_new(<span class="kw-2">mut </span>source: MediaSourceStream, options: <span class="kw-2">&amp;</span>FormatOptions) -&gt; SymphResult&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// Read in the magic number to verify it&#39;s a DCA file.
+        </span><span class="kw">let </span>magic = source.read_quad_bytes()<span class="question-mark">?</span>;
 
-        <span class="comment">// FIXME: make use of the new options.enable_gapless to apply the opus coder delay.</span>
+        <span class="comment">// FIXME: make use of the new options.enable_gapless to apply the opus coder delay.
 
-        <span class="kw">let</span> <span class="ident">read_meta</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">magic</span> {
-            <span class="string">b&quot;DCA1&quot;</span> =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">magic</span>[..<span class="number">3</span>] <span class="op">==</span> <span class="string">b&quot;DCA&quot;</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">symph_err::unsupported_error</span>(<span class="string">&quot;unsupported DCA version&quot;</span>);
+        </span><span class="kw">let </span>read_meta = <span class="kw">match </span><span class="kw-2">&amp;</span>magic {
+            <span class="string">b&quot;DCA1&quot; </span>=&gt; <span class="bool-val">true</span>,
+            <span class="kw">_ if </span><span class="kw-2">&amp;</span>magic[..<span class="number">3</span>] == <span class="string">b&quot;DCA&quot; </span>=&gt; {
+                <span class="kw">return </span>symph_err::unsupported_error(<span class="string">&quot;unsupported DCA version&quot;</span>);
             },
-            <span class="kw">_</span> =&gt; {
-                <span class="ident">source</span>.<span class="ident">seek_buffered_rel</span>(<span class="op">-</span><span class="number">4</span>);
-                <span class="bool-val">false</span>
-            },
+            <span class="kw">_ </span>=&gt; {
+                source.seek_buffered_rel(-<span class="number">4</span>);
+                <span class="bool-val">false
+            </span>},
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">codec_params</span> <span class="op">=</span> <span class="ident">CodecParameters::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>codec_params = CodecParameters::new();
 
-        <span class="ident">codec_params</span>
-            .<span class="ident">for_codec</span>(<span class="ident">CODEC_TYPE_OPUS</span>)
-            .<span class="ident">with_max_frames_per_packet</span>(<span class="number">1</span>)
-            .<span class="ident">with_sample_rate</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>)
-            .<span class="ident">with_time_base</span>(<span class="ident">TimeBase::new</span>(<span class="number">1</span>, <span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>))
-            .<span class="ident">with_sample_format</span>(<span class="ident">SampleFormat::F32</span>);
+        codec_params
+            .for_codec(CODEC_TYPE_OPUS)
+            .with_max_frames_per_packet(<span class="number">1</span>)
+            .with_sample_rate(SAMPLE_RATE_RAW <span class="kw">as </span>u32)
+            .with_time_base(TimeBase::new(<span class="number">1</span>, SAMPLE_RATE_RAW <span class="kw">as </span>u32))
+            .with_sample_format(SampleFormat::F32);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">metas</span> <span class="op">=</span> <span class="ident">MetadataLog::default</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>metas = MetadataLog::default();
 
-        <span class="kw">if</span> <span class="ident">read_meta</span> {
-            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">read_u32</span>()<span class="question-mark">?</span>;
+        <span class="kw">if </span>read_meta {
+            <span class="kw">let </span>size = source.read_u32()<span class="question-mark">?</span>;
 
-            <span class="comment">// Sanity check</span>
-            <span class="kw">if</span> (<span class="ident">size</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">&lt;</span> <span class="number">2</span> {
-                <span class="kw">return</span> <span class="ident">symph_err::decode_error</span>(<span class="string">&quot;missing DCA1 metadata block&quot;</span>);
+            <span class="comment">// Sanity check
+            </span><span class="kw">if </span>(size <span class="kw">as </span>i32) &lt; <span class="number">2 </span>{
+                <span class="kw">return </span>symph_err::decode_error(<span class="string">&quot;missing DCA1 metadata block&quot;</span>);
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_json</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">read_boxed_slice_exact</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>raw_json = source.read_boxed_slice_exact(size <span class="kw">as </span>usize)<span class="question-mark">?</span>;
 
-            <span class="comment">// NOTE: must be mut for simd-json.</span>
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_mut_passed</span>)]</span>
-            <span class="kw">let</span> <span class="ident">metadata</span>: <span class="ident">DcaMetadata</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::json::from_slice</span>::<span class="op">&lt;</span><span class="ident">DcaMetadata</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">raw_json</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">SymphError::DecodeError</span>(<span class="string">&quot;malformed DCA1 metadata block&quot;</span>))<span class="question-mark">?</span>;
+            <span class="comment">// NOTE: must be mut for simd-json.
+            </span><span class="attribute">#[allow(clippy::unnecessary_mut_passed)]</span>
+            <span class="kw">let </span>metadata: DcaMetadata = <span class="kw">crate</span>::json::from_slice::&lt;DcaMetadata&gt;(<span class="kw-2">&amp;mut </span>raw_json)
+                .map_err(|<span class="kw">_</span>| SymphError::DecodeError(<span class="string">&quot;malformed DCA1 metadata block&quot;</span>))<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">revision</span> <span class="op">=</span> <span class="ident">MetadataBuilder::new</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>revision = MetadataBuilder::new();
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">info</span>) <span class="op">=</span> <span class="ident">metadata</span>.<span class="ident">info</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">info</span>.<span class="ident">title</span> {
-                    <span class="ident">revision</span>.<span class="ident">add_tag</span>(<span class="ident">Tag::new</span>(
-                        <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::TrackTitle</span>),
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(info) = metadata.info {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = info.title {
+                    revision.add_tag(Tag::new(
+                        <span class="prelude-val">Some</span>(StandardTagKey::TrackTitle),
                         <span class="string">&quot;title&quot;</span>,
-                        <span class="ident">Value::String</span>(<span class="ident">t</span>),
+                        Value::String(t),
                     ));
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">info</span>.<span class="ident">album</span> {
-                    <span class="ident">revision</span>.<span class="ident">add_tag</span>(<span class="ident">Tag::new</span>(
-                        <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Album</span>),
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = info.album {
+                    revision.add_tag(Tag::new(
+                        <span class="prelude-val">Some</span>(StandardTagKey::Album),
                         <span class="string">&quot;album&quot;</span>,
-                        <span class="ident">Value::String</span>(<span class="ident">t</span>),
+                        Value::String(t),
                     ));
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">info</span>.<span class="ident">artist</span> {
-                    <span class="ident">revision</span>.<span class="ident">add_tag</span>(<span class="ident">Tag::new</span>(
-                        <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Artist</span>),
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = info.artist {
+                    revision.add_tag(Tag::new(
+                        <span class="prelude-val">Some</span>(StandardTagKey::Artist),
                         <span class="string">&quot;artist&quot;</span>,
-                        <span class="ident">Value::String</span>(<span class="ident">t</span>),
+                        Value::String(t),
                     ));
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">info</span>.<span class="ident">genre</span> {
-                    <span class="ident">revision</span>.<span class="ident">add_tag</span>(<span class="ident">Tag::new</span>(
-                        <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Genre</span>),
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = info.genre {
+                    revision.add_tag(Tag::new(
+                        <span class="prelude-val">Some</span>(StandardTagKey::Genre),
                         <span class="string">&quot;genre&quot;</span>,
-                        <span class="ident">Value::String</span>(<span class="ident">t</span>),
+                        Value::String(t),
                     ));
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">info</span>.<span class="ident">comments</span> {
-                    <span class="ident">revision</span>.<span class="ident">add_tag</span>(<span class="ident">Tag::new</span>(
-                        <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Comment</span>),
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = info.comments {
+                    revision.add_tag(Tag::new(
+                        <span class="prelude-val">Some</span>(StandardTagKey::Comment),
                         <span class="string">&quot;comments&quot;</span>,
-                        <span class="ident">Value::String</span>(<span class="ident">t</span>),
+                        Value::String(t),
                     ));
                 }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_t</span>) <span class="op">=</span> <span class="ident">info</span>.<span class="ident">cover</span> {
-                    <span class="comment">// TODO: Add visual, figure out MIME types.</span>
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(_t) = info.cover {
+                    <span class="comment">// TODO: Add visual, figure out MIME types.
+                </span>}
+            }
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(origin) = metadata.origin {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = origin.url {
+                    revision.add_tag(Tag::new(<span class="prelude-val">Some</span>(StandardTagKey::Url), <span class="string">&quot;url&quot;</span>, Value::String(t)));
                 }
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">origin</span>) <span class="op">=</span> <span class="ident">metadata</span>.<span class="ident">origin</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">origin</span>.<span class="ident">url</span> {
-                    <span class="ident">revision</span>.<span class="ident">add_tag</span>(<span class="ident">Tag::new</span>(<span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::Url</span>), <span class="string">&quot;url&quot;</span>, <span class="ident">Value::String</span>(<span class="ident">t</span>)));
-                }
-            }
-
-            <span class="ident">metas</span>.<span class="ident">push</span>(<span class="ident">revision</span>.<span class="ident">metadata</span>());
+            metas.push(revision.metadata());
         }
 
-        <span class="kw">let</span> <span class="ident">bytes_read</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">pos</span>();
+        <span class="kw">let </span>bytes_read = source.pos();
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">source</span>,
-            <span class="ident">track</span>: <span class="prelude-val">Some</span>(<span class="ident">Track</span> {
-                <span class="ident">id</span>: <span class="number">0</span>,
-                <span class="ident">language</span>: <span class="prelude-val">None</span>,
-                <span class="ident">codec_params</span>,
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            source,
+            track: <span class="prelude-val">Some</span>(Track {
+                id: <span class="number">0</span>,
+                language: <span class="prelude-val">None</span>,
+                codec_params,
             }),
-            <span class="ident">metas</span>,
-            <span class="ident">seek_accel</span>: <span class="ident">SeekAccel::new</span>(<span class="kw-2">*</span><span class="ident">options</span>, <span class="ident">bytes_read</span>),
-            <span class="ident">curr_ts</span>: <span class="number">0</span>,
-            <span class="ident">max_ts</span>: <span class="prelude-val">None</span>,
-            <span class="ident">held_packet</span>: <span class="prelude-val">None</span>,
+            metas,
+            seek_accel: SeekAccel::new(<span class="kw-2">*</span>options, bytes_read),
+            curr_ts: <span class="number">0</span>,
+            max_ts: <span class="prelude-val">None</span>,
+            held_packet: <span class="prelude-val">None</span>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">cues</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Cue</span>] {
-        <span class="comment">// No cues in DCA...</span>
-        <span class="kw-2">&amp;</span>[]
+    <span class="kw">fn </span>cues(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Cue] {
+        <span class="comment">// No cues in DCA...
+        </span><span class="kw-2">&amp;</span>[]
     }
 
-    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SymphMetadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">metas</span>.<span class="ident">metadata</span>()
+    <span class="kw">fn </span>metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SymphMetadata&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="self">self</span>.metas.metadata()
     }
 
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_mode</span>: <span class="ident">SeekMode</span>, <span class="ident">to</span>: <span class="ident">SeekTo</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span><span class="ident">SeekedTo</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">can_backseek</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">is_seekable</span>();
+    <span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _mode: SeekMode, to: SeekTo) -&gt; SymphResult&lt;SeekedTo&gt; {
+        <span class="kw">let </span>can_backseek = <span class="self">self</span>.source.is_seekable();
 
-        <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">track</span>.<span class="ident">is_none</span>() {
-            <span class="kw">return</span> <span class="ident">symph_err::seek_error</span>(<span class="ident">SeekErrorKind::Unseekable</span>);
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">track</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
+        <span class="kw">let </span>track = <span class="kw">if </span><span class="self">self</span>.track.is_none() {
+            <span class="kw">return </span>symph_err::seek_error(SeekErrorKind::Unseekable);
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.track.as_ref().unwrap()
         };
 
-        <span class="kw">let</span> <span class="ident">rate</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">codec_params</span>.<span class="ident">sample_rate</span>;
-        <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">to</span> {
-            <span class="ident">SeekTo::Time</span> { <span class="ident">time</span>, .. } =&gt;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rate</span>) <span class="op">=</span> <span class="ident">rate</span> {
-                    <span class="ident">TimeBase::new</span>(<span class="number">1</span>, <span class="ident">rate</span>).<span class="ident">calc_timestamp</span>(<span class="ident">time</span>)
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="ident">symph_err::seek_error</span>(<span class="ident">SeekErrorKind::Unseekable</span>);
+        <span class="kw">let </span>rate = track.codec_params.sample_rate;
+        <span class="kw">let </span>ts = <span class="kw">match </span>to {
+            SeekTo::Time { time, .. } =&gt;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(rate) = rate {
+                    TimeBase::new(<span class="number">1</span>, rate).calc_timestamp(time)
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span>symph_err::seek_error(SeekErrorKind::Unseekable);
                 },
-            <span class="ident">SeekTo::TimeStamp</span> { <span class="ident">ts</span>, .. } =&gt; <span class="ident">ts</span>,
+            SeekTo::TimeStamp { ts, .. } =&gt; ts,
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">max_ts</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">max_ts</span> {
-            <span class="kw">if</span> <span class="ident">ts</span> <span class="op">&gt;</span> <span class="ident">max_ts</span> {
-                <span class="kw">return</span> <span class="ident">symph_err::seek_error</span>(<span class="ident">SeekErrorKind::OutOfRange</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(max_ts) = <span class="self">self</span>.max_ts {
+            <span class="kw">if </span>ts &gt; max_ts {
+                <span class="kw">return </span>symph_err::seek_error(SeekErrorKind::OutOfRange);
             }
         }
 
-        <span class="kw">let</span> <span class="ident">backseek_needed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">curr_ts</span> <span class="op">&gt;</span> <span class="ident">ts</span>;
+        <span class="kw">let </span>backseek_needed = <span class="self">self</span>.curr_ts &gt; ts;
 
-        <span class="kw">if</span> <span class="ident">backseek_needed</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">can_backseek</span> {
-            <span class="kw">return</span> <span class="ident">symph_err::seek_error</span>(<span class="ident">SeekErrorKind::ForwardOnly</span>);
+        <span class="kw">if </span>backseek_needed &amp;&amp; !can_backseek {
+            <span class="kw">return </span>symph_err::seek_error(SeekErrorKind::ForwardOnly);
         }
 
-        <span class="kw">let</span> (<span class="ident">accel_seek_ts</span>, <span class="ident">accel_seek_pos</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">seek_accel</span>.<span class="ident">get_seek_pos</span>(<span class="ident">ts</span>);
+        <span class="kw">let </span>(accel_seek_ts, accel_seek_pos) = <span class="self">self</span>.seek_accel.get_seek_pos(ts);
 
-        <span class="kw">if</span> <span class="ident">backseek_needed</span> <span class="op">|</span><span class="op">|</span> <span class="ident">accel_seek_pos</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">pos</span>() {
-            <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="ident">accel_seek_pos</span>))<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">curr_ts</span> <span class="op">=</span> <span class="ident">accel_seek_ts</span>;
+        <span class="kw">if </span>backseek_needed || accel_seek_pos &gt; <span class="self">self</span>.source.pos() {
+            <span class="self">self</span>.source.seek(SeekFrom::Start(accel_seek_pos))<span class="question-mark">?</span>;
+            <span class="self">self</span>.curr_ts = accel_seek_ts;
         }
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">pkt</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_packet</span>() {
-            <span class="kw">let</span> <span class="ident">pts</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">ts</span>;
-            <span class="kw">let</span> <span class="ident">dur</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">dur</span>;
-            <span class="kw">let</span> <span class="ident">track_id</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">track_id</span>();
+        <span class="kw">while let </span><span class="prelude-val">Ok</span>(pkt) = <span class="self">self</span>.next_packet() {
+            <span class="kw">let </span>pts = pkt.ts;
+            <span class="kw">let </span>dur = pkt.dur;
+            <span class="kw">let </span>track_id = pkt.track_id();
 
-            <span class="kw">if</span> (<span class="ident">pts</span>..<span class="ident">pts</span> <span class="op">+</span> <span class="ident">dur</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ts</span>) {
-                <span class="self">self</span>.<span class="ident">held_packet</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">pkt</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">SeekedTo</span> {
-                    <span class="ident">track_id</span>,
-                    <span class="ident">required_ts</span>: <span class="ident">ts</span>,
-                    <span class="ident">actual_ts</span>: <span class="ident">pts</span>,
+            <span class="kw">if </span>(pts..pts + dur).contains(<span class="kw-2">&amp;</span>ts) {
+                <span class="self">self</span>.held_packet = <span class="prelude-val">Some</span>(pkt);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(SeekedTo {
+                    track_id,
+                    required_ts: ts,
+                    actual_ts: pts,
                 });
             }
         }
 
-        <span class="ident">symph_err::seek_error</span>(<span class="ident">SeekErrorKind::OutOfRange</span>)
+        symph_err::seek_error(SeekErrorKind::OutOfRange)
     }
 
-    <span class="kw">fn</span> <span class="ident">tracks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Track</span>] {
-        <span class="comment">// DCA tracks can hold only one track by design.</span>
-        <span class="comment">// Of course, a zero-length file is technically allowed,</span>
-        <span class="comment">// in which case no track.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">track</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">track</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">std::slice::from_ref</span>(<span class="ident">track</span>)
-        } <span class="kw">else</span> {
+    <span class="kw">fn </span>tracks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Track] {
+        <span class="comment">// DCA tracks can hold only one track by design.
+        // Of course, a zero-length file is technically allowed,
+        // in which case no track.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(track) = <span class="self">self</span>.track.as_ref() {
+            std::slice::from_ref(track)
+        } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>[]
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">default_track</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Track</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">track</span>.<span class="ident">as_ref</span>()
+    <span class="kw">fn </span>default_track(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Track&gt; {
+        <span class="self">self</span>.track.as_ref()
     }
 
-    <span class="kw">fn</span> <span class="ident">next_packet</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span><span class="ident">Packet</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pkt</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">held_packet</span>.<span class="ident">take</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">pkt</span>);
+    <span class="kw">fn </span>next_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SymphResult&lt;Packet&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pkt) = <span class="self">self</span>.held_packet.take() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(pkt);
         }
 
-        <span class="kw">let</span> <span class="ident">frame_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">pos</span>();
+        <span class="kw">let </span>frame_pos = <span class="self">self</span>.source.pos();
 
-        <span class="kw">let</span> <span class="ident">p_len</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">read_u16</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">len</span>) =&gt; <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i16</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">eof</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">max_ts</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">curr_ts</span>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">eof</span>.<span class="ident">into</span>());
+        <span class="kw">let </span>p_len = <span class="kw">match </span><span class="self">self</span>.source.read_u16() {
+            <span class="prelude-val">Ok</span>(len) =&gt; len <span class="kw">as </span>i16,
+            <span class="prelude-val">Err</span>(eof) =&gt; {
+                <span class="self">self</span>.max_ts = <span class="prelude-val">Some</span>(<span class="self">self</span>.curr_ts);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(eof.into());
             },
         };
 
-        <span class="kw">if</span> <span class="ident">p_len</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="ident">symph_err::decode_error</span>(<span class="string">&quot;DCA frame header had a negative length.&quot;</span>);
+        <span class="kw">if </span>p_len &lt; <span class="number">0 </span>{
+            <span class="kw">return </span>symph_err::decode_error(<span class="string">&quot;DCA frame header had a negative length.&quot;</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">read_boxed_slice_exact</span>(<span class="ident">p_len</span> <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>buf = <span class="self">self</span>.source.read_boxed_slice_exact(p_len <span class="kw">as </span>usize)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">checked_buf</span> <span class="op">=</span> <span class="ident">buf</span>[..].<span class="ident">try_into</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <span class="ident">symph_err::decode_error</span>(<span class="string">&quot;Packet was not a valid Opus Packet: too large for audiopus.&quot;</span>)
+        <span class="kw">let </span>checked_buf = buf[..].try_into().or_else(|<span class="kw">_</span>| {
+            symph_err::decode_error(<span class="string">&quot;Packet was not a valid Opus Packet: too large for audiopus.&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">sample_ct</span> <span class="op">=</span> <span class="ident">audiopus::packet::nb_samples</span>(<span class="ident">checked_buf</span>, <span class="ident">SAMPLE_RATE</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <span class="ident">symph_err::decode_error</span>(
+        <span class="kw">let </span>sample_ct = audiopus::packet::nb_samples(checked_buf, SAMPLE_RATE).or_else(|<span class="kw">_</span>| {
+            symph_err::decode_error(
                 <span class="string">&quot;Packet was not a valid Opus packet: couldn&#39;t read sample count.&quot;</span>,
             )
-        })<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>;
+        })<span class="question-mark">? </span><span class="kw">as </span>u64;
 
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">Packet::new_from_boxed_slice</span>(<span class="number">0</span>, <span class="self">self</span>.<span class="ident">curr_ts</span>, <span class="ident">sample_ct</span>, <span class="ident">buf</span>);
+        <span class="kw">let </span>out = Packet::new_from_boxed_slice(<span class="number">0</span>, <span class="self">self</span>.curr_ts, sample_ct, buf);
 
-        <span class="self">self</span>.<span class="ident">seek_accel</span>.<span class="ident">update</span>(<span class="self">self</span>.<span class="ident">curr_ts</span>, <span class="ident">frame_pos</span>);
+        <span class="self">self</span>.seek_accel.update(<span class="self">self</span>.curr_ts, frame_pos);
 
-        <span class="self">self</span>.<span class="ident">curr_ts</span> <span class="op">+</span><span class="op">=</span> <span class="ident">sample_ct</span>;
+        <span class="self">self</span>.curr_ts += sample_ct;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">out</span>)
+        <span class="prelude-val">Ok</span>(out)
     }
 
-    <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">MediaSourceStream</span> {
-        <span class="self">self</span>.<span class="ident">source</span>
+    <span class="kw">fn </span>into_inner(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; MediaSourceStream {
+        <span class="self">self</span>.source
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input::input_tests</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">constants::test_data::FILE_DCA_TARGET</span>, <span class="ident">input::File</span>};
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">crate</span>::input::input_tests::<span class="kw-2">*</span>;
+    <span class="kw">use crate</span>::{constants::test_data::FILE_DCA_TARGET, input::File};
 
-    <span class="comment">// NOTE: this covers youtube audio in a non-copyright-violating way, since</span>
-    <span class="comment">// those depend on an HttpRequest internally anyhow.</span>
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">dca_track_plays</span>() {
-        <span class="ident">track_plays_passthrough</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">File::new</span>(<span class="ident">FILE_DCA_TARGET</span>)).<span class="kw">await</span>;
+    <span class="comment">// NOTE: this covers youtube audio in a non-copyright-violating way, since
+    // those depend on an HttpRequest internally anyhow.
+    </span><span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>dca_track_plays() {
+        track_plays_passthrough(|| File::new(FILE_DCA_TARGET)).<span class="kw">await</span>;
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">dca_forward_seek_correct</span>() {
-        <span class="ident">forward_seek_correct</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">File::new</span>(<span class="ident">FILE_DCA_TARGET</span>)).<span class="kw">await</span>;
+    <span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>dca_forward_seek_correct() {
+        forward_seek_correct(|| File::new(FILE_DCA_TARGET)).<span class="kw">await</span>;
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">dca_backward_seek_correct</span>() {
-        <span class="ident">backward_seek_correct</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">File::new</span>(<span class="ident">FILE_DCA_TARGET</span>)).<span class="kw">await</span>;
+    <span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>dca_backward_seek_correct() {
+        backward_seek_correct(|| File::new(FILE_DCA_TARGET)).<span class="kw">await</span>;
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">opus_passthrough_when_other_tracks_paused</span>() {
-        <span class="ident">track_plays_passthrough_when_is_only_active</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">File::new</span>(<span class="ident">FILE_DCA_TARGET</span>)).<span class="kw">await</span>;
+    <span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>opus_passthrough_when_other_tracks_paused() {
+        track_plays_passthrough_when_is_only_active(|| File::new(FILE_DCA_TARGET)).<span class="kw">await</span>;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

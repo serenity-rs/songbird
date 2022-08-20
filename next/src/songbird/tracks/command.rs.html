@@ -65,70 +65,70 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::events::EventData</span>;
-<span class="kw">use</span> <span class="ident">flume::Sender</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">FmtResult</span>},
-    <span class="ident">time::Duration</span>,
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::events::EventData;
+<span class="kw">use </span>flume::Sender;
+<span class="kw">use </span>std::{
+    fmt::{Debug, Formatter, <span class="prelude-ty">Result </span><span class="kw">as </span>FmtResult},
+    time::Duration,
 };
 
-<span class="doccomment">/// A request from external code using a [`TrackHandle`] to modify</span>
-<span class="doccomment">/// or act upon an [`Track`] object.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Track`]: Track</span>
-<span class="doccomment">/// [`TrackHandle`]: TrackHandle</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TrackCommand</span> {
-    <span class="doccomment">/// Set the track&#39;s play_mode to play/resume.</span>
-    <span class="ident">Play</span>,
-    <span class="doccomment">/// Set the track&#39;s play_mode to pause.</span>
-    <span class="ident">Pause</span>,
-    <span class="doccomment">/// Stop the target track. This cannot be undone.</span>
-    <span class="ident">Stop</span>,
-    <span class="doccomment">/// Set the track&#39;s volume.</span>
-    <span class="ident">Volume</span>(<span class="ident">f32</span>),
-    <span class="doccomment">/// Seek to the given duration.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On unsupported input types, this can be fatal.</span>
-    <span class="ident">Seek</span>(<span class="ident">SeekRequest</span>),
-    <span class="doccomment">/// Register an event on this track.</span>
-    <span class="ident">AddEvent</span>(<span class="ident">EventData</span>),
-    <span class="doccomment">/// Run some closure on this track, with direct access to the core object.</span>
-    <span class="ident">Do</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnOnce</span>(<span class="ident">View</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Action</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// Request a copy of this track&#39;s state.</span>
-    <span class="ident">Request</span>(<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// Change the loop count/strategy of this track.</span>
-    <span class="ident">Loop</span>(<span class="ident">LoopState</span>),
-    <span class="doccomment">/// Prompts a track&#39;s input to become live and usable, if it is not already.</span>
-    <span class="ident">MakePlayable</span>(<span class="ident">Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PlayError</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+<span class="doccomment">/// A request from external code using a [`TrackHandle`] to modify
+/// or act upon an [`Track`] object.
+///
+/// [`Track`]: Track
+/// [`TrackHandle`]: TrackHandle
+</span><span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>TrackCommand {
+    <span class="doccomment">/// Set the track&#39;s play_mode to play/resume.
+    </span>Play,
+    <span class="doccomment">/// Set the track&#39;s play_mode to pause.
+    </span>Pause,
+    <span class="doccomment">/// Stop the target track. This cannot be undone.
+    </span>Stop,
+    <span class="doccomment">/// Set the track&#39;s volume.
+    </span>Volume(f32),
+    <span class="doccomment">/// Seek to the given duration.
+    ///
+    /// On unsupported input types, this can be fatal.
+    </span>Seek(SeekRequest),
+    <span class="doccomment">/// Register an event on this track.
+    </span>AddEvent(EventData),
+    <span class="doccomment">/// Run some closure on this track, with direct access to the core object.
+    </span>Do(Box&lt;<span class="kw">dyn </span>FnOnce(View) -&gt; <span class="prelude-ty">Option</span>&lt;Action&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;),
+    <span class="doccomment">/// Request a copy of this track&#39;s state.
+    </span>Request(Sender&lt;TrackState&gt;),
+    <span class="doccomment">/// Change the loop count/strategy of this track.
+    </span>Loop(LoopState),
+    <span class="doccomment">/// Prompts a track&#39;s input to become live and usable, if it is not already.
+    </span>MakePlayable(Sender&lt;<span class="prelude-ty">Result</span>&lt;(), PlayError&gt;&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TrackCommand</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">FmtResult</span> {
+<span class="kw">impl </span>Debug <span class="kw">for </span>TrackCommand {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; FmtResult {
         <span class="macro">write!</span>(
-            <span class="ident">f</span>,
+            f,
             <span class="string">&quot;TrackCommand::{}&quot;</span>,
-            <span class="kw">match</span> <span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Play</span> =&gt; <span class="string">&quot;Play&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Pause</span> =&gt; <span class="string">&quot;Pause&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Stop</span> =&gt; <span class="string">&quot;Stop&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Volume</span>(<span class="ident">vol</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Volume({})&quot;</span>, <span class="ident">vol</span>),
-                <span class="ident"><span class="self">Self</span>::Seek</span>(<span class="ident">s</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Seek({:?})&quot;</span>, <span class="ident">s</span>.<span class="ident">time</span>),
-                <span class="ident"><span class="self">Self</span>::AddEvent</span>(<span class="ident">evt</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;AddEvent({:?})&quot;</span>, <span class="ident">evt</span>),
-                <span class="ident"><span class="self">Self</span>::Do</span>(<span class="ident">_f</span>) =&gt; <span class="string">&quot;Do([function])&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Request</span>(<span class="ident">tx</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Request({:?})&quot;</span>, <span class="ident">tx</span>),
-                <span class="ident"><span class="self">Self</span>::Loop</span>(<span class="ident">loops</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Loop({:?})&quot;</span>, <span class="ident">loops</span>),
-                <span class="ident"><span class="self">Self</span>::MakePlayable</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;MakePlayable&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="kw">match </span><span class="self">self </span>{
+                <span class="self">Self</span>::Play =&gt; <span class="string">&quot;Play&quot;</span>.to_string(),
+                <span class="self">Self</span>::Pause =&gt; <span class="string">&quot;Pause&quot;</span>.to_string(),
+                <span class="self">Self</span>::Stop =&gt; <span class="string">&quot;Stop&quot;</span>.to_string(),
+                <span class="self">Self</span>::Volume(vol) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Volume({})&quot;</span>, vol),
+                <span class="self">Self</span>::Seek(s) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Seek({:?})&quot;</span>, s.time),
+                <span class="self">Self</span>::AddEvent(evt) =&gt; <span class="macro">format!</span>(<span class="string">&quot;AddEvent({:?})&quot;</span>, evt),
+                <span class="self">Self</span>::Do(_f) =&gt; <span class="string">&quot;Do([function])&quot;</span>.to_string(),
+                <span class="self">Self</span>::Request(tx) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Request({:?})&quot;</span>, tx),
+                <span class="self">Self</span>::Loop(loops) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Loop({:?})&quot;</span>, loops),
+                <span class="self">Self</span>::MakePlayable(<span class="kw">_</span>) =&gt; <span class="string">&quot;MakePlayable&quot;</span>.to_string(),
             }
         )
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SeekRequest</span> {
-    <span class="kw">pub</span> <span class="ident">time</span>: <span class="ident">Duration</span>,
-    <span class="kw">pub</span> <span class="ident">callback</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Duration</span>, <span class="ident">PlayError</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="kw">pub struct </span>SeekRequest {
+    <span class="kw">pub </span>time: Duration,
+    <span class="kw">pub </span>callback: Sender&lt;<span class="prelude-ty">Result</span>&lt;Duration, PlayError&gt;&gt;,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

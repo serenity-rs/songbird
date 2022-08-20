@@ -142,147 +142,147 @@
 <span id="140">140</span>
 <span id="141">141</span>
 <span id="142">142</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">compressed::Config</span>, <span class="ident">CodecCacheError</span>, <span class="ident">ToAudioBytes</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">constants::SAMPLE_RATE_RAW</span>,
-    <span class="ident">input</span>::{<span class="ident">AudioStream</span>, <span class="ident">Input</span>, <span class="ident">LiveInput</span>, <span class="ident">RawAdapter</span>},
+</pre><pre class="rust"><code><span class="kw">use super</span>::{compressed::Config, CodecCacheError, ToAudioBytes};
+<span class="kw">use crate</span>::{
+    constants::SAMPLE_RATE_RAW,
+    input::{AudioStream, Input, LiveInput, RawAdapter},
 };
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Read</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>};
-<span class="kw">use</span> <span class="ident">streamcatcher::Catcher</span>;
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{<span class="ident">audio::Channels</span>, <span class="ident">io::MediaSource</span>};
+<span class="kw">use </span>std::io::{Read, <span class="prelude-ty">Result </span><span class="kw">as </span>IoResult, Seek, SeekFrom};
+<span class="kw">use </span>streamcatcher::Catcher;
+<span class="kw">use </span>symphonia_core::{audio::Channels, io::MediaSource};
 
-<span class="doccomment">/// A wrapper around an existing [`Input`] which caches</span>
-<span class="doccomment">/// the decoded and converted audio data locally in memory</span>
-<span class="doccomment">/// as `f32`-format PCM data.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The main purpose of this wrapper is to enable seeking on</span>
-<span class="doccomment">/// incompatible sources (i.e., ffmpeg output) and to ease resource</span>
-<span class="doccomment">/// consumption for commonly reused/shared tracks. [`Compressed`]</span>
-<span class="doccomment">/// offers similar functionality with different</span>
-<span class="doccomment">/// tradeoffs.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is intended for use with small, repeatedly used audio</span>
-<span class="doccomment">/// tracks shared between sources, and stores the sound data</span>
-<span class="doccomment">/// retrieved in **uncompressed floating point** form to minimise the</span>
-<span class="doccomment">/// cost of audio processing when mixing several tracks together.</span>
-<span class="doccomment">/// This must be used sparingly: these cost a significant</span>
-<span class="doccomment">/// *3 Mbps (375 kiB/s)*, or 131 MiB of RAM for a 6 minute song.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: crate::input::Input</span>
-<span class="doccomment">/// [`Compressed`]: super::Compressed</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Decompressed</span> {
-    <span class="doccomment">/// Inner shared bytestore.</span>
-    <span class="kw">pub</span> <span class="ident">raw</span>: <span class="ident">Catcher</span><span class="op">&lt;</span><span class="ident">RawAdapter</span><span class="op">&lt;</span><span class="ident">ToAudioBytes</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A wrapper around an existing [`Input`] which caches
+/// the decoded and converted audio data locally in memory
+/// as `f32`-format PCM data.
+///
+/// The main purpose of this wrapper is to enable seeking on
+/// incompatible sources (i.e., ffmpeg output) and to ease resource
+/// consumption for commonly reused/shared tracks. [`Compressed`]
+/// offers similar functionality with different
+/// tradeoffs.
+///
+/// This is intended for use with small, repeatedly used audio
+/// tracks shared between sources, and stores the sound data
+/// retrieved in **uncompressed floating point** form to minimise the
+/// cost of audio processing when mixing several tracks together.
+/// This must be used sparingly: these cost a significant
+/// *3 Mbps (375 kiB/s)*, or 131 MiB of RAM for a 6 minute song.
+///
+/// [`Input`]: crate::input::Input
+/// [`Compressed`]: super::Compressed
+</span><span class="attribute">#[derive(Clone)]</span>
+<span class="kw">pub struct </span>Decompressed {
+    <span class="doccomment">/// Inner shared bytestore.
+    </span><span class="kw">pub </span>raw: Catcher&lt;RawAdapter&lt;ToAudioBytes&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Decompressed</span> {
-    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, decompressed into `f32` PCM audio.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: Input</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">source</span>: <span class="ident">Input</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">CodecCacheError</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::with_config</span>(<span class="ident">source</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>
-    }
+<span class="kw">impl </span>Decompressed {
+    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, decompressed into `f32` PCM audio.
+    ///
+    /// [`Input`]: Input
+    </span><span class="kw">pub async fn </span>new(source: Input) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CodecCacheError&gt; {
+        <span class="self">Self</span>::with_config(source, <span class="prelude-val">None</span>).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, decompressed into `f32` PCM audio,</span>
-    <span class="doccomment">/// with custom configuration for both Symphonia and the backing store.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: Input</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">with_config</span>(
-        <span class="ident">source</span>: <span class="ident">Input</span>,
-        <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">CodecCacheError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source</span> {
-            <span class="ident">Input::Lazy</span>(<span class="kw-2">mut</span> <span class="ident">r</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">created</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">should_create_async</span>() {
-                    <span class="ident">r</span>.<span class="ident">create_async</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">CodecCacheError::from</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">create</span>().<span class="ident">map_err</span>(<span class="ident">CodecCacheError::from</span>))
-                        .<span class="kw">await</span>
-                        .<span class="ident">map_err</span>(<span class="ident">CodecCacheError::from</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>)
+    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store, decompressed into `f32` PCM audio,
+    /// with custom configuration for both Symphonia and the backing store.
+    ///
+    /// [`Input`]: Input
+    </span><span class="kw">pub async fn </span>with_config(
+        source: Input,
+        config: <span class="prelude-ty">Option</span>&lt;Config&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CodecCacheError&gt; {
+        <span class="kw">let </span>input = <span class="kw">match </span>source {
+            Input::Lazy(<span class="kw-2">mut </span>r) =&gt; {
+                <span class="kw">let </span>created = <span class="kw">if </span>r.should_create_async() {
+                    r.create_async().<span class="kw">await</span>.map_err(CodecCacheError::from)
+                } <span class="kw">else </span>{
+                    tokio::task::spawn_blocking(<span class="kw">move </span>|| r.create().map_err(CodecCacheError::from))
+                        .<span class="kw">await
+                        </span>.map_err(CodecCacheError::from)
+                        .and_then(|v| v)
                 };
 
-                <span class="ident">created</span>.<span class="ident">map</span>(<span class="ident">LiveInput::Raw</span>)
+                created.map(LiveInput::Raw)
             },
-            <span class="ident">Input::Live</span>(<span class="ident">LiveInput::Parsed</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">CodecCacheError::StreamNotAtStart</span>),
-            <span class="ident">Input::Live</span>(<span class="ident">a</span>, <span class="ident">_rec</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">a</span>),
+            Input::Live(LiveInput::Parsed(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(CodecCacheError::StreamNotAtStart),
+            Input::Live(a, _rec) =&gt; <span class="prelude-val">Ok</span>(a),
         }<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">cost_per_sec</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::raw_cost_per_sec</span>(<span class="bool-val">true</span>);
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Config::default_from_cost</span>(<span class="ident">cost_per_sec</span>));
+        <span class="kw">let </span>cost_per_sec = <span class="kw">super</span>::raw_cost_per_sec(<span class="bool-val">true</span>);
+        <span class="kw">let </span>config = config.unwrap_or_else(|| Config::default_from_cost(cost_per_sec));
 
-        <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-            <span class="ident">input</span>.<span class="ident">promote</span>(<span class="ident">config</span>.<span class="ident">codec_registry</span>, <span class="ident">config</span>.<span class="ident">format_registry</span>)
+        <span class="kw">let </span>promoted = tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+            input.promote(config.codec_registry, config.format_registry)
         })
-        .<span class="kw">await</span><span class="question-mark">?</span><span class="question-mark">?</span>;
+        .<span class="kw">await</span><span class="question-mark">??</span>;
 
-        <span class="comment">// If success, guaranteed to be Parsed</span>
-        <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">LiveInput::Parsed</span>(<span class="ident">parsed</span>) <span class="op">=</span> <span class="ident">promoted</span> {
-            <span class="ident">parsed</span>
-        } <span class="kw">else</span> {
+        <span class="comment">// If success, guaranteed to be Parsed
+        </span><span class="kw">let </span>parsed = <span class="kw">if let </span>LiveInput::Parsed(parsed) = promoted {
+            parsed
+        } <span class="kw">else </span>{
             <span class="macro">unreachable!</span>()
         };
 
-        <span class="kw">let</span> <span class="ident">track_info</span> <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">decoder</span>.<span class="ident">codec_params</span>();
-        <span class="kw">let</span> <span class="ident">chan_count</span> <span class="op">=</span> <span class="ident">track_info</span>
-            .<span class="ident">channels</span>
-            .<span class="ident">map</span>(<span class="ident">Channels::count</span>)
-            .<span class="ident">ok_or</span>(<span class="ident">CodecCacheError::UnknownChannelCount</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">sample_rate</span> <span class="op">=</span> <span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">let </span>track_info = parsed.decoder.codec_params();
+        <span class="kw">let </span>chan_count = track_info
+            .channels
+            .map(Channels::count)
+            .ok_or(CodecCacheError::UnknownChannelCount)<span class="question-mark">?</span>;
+        <span class="kw">let </span>sample_rate = SAMPLE_RATE_RAW <span class="kw">as </span>u32;
 
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">RawAdapter::new</span>(
-            <span class="ident">ToAudioBytes::new</span>(<span class="ident">parsed</span>, <span class="prelude-val">Some</span>(<span class="ident">chan_count</span>)),
-            <span class="ident">sample_rate</span>,
-            <span class="ident">chan_count</span> <span class="kw">as</span> <span class="ident">u32</span>,
+        <span class="kw">let </span>source = RawAdapter::new(
+            ToAudioBytes::new(parsed, <span class="prelude-val">Some</span>(chan_count)),
+            sample_rate,
+            chan_count <span class="kw">as </span>u32,
         );
 
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">streamcatcher</span>.<span class="ident">build</span>(<span class="ident">source</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>raw = config.streamcatcher.build(source)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">raw</span> })
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ raw })
     }
 
-    <span class="doccomment">/// Acquire a new handle to this object, creating a new</span>
-    <span class="doccomment">/// view of the existing cached data from the beginning.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">raw</span>: <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">new_handle</span>(),
+    <span class="doccomment">/// Acquire a new handle to this object, creating a new
+    /// view of the existing cached data from the beginning.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>new_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            raw: <span class="self">self</span>.raw.new_handle(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">Decompressed</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">read</span>(<span class="ident">buf</span>)
+<span class="kw">impl </span>Read <span class="kw">for </span>Decompressed {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; IoResult&lt;usize&gt; {
+        <span class="self">self</span>.raw.read(buf)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">Decompressed</span> {
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">seek</span>(<span class="ident">pos</span>)
+<span class="kw">impl </span>Seek <span class="kw">for </span>Decompressed {
+    <span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: SeekFrom) -&gt; IoResult&lt;u64&gt; {
+        <span class="self">self</span>.raw.seek(pos)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">MediaSource</span> <span class="kw">for</span> <span class="ident">Decompressed</span> {
-    <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="bool-val">true</span>
-    }
+<span class="kw">impl </span>MediaSource <span class="kw">for </span>Decompressed {
+    <span class="kw">fn </span>is_seekable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">true
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">byte_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">is_finished</span>() {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="kw">fn </span>byte_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="kw">if </span><span class="self">self</span>.raw.is_finished() {
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.raw.len() <span class="kw">as </span>u64)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Decompressed</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">Decompressed</span>) -&gt; <span class="ident">Input</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">val</span>);
-        <span class="ident">Input::Live</span>(<span class="ident">LiveInput::Raw</span>(<span class="ident">AudioStream</span> { <span class="ident">input</span>, <span class="ident">hint</span>: <span class="prelude-val">None</span> }), <span class="prelude-val">None</span>)
+<span class="kw">impl </span>From&lt;Decompressed&gt; <span class="kw">for </span>Input {
+    <span class="kw">fn </span>from(val: Decompressed) -&gt; Input {
+        <span class="kw">let </span>input = Box::new(val);
+        Input::Live(LiveInput::Raw(AudioStream { input, hint: <span class="prelude-val">None </span>}), <span class="prelude-val">None</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

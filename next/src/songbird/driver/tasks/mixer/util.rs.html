@@ -20,25 +20,25 @@
 <span id="18">18</span>
 <span id="19">19</span>
 <span id="20">20</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">symphonia_core</span>::{<span class="ident">formats::SeekTo</span>, <span class="ident">units::Time</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>symphonia_core::{formats::SeekTo, units::Time};
 
-<span class="comment">// SeekTo lacks Copy and Clone... somehow.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy_seek_to</span>(<span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="ident">SeekTo</span>) -&gt; <span class="ident">SeekTo</span> {
-    <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">pos</span> {
-        <span class="ident">SeekTo::Time</span> { <span class="ident">time</span>, <span class="ident">track_id</span> } =&gt; <span class="ident">SeekTo::Time</span> { <span class="ident">time</span>, <span class="ident">track_id</span> },
-        <span class="ident">SeekTo::TimeStamp</span> { <span class="ident">ts</span>, <span class="ident">track_id</span> } =&gt; <span class="ident">SeekTo::TimeStamp</span> { <span class="ident">ts</span>, <span class="ident">track_id</span> },
+<span class="comment">// SeekTo lacks Copy and Clone... somehow.
+</span><span class="kw">pub fn </span>copy_seek_to(pos: <span class="kw-2">&amp;</span>SeekTo) -&gt; SeekTo {
+    <span class="kw">match </span><span class="kw-2">*</span>pos {
+        SeekTo::Time { time, track_id } =&gt; SeekTo::Time { time, track_id },
+        SeekTo::TimeStamp { ts, track_id } =&gt; SeekTo::TimeStamp { ts, track_id },
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek_to_is_zero</span>(<span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="ident">SeekTo</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">pos</span> {
-        <span class="ident">SeekTo::Time</span> { <span class="ident">time</span>, .. } =&gt;
-            <span class="ident">time</span> <span class="op">==</span> <span class="ident">Time</span> {
-                <span class="ident">seconds</span>: <span class="number">0</span>,
-                <span class="ident">frac</span>: <span class="number">0.0</span>,
+<span class="kw">pub fn </span>seek_to_is_zero(pos: <span class="kw-2">&amp;</span>SeekTo) -&gt; bool {
+    <span class="kw">match </span><span class="kw-2">*</span>pos {
+        SeekTo::Time { time, .. } =&gt;
+            time == Time {
+                seconds: <span class="number">0</span>,
+                frac: <span class="number">0.0</span>,
             },
-        <span class="ident">SeekTo::TimeStamp</span> { <span class="ident">ts</span>, .. } =&gt; <span class="ident">ts</span> <span class="op">==</span> <span class="number">0</span>,
+        SeekTo::TimeStamp { ts, .. } =&gt; ts == <span class="number">0</span>,
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -104,109 +104,109 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">constants::OPUS_PASSTHROUGH_STRIKE_LIMIT</span>,
-    <span class="ident">driver::tasks::message</span>::<span class="kw-2">*</span>,
-    <span class="ident">input</span>::{<span class="ident">Compose</span>, <span class="ident">Input</span>, <span class="ident">LiveInput</span>, <span class="ident">Metadata</span>, <span class="ident">Parsed</span>},
-    <span class="ident">tracks</span>::{<span class="ident">ReadyState</span>, <span class="ident">SeekRequest</span>},
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    constants::OPUS_PASSTHROUGH_STRIKE_LIMIT,
+    driver::tasks::message::<span class="kw-2">*</span>,
+    input::{Compose, Input, LiveInput, Metadata, Parsed},
+    tracks::{ReadyState, SeekRequest},
 };
-<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
-<span class="kw">use</span> <span class="ident">rubato::FftFixedOut</span>;
-<span class="kw">use</span> <span class="ident">std::time::Instant</span>;
+<span class="kw">use </span>flume::Receiver;
+<span class="kw">use </span>rubato::FftFixedOut;
+<span class="kw">use </span>std::time::Instant;
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">InputState</span> {
-    <span class="ident">NotReady</span>(<span class="ident">Input</span>),
-    <span class="ident">Preparing</span>(<span class="ident">PreparingInfo</span>),
-    <span class="ident">Ready</span>(<span class="ident">Parsed</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+<span class="kw">pub enum </span>InputState {
+    NotReady(Input),
+    Preparing(PreparingInfo),
+    Ready(Parsed, <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Compose&gt;&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">InputState</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ready</span>(<span class="ident">parsed</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">parsed</span>.<span class="ident">into</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+<span class="kw">impl </span>InputState {
+    <span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Metadata&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::Ready(parsed, <span class="kw">_</span>) = <span class="self">self </span>{
+            <span class="prelude-val">Some</span>(parsed.into())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ready_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ReadyState</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::NotReady</span>(<span class="kw">_</span>) =&gt; <span class="ident">ReadyState::Uninitialised</span>,
-            <span class="ident"><span class="self">Self</span>::Preparing</span>(<span class="kw">_</span>) =&gt; <span class="ident">ReadyState::Preparing</span>,
-            <span class="ident"><span class="self">Self</span>::Ready</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident">ReadyState::Playable</span>,
+    <span class="kw">pub fn </span>ready_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ReadyState {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::NotReady(<span class="kw">_</span>) =&gt; ReadyState::Uninitialised,
+            <span class="self">Self</span>::Preparing(<span class="kw">_</span>) =&gt; ReadyState::Preparing,
+            <span class="self">Self</span>::Ready(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; ReadyState::Playable,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">InputState</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">Input</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">val</span> {
-            <span class="ident">a</span> @ <span class="ident">Input::Lazy</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::NotReady</span>(<span class="ident">a</span>),
-            <span class="ident">Input::Live</span>(<span class="ident">live</span>, <span class="ident">rec</span>) =&gt; <span class="kw">match</span> <span class="ident">live</span> {
-                <span class="ident">LiveInput::Parsed</span>(<span class="ident">p</span>) =&gt; <span class="ident"><span class="self">Self</span>::Ready</span>(<span class="ident">p</span>, <span class="ident">rec</span>),
-                <span class="ident">other</span> =&gt; <span class="ident"><span class="self">Self</span>::NotReady</span>(<span class="ident">Input::Live</span>(<span class="ident">other</span>, <span class="ident">rec</span>)),
+<span class="kw">impl </span>From&lt;Input&gt; <span class="kw">for </span>InputState {
+    <span class="kw">fn </span>from(val: Input) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>val {
+            a @ Input::Lazy(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::NotReady(a),
+            Input::Live(live, rec) =&gt; <span class="kw">match </span>live {
+                LiveInput::Parsed(p) =&gt; <span class="self">Self</span>::Ready(p, rec),
+                other =&gt; <span class="self">Self</span>::NotReady(Input::Live(other, rec)),
             },
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PreparingInfo</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="doccomment">/// Time this request was fired.</span>
-    <span class="kw">pub</span> <span class="ident">time</span>: <span class="ident">Instant</span>,
-    <span class="doccomment">/// Used to handle seek requests fired while a track was being created (or a seek was in progress).</span>
-    <span class="kw">pub</span> <span class="ident">queued_seek</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SeekRequest</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Callback from the thread pool to indicate the result of creating/parsing this track.</span>
-    <span class="kw">pub</span> <span class="ident">callback</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">MixerInputResultMessage</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>PreparingInfo {
+    <span class="attribute">#[allow(dead_code)]</span>
+    <span class="doccomment">/// Time this request was fired.
+    </span><span class="kw">pub </span>time: Instant,
+    <span class="doccomment">/// Used to handle seek requests fired while a track was being created (or a seek was in progress).
+    </span><span class="kw">pub </span>queued_seek: <span class="prelude-ty">Option</span>&lt;SeekRequest&gt;,
+    <span class="doccomment">/// Callback from the thread pool to indicate the result of creating/parsing this track.
+    </span><span class="kw">pub </span>callback: Receiver&lt;MixerInputResultMessage&gt;,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DecodeState</span> {
-    <span class="kw">pub</span> <span class="ident">inner_pos</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">resampler</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">FftFixedOut</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">passthrough</span>: <span class="ident">Passthrough</span>,
-    <span class="kw">pub</span> <span class="ident">passthrough_violations</span>: <span class="ident">u8</span>,
+<span class="kw">pub struct </span>DecodeState {
+    <span class="kw">pub </span>inner_pos: usize,
+    <span class="kw">pub </span>resampler: <span class="prelude-ty">Option</span>&lt;(usize, FftFixedOut&lt;f32&gt;, Vec&lt;Vec&lt;f32&gt;&gt;)&gt;,
+    <span class="kw">pub </span>passthrough: Passthrough,
+    <span class="kw">pub </span>passthrough_violations: u8,
 }
 
-<span class="kw">impl</span> <span class="ident">DecodeState</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">inner_pos</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="self">self</span>.<span class="ident">resampler</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+<span class="kw">impl </span>DecodeState {
+    <span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.inner_pos = <span class="number">0</span>;
+        <span class="self">self</span>.resampler = <span class="prelude-val">None</span>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record_and_check_passthrough_strike_final</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">fatal</span>: <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">passthrough_violations</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">passthrough_violations</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">blocked</span> <span class="op">=</span> <span class="ident">fatal</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">passthrough_violations</span> <span class="op">&gt;</span> <span class="ident">OPUS_PASSTHROUGH_STRIKE_LIMIT</span>;
-        <span class="kw">if</span> <span class="ident">blocked</span> {
-            <span class="self">self</span>.<span class="ident">passthrough</span> <span class="op">=</span> <span class="ident">Passthrough::Block</span>;
+    <span class="kw">pub fn </span>record_and_check_passthrough_strike_final(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fatal: bool) -&gt; bool {
+        <span class="self">self</span>.passthrough_violations = <span class="self">self</span>.passthrough_violations.saturating_add(<span class="number">1</span>);
+        <span class="kw">let </span>blocked = fatal || <span class="self">self</span>.passthrough_violations &gt; OPUS_PASSTHROUGH_STRIKE_LIMIT;
+        <span class="kw">if </span>blocked {
+            <span class="self">self</span>.passthrough = Passthrough::Block;
         }
-        <span class="ident">blocked</span>
+        blocked
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DecodeState</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner_pos</span>: <span class="number">0</span>,
-            <span class="ident">resampler</span>: <span class="prelude-val">None</span>,
-            <span class="ident">passthrough</span>: <span class="ident">Passthrough::Inactive</span>,
-            <span class="ident">passthrough_violations</span>: <span class="number">0</span>,
+<span class="kw">impl </span>Default <span class="kw">for </span>DecodeState {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner_pos: <span class="number">0</span>,
+            resampler: <span class="prelude-val">None</span>,
+            passthrough: Passthrough::Inactive,
+            passthrough_violations: <span class="number">0</span>,
         }
     }
 }
 
-<span class="doccomment">/// Simple state to manage decoder resets etc.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Inactive-&gt;Active transitions should trigger a reset.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Block should be used if a source contains known-bad packets:</span>
-<span class="doccomment">/// it&#39;s unlikely that packet sizes will vary, but if they do then</span>
-<span class="doccomment">/// we can&#39;t passthrough (and every attempt will trigger a codec reset,</span>
-<span class="doccomment">/// which probably won&#39;t sound too smooth).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Passthrough</span> {
-    <span class="ident">Active</span>,
-    <span class="ident">Inactive</span>,
-    <span class="ident">Block</span>,
+<span class="doccomment">/// Simple state to manage decoder resets etc.
+///
+/// Inactive-&gt;Active transitions should trigger a reset.
+///
+/// Block should be used if a source contains known-bad packets:
+/// it&#39;s unlikely that packet sizes will vary, but if they do then
+/// we can&#39;t passthrough (and every attempt will trigger a codec reset,
+/// which probably won&#39;t sound too smooth).
+</span><span class="attribute">#[derive(Clone, Copy, Eq, PartialEq)]</span>
+<span class="kw">pub enum </span>Passthrough {
+    Active,
+    Inactive,
+    Block,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

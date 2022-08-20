@@ -51,56 +51,56 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(missing_docs)]</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::UdpRxMessage</span>;
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Interconnect</span>, <span class="ident">TrackContext</span>, <span class="ident">WsMessage</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">use </span><span class="kw">super</span>::UdpRxMessage;
+<span class="kw">use super</span>::{Interconnect, TrackContext, WsMessage};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver</span>::{<span class="ident">Bitrate</span>, <span class="ident">Config</span>, <span class="ident">CryptoState</span>},
-    <span class="ident">input</span>::{<span class="ident">AudioStreamError</span>, <span class="ident">Compose</span>, <span class="ident">Parsed</span>},
+<span class="kw">use crate</span>::{
+    driver::{Bitrate, Config, CryptoState},
+    input::{AudioStreamError, Compose, Parsed},
 };
-<span class="kw">use</span> <span class="ident">flume::Sender</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">net::UdpSocket</span>, <span class="ident">sync::Arc</span>};
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{<span class="ident">errors::Error</span> <span class="kw">as</span> <span class="ident">SymphoniaError</span>, <span class="ident">formats::SeekedTo</span>};
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305::XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>;
+<span class="kw">use </span>flume::Sender;
+<span class="kw">use </span>std::{net::UdpSocket, sync::Arc};
+<span class="kw">use </span>symphonia_core::{errors::Error <span class="kw">as </span>SymphoniaError, formats::SeekedTo};
+<span class="kw">use </span>xsalsa20poly1305::XSalsa20Poly1305 <span class="kw">as </span>Cipher;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MixerConnection</span> {
-    <span class="kw">pub</span> <span class="ident">cipher</span>: <span class="ident">Cipher</span>,
-    <span class="kw">pub</span> <span class="ident">crypto_state</span>: <span class="ident">CryptoState</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">udp_rx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">udp_tx</span>: <span class="ident">UdpSocket</span>,
+<span class="kw">pub struct </span>MixerConnection {
+    <span class="kw">pub </span>cipher: Cipher,
+    <span class="kw">pub </span>crypto_state: CryptoState,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+    <span class="kw">pub </span>udp_rx: Sender&lt;UdpRxMessage&gt;,
+    <span class="kw">pub </span>udp_tx: UdpSocket,
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MixerMessage</span> {
-    <span class="ident">AddTrack</span>(<span class="ident">TrackContext</span>),
-    <span class="ident">SetTrack</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TrackContext</span><span class="op">&gt;</span>),
+<span class="kw">pub enum </span>MixerMessage {
+    AddTrack(TrackContext),
+    SetTrack(<span class="prelude-ty">Option</span>&lt;TrackContext&gt;),
 
-    <span class="ident">SetBitrate</span>(<span class="ident">Bitrate</span>),
-    <span class="ident">SetConfig</span>(<span class="ident">Config</span>),
-    <span class="ident">SetMute</span>(<span class="ident">bool</span>),
+    SetBitrate(Bitrate),
+    SetConfig(Config),
+    SetMute(bool),
 
-    <span class="ident">SetConn</span>(<span class="ident">MixerConnection</span>, <span class="ident">u32</span>),
-    <span class="ident">Ws</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span><span class="op">&gt;</span>),
-    <span class="ident">DropConn</span>,
+    SetConn(MixerConnection, u32),
+    Ws(<span class="prelude-ty">Option</span>&lt;Sender&lt;WsMessage&gt;&gt;),
+    DropConn,
 
-    <span class="ident">ReplaceInterconnect</span>(<span class="ident">Interconnect</span>),
-    <span class="ident">RebuildEncoder</span>,
+    ReplaceInterconnect(Interconnect),
+    RebuildEncoder,
 
-    <span class="ident">Poison</span>,
+    Poison,
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MixerInputResultMessage</span> {
-    <span class="ident">CreateErr</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AudioStreamError</span><span class="op">&gt;</span>),
-    <span class="ident">ParseErr</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SymphoniaError</span><span class="op">&gt;</span>),
-    <span class="ident">Seek</span>(
-        <span class="ident">Parsed</span>,
-        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SeekedTo</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SymphoniaError</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">pub enum </span>MixerInputResultMessage {
+    CreateErr(Arc&lt;AudioStreamError&gt;),
+    ParseErr(Arc&lt;SymphoniaError&gt;),
+    Seek(
+        Parsed,
+        <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Compose&gt;&gt;,
+        <span class="prelude-ty">Result</span>&lt;SeekedTo, Arc&lt;SymphoniaError&gt;&gt;,
     ),
-    <span class="ident">Built</span>(<span class="ident">Parsed</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    Built(Parsed, <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Compose&gt;&gt;),
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

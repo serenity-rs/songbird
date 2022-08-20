@@ -21,26 +21,26 @@
 <span id="19">19</span>
 <span id="20">20</span>
 <span id="21">21</span>
-</pre><pre class="rust"><code><span class="doccomment">/// Whether this track has been made live, is being processed, or is</span>
-<span class="doccomment">/// currently uninitialised.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ReadyState</span> {
-    <span class="doccomment">/// This track is still a lazy [`Compose`] object, and hasn&#39;t been made playable.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Compose`]: crate::input::Compose</span>
-    <span class="ident">Uninitialised</span>,
+</pre><pre class="rust"><code><span class="doccomment">/// Whether this track has been made live, is being processed, or is
+/// currently uninitialised.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq)]</span>
+<span class="kw">pub enum </span>ReadyState {
+    <span class="doccomment">/// This track is still a lazy [`Compose`] object, and hasn&#39;t been made playable.
+    ///
+    /// [`Compose`]: crate::input::Compose
+    </span>Uninitialised,
 
-    <span class="doccomment">/// The mixer is currently creating and parsing this track&#39;s bytestream.</span>
-    <span class="ident">Preparing</span>,
+    <span class="doccomment">/// The mixer is currently creating and parsing this track&#39;s bytestream.
+    </span>Preparing,
 
-    <span class="doccomment">/// This track is fully initialised and usable.</span>
-    <span class="ident">Playable</span>,
+    <span class="doccomment">/// This track is fully initialised and usable.
+    </span>Playable,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ReadyState</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Uninitialised</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>ReadyState {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Uninitialised
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -323,328 +323,328 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::driver::DecodeMode</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver</span>::{<span class="ident">retry::Retry</span>, <span class="ident">CryptoMode</span>, <span class="ident">MixMode</span>},
-    <span class="ident">input::codecs</span>::<span class="kw-2">*</span>,
+</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">use </span><span class="kw">crate</span>::driver::DecodeMode;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">use crate</span>::{
+    driver::{retry::Retry, CryptoMode, MixMode},
+    input::codecs::<span class="kw-2">*</span>,
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::driver::test_config</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">use </span><span class="kw">crate</span>::driver::test_config::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">symphonia::core</span>::{<span class="ident">codecs::CodecRegistry</span>, <span class="ident">probe::Probe</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">use </span>symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
-<span class="kw">use</span> <span class="ident">derivative::Derivative</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use </span>derivative::Derivative;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="doccomment">/// Configuration for drivers and calls.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Derivative</span>)]</span>
-<span class="attribute">#[<span class="ident">derivative</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Config</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Selected tagging mode for voice packet encryption.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`CryptoMode::Normal`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Changes to this field will not immediately apply if the</span>
-    <span class="doccomment">/// driver is actively connected, but will apply to subsequent</span>
-    <span class="doccomment">/// sessions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CryptoMode::Normal`]: CryptoMode::Normal</span>
-    <span class="kw">pub</span> <span class="ident">crypto_mode</span>: <span class="ident">CryptoMode</span>,
+<span class="doccomment">/// Configuration for drivers and calls.
+</span><span class="attribute">#[derive(Clone, Derivative)]</span>
+<span class="attribute">#[derivative(Debug)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub struct </span>Config {
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// Selected tagging mode for voice packet encryption.
+    ///
+    /// Defaults to [`CryptoMode::Normal`].
+    ///
+    /// Changes to this field will not immediately apply if the
+    /// driver is actively connected, but will apply to subsequent
+    /// sessions.
+    ///
+    /// [`CryptoMode::Normal`]: CryptoMode::Normal
+    </span><span class="kw">pub </span>crypto_mode: CryptoMode,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>))]</span>
-    <span class="doccomment">/// Configures whether decoding and decryption occur for all received packets.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If voice receiving voice packets, generally you should choose [`DecodeMode::Decode`].</span>
-    <span class="doccomment">/// [`DecodeMode::Decrypt`] is intended for users running their own selective decoding,</span>
-    <span class="doccomment">/// who rely upon [user speaking events], or who need to inspect Opus packets.</span>
-    <span class="doccomment">/// If you&#39;re certain you will never need any RT(C)P events, then consider [`DecodeMode::Pass`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`DecodeMode::Decrypt`]. This is due to per-packet decoding costs,</span>
-    <span class="doccomment">/// which most users will not want to pay, but allowing speaking events which are commonly used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`DecodeMode::Decode`]: DecodeMode::Decode</span>
-    <span class="doccomment">/// [`DecodeMode::Decrypt`]: DecodeMode::Decrypt</span>
-    <span class="doccomment">/// [`DecodeMode::Pass`]: DecodeMode::Pass</span>
-    <span class="doccomment">/// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate</span>
-    <span class="kw">pub</span> <span class="ident">decode_mode</span>: <span class="ident">DecodeMode</span>,
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;driver&quot;</span>, feature = <span class="string">&quot;receive&quot;</span>))]</span>
+    <span class="doccomment">/// Configures whether decoding and decryption occur for all received packets.
+    ///
+    /// If voice receiving voice packets, generally you should choose [`DecodeMode::Decode`].
+    /// [`DecodeMode::Decrypt`] is intended for users running their own selective decoding,
+    /// who rely upon [user speaking events], or who need to inspect Opus packets.
+    /// If you&#39;re certain you will never need any RT(C)P events, then consider [`DecodeMode::Pass`].
+    ///
+    /// Defaults to [`DecodeMode::Decrypt`]. This is due to per-packet decoding costs,
+    /// which most users will not want to pay, but allowing speaking events which are commonly used.
+    ///
+    /// [`DecodeMode::Decode`]: DecodeMode::Decode
+    /// [`DecodeMode::Decrypt`]: DecodeMode::Decrypt
+    /// [`DecodeMode::Pass`]: DecodeMode::Pass
+    /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
+    </span><span class="kw">pub </span>decode_mode: DecodeMode,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>))]</span>
-    <span class="doccomment">/// Configures the amount of time after a user/SSRC is inactive before their decoder state</span>
-    <span class="doccomment">/// should be removed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to 1 minute.</span>
-    <span class="kw">pub</span> <span class="ident">decode_state_timeout</span>: <span class="ident">Duration</span>,
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;driver&quot;</span>, feature = <span class="string">&quot;receive&quot;</span>))]</span>
+    <span class="doccomment">/// Configures the amount of time after a user/SSRC is inactive before their decoder state
+    /// should be removed.
+    ///
+    /// Defaults to 1 minute.
+    </span><span class="kw">pub </span>decode_state_timeout: Duration,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
-    <span class="doccomment">/// Configures the amount of time to wait for Discord to reply with connection information</span>
-    <span class="doccomment">/// if [`Call::join`]/[`join_gateway`] are used.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a useful fallback in the event that:</span>
-    <span class="doccomment">///  * the underlying Discord client restarts and loses a join request, or</span>
-    <span class="doccomment">///  * a channel join fails because the bot is already believed to be there.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to 10 seconds. If set to `None`, connections will never time out.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Call::join`]: crate::Call::join</span>
-    <span class="doccomment">/// [`join_gateway`]: crate::Call::join_gateway</span>
-    <span class="kw">pub</span> <span class="ident">gateway_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]</span>
+    <span class="doccomment">/// Configures the amount of time to wait for Discord to reply with connection information
+    /// if [`Call::join`]/[`join_gateway`] are used.
+    ///
+    /// This is a useful fallback in the event that:
+    ///  * the underlying Discord client restarts and loses a join request, or
+    ///  * a channel join fails because the bot is already believed to be there.
+    ///
+    /// Defaults to 10 seconds. If set to `None`, connections will never time out.
+    ///
+    /// [`Call::join`]: crate::Call::join
+    /// [`join_gateway`]: crate::Call::join_gateway
+    </span><span class="kw">pub </span>gateway_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Configures whether the driver will mix and output stereo or mono Opus data</span>
-    <span class="doccomment">/// over a voice channel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`Stereo`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Stereo`]: MixMode::Stereo</span>
-    <span class="kw">pub</span> <span class="ident">mix_mode</span>: <span class="ident">MixMode</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// Configures whether the driver will mix and output stereo or mono Opus data
+    /// over a voice channel.
+    ///
+    /// Defaults to [`Stereo`].
+    ///
+    /// [`Stereo`]: MixMode::Stereo
+    </span><span class="kw">pub </span>mix_mode: MixMode,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Number of concurrently active tracks to allocate memory for.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This should be set at, or just above, the maximum number of tracks</span>
-    <span class="doccomment">/// you expect your bot will play at the same time. Exceeding the size of</span>
-    <span class="doccomment">/// the internal queue will trigger a larger memory allocation and copy,</span>
-    <span class="doccomment">/// possibly causing the mixer thread to miss a packet deadline.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to `1`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Changes to this field in a running driver will only ever increase</span>
-    <span class="doccomment">/// the capacity of the track store.</span>
-    <span class="kw">pub</span> <span class="ident">preallocated_tracks</span>: <span class="ident">usize</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// Number of concurrently active tracks to allocate memory for.
+    ///
+    /// This should be set at, or just above, the maximum number of tracks
+    /// you expect your bot will play at the same time. Exceeding the size of
+    /// the internal queue will trigger a larger memory allocation and copy,
+    /// possibly causing the mixer thread to miss a packet deadline.
+    ///
+    /// Defaults to `1`.
+    ///
+    /// Changes to this field in a running driver will only ever increase
+    /// the capacity of the track store.
+    </span><span class="kw">pub </span>preallocated_tracks: usize,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Connection retry logic for the [`Driver`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This controls how many times the [`Driver`] should retry any connections,</span>
-    <span class="doccomment">/// as well as how long to wait between attempts.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Driver`]: crate::driver::Driver</span>
-    <span class="kw">pub</span> <span class="ident">driver_retry</span>: <span class="ident">Retry</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// Connection retry logic for the [`Driver`].
+    ///
+    /// This controls how many times the [`Driver`] should retry any connections,
+    /// as well as how long to wait between attempts.
+    ///
+    /// [`Driver`]: crate::driver::Driver
+    </span><span class="kw">pub </span>driver_retry: Retry,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Configures whether or not each mixed audio packet is [soft-clipped] into the</span>
-    <span class="doccomment">/// [-1, 1] audio range.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to `true`, preventing clipping and dangerously loud audio from being sent.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **This operation adds ~3% cost to a standard (non-passthrough) mix cycle.**</span>
-    <span class="doccomment">/// If you *know* that your bot will only play one sound at a time and that</span>
-    <span class="doccomment">/// your volume is between `0.0` and `1.0`, then you can disable soft-clipping</span>
-    <span class="doccomment">/// for a performance boost. If you are playing several sounds at once, do not</span>
-    <span class="doccomment">/// disable this unless you make sure to reduce the volume of each sound.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [soft-clipped]: https://opus-codec.org/docs/opus_api-1.3.1/group__opus__decoder.html#gaff99598b352e8939dded08d96e125e0b</span>
-    <span class="kw">pub</span> <span class="ident">use_softclip</span>: <span class="ident">bool</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// Configures whether or not each mixed audio packet is [soft-clipped] into the
+    /// [-1, 1] audio range.
+    ///
+    /// Defaults to `true`, preventing clipping and dangerously loud audio from being sent.
+    ///
+    /// **This operation adds ~3% cost to a standard (non-passthrough) mix cycle.**
+    /// If you *know* that your bot will only play one sound at a time and that
+    /// your volume is between `0.0` and `1.0`, then you can disable soft-clipping
+    /// for a performance boost. If you are playing several sounds at once, do not
+    /// disable this unless you make sure to reduce the volume of each sound.
+    ///
+    /// [soft-clipped]: https://opus-codec.org/docs/opus_api-1.3.1/group__opus__decoder.html#gaff99598b352e8939dded08d96e125e0b
+    </span><span class="kw">pub </span>use_softclip: bool,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Configures the maximum amount of time to wait for an attempted voice</span>
-    <span class="doccomment">/// connection to Discord.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to 10 seconds. If set to `None`, connections will never time out.</span>
-    <span class="kw">pub</span> <span class="ident">driver_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// Configures the maximum amount of time to wait for an attempted voice
+    /// connection to Discord.
+    ///
+    /// Defaults to 10 seconds. If set to `None`, connections will never time out.
+    </span><span class="kw">pub </span>driver_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">derivative</span>(<span class="ident">Debug</span> <span class="op">=</span> <span class="string">&quot;ignore&quot;</span>)]</span>
-    <span class="doccomment">/// Registry of the inner codecs supported by the driver, adding audiopus-based</span>
-    <span class="doccomment">/// Opus codec support to all of Symphonia&#39;s default codecs.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`CODEC_REGISTRY`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY</span>
-    <span class="kw">pub</span> <span class="ident">codec_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CodecRegistry</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[derivative(Debug = <span class="string">&quot;ignore&quot;</span>)]</span>
+    <span class="doccomment">/// Registry of the inner codecs supported by the driver, adding audiopus-based
+    /// Opus codec support to all of Symphonia&#39;s default codecs.
+    ///
+    /// Defaults to [`CODEC_REGISTRY`].
+    ///
+    /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
+    </span><span class="kw">pub </span>codec_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>CodecRegistry,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">derivative</span>(<span class="ident">Debug</span> <span class="op">=</span> <span class="string">&quot;ignore&quot;</span>)]</span>
-    <span class="doccomment">/// Registry of the muxers and container formats supported by the driver.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`PROBE`], which includes all of Symphonia&#39;s default format handlers</span>
-    <span class="doccomment">/// and DCA format support.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`PROBE`]: static@PROBE</span>
-    <span class="kw">pub</span> <span class="ident">format_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Probe</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[derivative(Debug = <span class="string">&quot;ignore&quot;</span>)]</span>
+    <span class="doccomment">/// Registry of the muxers and container formats supported by the driver.
+    ///
+    /// Defaults to [`PROBE`], which includes all of Symphonia&#39;s default format handlers
+    /// and DCA format support.
+    ///
+    /// [`PROBE`]: static@PROBE
+    </span><span class="kw">pub </span>format_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Probe,
 
-    <span class="comment">// Test only attributes</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="doccomment">/// Test config to offer precise control over mixing tick rate/count.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">tick_style</span>: <span class="ident">TickStyle</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="doccomment">/// If set, skip connection and encryption steps.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">override_connection</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OutputMode</span><span class="op">&gt;</span>,
+    <span class="comment">// Test only attributes
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[cfg(test)]</span>
+    <span class="doccomment">/// Test config to offer precise control over mixing tick rate/count.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) tick_style: TickStyle,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="attribute">#[cfg(test)]</span>
+    <span class="doccomment">/// If set, skip connection and encryption steps.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) override_connection: <span class="prelude-ty">Option</span>&lt;OutputMode&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Config</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">crypto_mode</span>: <span class="ident">CryptoMode::Normal</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>))]</span>
-            <span class="ident">decode_mode</span>: <span class="ident">DecodeMode::Decrypt</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>))]</span>
-            <span class="ident">decode_state_timeout</span>: <span class="ident">Duration::from_secs</span>(<span class="number">60</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
-            <span class="ident">gateway_timeout</span>: <span class="prelude-val">Some</span>(<span class="ident">Duration::from_secs</span>(<span class="number">10</span>)),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">mix_mode</span>: <span class="ident">MixMode::Stereo</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">preallocated_tracks</span>: <span class="number">1</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">use_softclip</span>: <span class="bool-val">true</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">driver_retry</span>: <span class="ident">Retry::default</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">driver_timeout</span>: <span class="prelude-val">Some</span>(<span class="ident">Duration::from_secs</span>(<span class="number">10</span>)),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">codec_registry</span>: <span class="kw-2">&amp;</span><span class="ident">CODEC_REGISTRY</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">format_registry</span>: <span class="kw-2">&amp;</span><span class="ident">PROBE</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-            <span class="ident">tick_style</span>: <span class="ident">TickStyle::Timed</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-            <span class="ident">override_connection</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl </span>Default <span class="kw">for </span>Config {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            crypto_mode: CryptoMode::Normal,
+            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;driver&quot;</span>, feature = <span class="string">&quot;receive&quot;</span>))]</span>
+            decode_mode: DecodeMode::Decrypt,
+            <span class="attribute">#[cfg(all(feature = <span class="string">&quot;driver&quot;</span>, feature = <span class="string">&quot;receive&quot;</span>))]</span>
+            decode_state_timeout: Duration::from_secs(<span class="number">60</span>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]</span>
+            gateway_timeout: <span class="prelude-val">Some</span>(Duration::from_secs(<span class="number">10</span>)),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            mix_mode: MixMode::Stereo,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            preallocated_tracks: <span class="number">1</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            use_softclip: <span class="bool-val">true</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            driver_retry: Retry::default(),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            driver_timeout: <span class="prelude-val">Some</span>(Duration::from_secs(<span class="number">10</span>)),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            codec_registry: <span class="kw-2">&amp;</span>CODEC_REGISTRY,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            format_registry: <span class="kw-2">&amp;</span>PROBE,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            <span class="attribute">#[cfg(test)]</span>
+            tick_style: TickStyle::Timed,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            <span class="attribute">#[cfg(test)]</span>
+            override_connection: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Config</span> {
-    <span class="doccomment">/// Sets this `Config`&#39;s chosen cryptographic tagging scheme.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crypto_mode</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">crypto_mode</span>: <span class="ident">CryptoMode</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">crypto_mode</span> <span class="op">=</span> <span class="ident">crypto_mode</span>;
-        <span class="self">self</span>
-    }
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">impl </span>Config {
+    <span class="doccomment">/// Sets this `Config`&#39;s chosen cryptographic tagging scheme.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>crypto_mode(<span class="kw-2">mut </span><span class="self">self</span>, crypto_mode: CryptoMode) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.crypto_mode = crypto_mode;
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-    <span class="doccomment">/// Sets this `Config`&#39;s received packet decryption/decoding behaviour.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_mode</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">decode_mode</span>: <span class="ident">DecodeMode</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">decode_mode</span> <span class="op">=</span> <span class="ident">decode_mode</span>;
-        <span class="self">self</span>
-    }
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+    <span class="doccomment">/// Sets this `Config`&#39;s received packet decryption/decoding behaviour.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>decode_mode(<span class="kw-2">mut </span><span class="self">self</span>, decode_mode: DecodeMode) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.decode_mode = decode_mode;
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-    <span class="doccomment">/// Sets this `Config`&#39;s received packet decoder cleanup timer.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_state_timeout</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">decode_state_timeout</span>: <span class="ident">Duration</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">decode_state_timeout</span> <span class="op">=</span> <span class="ident">decode_state_timeout</span>;
-        <span class="self">self</span>
-    }
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+    <span class="doccomment">/// Sets this `Config`&#39;s received packet decoder cleanup timer.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>decode_state_timeout(<span class="kw-2">mut </span><span class="self">self</span>, decode_state_timeout: Duration) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.decode_state_timeout = decode_state_timeout;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets this `Config`&#39;s audio mixing channel count.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mix_mode</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mix_mode</span>: <span class="ident">MixMode</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">mix_mode</span> <span class="op">=</span> <span class="ident">mix_mode</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets this `Config`&#39;s audio mixing channel count.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>mix_mode(<span class="kw-2">mut </span><span class="self">self</span>, mix_mode: MixMode) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.mix_mode = mix_mode;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets this `Config`&#39;s number of tracks to preallocate.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">preallocated_tracks</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">preallocated_tracks</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">preallocated_tracks</span> <span class="op">=</span> <span class="ident">preallocated_tracks</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets this `Config`&#39;s number of tracks to preallocate.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>preallocated_tracks(<span class="kw-2">mut </span><span class="self">self</span>, preallocated_tracks: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.preallocated_tracks = preallocated_tracks;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets this `Config`&#39;s number to enable/disable soft-clipping sent audio.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_softclip</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">use_softclip</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">use_softclip</span> <span class="op">=</span> <span class="ident">use_softclip</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets this `Config`&#39;s number to enable/disable soft-clipping sent audio.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>use_softclip(<span class="kw-2">mut </span><span class="self">self</span>, use_softclip: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.use_softclip = use_softclip;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets this `Config`&#39;s timeout for establishing a voice connection.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">driver_timeout</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">driver_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">driver_timeout</span> <span class="op">=</span> <span class="ident">driver_timeout</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets this `Config`&#39;s timeout for establishing a voice connection.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>driver_timeout(<span class="kw-2">mut </span><span class="self">self</span>, driver_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.driver_timeout = driver_timeout;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets this `Config`&#39;s voice connection retry configuration.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">driver_retry</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">driver_retry</span>: <span class="ident">Retry</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">driver_retry</span> <span class="op">=</span> <span class="ident">driver_retry</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets this `Config`&#39;s voice connection retry configuration.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>driver_retry(<span class="kw-2">mut </span><span class="self">self</span>, driver_retry: Retry) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.driver_retry = driver_retry;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets this `Config`&#39;s symphonia codec registry.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codec_registry</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">codec_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CodecRegistry</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">codec_registry</span> <span class="op">=</span> <span class="ident">codec_registry</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets this `Config`&#39;s symphonia codec registry.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>codec_registry(<span class="kw-2">mut </span><span class="self">self</span>, codec_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>CodecRegistry) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.codec_registry = codec_registry;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets this `Config`&#39;s symphonia format registry/probe set.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_registry</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format_registry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Probe</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">format_registry</span> <span class="op">=</span> <span class="ident">format_registry</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets this `Config`&#39;s symphonia format registry/probe set.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>format_registry(<span class="kw-2">mut </span><span class="self">self</span>, format_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Probe) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.format_registry = format_registry;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// This is used to prevent changes which would invalidate the current session.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_safe</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>, <span class="ident">connected</span>: <span class="ident">bool</span>) {
-        <span class="kw">if</span> <span class="ident">connected</span> {
-            <span class="self">self</span>.<span class="ident">crypto_mode</span> <span class="op">=</span> <span class="ident">previous</span>.<span class="ident">crypto_mode</span>;
+    <span class="doccomment">/// This is used to prevent changes which would invalidate the current session.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_safe(<span class="kw-2">&amp;mut </span><span class="self">self</span>, previous: <span class="kw-2">&amp;</span>Config, connected: bool) {
+        <span class="kw">if </span>connected {
+            <span class="self">self</span>.crypto_mode = previous.crypto_mode;
         }
     }
 }
 
-<span class="comment">// Test only attributes</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>))]</span>
-<span class="kw">impl</span> <span class="ident">Config</span> {
-    <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tick_style</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tick_style</span>: <span class="ident">TickStyle</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">tick_style</span> <span class="op">=</span> <span class="ident">tick_style</span>;
-        <span class="self">self</span>
-    }
+<span class="comment">// Test only attributes
+</span><span class="attribute">#[cfg(all(test, feature = <span class="string">&quot;driver&quot;</span>))]</span>
+<span class="kw">impl </span>Config {
+    <span class="attribute">#![allow(missing_docs)]</span>
+    <span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>tick_style(<span class="kw-2">mut </span><span class="self">self</span>, tick_style: TickStyle) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.tick_style = tick_style;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets this `Config`&#39;s voice connection retry configuration.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">override_connection</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">override_connection</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OutputMode</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">override_connection</span> <span class="op">=</span> <span class="ident">override_connection</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets this `Config`&#39;s voice connection retry configuration.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>override_connection(<span class="kw-2">mut </span><span class="self">self</span>, override_connection: <span class="prelude-ty">Option</span>&lt;OutputMode&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.override_connection = override_connection;
+        <span class="self">self
+    </span>}
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test_cfg</span>(<span class="ident">raw_output</span>: <span class="ident">bool</span>) -&gt; (<span class="ident">DriverTestHandle</span>, <span class="ident">Config</span>) {
-        <span class="kw">let</span> (<span class="ident">tick_tx</span>, <span class="ident">tick_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+    <span class="kw">pub fn </span>test_cfg(raw_output: bool) -&gt; (DriverTestHandle, Config) {
+        <span class="kw">let </span>(tick_tx, tick_rx) = flume::unbounded();
 
-        <span class="kw">let</span> (<span class="ident">conn</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">raw_output</span> {
-            <span class="kw">let</span> (<span class="ident">pkt_tx</span>, <span class="ident">pkt_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+        <span class="kw">let </span>(conn, rx) = <span class="kw">if </span>raw_output {
+            <span class="kw">let </span>(pkt_tx, pkt_rx) = flume::unbounded();
 
-            (<span class="ident">OutputMode::Raw</span>(<span class="ident">pkt_tx</span>), <span class="ident">OutputReceiver::Raw</span>(<span class="ident">pkt_rx</span>))
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> (<span class="ident">rtp_tx</span>, <span class="ident">rtp_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+            (OutputMode::Raw(pkt_tx), OutputReceiver::Raw(pkt_rx))
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>(rtp_tx, rtp_rx) = flume::unbounded();
 
-            (<span class="ident">OutputMode::Rtp</span>(<span class="ident">rtp_tx</span>), <span class="ident">OutputReceiver::Rtp</span>(<span class="ident">rtp_rx</span>))
+            (OutputMode::Rtp(rtp_tx), OutputReceiver::Rtp(rtp_rx))
         };
 
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Config::default</span>()
-            .<span class="ident">tick_style</span>(<span class="ident">TickStyle::UntimedWithExecLimit</span>(<span class="ident">tick_rx</span>))
-            .<span class="ident">override_connection</span>(<span class="prelude-val">Some</span>(<span class="ident">conn</span>));
+        <span class="kw">let </span>config = Config::default()
+            .tick_style(TickStyle::UntimedWithExecLimit(tick_rx))
+            .override_connection(<span class="prelude-val">Some</span>(conn));
 
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">DriverTestHandle</span> { <span class="ident">rx</span>, <span class="ident">tx</span>: <span class="ident">tick_tx</span> };
+        <span class="kw">let </span>handle = DriverTestHandle { rx, tx: tick_tx };
 
-        (<span class="ident">handle</span>, <span class="ident">config</span>)
+        (handle, config)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Config</span> {
-    <span class="doccomment">/// Sets this `Config`&#39;s timeout for joining a voice channel.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gateway_timeout</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">gateway_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">gateway_timeout</span> <span class="op">=</span> <span class="ident">gateway_timeout</span>;
-        <span class="self">self</span>
-    }
+<span class="attribute">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="kw">impl </span>Config {
+    <span class="doccomment">/// Sets this `Config`&#39;s timeout for joining a voice channel.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>gateway_timeout(<span class="kw-2">mut </span><span class="self">self</span>, gateway_timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.gateway_timeout = gateway_timeout;
+        <span class="self">self
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

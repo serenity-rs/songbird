@@ -49,54 +49,54 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Configuration for connection retries.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Configuration for connection retries.
 
-<span class="kw">mod</span> <span class="ident">strategy</span>;
+</span><span class="kw">mod </span>strategy;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::strategy</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::strategy::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="doccomment">/// Configuration to be used for retrying driver connection attempts.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Retry</span> {
-    <span class="doccomment">/// Strategy used to determine how long to wait between retry attempts.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *Defaults to an [`ExponentialBackoff`] from 0.25s</span>
-    <span class="doccomment">/// to 10s, with a jitter of `0.1`.*</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`ExponentialBackoff`]: Strategy::Backoff</span>
-    <span class="kw">pub</span> <span class="ident">strategy</span>: <span class="ident">Strategy</span>,
-    <span class="doccomment">/// The maximum number of retries to attempt.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `None` will attempt an infinite number of retries,</span>
-    <span class="doccomment">/// while `Some(0)` will attempt to connect *once* (no retries).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *Defaults to `Some(5)`.*</span>
-    <span class="kw">pub</span> <span class="ident">retry_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Configuration to be used for retrying driver connection attempts.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, PartialEq)]</span>
+<span class="kw">pub struct </span>Retry {
+    <span class="doccomment">/// Strategy used to determine how long to wait between retry attempts.
+    ///
+    /// *Defaults to an [`ExponentialBackoff`] from 0.25s
+    /// to 10s, with a jitter of `0.1`.*
+    ///
+    /// [`ExponentialBackoff`]: Strategy::Backoff
+    </span><span class="kw">pub </span>strategy: Strategy,
+    <span class="doccomment">/// The maximum number of retries to attempt.
+    ///
+    /// `None` will attempt an infinite number of retries,
+    /// while `Some(0)` will attempt to connect *once* (no retries).
+    ///
+    /// *Defaults to `Some(5)`.*
+    </span><span class="kw">pub </span>retry_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Retry</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">strategy</span>: <span class="ident">Strategy::Backoff</span>(<span class="ident">ExponentialBackoff::default</span>()),
-            <span class="ident">retry_limit</span>: <span class="prelude-val">Some</span>(<span class="number">5</span>),
+<span class="kw">impl </span>Default <span class="kw">for </span>Retry {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            strategy: Strategy::Backoff(ExponentialBackoff::default()),
+            retry_limit: <span class="prelude-val">Some</span>(<span class="number">5</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Retry</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">retry_in</span>(
+<span class="kw">impl </span>Retry {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>retry_in(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">last_wait</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
-        <span class="ident">attempts</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">retry_limit</span>.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">attempts</span> <span class="op">&lt;</span> <span class="ident">a</span>) {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">strategy</span>.<span class="ident">retry_in</span>(<span class="ident">last_wait</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+        last_wait: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+        attempts: usize,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Duration&gt; {
+        <span class="kw">if </span><span class="self">self</span>.retry_limit.map_or(<span class="bool-val">true</span>, |a| attempts &lt; a) {
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.strategy.retry_in(last_wait))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

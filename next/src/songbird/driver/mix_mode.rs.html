@@ -59,64 +59,64 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">audiopus::Channels</span>;
-<span class="kw">use</span> <span class="ident">symphonia_core::audio::Layout</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>audiopus::Channels;
+<span class="kw">use </span>symphonia_core::audio::Layout;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::{<span class="ident">MONO_FRAME_SIZE</span>, <span class="ident">STEREO_FRAME_SIZE</span>};
+<span class="kw">use </span><span class="kw">crate</span>::constants::{MONO_FRAME_SIZE, STEREO_FRAME_SIZE};
 
-<span class="doccomment">/// Mixing behaviour for sent audio sources processed within the driver.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This has no impact on Opus packet passthrough, which will pass packets</span>
-<span class="doccomment">/// irrespective of their channel count.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MixMode</span> {
-    <span class="doccomment">/// Audio sources will be downmixed into a mono buffer.</span>
-    <span class="ident">Mono</span>,
-    <span class="doccomment">/// Audio sources will be mixed into into a stereo buffer, where mono sources</span>
-    <span class="doccomment">/// will be duplicated into both channels.</span>
-    <span class="ident">Stereo</span>,
+<span class="doccomment">/// Mixing behaviour for sent audio sources processed within the driver.
+///
+/// This has no impact on Opus packet passthrough, which will pass packets
+/// irrespective of their channel count.
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq)]</span>
+<span class="kw">pub enum </span>MixMode {
+    <span class="doccomment">/// Audio sources will be downmixed into a mono buffer.
+    </span>Mono,
+    <span class="doccomment">/// Audio sources will be mixed into into a stereo buffer, where mono sources
+    /// will be duplicated into both channels.
+    </span>Stereo,
 }
 
-<span class="kw">impl</span> <span class="ident">MixMode</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">to_opus</span>(<span class="self">self</span>) -&gt; <span class="ident">Channels</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Mono</span> =&gt; <span class="ident">Channels::Mono</span>,
-            <span class="ident"><span class="self">Self</span>::Stereo</span> =&gt; <span class="ident">Channels::Stereo</span>,
+<span class="kw">impl </span>MixMode {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>to_opus(<span class="self">self</span>) -&gt; Channels {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Mono =&gt; Channels::Mono,
+            <span class="self">Self</span>::Stereo =&gt; Channels::Stereo,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">sample_count_in_frame</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Mono</span> =&gt; <span class="ident">MONO_FRAME_SIZE</span>,
-            <span class="ident"><span class="self">Self</span>::Stereo</span> =&gt; <span class="ident">STEREO_FRAME_SIZE</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>sample_count_in_frame(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Mono =&gt; MONO_FRAME_SIZE,
+            <span class="self">Self</span>::Stereo =&gt; STEREO_FRAME_SIZE,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">channels</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Mono</span> =&gt; <span class="number">1</span>,
-            <span class="ident"><span class="self">Self</span>::Stereo</span> =&gt; <span class="number">2</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>channels(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Mono =&gt; <span class="number">1</span>,
+            <span class="self">Self</span>::Stereo =&gt; <span class="number">2</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">symph_layout</span>(<span class="self">self</span>) -&gt; <span class="ident">Layout</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Mono</span> =&gt; <span class="ident">Layout::Mono</span>,
-            <span class="ident"><span class="self">Self</span>::Stereo</span> =&gt; <span class="ident">Layout::Stereo</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>symph_layout(<span class="self">self</span>) -&gt; Layout {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Mono =&gt; Layout::Mono,
+            <span class="self">Self</span>::Stereo =&gt; Layout::Stereo,
         }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MixMode</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Layout</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">MixMode</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">val</span>.<span class="ident">symph_layout</span>()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MixMode</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Channels</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">MixMode</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">val</span>.<span class="ident">to_opus</span>()
+<span class="kw">impl </span>From&lt;MixMode&gt; <span class="kw">for </span>Layout {
+    <span class="kw">fn </span>from(val: MixMode) -&gt; <span class="self">Self </span>{
+        val.symph_layout()
+    }
+}
+
+<span class="kw">impl </span>From&lt;MixMode&gt; <span class="kw">for </span>Channels {
+    <span class="kw">fn </span>from(val: MixMode) -&gt; <span class="self">Self </span>{
+        val.to_opus()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

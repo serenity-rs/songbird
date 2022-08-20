@@ -11,16 +11,16 @@
 <span id="9">9</span>
 <span id="10">10</span>
 <span id="11">11</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(missing_docs)]</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Interconnect</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ws::WsStream</span>;
+<span class="kw">use </span><span class="kw">super</span>::Interconnect;
+<span class="kw">use </span><span class="kw">crate</span>::ws::WsStream;
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">WsMessage</span> {
-    <span class="ident">Ws</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">WsStream</span><span class="op">&gt;</span>),
-    <span class="ident">ReplaceInterconnect</span>(<span class="ident">Interconnect</span>),
-    <span class="ident">SetKeepalive</span>(<span class="ident">f64</span>),
-    <span class="ident">Speaking</span>(<span class="ident">bool</span>),
+<span class="kw">pub enum </span>WsMessage {
+    Ws(Box&lt;WsStream&gt;),
+    ReplaceInterconnect(Interconnect),
+    SetKeepalive(f64),
+    Speaking(bool),
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

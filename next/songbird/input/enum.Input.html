@@ -15,72 +15,72 @@ a target URL for a usable audio stream, before opening an <a href="struct.HttpRe
 <p>Any <a href="enum.Input.html" title="Input"><code>Input</code></a> (or struct with <code>impl Into&lt;Input&gt;</code>) can also be made into a <a href="../tracks/struct.Track.html"><code>Track</code></a> via
 <code>From</code>/<code>Into</code>.</p>
 <h2 id="example"><a href="#example">Example</a></h2>
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">songbird</span>::{
-    <span class="ident">driver::Driver</span>,
-    <span class="ident">input</span>::{<span class="ident">codecs</span>::<span class="kw-2">*</span>, <span class="ident">Compose</span>, <span class="ident">Input</span>, <span class="ident">MetadataError</span>, <span class="ident">YoutubeDl</span>},
-    <span class="ident">tracks::Track</span>,
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>songbird::{
+    driver::Driver,
+    input::{codecs::<span class="kw-2">*</span>, Compose, Input, MetadataError, YoutubeDl},
+    tracks::Track,
 };
-<span class="comment">// Inputs are played using a `Driver`, or `Call`.</span>
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">driver</span> <span class="op">=</span> <span class="ident">Driver::new</span>(<span class="ident">Default::default</span>());
+<span class="comment">// Inputs are played using a `Driver`, or `Call`.
+</span><span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(Default::default());
 
-<span class="comment">// Lazy inputs take very little resources, and don&#39;t occupy any resources until we</span>
-<span class="comment">// need to play them (by default).</span>
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lazy</span> <span class="op">=</span> <span class="ident">YoutubeDl::new</span>(
-    <span class="ident">reqwest::Client::new</span>(),
-    <span class="comment">// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/</span>
-    <span class="string">&quot;https://cloudkicker.bandcamp.com/track/94-days&quot;</span>.<span class="ident">to_string</span>(),
+<span class="comment">// Lazy inputs take very little resources, and don&#39;t occupy any resources until we
+// need to play them (by default).
+</span><span class="kw">let </span><span class="kw-2">mut </span>lazy = YoutubeDl::new(
+    reqwest::Client::new(),
+    <span class="comment">// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    </span><span class="string">&quot;https://cloudkicker.bandcamp.com/track/94-days&quot;</span>.to_string(),
 );
-<span class="kw">let</span> <span class="ident">lazy_c</span> <span class="op">=</span> <span class="ident">lazy</span>.<span class="ident">clone</span>();
+<span class="kw">let </span>lazy_c = lazy.clone();
 
-<span class="comment">// With sources like `YoutubeDl`, we can get metadata from, e.g., a track&#39;s page.</span>
-<span class="kw">let</span> <span class="ident">aux_metadata</span> <span class="op">=</span> <span class="ident">lazy</span>.<span class="ident">aux_metadata</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
-<span class="macro">assert_eq!</span>(<span class="ident">aux_metadata</span>.<span class="ident">track</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;94 Days&quot;</span>.<span class="ident">to_string</span>()));
+<span class="comment">// With sources like `YoutubeDl`, we can get metadata from, e.g., a track&#39;s page.
+</span><span class="kw">let </span>aux_metadata = lazy.aux_metadata().<span class="kw">await</span>.unwrap();
+<span class="macro">assert_eq!</span>(aux_metadata.track, <span class="prelude-val">Some</span>(<span class="string">&quot;94 Days&quot;</span>.to_string()));
 
-<span class="comment">// Once we pass an `Input` to the `Driver`, we can only remotely control it via</span>
-<span class="comment">// a `TrackHandle`.</span>
-<span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">driver</span>.<span class="ident">play_input</span>(<span class="ident">lazy</span>.<span class="ident">into</span>());
+<span class="comment">// Once we pass an `Input` to the `Driver`, we can only remotely control it via
+// a `TrackHandle`.
+</span><span class="kw">let </span>handle = driver.play_input(lazy.into());
 
-<span class="comment">// We can also modify some of its initial state via `Track`s.</span>
-<span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">driver</span>.<span class="ident">play</span>(<span class="ident">Track::from</span>(<span class="ident">lazy_c</span>).<span class="ident">volume</span>(<span class="number">0.5</span>).<span class="ident">pause</span>());
+<span class="comment">// We can also modify some of its initial state via `Track`s.
+</span><span class="kw">let </span>handle = driver.play(Track::from(lazy_c).volume(<span class="number">0.5</span>).pause());
 
-<span class="comment">// In-memory sources like `Vec&lt;u8&gt;`, or `&amp;&#39;static [u8]` are easy to use, and only take a</span>
-<span class="comment">// little time for the mixer to parse their headers.</span>
-<span class="comment">// You can also use the adapters in `songbird::input::cached::*`to keep a source</span>
-<span class="comment">// from the Internet, HTTP, or a File in-memory *and* share it among calls.</span>
-<span class="kw">let</span> <span class="ident">in_memory</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../../resources/ting.mp3&quot;</span>);
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">in_memory_input</span> <span class="op">=</span> <span class="ident">in_memory</span>.<span class="ident">into</span>();
+<span class="comment">// In-memory sources like `Vec&lt;u8&gt;`, or `&amp;&#39;static [u8]` are easy to use, and only take a
+// little time for the mixer to parse their headers.
+// You can also use the adapters in `songbird::input::cached::*`to keep a source
+// from the Internet, HTTP, or a File in-memory *and* share it among calls.
+</span><span class="kw">let </span>in_memory = <span class="macro">include_bytes!</span>(<span class="string">&quot;../../resources/ting.mp3&quot;</span>);
+<span class="kw">let </span><span class="kw-2">mut </span>in_memory_input = in_memory.into();
 
-<span class="comment">// This source is live...</span>
-<span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">in_memory_input</span>, <span class="ident">Input::Live</span>(..)));
-<span class="comment">// ...but not yet playable, and we can&#39;t access its `Metadata`.</span>
-<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">in_memory_input</span>.<span class="ident">is_playable</span>());
-<span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">in_memory_input</span>.<span class="ident">metadata</span>(), <span class="prelude-val">Err</span>(<span class="ident">MetadataError::NotParsed</span>)));
+<span class="comment">// This source is live...
+</span><span class="macro">assert!</span>(<span class="macro">matches!</span>(in_memory_input, Input::Live(..)));
+<span class="comment">// ...but not yet playable, and we can&#39;t access its `Metadata`.
+</span><span class="macro">assert!</span>(!in_memory_input.is_playable());
+<span class="macro">assert!</span>(<span class="macro">matches!</span>(in_memory_input.metadata(), <span class="prelude-val">Err</span>(MetadataError::NotParsed)));
 
-<span class="comment">// If we want to inspect metadata (and we can&#39;t use AuxMetadata for any reason), we have</span>
-<span class="comment">// to parse the track ourselves.</span>
-<span class="comment">//</span>
-<span class="comment">// We can access it on a live track using `TrackHandle::action()`.</span>
-<span class="ident">in_memory_input</span> <span class="op">=</span> <span class="ident">in_memory_input</span>
-    .<span class="ident">make_playable_async</span>(<span class="kw-2">&amp;</span><span class="ident">CODEC_REGISTRY</span>, <span class="kw-2">&amp;</span><span class="ident">PROBE</span>)
-    .<span class="kw">await</span>
-    .<span class="ident">expect</span>(<span class="string">&quot;WAV support is included, and this file is good!&quot;</span>);
+<span class="comment">// If we want to inspect metadata (and we can&#39;t use AuxMetadata for any reason), we have
+// to parse the track ourselves.
+//
+// We can access it on a live track using `TrackHandle::action()`.
+</span>in_memory_input = in_memory_input
+    .make_playable_async(<span class="kw-2">&amp;</span>CODEC_REGISTRY, <span class="kw-2">&amp;</span>PROBE)
+    .<span class="kw">await
+    </span>.expect(<span class="string">&quot;WAV support is included, and this file is good!&quot;</span>);
 
-<span class="comment">// Symphonia&#39;s metadata can be difficult to use: prefer `AuxMetadata` when you can!</span>
-<span class="kw">use</span> <span class="ident">symphonia_core::meta</span>::{<span class="ident">StandardTagKey</span>, <span class="ident">Value</span>};
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">in_memory_input</span>.<span class="ident">metadata</span>();
-<span class="kw">let</span> <span class="ident">meta</span> <span class="op">=</span> <span class="ident">metadata</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">probed</span> <span class="op">=</span> <span class="ident">meta</span>.<span class="ident">probe</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>();
+<span class="comment">// Symphonia&#39;s metadata can be difficult to use: prefer `AuxMetadata` when you can!
+</span><span class="kw">use </span>symphonia_core::meta::{StandardTagKey, Value};
+<span class="kw">let </span><span class="kw-2">mut </span>metadata = in_memory_input.metadata();
+<span class="kw">let </span>meta = metadata.as_mut().unwrap();
+<span class="kw">let </span><span class="kw-2">mut </span>probed = meta.probe.get().unwrap();
 
-<span class="kw">let</span> <span class="ident">track_name</span> <span class="op">=</span> <span class="ident">probed</span>
-    .<span class="ident">current</span>().<span class="ident">unwrap</span>()
-    .<span class="ident">tags</span>().<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">std_key</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">StandardTagKey::TrackTitle</span>))
-    .<span class="ident">next</span>().<span class="ident">unwrap</span>();
-<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::String</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">track_name</span>.<span class="ident">value</span> {
-    <span class="macro">assert_eq!</span>(<span class="ident">s</span>, <span class="string">&quot;Ting!&quot;</span>);
-} <span class="kw">else</span> { <span class="macro">panic!</span>() };
+<span class="kw">let </span>track_name = probed
+    .current().unwrap()
+    .tags().iter().filter(|v| v.std_key == <span class="prelude-val">Some</span>(StandardTagKey::TrackTitle))
+    .next().unwrap();
+<span class="kw">if let </span>Value::String(s) = <span class="kw-2">&amp;</span>track_name.value {
+    <span class="macro">assert_eq!</span>(s, <span class="string">&quot;Ting!&quot;</span>);
+} <span class="kw">else </span>{ <span class="macro">panic!</span>() };
 
-<span class="comment">// ...and these are played like any other input.</span>
-<span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">driver</span>.<span class="ident">play_input</span>(<span class="ident">in_memory_input</span>);</code></pre></div>
+<span class="comment">// ...and these are played like any other input.
+</span><span class="kw">let </span>handle = driver.play_input(in_memory_input);</code></pre></div>
 </div></details><h2 id="variants" class="variants small-section-header">Variants<a href="#variants" class="anchor"></a></h2><h3 id="variant.Lazy" class="variant small-section-header"><a href="#variant.Lazy" class="anchor field"></a><code>Lazy(<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="trait.Compose.html" title="trait songbird::input::Compose">Compose</a>&gt;)</code></h3><div class="sub-variant" id="variant.Lazy.fields"><h4>Tuple Fields</h4><div class="sub-variant-field"><span id="variant.Lazy.field.0" class="variant small-section-header"><a href="#variant.Lazy.field.0" class="anchor field"></a><code>0:&nbsp;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="trait.Compose.html" title="trait songbird::input::Compose">Compose</a>&gt;</code></span><div class="docblock"><p>A trait object which can be used to (re)create a usable byte stream.</p>
 </div></div></div><div class="docblock"><p>A byte source which is not yet initialised.</p>
 <p>When a parent track is either played or explicitly readied, the inner <a href="trait.Compose.html" title="Compose"><code>Compose</code></a>
@@ -156,4 +156,4 @@ has been made available via <a href="enum.Input.html#method.make_playable" title
 <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="WithDispatch"><code>WithDispatch</code></a> wrapper. <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_subscriber">Read more</a></p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.with_current_subscriber" class="method trait-impl has-srclink"><span class="rightside"><a class="srclink" href="https://docs.rs/tracing/0.1.36/src/tracing/instrument.rs.html#221">source</a></span><a href="#method.with_current_subscriber" class="anchor"></a><h4 class="code-header">fn <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_current_subscriber" class="fnname">with_current_subscriber</a>(self) -&gt; <a class="struct" href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="struct tracing::instrument::WithDispatch">WithDispatch</a>&lt;Self&gt;</h4></section></summary><div class='docblock'><p>Attaches the current <a href="https://docs.rs/tracing/0.1.36/tracing/dispatcher/index.html#setting-the-default-subscriber">default</a> <a href="https://docs.rs/tracing-core/0.1.22/tracing_core/subscriber/trait.Subscriber.html"><code>Subscriber</code></a> to this type, returning a
 <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="WithDispatch"><code>WithDispatch</code></a> wrapper. <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_current_subscriber">Read more</a></p>
-</div></details></div></details></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</div></details></div></details></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

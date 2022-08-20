@@ -34,39 +34,39 @@
 <span id="32">32</span>
 <span id="33">33</span>
 <span id="34">34</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(missing_docs)]</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">events</span>::{<span class="ident">CoreContext</span>, <span class="ident">EventData</span>, <span class="ident">EventStore</span>},
-    <span class="ident">tracks</span>::{<span class="ident">LoopState</span>, <span class="ident">PlayMode</span>, <span class="ident">ReadyState</span>, <span class="ident">TrackHandle</span>, <span class="ident">TrackState</span>},
+<span class="kw">use crate</span>::{
+    events::{CoreContext, EventData, EventStore},
+    tracks::{LoopState, PlayMode, ReadyState, TrackHandle, TrackState},
 };
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EventMessage</span> {
-    <span class="comment">// Event related.</span>
-    <span class="comment">// Track events should fire off the back of state changes.</span>
-    <span class="ident">AddGlobalEvent</span>(<span class="ident">EventData</span>),
-    <span class="ident">AddTrackEvent</span>(<span class="ident">usize</span>, <span class="ident">EventData</span>),
-    <span class="ident">FireCoreEvent</span>(<span class="ident">CoreContext</span>),
-    <span class="ident">RemoveGlobalEvents</span>,
+<span class="kw">pub enum </span>EventMessage {
+    <span class="comment">// Event related.
+    // Track events should fire off the back of state changes.
+    </span>AddGlobalEvent(EventData),
+    AddTrackEvent(usize, EventData),
+    FireCoreEvent(CoreContext),
+    RemoveGlobalEvents,
 
-    <span class="ident">AddTrack</span>(<span class="ident">EventStore</span>, <span class="ident">TrackState</span>, <span class="ident">TrackHandle</span>),
-    <span class="ident">ChangeState</span>(<span class="ident">usize</span>, <span class="ident">TrackStateChange</span>),
-    <span class="ident">RemoveAllTracks</span>,
-    <span class="ident">Tick</span>,
+    AddTrack(EventStore, TrackState, TrackHandle),
+    ChangeState(usize, TrackStateChange),
+    RemoveAllTracks,
+    Tick,
 
-    <span class="ident">Poison</span>,
+    Poison,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TrackStateChange</span> {
-    <span class="ident">Mode</span>(<span class="ident">PlayMode</span>),
-    <span class="ident">Volume</span>(<span class="ident">f32</span>),
-    <span class="ident">Position</span>(<span class="ident">Duration</span>),
-    <span class="comment">// Bool indicates user-set.</span>
-    <span class="ident">Loops</span>(<span class="ident">LoopState</span>, <span class="ident">bool</span>),
-    <span class="ident">Total</span>(<span class="ident">TrackState</span>),
-    <span class="ident">Ready</span>(<span class="ident">ReadyState</span>),
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>TrackStateChange {
+    Mode(PlayMode),
+    Volume(f32),
+    Position(Duration),
+    <span class="comment">// Bool indicates user-set.
+    </span>Loops(LoopState, bool),
+    Total(TrackState),
+    Ready(ReadyState),
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

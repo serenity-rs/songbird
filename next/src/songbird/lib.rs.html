@@ -132,137 +132,137 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span>(
-    <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png&quot;</span>,
-    <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png&quot;</span>
+</pre><pre class="rust"><code><span class="attribute">#![doc(
+    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png&quot;</span>,
+    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png&quot;
+</span>)]</span>
+<span class="attribute">#![cfg_attr(docsrs, feature(doc_auto_cfg))]</span>
+<span class="attribute">#![deny(missing_docs)]</span>
+<span class="attribute">#![deny(rustdoc::broken_intra_doc_links)]</span>
+<span class="doccomment">//! ![project logo][logo]
+//!
+//! Songbird is an async, cross-library compatible voice system for Discord, written in Rust.
+//! The library offers:
+//!  * A standalone gateway frontend compatible with [serenity] and [twilight] using the
+//!  `&quot;gateway&quot;` and `&quot;[serenity/twilight]&quot;` plus `&quot;[rustls/native]&quot;` features. You can even run
+//!  driverless, to help manage your [lavalink] sessions.
+//!  * A standalone driver for voice calls, via the `&quot;driver&quot;` feature. If you can create
+//!  a `ConnectionInfo` using any other gateway, or language for your bot, then you
+//!  can run the songbird voice driver.
+//!  * Voice receive and RT(C)P packet handling via the `&quot;receive&quot;` feature.
+//!  * SIMD-accelerated JSON decoding via the `&quot;simd-json&quot;` feature.
+//!  * And, by default, a fully featured voice system featuring events, queues,
+//!  seeking on compatible streams, shared multithreaded audio stream caches,
+//!  and direct Opus data passthrough from DCA files.
+//!
+//! ## Intents
+//! Songbird&#39;s gateway functionality requires you to specify the `GUILD_VOICE_STATES` intent.
+//!
+//! ## Examples
+//! Full examples showing various types of functionality and integrations can be found
+//! in [this crate&#39;s examples directory].
+//!
+//! ## Codec support
+//! Songbird supports all [codecs and formats provided by Symphonia] (pure-Rust), with Opus support
+//! provided by [audiopus] (an FFI wrapper for libopus).
+//!
+//! **By default, *Songbird will not request any codecs from Symphonia*.** To change this, in your own
+//! project you will need to depend on Symphonia as well.
+//!
+//! ```toml
+//! ## Including songbird alone gives you support for Opus via the DCA file format.
+//! [dependencies.songbird]
+//! version = &quot;0.4&quot;
+//! features = [&quot;builtin-queue&quot;]
+//!
+//! ## To get additional codecs, you *must* add Symphonia yourself.
+//! ## This includes the default formats (MKV/WebM, Ogg, Wave) and codecs (FLAC, PCM, Vorbis)...
+//! [dependencies.symphonia]
+//! version = &quot;0.5&quot;
+//! features = [&quot;aac&quot;, &quot;mp3&quot;, &quot;isomp4&quot;, &quot;alac&quot;] # ...as well as any extras you need!
+//! ```
+//!
+//! ## Attribution
+//!
+//! Songbird&#39;s logo is based upon the copyright-free image [&quot;Black-Capped Chickadee&quot;] by George Gorgas White.
+//!
+//! [logo]: https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png
+//! [serenity]: https://github.com/serenity-rs/serenity
+//! [twilight]: https://github.com/twilight-rs/twilight
+//! [this crate&#39;s examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
+//! [&quot;Black-Capped Chickadee&quot;]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
+//! [`ConnectionInfo`]: struct@ConnectionInfo
+//! [lavalink]: https://github.com/freyacodes/Lavalink
+//! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
+//! [audiopus]: https://github.com/lakelezz/audiopus
+
+</span><span class="attribute">#![warn(clippy::pedantic)]</span>
+<span class="attribute">#![allow(
+    <span class="comment">// Allowed as they are too pedantic
+    </span>clippy::module_name_repetitions,
+    clippy::wildcard_imports,
+    clippy::too_many_lines,
+    clippy::cast_lossless,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    <span class="comment">// TODO: would require significant rewriting of all existing docs
+    </span>clippy::missing_errors_doc,
 )]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">feature</span>(<span class="ident">doc_auto_cfg</span>))]</span>
-<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">rustdoc::broken_intra_doc_links</span>)]</span>
-<span class="doccomment">//! ![project logo][logo]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Songbird is an async, cross-library compatible voice system for Discord, written in Rust.</span>
-<span class="doccomment">//! The library offers:</span>
-<span class="doccomment">//!  * A standalone gateway frontend compatible with [serenity] and [twilight] using the</span>
-<span class="doccomment">//!  `&quot;gateway&quot;` and `&quot;[serenity/twilight]&quot;` plus `&quot;[rustls/native]&quot;` features. You can even run</span>
-<span class="doccomment">//!  driverless, to help manage your [lavalink] sessions.</span>
-<span class="doccomment">//!  * A standalone driver for voice calls, via the `&quot;driver&quot;` feature. If you can create</span>
-<span class="doccomment">//!  a `ConnectionInfo` using any other gateway, or language for your bot, then you</span>
-<span class="doccomment">//!  can run the songbird voice driver.</span>
-<span class="doccomment">//!  * Voice receive and RT(C)P packet handling via the `&quot;receive&quot;` feature.</span>
-<span class="doccomment">//!  * SIMD-accelerated JSON decoding via the `&quot;simd-json&quot;` feature.</span>
-<span class="doccomment">//!  * And, by default, a fully featured voice system featuring events, queues,</span>
-<span class="doccomment">//!  seeking on compatible streams, shared multithreaded audio stream caches,</span>
-<span class="doccomment">//!  and direct Opus data passthrough from DCA files.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Intents</span>
-<span class="doccomment">//! Songbird&#39;s gateway functionality requires you to specify the `GUILD_VOICE_STATES` intent.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Examples</span>
-<span class="doccomment">//! Full examples showing various types of functionality and integrations can be found</span>
-<span class="doccomment">//! in [this crate&#39;s examples directory].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Codec support</span>
-<span class="doccomment">//! Songbird supports all [codecs and formats provided by Symphonia] (pure-Rust), with Opus support</span>
-<span class="doccomment">//! provided by [audiopus] (an FFI wrapper for libopus).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! **By default, *Songbird will not request any codecs from Symphonia*.** To change this, in your own</span>
-<span class="doccomment">//! project you will need to depend on Symphonia as well.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```toml</span>
-<span class="doccomment">//! ## Including songbird alone gives you support for Opus via the DCA file format.</span>
-<span class="doccomment">//! [dependencies.songbird]</span>
-<span class="doccomment">//! version = &quot;0.4&quot;</span>
-<span class="doccomment">//! features = [&quot;builtin-queue&quot;]</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## To get additional codecs, you *must* add Symphonia yourself.</span>
-<span class="doccomment">//! ## This includes the default formats (MKV/WebM, Ogg, Wave) and codecs (FLAC, PCM, Vorbis)...</span>
-<span class="doccomment">//! [dependencies.symphonia]</span>
-<span class="doccomment">//! version = &quot;0.5&quot;</span>
-<span class="doccomment">//! features = [&quot;aac&quot;, &quot;mp3&quot;, &quot;isomp4&quot;, &quot;alac&quot;] # ...as well as any extras you need!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Attribution</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Songbird&#39;s logo is based upon the copyright-free image [&quot;Black-Capped Chickadee&quot;] by George Gorgas White.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [logo]: https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png</span>
-<span class="doccomment">//! [serenity]: https://github.com/serenity-rs/serenity</span>
-<span class="doccomment">//! [twilight]: https://github.com/twilight-rs/twilight</span>
-<span class="doccomment">//! [this crate&#39;s examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples</span>
-<span class="doccomment">//! [&quot;Black-Capped Chickadee&quot;]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/</span>
-<span class="doccomment">//! [`ConnectionInfo`]: struct@ConnectionInfo</span>
-<span class="doccomment">//! [lavalink]: https://github.com/freyacodes/Lavalink</span>
-<span class="doccomment">//! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers</span>
-<span class="doccomment">//! [audiopus]: https://github.com/lakelezz/audiopus</span>
 
-<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">clippy::pedantic</span>)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(
-    <span class="comment">// Allowed as they are too pedantic</span>
-    <span class="ident">clippy::module_name_repetitions</span>,
-    <span class="ident">clippy::wildcard_imports</span>,
-    <span class="ident">clippy::too_many_lines</span>,
-    <span class="ident">clippy::cast_lossless</span>,
-    <span class="ident">clippy::cast_sign_loss</span>,
-    <span class="ident">clippy::cast_possible_wrap</span>,
-    <span class="ident">clippy::cast_precision_loss</span>,
-    <span class="ident">clippy::cast_possible_truncation</span>,
-    <span class="comment">// TODO: would require significant rewriting of all existing docs</span>
-    <span class="ident">clippy::missing_errors_doc</span>,
-)]</span>
+<span class="kw">mod </span>config;
+<span class="kw">pub mod </span>constants;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">pub mod </span>driver;
+<span class="kw">pub mod </span>error;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">pub mod </span>events;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="kw">mod </span>handler;
+<span class="kw">pub mod </span>id;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>info;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">pub mod </span>input;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="kw">pub mod </span>join;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="kw">mod </span>manager;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
+<span class="kw">pub mod </span>serenity;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="kw">pub mod </span>shards;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">pub mod </span>tracks;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">mod </span>ws;
 
-<span class="kw">mod</span> <span class="ident">config</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">constants</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">driver</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">events</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">handler</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">id</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">info</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">input</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">join</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">manager</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">serenity</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">shards</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tracks</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">mod</span> <span class="ident">ws</span>;
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;driver&quot;</span>, feature = <span class="string">&quot;receive&quot;</span>))]</span>
+<span class="kw">pub use </span>discortp <span class="kw">as </span>packet;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">pub use </span>serenity_voice_model <span class="kw">as </span>model;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">pub use </span>typemap_rev <span class="kw">as </span>typemap;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">discortp</span> <span class="kw">as</span> <span class="ident">packet</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">serenity_voice_model</span> <span class="kw">as</span> <span class="ident">model</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">typemap_rev</span> <span class="kw">as</span> <span class="ident">typemap</span>;
+<span class="comment">// Re-export serde-json APIs locally to minimise conditional config elsewhere.
+</span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;simd-json&quot;</span>))]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>serde_json <span class="kw">as </span>json;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;simd-json&quot;</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>simd_json::serde <span class="kw">as </span>json;
 
-<span class="comment">// Re-export serde-json APIs locally to minimise conditional config elsewhere.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd-json&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">serde_json</span> <span class="kw">as</span> <span class="ident">json</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;simd-json&quot;</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">simd_json::serde</span> <span class="kw">as</span> <span class="ident">json</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver::Driver</span>,
-    <span class="ident">events</span>::{<span class="ident">CoreEvent</span>, <span class="ident">Event</span>, <span class="ident">EventContext</span>, <span class="ident">EventHandler</span>, <span class="ident">TrackEvent</span>},
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">pub use crate</span>::{
+    driver::Driver,
+    events::{CoreEvent, Event, EventContext, EventHandler, TrackEvent},
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;gateway&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">handler</span>::<span class="kw-2">*</span>, <span class="ident">manager</span>::<span class="kw-2">*</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]</span>
+<span class="kw">pub use crate</span>::{handler::<span class="kw-2">*</span>, manager::<span class="kw-2">*</span>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::serenity</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
+<span class="kw">pub use </span><span class="kw">crate</span>::serenity::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">config::Config</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">info::ConnectionInfo</span>;
+<span class="kw">pub use </span>config::Config;
+<span class="kw">pub use </span>info::ConnectionInfo;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -53,58 +53,58 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DcaMetadata</span> {
-    <span class="kw">pub</span> <span class="ident">dca</span>: <span class="ident">DcaInfo</span>,
-    <span class="kw">pub</span> <span class="ident">opus</span>: <span class="ident">Opus</span>,
-    <span class="kw">pub</span> <span class="ident">info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Info</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">origin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Origin</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">serde_json::Value</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Deserialize, Serialize)]</span>
+<span class="kw">pub struct </span>DcaMetadata {
+    <span class="kw">pub </span>dca: DcaInfo,
+    <span class="kw">pub </span>opus: Opus,
+    <span class="kw">pub </span>info: <span class="prelude-ty">Option</span>&lt;Info&gt;,
+    <span class="kw">pub </span>origin: <span class="prelude-ty">Option</span>&lt;Origin&gt;,
+    <span class="kw">pub </span>extra: <span class="prelude-ty">Option</span>&lt;serde_json::Value&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DcaInfo</span> {
-    <span class="kw">pub</span> <span class="ident">version</span>: <span class="ident">u64</span>,
-    <span class="kw">pub</span> <span class="ident">tool</span>: <span class="ident">Tool</span>,
+<span class="attribute">#[derive(Debug, Deserialize, Serialize)]</span>
+<span class="kw">pub struct </span>DcaInfo {
+    <span class="kw">pub </span>version: u64,
+    <span class="kw">pub </span>tool: Tool,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tool</span> {
-    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">version</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">author</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Deserialize, Serialize)]</span>
+<span class="kw">pub struct </span>Tool {
+    <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>version: String,
+    <span class="kw">pub </span>url: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>author: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Opus</span> {
-    <span class="kw">pub</span> <span class="ident">mode</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">sample_rate</span>: <span class="ident">u32</span>,
-    <span class="kw">pub</span> <span class="ident">frame_size</span>: <span class="ident">u64</span>,
-    <span class="kw">pub</span> <span class="ident">abr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">vbr</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">channels</span>: <span class="ident">u8</span>,
+<span class="attribute">#[derive(Debug, Deserialize, Serialize)]</span>
+<span class="kw">pub struct </span>Opus {
+    <span class="kw">pub </span>mode: String,
+    <span class="kw">pub </span>sample_rate: u32,
+    <span class="kw">pub </span>frame_size: u64,
+    <span class="kw">pub </span>abr: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+    <span class="kw">pub </span>vbr: bool,
+    <span class="kw">pub </span>channels: u8,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Info</span> {
-    <span class="kw">pub</span> <span class="ident">title</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">artist</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">album</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">genre</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">cover</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">comments</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Deserialize, Serialize)]</span>
+<span class="kw">pub struct </span>Info {
+    <span class="kw">pub </span>title: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>artist: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>album: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>genre: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>cover: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>comments: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Origin</span> {
-    <span class="kw">pub</span> <span class="ident">source</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">abr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">channels</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Deserialize, Serialize)]</span>
+<span class="kw">pub struct </span>Origin {
+    <span class="kw">pub </span>source: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>abr: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+    <span class="kw">pub </span>channels: <span class="prelude-ty">Option</span>&lt;u8&gt;,
+    <span class="kw">pub </span>encoding: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>url: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

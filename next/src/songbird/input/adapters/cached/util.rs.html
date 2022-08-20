@@ -458,463 +458,463 @@
 <span id="456">456</span>
 <span id="457">457</span>
 <span id="458">458</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">constants</span>::<span class="kw-2">*</span>, <span class="ident">driver::tasks::mixer::mix_logic</span>, <span class="ident">input::Parsed</span>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{constants::<span class="kw-2">*</span>, driver::tasks::mixer::mix_logic, input::Parsed};
 
-<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">WriteBytesExt</span>};
-<span class="kw">use</span> <span class="ident">rubato</span>::{<span class="ident">FftFixedOut</span>, <span class="ident">Resampler</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">io</span>::{<span class="ident">ErrorKind</span> <span class="kw">as</span> <span class="ident">IoErrorKind</span>, <span class="ident">Read</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>, <span class="ident">Seek</span>, <span class="ident">Write</span>},
-    <span class="ident">mem</span>,
-    <span class="ident">ops::Range</span>,
+<span class="kw">use </span>byteorder::{LittleEndian, WriteBytesExt};
+<span class="kw">use </span>rubato::{FftFixedOut, Resampler};
+<span class="kw">use </span>std::{
+    io::{ErrorKind <span class="kw">as </span>IoErrorKind, Read, <span class="prelude-ty">Result </span><span class="kw">as </span>IoResult, Seek, Write},
+    mem,
+    ops::Range,
 };
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{
-    <span class="ident">audio</span>::{<span class="ident">AudioBuffer</span>, <span class="ident">AudioBufferRef</span>, <span class="ident">Layout</span>, <span class="ident">Signal</span>, <span class="ident">SignalSpec</span>},
-    <span class="ident">conv::IntoSample</span>,
-    <span class="ident">io::MediaSource</span>,
-    <span class="ident">sample::Sample</span>,
+<span class="kw">use </span>symphonia_core::{
+    audio::{AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec},
+    conv::IntoSample,
+    io::MediaSource,
+    sample::Sample,
 };
 
-<span class="kw">const</span> <span class="ident">SAMPLE_LEN</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
+<span class="kw">const </span>SAMPLE_LEN: usize = mem::size_of::&lt;f32&gt;();
 
-<span class="doccomment">/// Adapter for Symphonia sources into an interleaved f32 bytestream.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This will output `f32`s in LE byte order, matching the channel count</span>
-<span class="doccomment">/// of the input.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ToAudioBytes</span> {
-    <span class="ident">chan_count</span>: <span class="ident">usize</span>,
-    <span class="ident">chan_limit</span>: <span class="ident">usize</span>,
-    <span class="ident">parsed</span>: <span class="ident">Parsed</span>,
-    <span class="doccomment">/// Position with parsed&#39;s last decoded frame.</span>
-    <span class="ident">inner_pos</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">resample</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ResampleState</span><span class="op">&gt;</span>,
-    <span class="ident">done</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Adapter for Symphonia sources into an interleaved f32 bytestream.
+///
+/// This will output `f32`s in LE byte order, matching the channel count
+/// of the input.
+</span><span class="kw">pub struct </span>ToAudioBytes {
+    chan_count: usize,
+    chan_limit: usize,
+    parsed: Parsed,
+    <span class="doccomment">/// Position with parsed&#39;s last decoded frame.
+    </span>inner_pos: Range&lt;usize&gt;,
+    resample: <span class="prelude-ty">Option</span>&lt;ResampleState&gt;,
+    done: bool,
 
-    <span class="ident">interrupted_samples</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="ident">interrupted_byte_pos</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    interrupted_samples: Vec&lt;f32&gt;,
+    interrupted_byte_pos: Range&lt;usize&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">ResampleState</span> {
-    <span class="doccomment">/// Used to hold outputs from resampling, *ready to be used*.</span>
-    <span class="ident">resampled_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The actual resampler.</span>
-    <span class="ident">resampler</span>: <span class="ident">FftFixedOut</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Used to hold inputs to resampler across packet boundaries.</span>
-    <span class="ident">scratch</span>: <span class="ident">AudioBuffer</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The range of floats in `resampled_data` which have not yet</span>
-    <span class="doccomment">/// been read.</span>
-    <span class="ident">resample_pos</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>ResampleState {
+    <span class="doccomment">/// Used to hold outputs from resampling, *ready to be used*.
+    </span>resampled_data: Vec&lt;Vec&lt;f32&gt;&gt;,
+    <span class="doccomment">/// The actual resampler.
+    </span>resampler: FftFixedOut&lt;f32&gt;,
+    <span class="doccomment">/// Used to hold inputs to resampler across packet boundaries.
+    </span>scratch: AudioBuffer&lt;f32&gt;,
+    <span class="doccomment">/// The range of floats in `resampled_data` which have not yet
+    /// been read.
+    </span>resample_pos: Range&lt;usize&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">ToAudioBytes</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">parsed</span>: <span class="ident">Parsed</span>, <span class="ident">chan_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">track_info</span> <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">decoder</span>.<span class="ident">codec_params</span>();
-        <span class="kw">let</span> <span class="ident">sample_rate</span> <span class="op">=</span> <span class="ident">track_info</span>.<span class="ident">sample_rate</span>.<span class="ident">unwrap_or</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>);
-        <span class="kw">let</span> <span class="ident">maybe_layout</span> <span class="op">=</span> <span class="ident">track_info</span>.<span class="ident">channel_layout</span>;
-        <span class="kw">let</span> <span class="ident">maybe_chans</span> <span class="op">=</span> <span class="ident">track_info</span>.<span class="ident">channels</span>;
+<span class="kw">impl </span>ToAudioBytes {
+    <span class="kw">pub fn </span>new(parsed: Parsed, chan_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>track_info = parsed.decoder.codec_params();
+        <span class="kw">let </span>sample_rate = track_info.sample_rate.unwrap_or(SAMPLE_RATE_RAW <span class="kw">as </span>u32);
+        <span class="kw">let </span>maybe_layout = track_info.channel_layout;
+        <span class="kw">let </span>maybe_chans = track_info.channels;
 
-        <span class="kw">let</span> <span class="ident">chan_count</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chans</span>) <span class="op">=</span> <span class="ident">maybe_chans</span> {
-            <span class="ident">chans</span>.<span class="ident">count</span>()
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">layout</span>) <span class="op">=</span> <span class="ident">maybe_layout</span> {
-            <span class="kw">match</span> <span class="ident">layout</span> {
-                <span class="ident">Layout::Mono</span> =&gt; <span class="number">1</span>,
-                <span class="ident">Layout::Stereo</span> =&gt; <span class="number">2</span>,
-                <span class="ident">Layout::TwoPointOne</span> =&gt; <span class="number">3</span>,
-                <span class="ident">Layout::FivePointOne</span> =&gt; <span class="number">6</span>,
+        <span class="kw">let </span>chan_count = <span class="kw">if let </span><span class="prelude-val">Some</span>(chans) = maybe_chans {
+            chans.count()
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(layout) = maybe_layout {
+            <span class="kw">match </span>layout {
+                Layout::Mono =&gt; <span class="number">1</span>,
+                Layout::Stereo =&gt; <span class="number">2</span>,
+                Layout::TwoPointOne =&gt; <span class="number">3</span>,
+                Layout::FivePointOne =&gt; <span class="number">6</span>,
             }
-        } <span class="kw">else</span> {
-            <span class="number">2</span>
-        };
+        } <span class="kw">else </span>{
+            <span class="number">2
+        </span>};
 
-        <span class="kw">let</span> <span class="ident">chan_limit</span> <span class="op">=</span> <span class="ident">chan_limit</span>.<span class="ident">unwrap_or</span>(<span class="ident">chan_count</span>);
+        <span class="kw">let </span>chan_limit = chan_limit.unwrap_or(chan_count);
 
-        <span class="kw">let</span> <span class="ident">resample</span> <span class="op">=</span> (<span class="ident">sample_rate</span> <span class="op">!</span><span class="op">=</span> <span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">spec</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chans</span>) <span class="op">=</span> <span class="ident">maybe_chans</span> {
-                <span class="ident">SignalSpec::new</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">chans</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">layout</span>) <span class="op">=</span> <span class="ident">maybe_layout</span> {
-                <span class="ident">SignalSpec::new_with_layout</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">layout</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">SignalSpec::new_with_layout</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">Layout::Stereo</span>)
+        <span class="kw">let </span>resample = (sample_rate != SAMPLE_RATE_RAW <span class="kw">as </span>u32).then(|| {
+            <span class="kw">let </span>spec = <span class="kw">if let </span><span class="prelude-val">Some</span>(chans) = maybe_chans {
+                SignalSpec::new(SAMPLE_RATE_RAW <span class="kw">as </span>u32, chans)
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(layout) = maybe_layout {
+                SignalSpec::new_with_layout(SAMPLE_RATE_RAW <span class="kw">as </span>u32, layout)
+            } <span class="kw">else </span>{
+                SignalSpec::new_with_layout(SAMPLE_RATE_RAW <span class="kw">as </span>u32, Layout::Stereo)
             };
 
-            <span class="kw">let</span> <span class="ident">scratch</span> <span class="op">=</span> <span class="ident">AudioBuffer</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">MONO_FRAME_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">spec</span>);
+            <span class="kw">let </span>scratch = AudioBuffer::&lt;f32&gt;::new(MONO_FRAME_SIZE <span class="kw">as </span>u64, spec);
 
-            <span class="comment">// TODO: integ. error handling here.</span>
-            <span class="kw">let</span> <span class="ident">resampler</span> <span class="op">=</span> <span class="ident">FftFixedOut::new</span>(
-                <span class="ident">sample_rate</span> <span class="kw">as</span> <span class="ident">usize</span>,
-                <span class="ident">SAMPLE_RATE_RAW</span>,
-                <span class="ident">RESAMPLE_OUTPUT_FRAME_SIZE</span>,
+            <span class="comment">// TODO: integ. error handling here.
+            </span><span class="kw">let </span>resampler = FftFixedOut::new(
+                sample_rate <span class="kw">as </span>usize,
+                SAMPLE_RATE_RAW,
+                RESAMPLE_OUTPUT_FRAME_SIZE,
                 <span class="number">4</span>,
-                <span class="ident">chan_count</span>,
+                chan_count,
             )
-            .<span class="ident">expect</span>(<span class="string">&quot;Failed to create resampler.&quot;</span>);
+            .expect(<span class="string">&quot;Failed to create resampler.&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">resampled_data</span> <span class="op">=</span> <span class="ident">resampler</span>.<span class="ident">output_buffer_allocate</span>();
+            <span class="kw">let </span>resampled_data = resampler.output_buffer_allocate();
 
-            <span class="ident">ResampleState</span> {
-                <span class="ident">resampled_data</span>,
-                <span class="ident">resampler</span>,
-                <span class="ident">scratch</span>,
-                <span class="ident">resample_pos</span>: <span class="number">0</span>..<span class="number">0</span>,
+            ResampleState {
+                resampled_data,
+                resampler,
+                scratch,
+                resample_pos: <span class="number">0</span>..<span class="number">0</span>,
             }
         });
 
-        <span class="self">Self</span> {
-            <span class="ident">chan_count</span>,
-            <span class="ident">chan_limit</span>,
-            <span class="ident">parsed</span>,
-            <span class="ident">inner_pos</span>: <span class="number">0</span>..<span class="number">0</span>,
-            <span class="ident">resample</span>,
-            <span class="ident">done</span>: <span class="bool-val">false</span>,
+        <span class="self">Self </span>{
+            chan_count,
+            chan_limit,
+            parsed,
+            inner_pos: <span class="number">0</span>..<span class="number">0</span>,
+            resample,
+            done: <span class="bool-val">false</span>,
 
-            <span class="ident">interrupted_samples</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">chan_count</span>),
-            <span class="ident">interrupted_byte_pos</span>: <span class="number">0</span>..<span class="number">0</span>,
+            interrupted_samples: Vec::with_capacity(chan_count),
+            interrupted_byte_pos: <span class="number">0</span>..<span class="number">0</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_channels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">chan_count</span>.<span class="ident">min</span>(<span class="self">self</span>.<span class="ident">chan_limit</span>)
+    <span class="kw">pub fn </span>num_channels(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.chan_count.min(<span class="self">self</span>.chan_limit)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_done</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">done</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inner_pos</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">resample</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                <span class="ident">v</span>.<span class="ident">scratch</span>.<span class="ident">frames</span>() <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span>.<span class="ident">resample_pos</span>.<span class="ident">is_empty</span>()
+    <span class="kw">fn </span>is_done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.done
+            &amp;&amp; <span class="self">self</span>.inner_pos.is_empty()
+            &amp;&amp; <span class="self">self</span>.resample.as_ref().map_or(<span class="bool-val">true</span>, |v| {
+                v.scratch.frames() == <span class="number">0 </span>&amp;&amp; v.resample_pos.is_empty()
             })
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">interrupted_byte_pos</span>.<span class="ident">is_empty</span>()
+            &amp;&amp; <span class="self">self</span>.interrupted_byte_pos.is_empty()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">ToAudioBytes</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="comment">// NOTE: this is disturbingly similar to the mixer code, but different enough that we can&#39;t</span>
-        <span class="comment">// just reuse it freely.</span>
-        <span class="kw">let</span> <span class="ident">orig_sz</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="ident">num_chans</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">num_channels</span>();
+<span class="kw">impl </span>Read <span class="kw">for </span>ToAudioBytes {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; IoResult&lt;usize&gt; {
+        <span class="comment">// NOTE: this is disturbingly similar to the mixer code, but different enough that we can&#39;t
+        // just reuse it freely.
+        </span><span class="kw">let </span>orig_sz = buf.len();
+        <span class="kw">let </span>num_chans = <span class="self">self</span>.num_channels();
 
-        <span class="kw">while</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_done</span>() {
-            <span class="comment">// Work to clear interrupted channel floats.</span>
-            <span class="kw">while</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">interrupted_byte_pos</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">let</span> <span class="ident">index_of_first_f32</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interrupted_byte_pos</span>.<span class="ident">start</span> <span class="op">/</span> <span class="ident">SAMPLE_LEN</span>;
-                <span class="kw">let</span> <span class="ident">f32_inner_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interrupted_byte_pos</span>.<span class="ident">start</span> <span class="op">%</span> <span class="ident">SAMPLE_LEN</span>;
-                <span class="kw">let</span> <span class="ident">f32_bytes_remaining</span> <span class="op">=</span> <span class="ident">SAMPLE_LEN</span> <span class="op">-</span> <span class="ident">f32_inner_pos</span>;
-                <span class="kw">let</span> <span class="ident">to_write</span> <span class="op">=</span> <span class="ident">f32_bytes_remaining</span>.<span class="ident">min</span>(<span class="ident">buf</span>.<span class="ident">len</span>());
+        <span class="kw">while </span>!buf.is_empty() &amp;&amp; !<span class="self">self</span>.is_done() {
+            <span class="comment">// Work to clear interrupted channel floats.
+            </span><span class="kw">while </span>!buf.is_empty() &amp;&amp; !<span class="self">self</span>.interrupted_byte_pos.is_empty() {
+                <span class="kw">let </span>index_of_first_f32 = <span class="self">self</span>.interrupted_byte_pos.start / SAMPLE_LEN;
+                <span class="kw">let </span>f32_inner_pos = <span class="self">self</span>.interrupted_byte_pos.start % SAMPLE_LEN;
+                <span class="kw">let </span>f32_bytes_remaining = SAMPLE_LEN - f32_inner_pos;
+                <span class="kw">let </span>to_write = f32_bytes_remaining.min(buf.len());
 
-                <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interrupted_samples</span>[<span class="ident">index_of_first_f32</span>].<span class="ident">to_le_bytes</span>();
-                <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="ident">f32_inner_pos</span>..][..<span class="ident">to_write</span>])<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">interrupted_byte_pos</span>.<span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">written</span>;
+                <span class="kw">let </span>bytes = <span class="self">self</span>.interrupted_samples[index_of_first_f32].to_le_bytes();
+                <span class="kw">let </span>written = buf.write(<span class="kw-2">&amp;</span>bytes[f32_inner_pos..][..to_write])<span class="question-mark">?</span>;
+                <span class="self">self</span>.interrupted_byte_pos.start += written;
             }
 
-            <span class="comment">// Clear out already produced resampled floats.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">resample</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">resample</span>.<span class="ident">as_mut</span>() {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">resample</span>.<span class="ident">resample_pos</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">let</span> <span class="ident">bytes_advanced</span> <span class="op">=</span> <span class="ident">write_resample_buffer</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">resample</span>.<span class="ident">resampled_data</span>,
-                        <span class="ident">buf</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">resample</span>.<span class="ident">resample_pos</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">interrupted_samples</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">interrupted_byte_pos</span>,
-                        <span class="ident">num_chans</span>,
+            <span class="comment">// Clear out already produced resampled floats.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(resample) = <span class="self">self</span>.resample.as_mut() {
+                <span class="kw">if </span>!buf.is_empty() &amp;&amp; !resample.resample_pos.is_empty() {
+                    <span class="kw">let </span>bytes_advanced = write_resample_buffer(
+                        <span class="kw-2">&amp;</span>resample.resampled_data,
+                        buf,
+                        <span class="kw-2">&amp;mut </span>resample.resample_pos,
+                        <span class="kw-2">&amp;mut </span><span class="self">self</span>.interrupted_samples,
+                        <span class="kw-2">&amp;mut </span><span class="self">self</span>.interrupted_byte_pos,
+                        num_chans,
                     );
 
-                    <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">bytes_advanced</span>..];
+                    buf = <span class="kw-2">&amp;mut </span>buf[bytes_advanced..];
                 }
 
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">resample</span>.<span class="ident">resample_pos</span>.<span class="ident">is_empty</span>() {
+                <span class="kw">if </span>!resample.resample_pos.is_empty() {
                     <span class="kw">continue</span>;
                 }
             }
 
-            <span class="comment">// Now work with new packets.</span>
-            <span class="kw">let</span> <span class="ident">source_packet</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inner_pos</span>.<span class="ident">is_empty</span>() {
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">parsed</span>.<span class="ident">decoder</span>.<span class="ident">last_decoded</span>())
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">pkt</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">parsed</span>.<span class="ident">format</span>.<span class="ident">next_packet</span>() {
-                <span class="kw">if</span> <span class="ident">pkt</span>.<span class="ident">track_id</span>() <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">parsed</span>.<span class="ident">track_id</span> {
+            <span class="comment">// Now work with new packets.
+            </span><span class="kw">let </span>source_packet = <span class="kw">if </span>!<span class="self">self</span>.inner_pos.is_empty() {
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.parsed.decoder.last_decoded())
+            } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(pkt) = <span class="self">self</span>.parsed.format.next_packet() {
+                <span class="kw">if </span>pkt.track_id() != <span class="self">self</span>.parsed.track_id {
                     <span class="kw">continue</span>;
                 }
 
-                <span class="self">self</span>.<span class="ident">parsed</span>
-                    .<span class="ident">decoder</span>
-                    .<span class="ident">decode</span>(<span class="kw-2">&amp;</span><span class="ident">pkt</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pkt</span><span class="op">|</span> {
-                        <span class="self">self</span>.<span class="ident">inner_pos</span> <span class="op">=</span> <span class="number">0</span>..<span class="ident">pkt</span>.<span class="ident">frames</span>();
-                        <span class="ident">pkt</span>
+                <span class="self">self</span>.parsed
+                    .decoder
+                    .decode(<span class="kw-2">&amp;</span>pkt)
+                    .map(|pkt| {
+                        <span class="self">self</span>.inner_pos = <span class="number">0</span>..pkt.frames();
+                        pkt
                     })
-                    .<span class="ident">ok</span>()
-            } <span class="kw">else</span> {
-                <span class="comment">// EOF.</span>
-                <span class="prelude-val">None</span>
-            };
+                    .ok()
+            } <span class="kw">else </span>{
+                <span class="comment">// EOF.
+                </span><span class="prelude-val">None
+            </span>};
 
-            <span class="kw">if</span> <span class="ident">source_packet</span>.<span class="ident">is_none</span>() {
-                <span class="self">self</span>.<span class="ident">done</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">if </span>source_packet.is_none() {
+                <span class="self">self</span>.done = <span class="bool-val">true</span>;
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">resample</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">resample</span>.<span class="ident">as_mut</span>() {
-                    <span class="kw">if</span> <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">frames</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">resample</span>.<span class="ident">resampled_data</span>;
-                        <span class="kw">let</span> <span class="ident">resampler</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">resample</span>.<span class="ident">resampler</span>;
-                        <span class="kw">let</span> <span class="ident">in_len</span> <span class="op">=</span> <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">frames</span>();
-                        <span class="kw">let</span> <span class="ident">to_render</span> <span class="op">=</span> <span class="ident">resampler</span>.<span class="ident">input_frames_next</span>().<span class="ident">saturating_sub</span>(<span class="ident">in_len</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(resample) = <span class="self">self</span>.resample.as_mut() {
+                    <span class="kw">if </span>resample.scratch.frames() != <span class="number">0 </span>{
+                        <span class="kw">let </span>data = <span class="kw-2">&amp;mut </span>resample.resampled_data;
+                        <span class="kw">let </span>resampler = <span class="kw-2">&amp;mut </span>resample.resampler;
+                        <span class="kw">let </span>in_len = resample.scratch.frames();
+                        <span class="kw">let </span>to_render = resampler.input_frames_next().saturating_sub(in_len);
 
-                        <span class="kw">if</span> <span class="ident">to_render</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                            <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">render_reserved</span>(<span class="prelude-val">Some</span>(<span class="ident">to_render</span>));
-                            <span class="kw">for</span> <span class="ident">plane</span> <span class="kw">in</span> <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">planes_mut</span>().<span class="ident">planes</span>() {
-                                <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">plane</span>[<span class="ident">in_len</span>..] {
-                                    <span class="kw-2">*</span><span class="ident">val</span> <span class="op">=</span> <span class="number">0.0f32</span>;
+                        <span class="kw">if </span>to_render != <span class="number">0 </span>{
+                            resample.scratch.render_reserved(<span class="prelude-val">Some</span>(to_render));
+                            <span class="kw">for </span>plane <span class="kw">in </span>resample.scratch.planes_mut().planes() {
+                                <span class="kw">for </span>val <span class="kw">in </span><span class="kw-2">&amp;mut </span>plane[in_len..] {
+                                    <span class="kw-2">*</span>val = <span class="number">0.0f32</span>;
                                 }
                             }
                         }
 
-                        <span class="comment">// Luckily, we make use of the WHOLE input buffer here.</span>
-                        <span class="ident">resampler</span>
-                            .<span class="ident">process_into_buffer</span>(<span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">planes</span>().<span class="ident">planes</span>(), <span class="ident">data</span>, <span class="prelude-val">None</span>)
-                            .<span class="ident">unwrap</span>();
+                        <span class="comment">// Luckily, we make use of the WHOLE input buffer here.
+                        </span>resampler
+                            .process_into_buffer(resample.scratch.planes().planes(), data, <span class="prelude-val">None</span>)
+                            .unwrap();
 
-                        <span class="comment">// Calculate true end position using sample rate math</span>
-                        <span class="kw">let</span> <span class="ident">ratio</span> <span class="op">=</span> (<span class="ident">data</span>[<span class="number">0</span>].<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">f32</span>) <span class="op">/</span> (<span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">frames</span>() <span class="kw">as</span> <span class="ident">f32</span>);
-                        <span class="kw">let</span> <span class="ident">out_samples</span> <span class="op">=</span> (<span class="ident">ratio</span> <span class="op">*</span> (<span class="ident">in_len</span> <span class="kw">as</span> <span class="ident">f32</span>)).<span class="ident">round</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+                        <span class="comment">// Calculate true end position using sample rate math
+                        </span><span class="kw">let </span>ratio = (data[<span class="number">0</span>].len() <span class="kw">as </span>f32) / (resample.scratch.frames() <span class="kw">as </span>f32);
+                        <span class="kw">let </span>out_samples = (ratio * (in_len <span class="kw">as </span>f32)).round() <span class="kw">as </span>usize;
 
-                        <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">clear</span>();
-                        <span class="ident">resample</span>.<span class="ident">resample_pos</span> <span class="op">=</span> <span class="number">0</span>..<span class="ident">out_samples</span>;
+                        resample.scratch.clear();
+                        resample.resample_pos = <span class="number">0</span>..out_samples;
                     }
                 }
 
-                <span class="comment">// Now go back and make use of the buffer.</span>
-                <span class="comment">// We have to do this here because we can&#39;t make any guarantees about</span>
-                <span class="comment">// the read site having enough space to hold all samples etc.</span>
-                <span class="kw">continue</span>;
+                <span class="comment">// Now go back and make use of the buffer.
+                // We have to do this here because we can&#39;t make any guarantees about
+                // the read site having enough space to hold all samples etc.
+                </span><span class="kw">continue</span>;
             }
 
-            <span class="kw">let</span> <span class="ident">source_packet</span> <span class="op">=</span> <span class="ident">source_packet</span>.<span class="ident">unwrap</span>();
+            <span class="kw">let </span>source_packet = source_packet.unwrap();
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">resample</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">resample</span>.<span class="ident">as_mut</span>() {
-                <span class="comment">// Do a resample using the newest packet.</span>
-                <span class="kw">let</span> <span class="ident">pkt_frames</span> <span class="op">=</span> <span class="ident">source_packet</span>.<span class="ident">frames</span>();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(resample) = <span class="self">self</span>.resample.as_mut() {
+                <span class="comment">// Do a resample using the newest packet.
+                </span><span class="kw">let </span>pkt_frames = source_packet.frames();
 
-                <span class="kw">if</span> <span class="ident">pkt_frames</span> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if </span>pkt_frames == <span class="number">0 </span>{
                     <span class="kw">continue</span>;
                 }
 
-                <span class="kw">let</span> <span class="ident">needed_in_frames</span> <span class="op">=</span> <span class="ident">resample</span>.<span class="ident">resampler</span>.<span class="ident">input_frames_next</span>();
-                <span class="kw">let</span> <span class="ident">available_frames</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner_pos</span>.<span class="ident">len</span>();
+                <span class="kw">let </span>needed_in_frames = resample.resampler.input_frames_next();
+                <span class="kw">let </span>available_frames = <span class="self">self</span>.inner_pos.len();
 
-                <span class="kw">let</span> <span class="ident">force_copy</span> <span class="op">=</span>
-                    <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">frames</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">needed_in_frames</span> <span class="op">&gt;</span> <span class="ident">available_frames</span>;
+                <span class="kw">let </span>force_copy =
+                    resample.scratch.frames() != <span class="number">0 </span>|| needed_in_frames &gt; available_frames;
 
-                <span class="kw">if</span> (<span class="op">!</span><span class="ident">force_copy</span>) <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">source_packet</span>, <span class="ident">AudioBufferRef::F32</span>(<span class="kw">_</span>)) {
-                    <span class="comment">// This is the only case where we can pull off a straight resample...</span>
-                    <span class="comment">// I.e., skip scratch.</span>
+                <span class="kw">if </span>(!force_copy) &amp;&amp; <span class="macro">matches!</span>(source_packet, AudioBufferRef::F32(<span class="kw">_</span>)) {
+                    <span class="comment">// This is the only case where we can pull off a straight resample...
+                    // I.e., skip scratch.
 
-                    <span class="comment">// NOTE: if let needed as if-let &amp;&amp; {bool} is nightly only.</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AudioBufferRef::F32</span>(<span class="ident">s_pkt</span>) <span class="op">=</span> <span class="ident">source_packet</span> {
-                        <span class="kw">let</span> <span class="ident">refs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">f32</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">s_pkt</span>
-                            .<span class="ident">planes</span>()
-                            .<span class="ident">planes</span>()
-                            .<span class="ident">iter</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="self">self</span>.<span class="ident">inner_pos</span>.<span class="ident">start</span>..][..<span class="ident">needed_in_frames</span>])
-                            .<span class="ident">collect</span>();
+                    // NOTE: if let needed as if-let &amp;&amp; {bool} is nightly only.
+                    </span><span class="kw">if let </span>AudioBufferRef::F32(s_pkt) = source_packet {
+                        <span class="kw">let </span>refs: Vec&lt;<span class="kw-2">&amp;</span>[f32]&gt; = s_pkt
+                            .planes()
+                            .planes()
+                            .iter()
+                            .map(|s| <span class="kw-2">&amp;</span>s[<span class="self">self</span>.inner_pos.start..][..needed_in_frames])
+                            .collect();
 
-                        <span class="self">self</span>.<span class="ident">inner_pos</span>.<span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">needed_in_frames</span>;
+                        <span class="self">self</span>.inner_pos.start += needed_in_frames;
 
-                        <span class="ident">resample</span>
-                            .<span class="ident">resampler</span>
-                            .<span class="ident">process_into_buffer</span>(<span class="kw-2">&amp;</span><span class="ident">refs</span>, <span class="kw-2">&amp;mut</span> <span class="ident">resample</span>.<span class="ident">resampled_data</span>, <span class="prelude-val">None</span>)
-                            .<span class="ident">unwrap</span>();
-                    } <span class="kw">else</span> {
+                        resample
+                            .resampler
+                            .process_into_buffer(<span class="kw-2">&amp;</span>refs, <span class="kw-2">&amp;mut </span>resample.resampled_data, <span class="prelude-val">None</span>)
+                            .unwrap();
+                    } <span class="kw">else </span>{
                         <span class="macro">unreachable!</span>()
                     }
-                } <span class="kw">else</span> {
-                    <span class="comment">// We either lack enough samples, or have the wrong data format, forcing</span>
-                    <span class="comment">// a conversion/copy into scratch.</span>
+                } <span class="kw">else </span>{
+                    <span class="comment">// We either lack enough samples, or have the wrong data format, forcing
+                    // a conversion/copy into scratch.
 
-                    <span class="kw">let</span> <span class="ident">old_scratch_len</span> <span class="op">=</span> <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">frames</span>();
-                    <span class="kw">let</span> <span class="ident">missing_frames</span> <span class="op">=</span> <span class="ident">needed_in_frames</span> <span class="op">-</span> <span class="ident">old_scratch_len</span>;
-                    <span class="kw">let</span> <span class="ident">frames_to_take</span> <span class="op">=</span> <span class="ident">available_frames</span>.<span class="ident">min</span>(<span class="ident">missing_frames</span>);
+                    </span><span class="kw">let </span>old_scratch_len = resample.scratch.frames();
+                    <span class="kw">let </span>missing_frames = needed_in_frames - old_scratch_len;
+                    <span class="kw">let </span>frames_to_take = available_frames.min(missing_frames);
 
-                    <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">render_reserved</span>(<span class="prelude-val">Some</span>(<span class="ident">frames_to_take</span>));
-                    <span class="ident">mix_logic::copy_into_resampler</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">source_packet</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">resample</span>.<span class="ident">scratch</span>,
-                        <span class="self">self</span>.<span class="ident">inner_pos</span>.<span class="ident">start</span>,
-                        <span class="ident">old_scratch_len</span>,
-                        <span class="ident">frames_to_take</span>,
+                    resample.scratch.render_reserved(<span class="prelude-val">Some</span>(frames_to_take));
+                    mix_logic::copy_into_resampler(
+                        <span class="kw-2">&amp;</span>source_packet,
+                        <span class="kw-2">&amp;mut </span>resample.scratch,
+                        <span class="self">self</span>.inner_pos.start,
+                        old_scratch_len,
+                        frames_to_take,
                     );
 
-                    <span class="self">self</span>.<span class="ident">inner_pos</span>.<span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">frames_to_take</span>;
+                    <span class="self">self</span>.inner_pos.start += frames_to_take;
 
-                    <span class="kw">if</span> <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">frames</span>() <span class="op">==</span> <span class="ident">needed_in_frames</span> {
-                        <span class="ident">resample</span>
-                            .<span class="ident">resampler</span>
-                            .<span class="ident">process_into_buffer</span>(
-                                <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">planes</span>().<span class="ident">planes</span>(),
-                                <span class="kw-2">&amp;mut</span> <span class="ident">resample</span>.<span class="ident">resampled_data</span>,
+                    <span class="kw">if </span>resample.scratch.frames() == needed_in_frames {
+                        resample
+                            .resampler
+                            .process_into_buffer(
+                                resample.scratch.planes().planes(),
+                                <span class="kw-2">&amp;mut </span>resample.resampled_data,
                                 <span class="prelude-val">None</span>,
                             )
-                            .<span class="ident">unwrap</span>();
-                        <span class="ident">resample</span>.<span class="ident">scratch</span>.<span class="ident">clear</span>();
-                    } <span class="kw">else</span> {
+                            .unwrap();
+                        resample.scratch.clear();
+                    } <span class="kw">else </span>{
                         <span class="kw">continue</span>;
                     }
                 }
 
-                <span class="ident">resample</span>.<span class="ident">resample_pos</span> <span class="op">=</span> <span class="number">0</span>..<span class="ident">resample</span>.<span class="ident">resampled_data</span>[<span class="number">0</span>].<span class="ident">len</span>();
-            } <span class="kw">else</span> {
-                <span class="comment">// Newest packet may be used straight away: just convert format</span>
-                <span class="comment">// to ensure it&#39;s f32.</span>
-                <span class="kw">let</span> <span class="ident">bytes_advanced</span> <span class="op">=</span> <span class="ident">write_out</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">source_packet</span>,
-                    <span class="ident">buf</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner_pos</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">interrupted_samples</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">interrupted_byte_pos</span>,
-                    <span class="ident">num_chans</span>,
+                resample.resample_pos = <span class="number">0</span>..resample.resampled_data[<span class="number">0</span>].len();
+            } <span class="kw">else </span>{
+                <span class="comment">// Newest packet may be used straight away: just convert format
+                // to ensure it&#39;s f32.
+                </span><span class="kw">let </span>bytes_advanced = write_out(
+                    <span class="kw-2">&amp;</span>source_packet,
+                    buf,
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner_pos,
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.interrupted_samples,
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.interrupted_byte_pos,
+                    num_chans,
                 );
 
-                <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">bytes_advanced</span>..];
+                buf = <span class="kw-2">&amp;mut </span>buf[bytes_advanced..];
             }
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">orig_sz</span> <span class="op">-</span> <span class="ident">buf</span>.<span class="ident">len</span>())
+        <span class="prelude-val">Ok</span>(orig_sz - buf.len())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">ToAudioBytes</span> {
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_pos</span>: <span class="ident">std::io::SeekFrom</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">IoErrorKind::Unsupported</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>Seek <span class="kw">for </span>ToAudioBytes {
+    <span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _pos: std::io::SeekFrom) -&gt; IoResult&lt;u64&gt; {
+        <span class="prelude-val">Err</span>(IoErrorKind::Unsupported.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">MediaSource</span> <span class="kw">for</span> <span class="ident">ToAudioBytes</span> {
-    <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="bool-val">false</span>
-    }
+<span class="kw">impl </span>MediaSource <span class="kw">for </span>ToAudioBytes {
+    <span class="kw">fn </span>is_seekable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">false
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">byte_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
+    <span class="kw">fn </span>byte_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="prelude-val">None
+    </span>}
+}
+
+<span class="attribute">#[inline]</span>
+<span class="kw">fn </span>write_out(
+    source: <span class="kw-2">&amp;</span>AudioBufferRef,
+    target: <span class="kw-2">&amp;mut </span>[u8],
+    source_pos: <span class="kw-2">&amp;mut </span>Range&lt;usize&gt;,
+    spillover: <span class="kw-2">&amp;mut </span>Vec&lt;f32&gt;,
+    spill_range: <span class="kw-2">&amp;mut </span>Range&lt;usize&gt;,
+    num_chans: usize,
+) -&gt; usize {
+    <span class="kw">match </span>source {
+        AudioBufferRef::U8(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::U16(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::U24(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::U32(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::S8(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::S16(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::S24(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::S32(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::F32(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
+        AudioBufferRef::F64(v) =&gt;
+            write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
     }
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">write_out</span>(
-    <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">AudioBufferRef</span>,
-    <span class="ident">target</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>],
-    <span class="ident">source_pos</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">spillover</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="ident">spill_range</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">num_chans</span>: <span class="ident">usize</span>,
-) -&gt; <span class="ident">usize</span> {
-    <span class="kw">match</span> <span class="ident">source</span> {
-        <span class="ident">AudioBufferRef::U8</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::U16</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::U24</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::U32</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::S8</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::S16</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::S24</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::S32</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::F32</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-        <span class="ident">AudioBufferRef::F64</span>(<span class="ident">v</span>) =&gt;
-            <span class="ident">write_symph_buffer</span>(<span class="ident">v</span>, <span class="ident">target</span>, <span class="ident">source_pos</span>, <span class="ident">spillover</span>, <span class="ident">spill_range</span>, <span class="ident">num_chans</span>),
-    }
-}
-
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">write_symph_buffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
-    <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">AudioBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>],
-    <span class="ident">source_pos</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">spillover</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="ident">spill_range</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">num_chans</span>: <span class="ident">usize</span>,
-) -&gt; <span class="ident">usize</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">Sample</span> <span class="op">+</span> <span class="ident">IntoSample</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+<span class="attribute">#[inline]</span>
+<span class="kw">fn </span>write_symph_buffer&lt;S&gt;(
+    source: <span class="kw-2">&amp;</span>AudioBuffer&lt;S&gt;,
+    buf: <span class="kw-2">&amp;mut </span>[u8],
+    source_pos: <span class="kw-2">&amp;mut </span>Range&lt;usize&gt;,
+    spillover: <span class="kw-2">&amp;mut </span>Vec&lt;f32&gt;,
+    spill_range: <span class="kw-2">&amp;mut </span>Range&lt;usize&gt;,
+    num_chans: usize,
+) -&gt; usize
+<span class="kw">where
+    </span>S: Sample + IntoSample&lt;f32&gt;,
 {
-    <span class="kw">let</span> <span class="ident">float_space</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="ident">SAMPLE_LEN</span>;
-    <span class="kw">let</span> <span class="ident">interleaved_space</span> <span class="op">=</span> <span class="ident">float_space</span> <span class="op">/</span> <span class="ident">num_chans</span>;
-    <span class="kw">let</span> <span class="ident">non_contiguous_end</span> <span class="op">=</span> (<span class="ident">float_space</span> <span class="op">%</span> <span class="ident">num_chans</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">let </span>float_space = buf.len() / SAMPLE_LEN;
+    <span class="kw">let </span>interleaved_space = float_space / num_chans;
+    <span class="kw">let </span>non_contiguous_end = (float_space % num_chans) != <span class="number">0</span>;
 
-    <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">source_pos</span>.<span class="ident">len</span>();
-    <span class="kw">let</span> <span class="ident">to_write</span> <span class="op">=</span> <span class="ident">remaining</span>.<span class="ident">min</span>(<span class="ident">interleaved_space</span>);
-    <span class="kw">let</span> <span class="ident">need_spill</span> <span class="op">=</span> <span class="ident">non_contiguous_end</span> <span class="op">&amp;&amp;</span> <span class="ident">to_write</span> <span class="op">&lt;</span> <span class="ident">remaining</span>;
+    <span class="kw">let </span>remaining = source_pos.len();
+    <span class="kw">let </span>to_write = remaining.min(interleaved_space);
+    <span class="kw">let </span>need_spill = non_contiguous_end &amp;&amp; to_write &lt; remaining;
 
-    <span class="kw">let</span> <span class="ident">samples_used</span> <span class="op">=</span> <span class="ident">to_write</span> <span class="op">+</span> <span class="kw">if</span> <span class="ident">need_spill</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
-    <span class="kw">let</span> <span class="ident">last_sample</span> <span class="op">=</span> <span class="ident">source_pos</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">to_write</span>;
+    <span class="kw">let </span>samples_used = to_write + <span class="kw">if </span>need_spill { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
+    <span class="kw">let </span>last_sample = source_pos.start + to_write;
 
-    <span class="kw">if</span> <span class="ident">need_spill</span> {
-        <span class="ident">spillover</span>.<span class="ident">clear</span>();
-        <span class="kw-2">*</span><span class="ident">spill_range</span> <span class="op">=</span> <span class="number">0</span>..<span class="ident">num_chans</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>;
+    <span class="kw">if </span>need_spill {
+        spillover.clear();
+        <span class="kw-2">*</span>spill_range = <span class="number">0</span>..num_chans * SAMPLE_LEN;
     }
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">plane</span>) <span class="kw">in</span> <span class="ident">source</span>.<span class="ident">planes</span>().<span class="ident">planes</span>()[..<span class="ident">num_chans</span>].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">sample</span>) <span class="kw">in</span> <span class="ident">plane</span>[<span class="ident">source_pos</span>.<span class="ident">start</span>..][..<span class="ident">to_write</span>].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="comment">// write this into the correct slot of buf.</span>
-            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> ((<span class="ident">j</span> <span class="op">*</span> <span class="ident">num_chans</span>) <span class="op">+</span> <span class="ident">i</span>) <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>;
-            (<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">addr</span>..][..<span class="ident">SAMPLE_LEN</span>])
-                .<span class="ident">write_f32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>((<span class="kw-2">*</span><span class="ident">sample</span>).<span class="ident">into_sample</span>())
-                .<span class="ident">expect</span>(<span class="string">&quot;Address known to exist by length checks.&quot;</span>);
+    <span class="kw">for </span>(i, plane) <span class="kw">in </span>source.planes().planes()[..num_chans].iter().enumerate() {
+        <span class="kw">for </span>(j, sample) <span class="kw">in </span>plane[source_pos.start..][..to_write].iter().enumerate() {
+            <span class="comment">// write this into the correct slot of buf.
+            </span><span class="kw">let </span>addr = ((j * num_chans) + i) * SAMPLE_LEN;
+            (<span class="kw-2">&amp;mut </span>buf[addr..][..SAMPLE_LEN])
+                .write_f32::&lt;LittleEndian&gt;((<span class="kw-2">*</span>sample).into_sample())
+                .expect(<span class="string">&quot;Address known to exist by length checks.&quot;</span>);
         }
 
-        <span class="kw">if</span> <span class="ident">need_spill</span> {
-            <span class="ident">spillover</span>.<span class="ident">push</span>(<span class="ident">plane</span>[<span class="ident">last_sample</span>].<span class="ident">into_sample</span>());
+        <span class="kw">if </span>need_spill {
+            spillover.push(plane[last_sample].into_sample());
         }
     }
 
-    <span class="ident">source_pos</span>.<span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">samples_used</span>;
+    source_pos.start += samples_used;
 
-    <span class="ident">to_write</span> <span class="op">*</span> <span class="ident">num_chans</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>
+    to_write * num_chans * SAMPLE_LEN
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">write_resample_buffer</span>(
-    <span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>],
-    <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>],
-    <span class="ident">source_pos</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">spillover</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="ident">spill_range</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">num_chans</span>: <span class="ident">usize</span>,
-) -&gt; <span class="ident">usize</span> {
-    <span class="kw">let</span> <span class="ident">float_space</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="ident">SAMPLE_LEN</span>;
-    <span class="kw">let</span> <span class="ident">interleaved_space</span> <span class="op">=</span> <span class="ident">float_space</span> <span class="op">/</span> <span class="ident">num_chans</span>;
-    <span class="kw">let</span> <span class="ident">non_contiguous_end</span> <span class="op">=</span> (<span class="ident">float_space</span> <span class="op">%</span> <span class="ident">num_chans</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
+<span class="attribute">#[inline]</span>
+<span class="kw">fn </span>write_resample_buffer(
+    source: <span class="kw-2">&amp;</span>[Vec&lt;f32&gt;],
+    buf: <span class="kw-2">&amp;mut </span>[u8],
+    source_pos: <span class="kw-2">&amp;mut </span>Range&lt;usize&gt;,
+    spillover: <span class="kw-2">&amp;mut </span>Vec&lt;f32&gt;,
+    spill_range: <span class="kw-2">&amp;mut </span>Range&lt;usize&gt;,
+    num_chans: usize,
+) -&gt; usize {
+    <span class="kw">let </span>float_space = buf.len() / SAMPLE_LEN;
+    <span class="kw">let </span>interleaved_space = float_space / num_chans;
+    <span class="kw">let </span>non_contiguous_end = (float_space % num_chans) != <span class="number">0</span>;
 
-    <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">source_pos</span>.<span class="ident">len</span>();
-    <span class="kw">let</span> <span class="ident">to_write</span> <span class="op">=</span> <span class="ident">remaining</span>.<span class="ident">min</span>(<span class="ident">interleaved_space</span>);
-    <span class="kw">let</span> <span class="ident">need_spill</span> <span class="op">=</span> <span class="ident">non_contiguous_end</span> <span class="op">&amp;&amp;</span> <span class="ident">to_write</span> <span class="op">&lt;</span> <span class="ident">remaining</span>;
+    <span class="kw">let </span>remaining = source_pos.len();
+    <span class="kw">let </span>to_write = remaining.min(interleaved_space);
+    <span class="kw">let </span>need_spill = non_contiguous_end &amp;&amp; to_write &lt; remaining;
 
-    <span class="kw">let</span> <span class="ident">samples_used</span> <span class="op">=</span> <span class="ident">to_write</span> <span class="op">+</span> <span class="kw">if</span> <span class="ident">need_spill</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
-    <span class="kw">let</span> <span class="ident">last_sample</span> <span class="op">=</span> <span class="ident">source_pos</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">to_write</span>;
+    <span class="kw">let </span>samples_used = to_write + <span class="kw">if </span>need_spill { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
+    <span class="kw">let </span>last_sample = source_pos.start + to_write;
 
-    <span class="kw">if</span> <span class="ident">need_spill</span> {
-        <span class="ident">spillover</span>.<span class="ident">clear</span>();
-        <span class="kw-2">*</span><span class="ident">spill_range</span> <span class="op">=</span> <span class="number">0</span>..<span class="ident">num_chans</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>;
+    <span class="kw">if </span>need_spill {
+        spillover.clear();
+        <span class="kw-2">*</span>spill_range = <span class="number">0</span>..num_chans * SAMPLE_LEN;
     }
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">plane</span>) <span class="kw">in</span> <span class="ident">source</span>[..<span class="ident">num_chans</span>].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">sample</span>) <span class="kw">in</span> <span class="ident">plane</span>[<span class="ident">source_pos</span>.<span class="ident">start</span>..][..<span class="ident">to_write</span>].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="comment">// write this into the correct slot of buf.</span>
-            <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> ((<span class="ident">j</span> <span class="op">*</span> <span class="ident">num_chans</span>) <span class="op">+</span> <span class="ident">i</span>) <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>;
-            (<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">addr</span>..][..<span class="ident">SAMPLE_LEN</span>])
-                .<span class="ident">write_f32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">sample</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Address well-formed according to bounds checks.&quot;</span>);
+    <span class="kw">for </span>(i, plane) <span class="kw">in </span>source[..num_chans].iter().enumerate() {
+        <span class="kw">for </span>(j, sample) <span class="kw">in </span>plane[source_pos.start..][..to_write].iter().enumerate() {
+            <span class="comment">// write this into the correct slot of buf.
+            </span><span class="kw">let </span>addr = ((j * num_chans) + i) * SAMPLE_LEN;
+            (<span class="kw-2">&amp;mut </span>buf[addr..][..SAMPLE_LEN])
+                .write_f32::&lt;LittleEndian&gt;(<span class="kw-2">*</span>sample)
+                .expect(<span class="string">&quot;Address well-formed according to bounds checks.&quot;</span>);
         }
 
-        <span class="kw">if</span> <span class="ident">need_spill</span> {
-            <span class="ident">spillover</span>.<span class="ident">push</span>(<span class="ident">plane</span>[<span class="ident">last_sample</span>]);
+        <span class="kw">if </span>need_spill {
+            spillover.push(plane[last_sample]);
         }
     }
 
-    <span class="ident">source_pos</span>.<span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">samples_used</span>;
+    source_pos.start += samples_used;
 
-    <span class="ident">to_write</span> <span class="op">*</span> <span class="ident">num_chans</span> <span class="op">*</span> <span class="ident">SAMPLE_LEN</span>
+    to_write * num_chans * SAMPLE_LEN
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

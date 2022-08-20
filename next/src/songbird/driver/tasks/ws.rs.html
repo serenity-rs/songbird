@@ -262,174 +262,174 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::message</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">events::CoreContext</span>,
-    <span class="ident">model</span>::{
-        <span class="ident">payload</span>::{<span class="ident">Heartbeat</span>, <span class="ident">Speaking</span>},
-        <span class="ident">CloseCode</span> <span class="kw">as</span> <span class="ident">VoiceCloseCode</span>,
-        <span class="ident">Event</span> <span class="kw">as</span> <span class="ident">GatewayEvent</span>,
-        <span class="ident">FromPrimitive</span>,
-        <span class="ident">SpeakingState</span>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::message::<span class="kw-2">*</span>;
+<span class="kw">use crate</span>::{
+    events::CoreContext,
+    model::{
+        payload::{Heartbeat, Speaking},
+        CloseCode <span class="kw">as </span>VoiceCloseCode,
+        Event <span class="kw">as </span>GatewayEvent,
+        FromPrimitive,
+        SpeakingState,
     },
-    <span class="ident">ws</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">WsError</span>, <span class="ident">WsStream</span>},
-    <span class="ident">ConnectionInfo</span>,
+    ws::{Error <span class="kw">as </span>WsError, WsStream},
+    ConnectionInfo,
 };
-<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
-<span class="kw">use</span> <span class="ident">rand::random</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
-<span class="kw">use</span> <span class="ident">tokio</span>::{
-    <span class="ident">select</span>,
-    <span class="ident">time</span>::{<span class="ident">sleep_until</span>, <span class="ident">Instant</span>},
+<span class="kw">use </span>flume::Receiver;
+<span class="kw">use </span>rand::random;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>tokio::{
+    select,
+    time::{sleep_until, Instant},
 };
-<span class="kw">use</span> <span class="ident">tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode</span>;
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">info</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
+<span class="kw">use </span>tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
+<span class="kw">use </span>tracing::{debug, info, instrument, trace, warn};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AuxNetwork</span> {
-    <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>,
-    <span class="ident">ws_client</span>: <span class="ident">WsStream</span>,
-    <span class="ident">dont_send</span>: <span class="ident">bool</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AuxNetwork {
+    rx: Receiver&lt;WsMessage&gt;,
+    ws_client: WsStream,
+    dont_send: bool,
 
-    <span class="ident">ssrc</span>: <span class="ident">u32</span>,
-    <span class="ident">heartbeat_interval</span>: <span class="ident">Duration</span>,
+    ssrc: u32,
+    heartbeat_interval: Duration,
 
-    <span class="ident">speaking</span>: <span class="ident">SpeakingState</span>,
-    <span class="ident">last_heartbeat_nonce</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+    speaking: SpeakingState,
+    last_heartbeat_nonce: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 
-    <span class="ident">attempt_idx</span>: <span class="ident">usize</span>,
-    <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
+    attempt_idx: usize,
+    info: ConnectionInfo,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-    <span class="ident">ssrc_signalling</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SsrcTracker</span><span class="op">&gt;</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+    ssrc_signalling: Arc&lt;SsrcTracker&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">AuxNetwork</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">evt_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>,
-        <span class="ident">ws_client</span>: <span class="ident">WsStream</span>,
-        <span class="ident">ssrc</span>: <span class="ident">u32</span>,
-        <span class="ident">heartbeat_interval</span>: <span class="ident">f64</span>,
-        <span class="ident">attempt_idx</span>: <span class="ident">usize</span>,
-        <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span> <span class="ident">ssrc_signalling</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SsrcTracker</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">rx</span>: <span class="ident">evt_rx</span>,
-            <span class="ident">ws_client</span>,
-            <span class="ident">dont_send</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>AuxNetwork {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        evt_rx: Receiver&lt;WsMessage&gt;,
+        ws_client: WsStream,
+        ssrc: u32,
+        heartbeat_interval: f64,
+        attempt_idx: usize,
+        info: ConnectionInfo,
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span> ssrc_signalling: Arc&lt;SsrcTracker&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            rx: evt_rx,
+            ws_client,
+            dont_send: <span class="bool-val">false</span>,
 
-            <span class="ident">ssrc</span>,
-            <span class="ident">heartbeat_interval</span>: <span class="ident">Duration::from_secs_f64</span>(<span class="ident">heartbeat_interval</span> <span class="op">/</span> <span class="number">1000.0</span>),
+            ssrc,
+            heartbeat_interval: Duration::from_secs_f64(heartbeat_interval / <span class="number">1000.0</span>),
 
-            <span class="ident">speaking</span>: <span class="ident">SpeakingState::empty</span>(),
-            <span class="ident">last_heartbeat_nonce</span>: <span class="prelude-val">None</span>,
+            speaking: SpeakingState::empty(),
+            last_heartbeat_nonce: <span class="prelude-val">None</span>,
 
-            <span class="ident">attempt_idx</span>,
-            <span class="ident">info</span>,
+            attempt_idx,
+            info,
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-            <span class="ident">ssrc_signalling</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+            ssrc_signalling,
         }
     }
 
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interconnect</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_heartbeat</span> <span class="op">=</span> <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">heartbeat_interval</span>;
+    <span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">async fn </span>run(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interconnect: <span class="kw-2">&amp;mut </span>Interconnect) {
+        <span class="kw">let </span><span class="kw-2">mut </span>next_heartbeat = Instant::now() + <span class="self">self</span>.heartbeat_interval;
 
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ws_error</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">should_reconnect</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ws_reason</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>ws_error = <span class="bool-val">false</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>should_reconnect = <span class="bool-val">false</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>ws_reason = <span class="prelude-val">None</span>;
 
-            <span class="kw">let</span> <span class="ident">hb</span> <span class="op">=</span> <span class="ident">sleep_until</span>(<span class="ident">next_heartbeat</span>);
+            <span class="kw">let </span>hb = sleep_until(next_heartbeat);
 
             <span class="macro">select!</span> {
-                <span class="kw">_</span> <span class="op">=</span> <span class="ident">hb</span> =&gt; {
-                    <span class="ident">ws_error</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">send_heartbeat</span>().<span class="kw">await</span> {
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                            <span class="ident">should_reconnect</span> <span class="op">=</span> <span class="ident">ws_error_is_not_final</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>);
-                            <span class="ident">ws_reason</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">e</span>).<span class="ident">into</span>());
-                            <span class="bool-val">true</span>
-                        },
-                        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+                <span class="kw">_ </span>= hb =&gt; {
+                    ws_error = <span class="kw">match </span><span class="self">self</span>.send_heartbeat().<span class="kw">await </span>{
+                        <span class="prelude-val">Err</span>(e) =&gt; {
+                            should_reconnect = ws_error_is_not_final(<span class="kw-2">&amp;</span>e);
+                            ws_reason = <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span>e).into());
+                            <span class="bool-val">true
+                        </span>},
+                        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                     };
-                    <span class="ident">next_heartbeat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_heartbeat</span>();
+                    next_heartbeat = <span class="self">self</span>.next_heartbeat();
                 }
-                <span class="ident">ws_msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ws_client</span>.<span class="ident">recv_json_no_timeout</span>(), <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dont_send</span> =&gt; {
-                    <span class="ident">ws_error</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ws_msg</span> {
-                        <span class="prelude-val">Err</span>(<span class="ident">WsError::Json</span>(<span class="ident">e</span>)) =&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;Unexpected JSON {:?}.&quot;</span>, <span class="ident">e</span>);
-                            <span class="bool-val">false</span>
-                        },
-                        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                            <span class="ident">should_reconnect</span> <span class="op">=</span> <span class="ident">ws_error_is_not_final</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>);
-                            <span class="ident">ws_reason</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">e</span>).<span class="ident">into</span>());
-                            <span class="bool-val">true</span>
-                        },
-                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">msg</span>)) =&gt; {
-                            <span class="self">self</span>.<span class="ident">process_ws</span>(<span class="ident">interconnect</span>, <span class="ident">msg</span>);
-                            <span class="bool-val">false</span>
-                        },
-                        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+                ws_msg = <span class="self">self</span>.ws_client.recv_json_no_timeout(), <span class="kw">if </span>!<span class="self">self</span>.dont_send =&gt; {
+                    ws_error = <span class="kw">match </span>ws_msg {
+                        <span class="prelude-val">Err</span>(WsError::Json(e)) =&gt; {
+                            <span class="macro">debug!</span>(<span class="string">&quot;Unexpected JSON {:?}.&quot;</span>, e);
+                            <span class="bool-val">false
+                        </span>},
+                        <span class="prelude-val">Err</span>(e) =&gt; {
+                            should_reconnect = ws_error_is_not_final(<span class="kw-2">&amp;</span>e);
+                            ws_reason = <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span>e).into());
+                            <span class="bool-val">true
+                        </span>},
+                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(msg)) =&gt; {
+                            <span class="self">self</span>.process_ws(interconnect, msg);
+                            <span class="bool-val">false
+                        </span>},
+                        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                     };
                 }
-                <span class="ident">inner_msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">recv_async</span>() =&gt; {
-                    <span class="kw">match</span> <span class="ident">inner_msg</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::Ws</span>(<span class="ident">data</span>)) =&gt; {
-                            <span class="self">self</span>.<span class="ident">ws_client</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span>;
-                            <span class="ident">next_heartbeat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_heartbeat</span>();
-                            <span class="self">self</span>.<span class="ident">dont_send</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                inner_msg = <span class="self">self</span>.rx.recv_async() =&gt; {
+                    <span class="kw">match </span>inner_msg {
+                        <span class="prelude-val">Ok</span>(WsMessage::Ws(data)) =&gt; {
+                            <span class="self">self</span>.ws_client = <span class="kw-2">*</span>data;
+                            next_heartbeat = <span class="self">self</span>.next_heartbeat();
+                            <span class="self">self</span>.dont_send = <span class="bool-val">false</span>;
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::ReplaceInterconnect</span>(<span class="ident">i</span>)) =&gt; {
-                            <span class="kw-2">*</span><span class="ident">interconnect</span> <span class="op">=</span> <span class="ident">i</span>;
+                        <span class="prelude-val">Ok</span>(WsMessage::ReplaceInterconnect(i)) =&gt; {
+                            <span class="kw-2">*</span>interconnect = i;
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::SetKeepalive</span>(<span class="ident">keepalive</span>)) =&gt; {
-                            <span class="self">self</span>.<span class="ident">heartbeat_interval</span> <span class="op">=</span> <span class="ident">Duration::from_secs_f64</span>(<span class="ident">keepalive</span> <span class="op">/</span> <span class="number">1000.0</span>);
-                            <span class="ident">next_heartbeat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_heartbeat</span>();
+                        <span class="prelude-val">Ok</span>(WsMessage::SetKeepalive(keepalive)) =&gt; {
+                            <span class="self">self</span>.heartbeat_interval = Duration::from_secs_f64(keepalive / <span class="number">1000.0</span>);
+                            next_heartbeat = <span class="self">self</span>.next_heartbeat();
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">WsMessage::Speaking</span>(<span class="ident">is_speaking</span>)) =&gt; {
-                            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">speaking</span>.<span class="ident">contains</span>(<span class="ident">SpeakingState::MICROPHONE</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">is_speaking</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dont_send</span> {
-                                <span class="self">self</span>.<span class="ident">speaking</span>.<span class="ident">set</span>(<span class="ident">SpeakingState::MICROPHONE</span>, <span class="ident">is_speaking</span>);
-                                <span class="macro">info!</span>(<span class="string">&quot;Changing to {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">speaking</span>);
+                        <span class="prelude-val">Ok</span>(WsMessage::Speaking(is_speaking)) =&gt; {
+                            <span class="kw">if </span><span class="self">self</span>.speaking.contains(SpeakingState::MICROPHONE) != is_speaking &amp;&amp; !<span class="self">self</span>.dont_send {
+                                <span class="self">self</span>.speaking.set(SpeakingState::MICROPHONE, is_speaking);
+                                <span class="macro">info!</span>(<span class="string">&quot;Changing to {:?}&quot;</span>, <span class="self">self</span>.speaking);
 
-                                <span class="kw">let</span> <span class="ident">ssu_status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ws_client</span>
-                                    .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent::from</span>(<span class="ident">Speaking</span> {
-                                        <span class="ident">delay</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-                                        <span class="ident">speaking</span>: <span class="self">self</span>.<span class="ident">speaking</span>,
-                                        <span class="ident">ssrc</span>: <span class="self">self</span>.<span class="ident">ssrc</span>,
-                                        <span class="ident">user_id</span>: <span class="prelude-val">None</span>,
+                                <span class="kw">let </span>ssu_status = <span class="self">self</span>.ws_client
+                                    .send_json(<span class="kw-2">&amp;</span>GatewayEvent::from(Speaking {
+                                        delay: <span class="prelude-val">Some</span>(<span class="number">0</span>),
+                                        speaking: <span class="self">self</span>.speaking,
+                                        ssrc: <span class="self">self</span>.ssrc,
+                                        user_id: <span class="prelude-val">None</span>,
                                     }))
                                     .<span class="kw">await</span>;
 
-                                <span class="ident">ws_error</span> <span class="op">|</span><span class="op">=</span> <span class="kw">match</span> <span class="ident">ssu_status</span> {
-                                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                                        <span class="ident">should_reconnect</span> <span class="op">=</span> <span class="ident">ws_error_is_not_final</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>);
-                                        <span class="ident">ws_reason</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">e</span>).<span class="ident">into</span>());
-                                        <span class="bool-val">true</span>
-                                    },
-                                    <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+                                ws_error |= <span class="kw">match </span>ssu_status {
+                                    <span class="prelude-val">Err</span>(e) =&gt; {
+                                        should_reconnect = ws_error_is_not_final(<span class="kw-2">&amp;</span>e);
+                                        ws_reason = <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span>e).into());
+                                        <span class="bool-val">true
+                                    </span>},
+                                    <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                                 }
                             }
                         },
-                        <span class="prelude-val">Err</span>(<span class="ident">flume::RecvError::Disconnected</span>) =&gt; {
+                        <span class="prelude-val">Err</span>(flume::RecvError::Disconnected) =&gt; {
                             <span class="kw">break</span>;
                         },
                     }
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">ws_error</span> {
-                <span class="self">self</span>.<span class="ident">dont_send</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">if </span>ws_error {
+                <span class="self">self</span>.dont_send = <span class="bool-val">true</span>;
 
-                <span class="kw">if</span> <span class="ident">should_reconnect</span> {
-                    <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::Reconnect</span>));
-                } <span class="kw">else</span> {
-                    <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">core</span>.<span class="ident">send</span>(<span class="ident">CoreMessage::SignalWsClosure</span>(
-                        <span class="self">self</span>.<span class="ident">attempt_idx</span>,
-                        <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">clone</span>(),
-                        <span class="ident">ws_reason</span>,
+                <span class="kw">if </span>should_reconnect {
+                    drop(interconnect.core.send(CoreMessage::Reconnect));
+                } <span class="kw">else </span>{
+                    drop(interconnect.core.send(CoreMessage::SignalWsClosure(
+                        <span class="self">self</span>.attempt_idx,
+                        <span class="self">self</span>.info.clone(),
+                        ws_reason,
                     )));
                     <span class="kw">break</span>;
                 }
@@ -437,92 +437,92 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">next_heartbeat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Instant</span> {
-        <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">heartbeat_interval</span>
+    <span class="kw">fn </span>next_heartbeat(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Instant {
+        Instant::now() + <span class="self">self</span>.heartbeat_interval
     }
 
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_heartbeat</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">WsError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>();
-        <span class="self">self</span>.<span class="ident">last_heartbeat_nonce</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">nonce</span>);
+    <span class="kw">async fn </span>send_heartbeat(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), WsError&gt; {
+        <span class="kw">let </span>nonce = random::&lt;u64&gt;();
+        <span class="self">self</span>.last_heartbeat_nonce = <span class="prelude-val">Some</span>(nonce);
 
-        <span class="macro">trace!</span>(<span class="string">&quot;Sent heartbeat {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">speaking</span>);
+        <span class="macro">trace!</span>(<span class="string">&quot;Sent heartbeat {:?}&quot;</span>, <span class="self">self</span>.speaking);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dont_send</span> {
-            <span class="self">self</span>.<span class="ident">ws_client</span>
-                .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent::from</span>(<span class="ident">Heartbeat</span> { <span class="ident">nonce</span> }))
+        <span class="kw">if </span>!<span class="self">self</span>.dont_send {
+            <span class="self">self</span>.ws_client
+                .send_json(<span class="kw-2">&amp;</span>GatewayEvent::from(Heartbeat { nonce }))
                 .<span class="kw">await</span><span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">process_ws</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>, <span class="ident">value</span>: <span class="ident">GatewayEvent</span>) {
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">GatewayEvent::Speaking</span>(<span class="ident">ev</span>) =&gt; {
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">user_id</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ev</span>.<span class="ident">user_id</span> {
-                    <span class="self">self</span>.<span class="ident">ssrc_signalling</span>.<span class="ident">user_ssrc_map</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">user_id</span>, <span class="ident">ev</span>.<span class="ident">ssrc</span>);
+    <span class="kw">fn </span>process_ws(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interconnect: <span class="kw-2">&amp;</span>Interconnect, value: GatewayEvent) {
+        <span class="kw">match </span>value {
+            GatewayEvent::Speaking(ev) =&gt; {
+                <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(user_id) = <span class="kw-2">&amp;</span>ev.user_id {
+                    <span class="self">self</span>.ssrc_signalling.user_ssrc_map.insert(<span class="kw-2">*</span>user_id, ev.ssrc);
                 }
 
-                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
-                    <span class="ident">CoreContext::SpeakingStateUpdate</span>(<span class="ident">ev</span>),
+                drop(interconnect.events.send(EventMessage::FireCoreEvent(
+                    CoreContext::SpeakingStateUpdate(ev),
                 )));
             },
-            <span class="ident">GatewayEvent::ClientConnect</span>(<span class="ident">ev</span>) =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;Received discontinued ClientConnect: {:?}&quot;</span>, <span class="ident">ev</span>);
+            GatewayEvent::ClientConnect(ev) =&gt; {
+                <span class="macro">debug!</span>(<span class="string">&quot;Received discontinued ClientConnect: {:?}&quot;</span>, ev);
             },
-            <span class="ident">GatewayEvent::ClientDisconnect</span>(<span class="ident">ev</span>) =&gt; {
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;receive&quot;</span>)]</span>
+            GatewayEvent::ClientDisconnect(ev) =&gt; {
+                <span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
                 {
-                    <span class="self">self</span>.<span class="ident">ssrc_signalling</span>.<span class="ident">disconnected_users</span>.<span class="ident">insert</span>(<span class="ident">ev</span>.<span class="ident">user_id</span>);
+                    <span class="self">self</span>.ssrc_signalling.disconnected_users.insert(ev.user_id);
                 }
 
-                <span class="ident">drop</span>(<span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
-                    <span class="ident">CoreContext::ClientDisconnect</span>(<span class="ident">ev</span>),
+                drop(interconnect.events.send(EventMessage::FireCoreEvent(
+                    CoreContext::ClientDisconnect(ev),
                 )));
             },
-            <span class="ident">GatewayEvent::HeartbeatAck</span>(<span class="ident">ev</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">nonce</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">last_heartbeat_nonce</span>.<span class="ident">take</span>() {
-                    <span class="kw">if</span> <span class="ident">ev</span>.<span class="ident">nonce</span> <span class="op">==</span> <span class="ident">nonce</span> {
+            GatewayEvent::HeartbeatAck(ev) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(nonce) = <span class="self">self</span>.last_heartbeat_nonce.take() {
+                    <span class="kw">if </span>ev.nonce == nonce {
                         <span class="macro">trace!</span>(<span class="string">&quot;Heartbeat ACK received.&quot;</span>);
-                    } <span class="kw">else</span> {
+                    } <span class="kw">else </span>{
                         <span class="macro">warn!</span>(
                             <span class="string">&quot;Heartbeat nonce mismatch! Expected {}, saw {}.&quot;</span>,
-                            <span class="ident">nonce</span>, <span class="ident">ev</span>.<span class="ident">nonce</span>
+                            nonce, ev.nonce
                         );
                     }
                 }
             },
-            <span class="ident">other</span> =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;Received other websocket data: {:?}&quot;</span>, <span class="ident">other</span>);
+            other =&gt; {
+                <span class="macro">trace!</span>(<span class="string">&quot;Received other websocket data: {:?}&quot;</span>, other);
             },
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">interconnect</span>, <span class="ident">aux</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(<span class="kw-2">mut</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>, <span class="kw-2">mut</span> <span class="ident">aux</span>: <span class="ident">AuxNetwork</span>) {
+<span class="attribute">#[instrument(skip(interconnect, aux))]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>runner(<span class="kw-2">mut </span>interconnect: Interconnect, <span class="kw-2">mut </span>aux: AuxNetwork) {
     <span class="macro">trace!</span>(<span class="string">&quot;WS thread started.&quot;</span>);
-    <span class="ident">aux</span>.<span class="ident">run</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interconnect</span>).<span class="kw">await</span>;
+    aux.run(<span class="kw-2">&amp;mut </span>interconnect).<span class="kw">await</span>;
     <span class="macro">trace!</span>(<span class="string">&quot;WS thread finished.&quot;</span>);
 }
 
-<span class="kw">fn</span> <span class="ident">ws_error_is_not_final</span>(<span class="ident">err</span>: <span class="kw-2">&amp;</span><span class="ident">WsError</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">match</span> <span class="ident">err</span> {
-        <span class="ident">WsError::WsClosed</span>(<span class="prelude-val">Some</span>(<span class="ident">frame</span>)) =&gt; <span class="kw">match</span> <span class="ident">frame</span>.<span class="ident">code</span> {
-            <span class="ident">CloseCode::Library</span>(<span class="ident">l</span>) =&gt;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">code</span>) <span class="op">=</span> <span class="ident">VoiceCloseCode::from_u16</span>(<span class="ident">l</span>) {
-                    <span class="ident">code</span>.<span class="ident">should_resume</span>()
-                } <span class="kw">else</span> {
-                    <span class="bool-val">true</span>
-                },
-            <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
+<span class="kw">fn </span>ws_error_is_not_final(err: <span class="kw-2">&amp;</span>WsError) -&gt; bool {
+    <span class="kw">match </span>err {
+        WsError::WsClosed(<span class="prelude-val">Some</span>(frame)) =&gt; <span class="kw">match </span>frame.code {
+            CloseCode::Library(l) =&gt;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(code) = VoiceCloseCode::from_u16(l) {
+                    code.should_resume()
+                } <span class="kw">else </span>{
+                    <span class="bool-val">true
+                </span>},
+            <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
         },
-        <span class="ident">e</span> =&gt; {
-            <span class="macro">debug!</span>(<span class="string">&quot;Error sending/receiving ws {:?}.&quot;</span>, <span class="ident">e</span>);
-            <span class="bool-val">true</span>
-        },
+        e =&gt; {
+            <span class="macro">debug!</span>(<span class="string">&quot;Error sending/receiving ws {:?}.&quot;</span>, e);
+            <span class="bool-val">true
+        </span>},
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

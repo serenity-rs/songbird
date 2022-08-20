@@ -32,37 +32,37 @@
 <span id="30">30</span>
 <span id="31">31</span>
 <span id="32">32</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::id</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::id::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// Voice connection details gathered at setup/reinstantiation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConnectData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// ID of the voice channel being joined, if it is known.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this is available, then this can be used to reconnect/renew</span>
-    <span class="doccomment">/// a voice session via thew gateway.</span>
-    <span class="kw">pub</span> <span class="ident">channel_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChannelId</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// ID of the target voice channel&#39;s parent guild.</span>
-    <span class="kw">pub</span> <span class="ident">guild_id</span>: <span class="ident">GuildId</span>,
-    <span class="doccomment">/// Unique string describing this session for validation/authentication purposes.</span>
-    <span class="kw">pub</span> <span class="ident">session_id</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
-    <span class="doccomment">/// The domain name of Discord&#39;s voice/TURN server.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// With the introduction of Discord&#39;s automatic voice server selection,</span>
-    <span class="doccomment">/// this is no longer guaranteed to match a server&#39;s settings. This field</span>
-    <span class="doccomment">/// may be useful if you need/wish to move your voice connection to a node/shard</span>
-    <span class="doccomment">/// closer to Discord.</span>
-    <span class="kw">pub</span> <span class="ident">server</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
-    <span class="doccomment">/// The [RTP SSRC] *(&quot;Synchronisation source&quot;)* assigned by the voice server</span>
-    <span class="doccomment">/// for the duration of this call.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// All packets sent will use this SSRC, which is not related to the sender&#39;s User</span>
-    <span class="doccomment">/// ID. These are usually allocated sequentially by Discord, following on from</span>
-    <span class="doccomment">/// a random starting SSRC.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [RTP SSRC]: https://tools.ietf.org/html/rfc3550#section-3</span>
-    <span class="kw">pub</span> <span class="ident">ssrc</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// Voice connection details gathered at setup/reinstantiation.
+</span><span class="attribute">#[derive(Clone, Debug, Eq, Hash, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub struct </span>ConnectData&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// ID of the voice channel being joined, if it is known.
+    ///
+    /// If this is available, then this can be used to reconnect/renew
+    /// a voice session via thew gateway.
+    </span><span class="kw">pub </span>channel_id: <span class="prelude-ty">Option</span>&lt;ChannelId&gt;,
+    <span class="doccomment">/// ID of the target voice channel&#39;s parent guild.
+    </span><span class="kw">pub </span>guild_id: GuildId,
+    <span class="doccomment">/// Unique string describing this session for validation/authentication purposes.
+    </span><span class="kw">pub </span>session_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    <span class="doccomment">/// The domain name of Discord&#39;s voice/TURN server.
+    ///
+    /// With the introduction of Discord&#39;s automatic voice server selection,
+    /// this is no longer guaranteed to match a server&#39;s settings. This field
+    /// may be useful if you need/wish to move your voice connection to a node/shard
+    /// closer to Discord.
+    </span><span class="kw">pub </span>server: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    <span class="doccomment">/// The [RTP SSRC] *(&quot;Synchronisation source&quot;)* assigned by the voice server
+    /// for the duration of this call.
+    ///
+    /// All packets sent will use this SSRC, which is not related to the sender&#39;s User
+    /// ID. These are usually allocated sequentially by Discord, following on from
+    /// a random starting SSRC.
+    ///
+    /// [RTP SSRC]: https://tools.ietf.org/html/rfc3550#section-3
+    </span><span class="kw">pub </span>ssrc: u32,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

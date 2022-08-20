@@ -29,34 +29,34 @@
 <span id="27">27</span>
 <span id="28">28</span>
 <span id="29">29</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// Track and voice core events.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Untimed events persist while the `action` in [`EventData`]</span>
-<span class="doccomment">/// returns `None`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`EventData`]: EventData</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UntimedEvent</span> {
-    <span class="doccomment">/// Untimed events belonging to a track, such as state changes, end, or loops.</span>
-    <span class="ident">Track</span>(<span class="ident">TrackEvent</span>),
-    <span class="doccomment">/// Untimed events belonging to the global context, such as finished tracks,</span>
-    <span class="doccomment">/// client speaking updates, or RT(C)P voice and telemetry data.</span>
-    <span class="ident">Core</span>(<span class="ident">CoreEvent</span>),
+<span class="doccomment">/// Track and voice core events.
+///
+/// Untimed events persist while the `action` in [`EventData`]
+/// returns `None`.
+///
+/// [`EventData`]: EventData
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>UntimedEvent {
+    <span class="doccomment">/// Untimed events belonging to a track, such as state changes, end, or loops.
+    </span>Track(TrackEvent),
+    <span class="doccomment">/// Untimed events belonging to the global context, such as finished tracks,
+    /// client speaking updates, or RT(C)P voice and telemetry data.
+    </span>Core(CoreEvent),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TrackEvent</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UntimedEvent</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">evt</span>: <span class="ident">TrackEvent</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">UntimedEvent::Track</span>(<span class="ident">evt</span>)
+<span class="kw">impl </span>From&lt;TrackEvent&gt; <span class="kw">for </span>UntimedEvent {
+    <span class="kw">fn </span>from(evt: TrackEvent) -&gt; <span class="self">Self </span>{
+        UntimedEvent::Track(evt)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CoreEvent</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UntimedEvent</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">evt</span>: <span class="ident">CoreEvent</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">UntimedEvent::Core</span>(<span class="ident">evt</span>)
+<span class="kw">impl </span>From&lt;CoreEvent&gt; <span class="kw">for </span>UntimedEvent {
+    <span class="kw">fn </span>from(evt: CoreEvent) -&gt; <span class="self">Self </span>{
+        UntimedEvent::Core(evt)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

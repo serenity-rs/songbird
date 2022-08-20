@@ -55,60 +55,60 @@
 <span id="53">53</span>
 <span id="54">54</span>
 <span id="55">55</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::AuxMetadata</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants::SAMPLE_RATE_RAW</span>;
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">time::Duration</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::AuxMetadata;
+<span class="kw">use </span><span class="kw">crate</span>::constants::SAMPLE_RATE_RAW;
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>std::{collections::HashMap, time::Duration};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Output</span> {
-    <span class="kw">pub</span> <span class="ident">artist</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">album</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">channel</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">duration</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">filesize</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">http_headers</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">release_date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">thumbnail</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">title</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">track</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">upload_date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">uploader</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">url</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">webpage_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Deserialize, Serialize)]</span>
+<span class="kw">pub struct </span>Output {
+    <span class="kw">pub </span>artist: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>album: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>channel: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>duration: <span class="prelude-ty">Option</span>&lt;f64&gt;,
+    <span class="kw">pub </span>filesize: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+    <span class="kw">pub </span>http_headers: <span class="prelude-ty">Option</span>&lt;HashMap&lt;String, String&gt;&gt;,
+    <span class="kw">pub </span>release_date: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>thumbnail: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>title: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>track: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>upload_date: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>uploader: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>url: String,
+    <span class="kw">pub </span>webpage_url: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Output</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_aux_metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AuxMetadata</span> {
-        <span class="kw">let</span> <span class="ident">album</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">album</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">track</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">true_artist</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">artist</span>.<span class="ident">as_ref</span>();
-        <span class="kw">let</span> <span class="ident">artist</span> <span class="op">=</span> <span class="ident">true_artist</span>.<span class="ident">or</span>(<span class="self">self</span>.<span class="ident">uploader</span>.<span class="ident">as_ref</span>()).<span class="ident">cloned</span>();
-        <span class="kw">let</span> <span class="ident">r_date</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">release_date</span>.<span class="ident">as_ref</span>();
-        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">r_date</span>.<span class="ident">or</span>(<span class="self">self</span>.<span class="ident">upload_date</span>.<span class="ident">as_ref</span>()).<span class="ident">cloned</span>();
-        <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">duration</span>.<span class="ident">map</span>(<span class="ident">Duration::from_secs_f64</span>);
-        <span class="kw">let</span> <span class="ident">source_url</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">webpage_url</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">title</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">thumbnail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">thumbnail</span>.<span class="ident">clone</span>();
+<span class="kw">impl </span>Output {
+    <span class="kw">pub fn </span>as_aux_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AuxMetadata {
+        <span class="kw">let </span>album = <span class="self">self</span>.album.clone();
+        <span class="kw">let </span>track = <span class="self">self</span>.track.clone();
+        <span class="kw">let </span>true_artist = <span class="self">self</span>.artist.as_ref();
+        <span class="kw">let </span>artist = true_artist.or(<span class="self">self</span>.uploader.as_ref()).cloned();
+        <span class="kw">let </span>r_date = <span class="self">self</span>.release_date.as_ref();
+        <span class="kw">let </span>date = r_date.or(<span class="self">self</span>.upload_date.as_ref()).cloned();
+        <span class="kw">let </span>channel = <span class="self">self</span>.channel.clone();
+        <span class="kw">let </span>duration = <span class="self">self</span>.duration.map(Duration::from_secs_f64);
+        <span class="kw">let </span>source_url = <span class="self">self</span>.webpage_url.clone();
+        <span class="kw">let </span>title = <span class="self">self</span>.title.clone();
+        <span class="kw">let </span>thumbnail = <span class="self">self</span>.thumbnail.clone();
 
-        <span class="ident">AuxMetadata</span> {
-            <span class="ident">track</span>,
-            <span class="ident">artist</span>,
-            <span class="ident">album</span>,
-            <span class="ident">date</span>,
+        AuxMetadata {
+            track,
+            artist,
+            album,
+            date,
 
-            <span class="ident">channels</span>: <span class="prelude-val">Some</span>(<span class="number">2</span>),
-            <span class="ident">channel</span>,
-            <span class="ident">duration</span>,
-            <span class="ident">sample_rate</span>: <span class="prelude-val">Some</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>),
-            <span class="ident">source_url</span>,
-            <span class="ident">title</span>,
-            <span class="ident">thumbnail</span>,
+            channels: <span class="prelude-val">Some</span>(<span class="number">2</span>),
+            channel,
+            duration,
+            sample_rate: <span class="prelude-val">Some</span>(SAMPLE_RATE_RAW <span class="kw">as </span>u32),
+            source_url,
+            title,
+            thumbnail,
 
-            ..<span class="ident">AuxMetadata::default</span>()
+            ..AuxMetadata::default()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

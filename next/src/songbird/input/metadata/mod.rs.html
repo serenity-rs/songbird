@@ -110,115 +110,115 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::JsonError</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{<span class="ident">meta::Metadata</span> <span class="kw">as</span> <span class="ident">ContainerMetadata</span>, <span class="ident">probe::ProbedMetadata</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::JsonError;
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>symphonia_core::{meta::Metadata <span class="kw">as </span>ContainerMetadata, probe::ProbedMetadata};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">ffprobe</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">ytdl</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>ffprobe;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>ytdl;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Parsed</span>;
+<span class="kw">use </span><span class="kw">super</span>::Parsed;
 
-<span class="doccomment">/// Extra information about an [`Input`] which is acquired without</span>
-<span class="doccomment">/// parsing the file itself (e.g., from a webpage).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// You can access this via [`Input::aux_metadata`] and [`Compose::aux_metadata`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: crate::input::Input</span>
-<span class="doccomment">/// [`Input::aux_metadata`]: crate::input::Input::aux_metadata</span>
-<span class="doccomment">/// [`Compose::aux_metadata`]: crate::input::Compose::aux_metadata</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AuxMetadata</span> {
-    <span class="doccomment">/// The track name of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">track</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The main artist of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">artist</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The album name of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">album</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The date of creation of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Extra information about an [`Input`] which is acquired without
+/// parsing the file itself (e.g., from a webpage).
+///
+/// You can access this via [`Input::aux_metadata`] and [`Compose::aux_metadata`].
+///
+/// [`Input`]: crate::input::Input
+/// [`Input::aux_metadata`]: crate::input::Input::aux_metadata
+/// [`Compose::aux_metadata`]: crate::input::Compose::aux_metadata
+</span><span class="attribute">#[derive(Clone, Debug, Default, Eq, PartialEq)]</span>
+<span class="kw">pub struct </span>AuxMetadata {
+    <span class="doccomment">/// The track name of this stream.
+    </span><span class="kw">pub </span>track: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="doccomment">/// The main artist of this stream.
+    </span><span class="kw">pub </span>artist: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="doccomment">/// The album name of this stream.
+    </span><span class="kw">pub </span>album: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="doccomment">/// The date of creation of this stream.
+    </span><span class="kw">pub </span>date: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
-    <span class="doccomment">/// The number of audio channels in this stream.</span>
-    <span class="kw">pub</span> <span class="ident">channels</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The YouTube channel of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">channel</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The time at which the first true sample is played back.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This occurs as an artefact of coder delay.</span>
-    <span class="kw">pub</span> <span class="ident">start_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The reported duration of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">duration</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The sample rate of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">sample_rate</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The source url of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">source_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The YouTube title of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">title</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The thumbnail url of this stream.</span>
-    <span class="kw">pub</span> <span class="ident">thumbnail</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The number of audio channels in this stream.
+    </span><span class="kw">pub </span>channels: <span class="prelude-ty">Option</span>&lt;u8&gt;,
+    <span class="doccomment">/// The YouTube channel of this stream.
+    </span><span class="kw">pub </span>channel: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="doccomment">/// The time at which the first true sample is played back.
+    ///
+    /// This occurs as an artefact of coder delay.
+    </span><span class="kw">pub </span>start_time: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    <span class="doccomment">/// The reported duration of this stream.
+    </span><span class="kw">pub </span>duration: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    <span class="doccomment">/// The sample rate of this stream.
+    </span><span class="kw">pub </span>sample_rate: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+    <span class="doccomment">/// The source url of this stream.
+    </span><span class="kw">pub </span>source_url: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="doccomment">/// The YouTube title of this stream.
+    </span><span class="kw">pub </span>title: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="doccomment">/// The thumbnail url of this stream.
+    </span><span class="kw">pub </span>thumbnail: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">AuxMetadata</span> {
-    <span class="doccomment">/// Extract metadata and details from the output of `ffprobe -of json`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_ffprobe_json</span>(<span class="ident">value</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">JsonError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">output</span>: <span class="ident">ffprobe::Output</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::json::from_slice</span>(<span class="ident">value</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>AuxMetadata {
+    <span class="doccomment">/// Extract metadata and details from the output of `ffprobe -of json`.
+    </span><span class="kw">pub fn </span>from_ffprobe_json(value: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, JsonError&gt; {
+        <span class="kw">let </span>output: ffprobe::Output = <span class="kw">crate</span>::json::from_slice(value)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">output</span>.<span class="ident">into_aux_metadata</span>())
+        <span class="prelude-val">Ok</span>(output.into_aux_metadata())
     }
 
-    <span class="doccomment">/// Move all fields from an [`AuxMetadata`] object into a new one.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">track</span>: <span class="self">self</span>.<span class="ident">track</span>.<span class="ident">take</span>(),
-            <span class="ident">artist</span>: <span class="self">self</span>.<span class="ident">artist</span>.<span class="ident">take</span>(),
-            <span class="ident">album</span>: <span class="self">self</span>.<span class="ident">album</span>.<span class="ident">take</span>(),
-            <span class="ident">date</span>: <span class="self">self</span>.<span class="ident">date</span>.<span class="ident">take</span>(),
-            <span class="ident">channels</span>: <span class="self">self</span>.<span class="ident">channels</span>.<span class="ident">take</span>(),
-            <span class="ident">channel</span>: <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">take</span>(),
-            <span class="ident">start_time</span>: <span class="self">self</span>.<span class="ident">start_time</span>.<span class="ident">take</span>(),
-            <span class="ident">duration</span>: <span class="self">self</span>.<span class="ident">duration</span>.<span class="ident">take</span>(),
-            <span class="ident">sample_rate</span>: <span class="self">self</span>.<span class="ident">sample_rate</span>.<span class="ident">take</span>(),
-            <span class="ident">source_url</span>: <span class="self">self</span>.<span class="ident">source_url</span>.<span class="ident">take</span>(),
-            <span class="ident">title</span>: <span class="self">self</span>.<span class="ident">title</span>.<span class="ident">take</span>(),
-            <span class="ident">thumbnail</span>: <span class="self">self</span>.<span class="ident">thumbnail</span>.<span class="ident">take</span>(),
+    <span class="doccomment">/// Move all fields from an [`AuxMetadata`] object into a new one.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            track: <span class="self">self</span>.track.take(),
+            artist: <span class="self">self</span>.artist.take(),
+            album: <span class="self">self</span>.album.take(),
+            date: <span class="self">self</span>.date.take(),
+            channels: <span class="self">self</span>.channels.take(),
+            channel: <span class="self">self</span>.channel.take(),
+            start_time: <span class="self">self</span>.start_time.take(),
+            duration: <span class="self">self</span>.duration.take(),
+            sample_rate: <span class="self">self</span>.sample_rate.take(),
+            source_url: <span class="self">self</span>.source_url.take(),
+            title: <span class="self">self</span>.title.take(),
+            thumbnail: <span class="self">self</span>.thumbnail.take(),
         }
     }
 }
 
-<span class="doccomment">/// In-stream information about an [`Input`] acquired by parsing an audio file.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// To access this, the [`Input`] must be made live and parsed by symphonia. To do</span>
-<span class="doccomment">/// this, you can:</span>
-<span class="doccomment">/// * Pre-process the track in your own code using [`Input::make_playable`], and</span>
-<span class="doccomment">///   then [`Input::metadata`].</span>
-<span class="doccomment">/// * Use [`TrackHandle::action`] to access the track&#39;s metadata via [`View`],</span>
-<span class="doccomment">///   *if the track has started or been made playable*.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// You probably want to use [`AuxMetadata`] instead; this requires a live track,</span>
-<span class="doccomment">/// which has higher memory use for buffers etc.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: crate::input::Input</span>
-<span class="doccomment">/// [`Input::make_playable`]: super::Input::make_playable</span>
-<span class="doccomment">/// [`Input::metadata`]: super::Input::metadata</span>
-<span class="doccomment">/// [`TrackHandle::action`]: crate::tracks::TrackHandle::action</span>
-<span class="doccomment">/// [`View`]: crate::tracks::View</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Metadata found while probing for the format of an [`Input`] (e.g., ID3 tags).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: crate::input::Input</span>
-    <span class="kw">pub</span> <span class="ident">probe</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ProbedMetadata</span>,
-    <span class="doccomment">/// Metadata found inside the format/container of an audio stream.</span>
-    <span class="kw">pub</span> <span class="ident">format</span>: <span class="ident">ContainerMetadata</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="doccomment">/// In-stream information about an [`Input`] acquired by parsing an audio file.
+///
+/// To access this, the [`Input`] must be made live and parsed by symphonia. To do
+/// this, you can:
+/// * Pre-process the track in your own code using [`Input::make_playable`], and
+///   then [`Input::metadata`].
+/// * Use [`TrackHandle::action`] to access the track&#39;s metadata via [`View`],
+///   *if the track has started or been made playable*.
+///
+/// You probably want to use [`AuxMetadata`] instead; this requires a live track,
+/// which has higher memory use for buffers etc.
+///
+/// [`Input`]: crate::input::Input
+/// [`Input::make_playable`]: super::Input::make_playable
+/// [`Input::metadata`]: super::Input::metadata
+/// [`TrackHandle::action`]: crate::tracks::TrackHandle::action
+/// [`View`]: crate::tracks::View
+</span><span class="kw">pub struct </span>Metadata&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Metadata found while probing for the format of an [`Input`] (e.g., ID3 tags).
+    ///
+    /// [`Input`]: crate::input::Input
+    </span><span class="kw">pub </span>probe: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>ProbedMetadata,
+    <span class="doccomment">/// Metadata found inside the format/container of an audio stream.
+    </span><span class="kw">pub </span>format: ContainerMetadata&lt;<span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Parsed</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Parsed</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Metadata</span> {
-            <span class="ident">probe</span>: <span class="kw-2">&amp;mut</span> <span class="ident">val</span>.<span class="ident">meta</span>,
-            <span class="ident">format</span>: <span class="ident">val</span>.<span class="ident">format</span>.<span class="ident">metadata</span>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Parsed&gt; <span class="kw">for </span>Metadata&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(val: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Parsed) -&gt; <span class="self">Self </span>{
+        Metadata {
+            probe: <span class="kw-2">&amp;mut </span>val.meta,
+            format: val.format.metadata(),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -148,153 +148,153 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::util::copy_seek_to</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::util::copy_seek_to;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver::tasks::message::MixerInputResultMessage</span>,
-    <span class="ident">input</span>::{<span class="ident">AudioStream</span>, <span class="ident">AudioStreamError</span>, <span class="ident">Compose</span>, <span class="ident">Input</span>, <span class="ident">LiveInput</span>, <span class="ident">Parsed</span>},
-    <span class="ident">Config</span>,
+<span class="kw">use crate</span>::{
+    driver::tasks::message::MixerInputResultMessage,
+    input::{AudioStream, AudioStreamError, Compose, Input, LiveInput, Parsed},
+    Config,
 };
-<span class="kw">use</span> <span class="ident">flume::Sender</span>;
-<span class="kw">use</span> <span class="ident">parking_lot::RwLock</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>, <span class="ident">sync::Arc</span>, <span class="ident">time::Duration</span>};
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{
-    <span class="ident">formats</span>::{<span class="ident">SeekMode</span>, <span class="ident">SeekTo</span>},
-    <span class="ident">io::MediaSource</span>,
+<span class="kw">use </span>flume::Sender;
+<span class="kw">use </span>parking_lot::RwLock;
+<span class="kw">use </span>std::{result::Result <span class="kw">as </span>StdResult, sync::Arc, time::Duration};
+<span class="kw">use </span>symphonia_core::{
+    formats::{SeekMode, SeekTo},
+    io::MediaSource,
 };
-<span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
+<span class="kw">use </span>tokio::runtime::Handle;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BlockyTaskPool</span> {
-    <span class="ident">pool</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">rusty_pool::ThreadPool</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">handle</span>: <span class="ident">Handle</span>,
+<span class="attribute">#[derive(Clone)]</span>
+<span class="kw">pub struct </span>BlockyTaskPool {
+    pool: Arc&lt;RwLock&lt;rusty_pool::ThreadPool&gt;&gt;,
+    handle: Handle,
 }
 
-<span class="kw">impl</span> <span class="ident">BlockyTaskPool</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">handle</span>: <span class="ident">Handle</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">pool</span>: <span class="ident">Arc::new</span>(<span class="ident">RwLock::new</span>(<span class="ident">rusty_pool::ThreadPool::new</span>(
+<span class="kw">impl </span>BlockyTaskPool {
+    <span class="kw">pub fn </span>new(handle: Handle) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            pool: Arc::new(RwLock::new(rusty_pool::ThreadPool::new(
                 <span class="number">1</span>,
                 <span class="number">64</span>,
-                <span class="ident">Duration::from_secs</span>(<span class="number">300</span>),
+                Duration::from_secs(<span class="number">300</span>),
             ))),
-            <span class="ident">handle</span>,
+            handle,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(
+    <span class="kw">pub fn </span>create(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">MixerInputResultMessage</span><span class="op">&gt;</span>,
-        <span class="ident">input</span>: <span class="ident">Input</span>,
-        <span class="ident">seek_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SeekTo</span><span class="op">&gt;</span>,
-        <span class="ident">config</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
+        callback: Sender&lt;MixerInputResultMessage&gt;,
+        input: Input,
+        seek_time: <span class="prelude-ty">Option</span>&lt;SeekTo&gt;,
+        config: Arc&lt;Config&gt;,
     ) {
-        <span class="comment">// Moves an Input from Lazy -&gt; Live.</span>
-        <span class="comment">// We either do this on this pool, or move it to the tokio executor as the source requires.</span>
-        <span class="comment">// This takes a seek_time to pass on and execute *after* parsing (i.e., back-seek on</span>
-        <span class="comment">// read-only stream).</span>
-        <span class="kw">match</span> <span class="ident">input</span> {
-            <span class="ident">Input::Lazy</span>(<span class="kw-2">mut</span> <span class="ident">lazy</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">far_pool</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
-                <span class="kw">if</span> <span class="ident">lazy</span>.<span class="ident">should_create_async</span>() {
-                    <span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-                        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">lazy</span>.<span class="ident">create_async</span>().<span class="kw">await</span>;
-                        <span class="ident">far_pool</span>.<span class="ident">send_to_parse</span>(<span class="ident">out</span>, <span class="ident">lazy</span>, <span class="ident">callback</span>, <span class="ident">seek_time</span>, <span class="ident">config</span>);
+        <span class="comment">// Moves an Input from Lazy -&gt; Live.
+        // We either do this on this pool, or move it to the tokio executor as the source requires.
+        // This takes a seek_time to pass on and execute *after* parsing (i.e., back-seek on
+        // read-only stream).
+        </span><span class="kw">match </span>input {
+            Input::Lazy(<span class="kw-2">mut </span>lazy) =&gt; {
+                <span class="kw">let </span>far_pool = <span class="self">self</span>.clone();
+                <span class="kw">if </span>lazy.should_create_async() {
+                    <span class="self">self</span>.handle.spawn(<span class="kw">async move </span>{
+                        <span class="kw">let </span>out = lazy.create_async().<span class="kw">await</span>;
+                        far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">read</span>();
-                    <span class="ident">pool</span>.<span class="ident">execute</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">lazy</span>.<span class="ident">create</span>();
-                        <span class="ident">far_pool</span>.<span class="ident">send_to_parse</span>(<span class="ident">out</span>, <span class="ident">lazy</span>, <span class="ident">callback</span>, <span class="ident">seek_time</span>, <span class="ident">config</span>);
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>pool = <span class="self">self</span>.pool.read();
+                    pool.execute(<span class="kw">move </span>|| {
+                        <span class="kw">let </span>out = lazy.create();
+                        far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
                 }
             },
-            <span class="ident">Input::Live</span>(<span class="ident">live</span>, <span class="ident">maybe_create</span>) =&gt;
-                <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">config</span>, <span class="ident">callback</span>, <span class="ident">live</span>, <span class="ident">maybe_create</span>, <span class="ident">seek_time</span>),
+            Input::Live(live, maybe_create) =&gt;
+                <span class="self">self</span>.parse(config, callback, live, maybe_create, seek_time),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_to_parse</span>(
+    <span class="kw">pub fn </span>send_to_parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">create_res</span>: <span class="ident">StdResult</span><span class="op">&lt;</span><span class="ident">AudioStream</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">MediaSource</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span>,
-        <span class="ident">rec</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span>,
-        <span class="ident">callback</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">MixerInputResultMessage</span><span class="op">&gt;</span>,
-        <span class="ident">seek_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SeekTo</span><span class="op">&gt;</span>,
-        <span class="ident">config</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
+        create_res: StdResult&lt;AudioStream&lt;Box&lt;<span class="kw">dyn </span>MediaSource&gt;&gt;, AudioStreamError&gt;,
+        rec: Box&lt;<span class="kw">dyn </span>Compose&gt;,
+        callback: Sender&lt;MixerInputResultMessage&gt;,
+        seek_time: <span class="prelude-ty">Option</span>&lt;SeekTo&gt;,
+        config: Arc&lt;Config&gt;,
     ) {
-        <span class="kw">match</span> <span class="ident">create_res</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">o</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">config</span>, <span class="ident">callback</span>, <span class="ident">LiveInput::Raw</span>(<span class="ident">o</span>), <span class="prelude-val">Some</span>(<span class="ident">rec</span>), <span class="ident">seek_time</span>);
+        <span class="kw">match </span>create_res {
+            <span class="prelude-val">Ok</span>(o) =&gt; {
+                <span class="self">self</span>.parse(config, callback, LiveInput::Raw(o), <span class="prelude-val">Some</span>(rec), seek_time);
             },
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <span class="ident">drop</span>(<span class="ident">callback</span>.<span class="ident">send</span>(<span class="ident">MixerInputResultMessage::CreateErr</span>(<span class="ident">e</span>.<span class="ident">into</span>())));
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                drop(callback.send(MixerInputResultMessage::CreateErr(e.into())));
             },
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(
+    <span class="kw">pub fn </span>parse(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">config</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
-        <span class="ident">callback</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">MixerInputResultMessage</span><span class="op">&gt;</span>,
-        <span class="ident">input</span>: <span class="ident">LiveInput</span>,
-        <span class="ident">rec</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">seek_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SeekTo</span><span class="op">&gt;</span>,
+        config: Arc&lt;Config&gt;,
+        callback: Sender&lt;MixerInputResultMessage&gt;,
+        input: LiveInput,
+        rec: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Compose&gt;&gt;,
+        seek_time: <span class="prelude-ty">Option</span>&lt;SeekTo&gt;,
     ) {
-        <span class="kw">let</span> <span class="ident">pool_clone</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">read</span>();
+        <span class="kw">let </span>pool_clone = <span class="self">self</span>.clone();
+        <span class="kw">let </span>pool = <span class="self">self</span>.pool.read();
 
-        <span class="ident">pool</span>.<span class="ident">execute</span>(
-            <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">promote</span>(<span class="ident">config</span>.<span class="ident">codec_registry</span>, <span class="ident">config</span>.<span class="ident">format_registry</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">LiveInput::Parsed</span>(<span class="ident">parsed</span>)) =&gt; <span class="kw">match</span> <span class="ident">seek_time</span> {
-                    <span class="comment">// If seek time is zero, then wipe it out.</span>
-                    <span class="comment">// Some formats (MKV) make SeekTo(0) require a backseek to realign with the</span>
-                    <span class="comment">// current page.</span>
-                    <span class="prelude-val">Some</span>(<span class="ident">seek_time</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident"><span class="kw">super</span>::util::seek_to_is_zero</span>(<span class="kw-2">&amp;</span><span class="ident">seek_time</span>) =&gt; {
-                        <span class="ident">pool_clone</span>.<span class="ident">seek</span>(<span class="ident">callback</span>, <span class="ident">parsed</span>, <span class="ident">rec</span>, <span class="ident">seek_time</span>, <span class="bool-val">false</span>, <span class="ident">config</span>);
+        pool.execute(
+            <span class="kw">move </span>|| <span class="kw">match </span>input.promote(config.codec_registry, config.format_registry) {
+                <span class="prelude-val">Ok</span>(LiveInput::Parsed(parsed)) =&gt; <span class="kw">match </span>seek_time {
+                    <span class="comment">// If seek time is zero, then wipe it out.
+                    // Some formats (MKV) make SeekTo(0) require a backseek to realign with the
+                    // current page.
+                    </span><span class="prelude-val">Some</span>(seek_time) <span class="kw">if </span>!<span class="kw">super</span>::util::seek_to_is_zero(<span class="kw-2">&amp;</span>seek_time) =&gt; {
+                        pool_clone.seek(callback, parsed, rec, seek_time, <span class="bool-val">false</span>, config);
                     },
-                    <span class="kw">_</span> =&gt; {
-                        <span class="ident">drop</span>(<span class="ident">callback</span>.<span class="ident">send</span>(<span class="ident">MixerInputResultMessage::Built</span>(<span class="ident">parsed</span>, <span class="ident">rec</span>)));
+                    <span class="kw">_ </span>=&gt; {
+                        drop(callback.send(MixerInputResultMessage::Built(parsed, rec)));
                     },
                 },
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="ident">drop</span>(<span class="ident">callback</span>.<span class="ident">send</span>(<span class="ident">MixerInputResultMessage::ParseErr</span>(<span class="ident">e</span>.<span class="ident">into</span>())));
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    drop(callback.send(MixerInputResultMessage::ParseErr(e.into())));
                 },
             },
         );
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek</span>(
+    <span class="kw">pub fn </span>seek(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">MixerInputResultMessage</span><span class="op">&gt;</span>,
-        <span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">Parsed</span>,
-        <span class="ident">rec</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">seek_time</span>: <span class="ident">SeekTo</span>,
-        <span class="comment">// Not all of symphonia&#39;s formats bother to return SeekErrorKind::ForwardOnly.</span>
-        <span class="comment">// So, we need *this* flag.</span>
-        <span class="ident">backseek_needed</span>: <span class="ident">bool</span>,
-        <span class="ident">config</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
+        callback: Sender&lt;MixerInputResultMessage&gt;,
+        <span class="kw-2">mut </span>input: Parsed,
+        rec: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Compose&gt;&gt;,
+        seek_time: SeekTo,
+        <span class="comment">// Not all of symphonia&#39;s formats bother to return SeekErrorKind::ForwardOnly.
+        // So, we need *this* flag.
+        </span>backseek_needed: bool,
+        config: Arc&lt;Config&gt;,
     ) {
-        <span class="kw">let</span> <span class="ident">pool_clone</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">read</span>();
+        <span class="kw">let </span>pool_clone = <span class="self">self</span>.clone();
+        <span class="kw">let </span>pool = <span class="self">self</span>.pool.read();
 
-        <span class="ident">pool</span>.<span class="ident">execute</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">rec</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">rec</span>) <span class="kw">if</span> (<span class="op">!</span><span class="ident">input</span>.<span class="ident">supports_backseek</span>) <span class="op">&amp;&amp;</span> <span class="ident">backseek_needed</span> =&gt; {
-                <span class="ident">pool_clone</span>.<span class="ident">create</span>(<span class="ident">callback</span>, <span class="ident">Input::Lazy</span>(<span class="ident">rec</span>), <span class="prelude-val">Some</span>(<span class="ident">seek_time</span>), <span class="ident">config</span>);
+        pool.execute(<span class="kw">move </span>|| <span class="kw">match </span>rec {
+            <span class="prelude-val">Some</span>(rec) <span class="kw">if </span>(!input.supports_backseek) &amp;&amp; backseek_needed =&gt; {
+                pool_clone.create(callback, Input::Lazy(rec), <span class="prelude-val">Some</span>(seek_time), config);
             },
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">seek_result</span> <span class="op">=</span> <span class="ident">input</span>
-                    .<span class="ident">format</span>
-                    .<span class="ident">seek</span>(<span class="ident">SeekMode::Accurate</span>, <span class="ident">copy_seek_to</span>(<span class="kw-2">&amp;</span><span class="ident">seek_time</span>));
-                <span class="ident">input</span>.<span class="ident">decoder</span>.<span class="ident">reset</span>();
-                <span class="ident">drop</span>(<span class="ident">callback</span>.<span class="ident">send</span>(<span class="ident">MixerInputResultMessage::Seek</span>(
-                    <span class="ident">input</span>,
-                    <span class="ident">rec</span>,
-                    <span class="ident">seek_result</span>.<span class="ident">map_err</span>(<span class="ident">Arc::new</span>),
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">let </span>seek_result = input
+                    .format
+                    .seek(SeekMode::Accurate, copy_seek_to(<span class="kw-2">&amp;</span>seek_time));
+                input.decoder.reset();
+                drop(callback.send(MixerInputResultMessage::Seek(
+                    input,
+                    rec,
+                    seek_result.map_err(Arc::new),
                 )));
             },
         });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

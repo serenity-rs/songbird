@@ -14,19 +14,19 @@
 <span id="12">12</span>
 <span id="13">13</span>
 <span id="14">14</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="doccomment">/// Speaking state transition, describing whether a given source has started/stopped</span>
-<span class="doccomment">/// transmitting. This fires in response to a silent burst, or the first packet</span>
-<span class="doccomment">/// breaking such a burst.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SpeakingUpdateData</span> {
-    <span class="doccomment">/// Whether this user is currently speaking.</span>
-    <span class="kw">pub</span> <span class="ident">speaking</span>: <span class="ident">bool</span>,
-    <span class="doccomment">/// Synchronisation Source of the user who has begun speaking.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This must be combined with another event class to map this back to</span>
-    <span class="doccomment">/// its original UserId.</span>
-    <span class="kw">pub</span> <span class="ident">ssrc</span>: <span class="ident">u32</span>,
+</pre><pre class="rust"><code><span class="attribute">#[derive(Clone, Debug, Eq, Hash, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="doccomment">/// Speaking state transition, describing whether a given source has started/stopped
+/// transmitting. This fires in response to a silent burst, or the first packet
+/// breaking such a burst.
+</span><span class="kw">pub struct </span>SpeakingUpdateData {
+    <span class="doccomment">/// Whether this user is currently speaking.
+    </span><span class="kw">pub </span>speaking: bool,
+    <span class="doccomment">/// Synchronisation Source of the user who has begun speaking.
+    ///
+    /// This must be combined with another event class to map this back to
+    /// its original UserId.
+    </span><span class="kw">pub </span>ssrc: u32,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

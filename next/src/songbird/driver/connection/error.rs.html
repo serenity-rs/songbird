@@ -141,146 +141,146 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Connection errors and convenience types.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Connection errors and convenience types.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver::tasks</span>::{<span class="ident">error::Recipient</span>, <span class="ident">message</span>::<span class="kw-2">*</span>},
-    <span class="ident">ws::Error</span> <span class="kw">as</span> <span class="ident">WsError</span>,
+</span><span class="kw">use crate</span>::{
+    driver::tasks::{error::Recipient, message::<span class="kw-2">*</span>},
+    ws::Error <span class="kw">as </span>WsError,
 };
-<span class="kw">use</span> <span class="ident">flume::SendError</span>;
-<span class="kw">use</span> <span class="ident">serde_json::Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">StdError</span>, <span class="ident">fmt</span>, <span class="ident">io::Error</span> <span class="kw">as</span> <span class="ident">IoError</span>};
-<span class="kw">use</span> <span class="ident">tokio::time::error::Elapsed</span>;
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305::aead::Error</span> <span class="kw">as</span> <span class="ident">CryptoError</span>;
+<span class="kw">use </span>flume::SendError;
+<span class="kw">use </span>serde_json::Error <span class="kw">as </span>JsonError;
+<span class="kw">use </span>std::{error::Error <span class="kw">as </span>StdError, fmt, io::Error <span class="kw">as </span>IoError};
+<span class="kw">use </span>tokio::time::error::Elapsed;
+<span class="kw">use </span>xsalsa20poly1305::aead::Error <span class="kw">as </span>CryptoError;
 
-<span class="doccomment">/// Errors encountered while connecting to a Discord voice server over the driver.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// The driver hung up an internal signaller, either due to another connection attempt</span>
-    <span class="doccomment">/// or a crash.</span>
-    <span class="ident">AttemptDiscarded</span>,
-    <span class="doccomment">/// An error occurred during [en/de]cryption of voice packets.</span>
-    <span class="ident">Crypto</span>(<span class="ident">CryptoError</span>),
-    <span class="doccomment">/// The symmetric key supplied by Discord had the wrong size.</span>
-    <span class="ident">CryptoInvalidLength</span>,
-    <span class="doccomment">/// Server did not return the expected crypto mode during negotiation.</span>
-    <span class="ident">CryptoModeInvalid</span>,
-    <span class="doccomment">/// Selected crypto mode was not offered by server.</span>
-    <span class="ident">CryptoModeUnavailable</span>,
-    <span class="doccomment">/// An indicator that an endpoint URL was invalid.</span>
-    <span class="ident">EndpointUrl</span>,
-    <span class="doccomment">/// Discord hello/ready handshake was violated.</span>
-    <span class="ident">ExpectedHandshake</span>,
-    <span class="doccomment">/// Discord failed to correctly respond to IP discovery.</span>
-    <span class="ident">IllegalDiscoveryResponse</span>,
-    <span class="doccomment">/// Could not parse Discord&#39;s view of our IP.</span>
-    <span class="ident">IllegalIp</span>,
-    <span class="doccomment">/// Miscellaneous I/O error.</span>
-    <span class="ident">Io</span>(<span class="ident">IoError</span>),
-    <span class="doccomment">/// JSON (de)serialization error.</span>
-    <span class="ident">Json</span>(<span class="ident">JsonError</span>),
-    <span class="doccomment">/// Failed to message other background tasks after connection establishment.</span>
-    <span class="ident">InterconnectFailure</span>(<span class="ident">Recipient</span>),
-    <span class="doccomment">/// Error communicating with gateway server over WebSocket.</span>
-    <span class="ident">Ws</span>(<span class="ident">WsError</span>),
-    <span class="doccomment">/// Connection attempt timed out.</span>
-    <span class="ident">TimedOut</span>,
+<span class="doccomment">/// Errors encountered while connecting to a Discord voice server over the driver.
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>Error {
+    <span class="doccomment">/// The driver hung up an internal signaller, either due to another connection attempt
+    /// or a crash.
+    </span>AttemptDiscarded,
+    <span class="doccomment">/// An error occurred during [en/de]cryption of voice packets.
+    </span>Crypto(CryptoError),
+    <span class="doccomment">/// The symmetric key supplied by Discord had the wrong size.
+    </span>CryptoInvalidLength,
+    <span class="doccomment">/// Server did not return the expected crypto mode during negotiation.
+    </span>CryptoModeInvalid,
+    <span class="doccomment">/// Selected crypto mode was not offered by server.
+    </span>CryptoModeUnavailable,
+    <span class="doccomment">/// An indicator that an endpoint URL was invalid.
+    </span>EndpointUrl,
+    <span class="doccomment">/// Discord hello/ready handshake was violated.
+    </span>ExpectedHandshake,
+    <span class="doccomment">/// Discord failed to correctly respond to IP discovery.
+    </span>IllegalDiscoveryResponse,
+    <span class="doccomment">/// Could not parse Discord&#39;s view of our IP.
+    </span>IllegalIp,
+    <span class="doccomment">/// Miscellaneous I/O error.
+    </span>Io(IoError),
+    <span class="doccomment">/// JSON (de)serialization error.
+    </span>Json(JsonError),
+    <span class="doccomment">/// Failed to message other background tasks after connection establishment.
+    </span>InterconnectFailure(Recipient),
+    <span class="doccomment">/// Error communicating with gateway server over WebSocket.
+    </span>Ws(WsError),
+    <span class="doccomment">/// Connection attempt timed out.
+    </span>TimedOut,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CryptoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CryptoError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::Crypto</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;CryptoError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: CryptoError) -&gt; <span class="self">Self </span>{
+        Error::Crypto(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">IoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">IoError</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::Io</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;IoError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: IoError) -&gt; Error {
+        Error::Io(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsonError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">JsonError</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::Json</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;JsonError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: JsonError) -&gt; Error {
+        Error::Json(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::AuxNetwork</span>)
+<span class="kw">impl </span>From&lt;SendError&lt;WsMessage&gt;&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(_e: SendError&lt;WsMessage&gt;) -&gt; Error {
+        Error::InterconnectFailure(Recipient::AuxNetwork)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::Event</span>)
+<span class="kw">impl </span>From&lt;SendError&lt;EventMessage&gt;&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(_e: SendError&lt;EventMessage&gt;) -&gt; Error {
+        Error::InterconnectFailure(Recipient::Event)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">MixerMessage</span><span class="op">&gt;</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::InterconnectFailure</span>(<span class="ident">Recipient::Mixer</span>)
+<span class="kw">impl </span>From&lt;SendError&lt;MixerMessage&gt;&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(_e: SendError&lt;MixerMessage&gt;) -&gt; Error {
+        Error::InterconnectFailure(Recipient::Mixer)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">WsError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">WsError</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::Ws</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;WsError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: WsError) -&gt; Error {
+        Error::Ws(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Elapsed</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_e</span>: <span class="ident">Elapsed</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::TimedOut</span>
+<span class="kw">impl </span>From&lt;Elapsed&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(_e: Elapsed) -&gt; Error {
+        Error::TimedOut
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to connect to Discord RTP server: &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::AttemptDiscarded</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Crypto</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::CryptoInvalidLength</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server supplied key of wrong length&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::CryptoModeInvalid</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::CryptoModeUnavailable</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::EndpointUrl</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::ExpectedHandshake</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;voice initialisation protocol was violated&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::IllegalDiscoveryResponse</span> =&gt;
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response was invalid&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::IllegalIp</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Json</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::InterconnectFailure</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;failed to contact other task ({:?})&quot;</span>, <span class="ident">e</span>),
-            <span class="ident"><span class="self">Self</span>::Ws</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;websocket issue ({:?}).&quot;</span>, <span class="ident">e</span>),
-            <span class="ident"><span class="self">Self</span>::TimedOut</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;connection attempt timed out&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;failed to connect to Discord RTP server: &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::AttemptDiscarded =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
+            <span class="self">Self</span>::Crypto(e) =&gt; e.fmt(f),
+            <span class="self">Self</span>::CryptoInvalidLength =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;server supplied key of wrong length&quot;</span>),
+            <span class="self">Self</span>::CryptoModeInvalid =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
+            <span class="self">Self</span>::CryptoModeUnavailable =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
+            <span class="self">Self</span>::EndpointUrl =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
+            <span class="self">Self</span>::ExpectedHandshake =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;voice initialisation protocol was violated&quot;</span>),
+            <span class="self">Self</span>::IllegalDiscoveryResponse =&gt;
+                <span class="macro">write!</span>(f, <span class="string">&quot;IP discovery/NAT punching response was invalid&quot;</span>),
+            <span class="self">Self</span>::IllegalIp =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
+            <span class="self">Self</span>::Io(e) =&gt; e.fmt(f),
+            <span class="self">Self</span>::Json(e) =&gt; e.fmt(f),
+            <span class="self">Self</span>::InterconnectFailure(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;failed to contact other task ({:?})&quot;</span>, e),
+            <span class="self">Self</span>::Ws(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;websocket issue ({:?}).&quot;</span>, e),
+            <span class="self">Self</span>::TimedOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;connection attempt timed out&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::AttemptDiscarded</span>
-            <span class="op">|</span> <span class="ident">Error::CryptoInvalidLength</span>
-            <span class="op">|</span> <span class="ident">Error::CryptoModeInvalid</span>
-            <span class="op">|</span> <span class="ident">Error::CryptoModeUnavailable</span>
-            <span class="op">|</span> <span class="ident">Error::EndpointUrl</span>
-            <span class="op">|</span> <span class="ident">Error::ExpectedHandshake</span>
-            <span class="op">|</span> <span class="ident">Error::IllegalDiscoveryResponse</span>
-            <span class="op">|</span> <span class="ident">Error::IllegalIp</span>
-            <span class="op">|</span> <span class="ident">Error::InterconnectFailure</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Error::Ws</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Error::TimedOut</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::Crypto</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::Json</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
+<span class="kw">impl </span>StdError <span class="kw">for </span>Error {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::AttemptDiscarded
+            | Error::CryptoInvalidLength
+            | Error::CryptoModeInvalid
+            | Error::CryptoModeUnavailable
+            | Error::EndpointUrl
+            | Error::ExpectedHandshake
+            | Error::IllegalDiscoveryResponse
+            | Error::IllegalIp
+            | Error::InterconnectFailure(<span class="kw">_</span>)
+            | Error::Ws(<span class="kw">_</span>)
+            | Error::TimedOut =&gt; <span class="prelude-val">None</span>,
+            Error::Crypto(e) =&gt; e.source(),
+            Error::Io(e) =&gt; e.source(),
+            Error::Json(e) =&gt; e.source(),
         }
     }
 }
 
-<span class="doccomment">/// Convenience type for Discord voice/driver connection error handling.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Convenience type for Discord voice/driver connection error handling.
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, Error&gt;;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

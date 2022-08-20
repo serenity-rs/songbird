@@ -111,116 +111,116 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">default_config</span>, <span class="ident">raw_cost_per_sec</span>, <span class="ident">Error</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input</span>::{<span class="ident">AudioStream</span>, <span class="ident">Input</span>, <span class="ident">LiveInput</span>};
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Read</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>, <span class="ident">Seek</span>};
-<span class="kw">use</span> <span class="ident">streamcatcher</span>::{<span class="ident">Catcher</span>, <span class="ident">Config</span>};
-<span class="kw">use</span> <span class="ident">symphonia_core::io::MediaSource</span>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::{default_config, raw_cost_per_sec, Error};
+<span class="kw">use </span><span class="kw">crate</span>::input::{AudioStream, Input, LiveInput};
+<span class="kw">use </span>std::io::{Read, <span class="prelude-ty">Result </span><span class="kw">as </span>IoResult, Seek};
+<span class="kw">use </span>streamcatcher::{Catcher, Config};
+<span class="kw">use </span>symphonia_core::io::MediaSource;
 
-<span class="doccomment">/// A wrapper around an existing [`Input`] which caches its data</span>
-<span class="doccomment">/// in memory.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The main purpose of this wrapper is to enable fast seeking on</span>
-<span class="doccomment">/// incompatible sources (i.e., HTTP streams) and to ease resource</span>
-<span class="doccomment">/// consumption for commonly reused/shared tracks.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This consumes exactly as many bytes of memory as the input stream contains.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: Input</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Memory</span> {
-    <span class="doccomment">/// Inner shared bytestore.</span>
-    <span class="kw">pub</span> <span class="ident">raw</span>: <span class="ident">Catcher</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">MediaSource</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A wrapper around an existing [`Input`] which caches its data
+/// in memory.
+///
+/// The main purpose of this wrapper is to enable fast seeking on
+/// incompatible sources (i.e., HTTP streams) and to ease resource
+/// consumption for commonly reused/shared tracks.
+///
+/// This consumes exactly as many bytes of memory as the input stream contains.
+///
+/// [`Input`]: Input
+</span><span class="attribute">#[derive(Clone)]</span>
+<span class="kw">pub struct </span>Memory {
+    <span class="doccomment">/// Inner shared bytestore.
+    </span><span class="kw">pub </span>raw: Catcher&lt;Box&lt;<span class="kw">dyn </span>MediaSource&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Memory</span> {
-    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: Input</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">source</span>: <span class="ident">Input</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::with_config</span>(<span class="ident">source</span>, <span class="prelude-val">None</span>).<span class="kw">await</span>
-    }
+<span class="kw">impl </span>Memory {
+    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.
+    ///
+    /// [`Input`]: Input
+    </span><span class="kw">pub async fn </span>new(source: Input) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="self">Self</span>::with_config(source, <span class="prelude-val">None</span>).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `length_hint` may be used to control the size of the initial chunk, preventing</span>
-    <span class="doccomment">/// needless allocations and copies.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: Input</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">with_config</span>(<span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source</span> {
-            <span class="ident">Input::Lazy</span>(<span class="kw-2">mut</span> <span class="ident">r</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">created</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">should_create_async</span>() {
-                    <span class="ident">r</span>.<span class="ident">create_async</span>().<span class="kw">await</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">create</span>()).<span class="kw">await</span><span class="question-mark">?</span>
-                };
+    <span class="doccomment">/// Wrap an existing [`Input`] with an in-memory store with the same codec and framing.
+    ///
+    /// `length_hint` may be used to control the size of the initial chunk, preventing
+    /// needless allocations and copies.
+    ///
+    /// [`Input`]: Input
+    </span><span class="kw">pub async fn </span>with_config(source: Input, config: <span class="prelude-ty">Option</span>&lt;Config&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span>input = <span class="kw">match </span>source {
+            Input::Lazy(<span class="kw-2">mut </span>r) =&gt; {
+                <span class="kw">let </span>created = <span class="kw">if </span>r.should_create_async() {
+                    r.create_async().<span class="kw">await
+                </span>} <span class="kw">else </span>{
+                    tokio::task::spawn_blocking(<span class="kw">move </span>|| r.create()).<span class="kw">await</span><span class="question-mark">?
+                </span>};
 
-                <span class="ident">created</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">input</span>).<span class="ident">map_err</span>(<span class="ident">Error::from</span>)
+                created.map(|v| v.input).map_err(Error::from)
             },
-            <span class="ident">Input::Live</span>(<span class="ident">LiveInput::Raw</span>(<span class="ident">a</span>), <span class="ident">_rec</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">input</span>),
-            <span class="ident">Input::Live</span>(<span class="ident">LiveInput::Wrapped</span>(<span class="ident">a</span>), <span class="ident">_rec</span>) =&gt;
-                <span class="prelude-val">Ok</span>(<span class="ident">Box::new</span>(<span class="ident">a</span>.<span class="ident">input</span>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">MediaSource</span><span class="op">&gt;</span>),
-            <span class="ident">Input::Live</span>(<span class="ident">LiveInput::Parsed</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::StreamNotAtStart</span>),
+            Input::Live(LiveInput::Raw(a), _rec) =&gt; <span class="prelude-val">Ok</span>(a.input),
+            Input::Live(LiveInput::Wrapped(a), _rec) =&gt;
+                <span class="prelude-val">Ok</span>(Box::new(a.input) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>MediaSource&gt;),
+            Input::Live(LiveInput::Parsed(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(Error::StreamNotAtStart),
         }<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">cost_per_sec</span> <span class="op">=</span> <span class="ident">raw_cost_per_sec</span>(<span class="bool-val">true</span>);
+        <span class="kw">let </span>cost_per_sec = raw_cost_per_sec(<span class="bool-val">true</span>);
 
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">default_config</span>(<span class="ident">cost_per_sec</span>));
+        <span class="kw">let </span>config = config.unwrap_or_else(|| default_config(cost_per_sec));
 
-        <span class="comment">// TODO: apply length hint.</span>
-        <span class="comment">// if config.length_hint.is_none() {</span>
-        <span class="comment">//     if let Some(dur) = metadata.duration {</span>
-        <span class="comment">//         apply_length_hint(&amp;mut config, dur, cost_per_sec);</span>
-        <span class="comment">//     }</span>
-        <span class="comment">// }</span>
+        <span class="comment">// TODO: apply length hint.
+        // if config.length_hint.is_none() {
+        //     if let Some(dur) = metadata.duration {
+        //         apply_length_hint(&amp;mut config, dur, cost_per_sec);
+        //     }
+        // }
 
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">build</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>raw = config.build(input)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">raw</span> })
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ raw })
     }
 
-    <span class="doccomment">/// Acquire a new handle to this object, creating a new</span>
-    <span class="doccomment">/// view of the existing cached data from the beginning.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">raw</span>: <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">new_handle</span>(),
+    <span class="doccomment">/// Acquire a new handle to this object, creating a new
+    /// view of the existing cached data from the beginning.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>new_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            raw: <span class="self">self</span>.raw.new_handle(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">Memory</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">read</span>(<span class="ident">buf</span>)
+<span class="kw">impl </span>Read <span class="kw">for </span>Memory {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; IoResult&lt;usize&gt; {
+        <span class="self">self</span>.raw.read(buf)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">Memory</span> {
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">std::io::SeekFrom</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">seek</span>(<span class="ident">pos</span>)
+<span class="kw">impl </span>Seek <span class="kw">for </span>Memory {
+    <span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: std::io::SeekFrom) -&gt; IoResult&lt;u64&gt; {
+        <span class="self">self</span>.raw.seek(pos)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">MediaSource</span> <span class="kw">for</span> <span class="ident">Memory</span> {
-    <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="bool-val">true</span>
-    }
+<span class="kw">impl </span>MediaSource <span class="kw">for </span>Memory {
+    <span class="kw">fn </span>is_seekable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">true
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">byte_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">is_finished</span>() {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="kw">fn </span>byte_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="kw">if </span><span class="self">self</span>.raw.is_finished() {
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.raw.len() <span class="kw">as </span>u64)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Memory</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">Memory</span>) -&gt; <span class="ident">Input</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">val</span>);
-        <span class="ident">Input::Live</span>(<span class="ident">LiveInput::Raw</span>(<span class="ident">AudioStream</span> { <span class="ident">input</span>, <span class="ident">hint</span>: <span class="prelude-val">None</span> }), <span class="prelude-val">None</span>)
+<span class="kw">impl </span>From&lt;Memory&gt; <span class="kw">for </span>Input {
+    <span class="kw">fn </span>from(val: Memory) -&gt; Input {
+        <span class="kw">let </span>input = Box::new(val);
+        Input::Live(LiveInput::Raw(AudioStream { input, hint: <span class="prelude-val">None </span>}), <span class="prelude-val">None</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

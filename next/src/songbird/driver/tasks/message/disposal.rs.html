@@ -8,13 +8,13 @@
 <span id="6">6</span>
 <span id="7">7</span>
 <span id="8">8</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(missing_docs)]</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">driver::tasks::mixer::InternalTrack</span>, <span class="ident">tracks::TrackHandle</span>};
+<span class="kw">use crate</span>::{driver::tasks::mixer::InternalTrack, tracks::TrackHandle};
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DisposalMessage</span> {
-    <span class="ident">Track</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InternalTrack</span><span class="op">&gt;</span>),
-    <span class="ident">Handle</span>(<span class="ident">TrackHandle</span>),
+<span class="kw">pub enum </span>DisposalMessage {
+    Track(Box&lt;InternalTrack&gt;),
+    Handle(TrackHandle),
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

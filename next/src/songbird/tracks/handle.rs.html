@@ -308,313 +308,313 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::events</span>::{<span class="ident">Event</span>, <span class="ident">EventData</span>, <span class="ident">EventHandler</span>};
-<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">sync::Arc</span>, <span class="ident">time::Duration</span>};
-<span class="kw">use</span> <span class="ident">tokio::sync::RwLock</span>;
-<span class="kw">use</span> <span class="ident">typemap_rev::TypeMap</span>;
-<span class="kw">use</span> <span class="ident">uuid::Uuid</span>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::events::{Event, EventData, EventHandler};
+<span class="kw">use </span>flume::{Receiver, Sender};
+<span class="kw">use </span>std::{fmt, sync::Arc, time::Duration};
+<span class="kw">use </span>tokio::sync::RwLock;
+<span class="kw">use </span>typemap_rev::TypeMap;
+<span class="kw">use </span>uuid::Uuid;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// Handle for safe control of a [`Track`] from other threads, outside</span>
-<span class="doccomment">/// of the audio mixing and voice handling context.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// These are cheap to clone, using `Arc&lt;...&gt;` internally.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Many method calls here are fallible; in most cases, this will be because</span>
-<span class="doccomment">/// the underlying [`Track`] object has been discarded. Those which aren&#39;t refer</span>
-<span class="doccomment">/// to shared data not used by the driver.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrackHandle</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">InnerHandle</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="doccomment">/// Handle for safe control of a [`Track`] from other threads, outside
+/// of the audio mixing and voice handling context.
+///
+/// These are cheap to clone, using `Arc&lt;...&gt;` internally.
+///
+/// Many method calls here are fallible; in most cases, this will be because
+/// the underlying [`Track`] object has been discarded. Those which aren&#39;t refer
+/// to shared data not used by the driver.
+</span><span class="kw">pub struct </span>TrackHandle {
+    inner: Arc&lt;InnerHandle&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">InnerHandle</span> {
-    <span class="ident">command_channel</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>,
-    <span class="ident">uuid</span>: <span class="ident">Uuid</span>,
-    <span class="ident">typemap</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">TypeMap</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>InnerHandle {
+    command_channel: Sender&lt;TrackCommand&gt;,
+    uuid: Uuid,
+    typemap: RwLock&lt;TypeMap&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">InnerHandle</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;InnerHandle&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;command_channel&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">command_channel</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;uuid&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uuid</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;typemap&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;LOCK&gt;&quot;</span>)
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>InnerHandle {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;InnerHandle&quot;</span>)
+            .field(<span class="string">&quot;command_channel&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.command_channel)
+            .field(<span class="string">&quot;uuid&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.uuid)
+            .field(<span class="string">&quot;typemap&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;LOCK&gt;&quot;</span>)
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TrackHandle</span> {
-    <span class="doccomment">/// Creates a new handle, using the given command sink.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: crate::input::Input</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">command_channel</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">TrackCommand</span><span class="op">&gt;</span>, <span class="ident">uuid</span>: <span class="ident">Uuid</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">InnerHandle</span> {
-            <span class="ident">command_channel</span>,
-            <span class="ident">uuid</span>,
-            <span class="ident">typemap</span>: <span class="ident">RwLock::new</span>(<span class="ident">TypeMap::new</span>()),
+<span class="kw">impl </span>TrackHandle {
+    <span class="doccomment">/// Creates a new handle, using the given command sink.
+    ///
+    /// [`Input`]: crate::input::Input
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(command_channel: Sender&lt;TrackCommand&gt;, uuid: Uuid) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>inner = Arc::new(InnerHandle {
+            command_channel,
+            uuid,
+            typemap: RwLock::new(TypeMap::new()),
         });
 
-        <span class="self">Self</span> { <span class="ident">inner</span> }
+        <span class="self">Self </span>{ inner }
     }
 
-    <span class="doccomment">/// Unpauses an audio track.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Play</span>)
+    <span class="doccomment">/// Unpauses an audio track.
+    </span><span class="kw">pub fn </span>play(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.send(TrackCommand::Play)
     }
 
-    <span class="doccomment">/// Pauses an audio track.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Pause</span>)
+    <span class="doccomment">/// Pauses an audio track.
+    </span><span class="kw">pub fn </span>pause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.send(TrackCommand::Pause)
     }
 
-    <span class="doccomment">/// Stops an audio track.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is *final*, and will cause the audio context to fire</span>
-    <span class="doccomment">/// a [`TrackEvent::End`] event.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TrackEvent::End`]: crate::events::TrackEvent::End</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Stop</span>)
+    <span class="doccomment">/// Stops an audio track.
+    ///
+    /// This is *final*, and will cause the audio context to fire
+    /// a [`TrackEvent::End`] event.
+    ///
+    /// [`TrackEvent::End`]: crate::events::TrackEvent::End
+    </span><span class="kw">pub fn </span>stop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.send(TrackCommand::Stop)
     }
 
-    <span class="doccomment">/// Sets the volume of an audio track.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_volume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">volume</span>: <span class="ident">f32</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Volume</span>(<span class="ident">volume</span>))
+    <span class="doccomment">/// Sets the volume of an audio track.
+    </span><span class="kw">pub fn </span>set_volume(<span class="kw-2">&amp;</span><span class="self">self</span>, volume: f32) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.send(TrackCommand::Volume(volume))
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If a track is already playable, the callback will instantly succeed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_playable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackCallback</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">fail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::MakePlayable</span>(<span class="ident">tx</span>)).<span class="ident">is_err</span>();
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.
+    ///
+    /// If a track is already playable, the callback will instantly succeed.
+    </span><span class="kw">pub fn </span>make_playable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackCallback&lt;()&gt; {
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
+        <span class="kw">let </span>fail = <span class="self">self</span>.send(TrackCommand::MakePlayable(tx)).is_err();
 
-        <span class="ident">TrackCallback</span> { <span class="ident">fail</span>, <span class="ident">rx</span> }
+        TrackCallback { fail, rx }
     }
 
-    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This folds [`Self::make_playable`] into a single `async` result, but must</span>
-    <span class="doccomment">/// be awaited for the command to be sent.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">make_playable_async</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">make_playable</span>().<span class="ident">result_async</span>().<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.
+    ///
+    /// This folds [`Self::make_playable`] into a single `async` result, but must
+    /// be awaited for the command to be sent.
+    </span><span class="kw">pub async fn </span>make_playable_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.make_playable().result_async().<span class="kw">await
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Seeks along the track to the specified position.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the underlying [`Input`] does not support seeking,</span>
-    <span class="doccomment">/// forward seeks will succeed. Backward seeks will recreate the</span>
-    <span class="doccomment">/// track using the lazy [`Compose`] if present. The returned callback</span>
-    <span class="doccomment">/// will indicate whether the seek succeeded.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: crate::input::Input</span>
-    <span class="doccomment">/// [`Compose`]: crate::input::Compose</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <span class="ident">Duration</span>) -&gt; <span class="ident">TrackCallback</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">fail</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">send</span>(<span class="ident">TrackCommand::Seek</span>(<span class="ident">SeekRequest</span> {
-                <span class="ident">time</span>: <span class="ident">position</span>,
-                <span class="ident">callback</span>: <span class="ident">tx</span>,
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Seeks along the track to the specified position.
+    ///
+    /// If the underlying [`Input`] does not support seeking,
+    /// forward seeks will succeed. Backward seeks will recreate the
+    /// track using the lazy [`Compose`] if present. The returned callback
+    /// will indicate whether the seek succeeded.
+    ///
+    /// [`Input`]: crate::input::Input
+    /// [`Compose`]: crate::input::Compose
+    </span><span class="kw">pub fn </span>seek(<span class="kw-2">&amp;</span><span class="self">self</span>, position: Duration) -&gt; TrackCallback&lt;Duration&gt; {
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
+        <span class="kw">let </span>fail = <span class="self">self
+            </span>.send(TrackCommand::Seek(SeekRequest {
+                time: position,
+                callback: tx,
             }))
-            .<span class="ident">is_err</span>();
+            .is_err();
 
-        <span class="ident">TrackCallback</span> { <span class="ident">fail</span>, <span class="ident">rx</span> }
+        TrackCallback { fail, rx }
     }
 
-    <span class="doccomment">/// Seeks along the track to the specified position.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This folds [`Self::seek`] into a single `async` result, but must</span>
-    <span class="doccomment">/// be awaited for the command to be sent.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">seek_async</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <span class="ident">Duration</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">seek</span>(<span class="ident">position</span>).<span class="ident">result_async</span>().<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Seeks along the track to the specified position.
+    ///
+    /// This folds [`Self::seek`] into a single `async` result, but must
+    /// be awaited for the command to be sent.
+    </span><span class="kw">pub async fn </span>seek_async(<span class="kw-2">&amp;</span><span class="self">self</span>, position: Duration) -&gt; TrackResult&lt;Duration&gt; {
+        <span class="self">self</span>.seek(position).result_async().<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Attach an event handler to an audio track. These will receive [`EventContext::Track`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Events which can only be fired by the global context return [`ControlError::InvalidTrackEvent`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EventContext::Track`]: crate::events::EventContext::Track</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_event</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">EventHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>, <span class="ident">action</span>: <span class="ident">F</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">TrackCommand::AddEvent</span>(<span class="ident">EventData::new</span>(<span class="ident">event</span>, <span class="ident">action</span>));
-        <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">is_global_only</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">ControlError::InvalidTrackEvent</span>)
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">cmd</span>)
+    <span class="doccomment">/// Attach an event handler to an audio track. These will receive [`EventContext::Track`].
+    ///
+    /// Events which can only be fired by the global context return [`ControlError::InvalidTrackEvent`]
+    ///
+    /// [`EventContext::Track`]: crate::events::EventContext::Track
+    </span><span class="kw">pub fn </span>add_event&lt;F: EventHandler + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, event: Event, action: F) -&gt; TrackResult&lt;()&gt; {
+        <span class="kw">let </span>cmd = TrackCommand::AddEvent(EventData::new(event, action));
+        <span class="kw">if </span>event.is_global_only() {
+            <span class="prelude-val">Err</span>(ControlError::InvalidTrackEvent)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.send(cmd)
         }
     }
 
-    <span class="doccomment">/// Perform an arbitrary synchronous action on a raw [`Track`] object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will give access to a [`View`] of the current track state and [`Metadata`],</span>
-    <span class="doccomment">/// which can be used to take an [`Action`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Users **must** ensure that no costly work or blocking occurs</span>
-    <span class="doccomment">/// within the supplied function or closure. *Taking excess time could prevent</span>
-    <span class="doccomment">/// timely sending of packets, causing audio glitches and delays*.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Metadata`]: crate::input::Metadata</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">action</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">action</span>: <span class="ident">F</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">View</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Action</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Perform an arbitrary synchronous action on a raw [`Track`] object.
+    ///
+    /// This will give access to a [`View`] of the current track state and [`Metadata`],
+    /// which can be used to take an [`Action`].
+    ///
+    /// Users **must** ensure that no costly work or blocking occurs
+    /// within the supplied function or closure. *Taking excess time could prevent
+    /// timely sending of packets, causing audio glitches and delays*.
+    ///
+    /// [`Metadata`]: crate::input::Metadata
+    </span><span class="kw">pub fn </span>action&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, action: F) -&gt; TrackResult&lt;()&gt;
+    <span class="kw">where
+        </span>F: FnOnce(View) -&gt; <span class="prelude-ty">Option</span>&lt;Action&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Do</span>(<span class="ident">Box::new</span>(<span class="ident">action</span>)))
+        <span class="self">self</span>.send(TrackCommand::Do(Box::new(action)))
     }
 
-    <span class="doccomment">/// Request playback information and state from the audio context.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Request</span>(<span class="ident">tx</span>))<span class="question-mark">?</span>;
+    <span class="doccomment">/// Request playback information and state from the audio context.
+    </span><span class="kw">pub async fn </span>get_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;TrackState&gt; {
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
+        <span class="self">self</span>.send(TrackCommand::Request(tx))<span class="question-mark">?</span>;
 
-        <span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ControlError::Finished</span>)
+        rx.recv_async().<span class="kw">await</span>.map_err(|<span class="kw">_</span>| ControlError::Finished)
     }
 
-    <span class="doccomment">/// Set an audio track to loop indefinitely.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires either a [`Compose`] to be present or for the</span>
-    <span class="doccomment">/// input stream to be seekable.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Input`]: crate::input::Input</span>
-    <span class="doccomment">/// [`Compose`]: crate::input::Compose</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Loop</span>(<span class="ident">LoopState::Infinite</span>))
+    <span class="doccomment">/// Set an audio track to loop indefinitely.
+    ///
+    /// This requires either a [`Compose`] to be present or for the
+    /// input stream to be seekable.
+    ///
+    /// [`Input`]: crate::input::Input
+    /// [`Compose`]: crate::input::Compose
+    </span><span class="kw">pub fn </span>enable_loop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Infinite))
     }
 
-    <span class="doccomment">/// Set an audio track to no longer loop.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This follows the same rules as [`enable_loop`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`enable_loop`]: Self::enable_loop</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Loop</span>(<span class="ident">LoopState::Finite</span>(<span class="number">0</span>)))
+    <span class="doccomment">/// Set an audio track to no longer loop.
+    ///
+    /// This follows the same rules as [`enable_loop`].
+    ///
+    /// [`enable_loop`]: Self::enable_loop
+    </span><span class="kw">pub fn </span>disable_loop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Finite(<span class="number">0</span>)))
     }
 
-    <span class="doccomment">/// Set an audio track to loop a set number of times.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This follows the same rules as [`enable_loop`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`enable_loop`]: Self::enable_loop</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">loop_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">count</span>: <span class="ident">usize</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">TrackCommand::Loop</span>(<span class="ident">LoopState::Finite</span>(<span class="ident">count</span>)))
+    <span class="doccomment">/// Set an audio track to loop a set number of times.
+    ///
+    /// This follows the same rules as [`enable_loop`].
+    ///
+    /// [`enable_loop`]: Self::enable_loop
+    </span><span class="kw">pub fn </span>loop_for(<span class="kw-2">&amp;</span><span class="self">self</span>, count: usize) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Finite(count)))
     }
 
-    <span class="doccomment">/// Returns this handle&#39;s (and track&#39;s) unique identifier.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uuid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Uuid</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">uuid</span>
+    <span class="doccomment">/// Returns this handle&#39;s (and track&#39;s) unique identifier.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Uuid {
+        <span class="self">self</span>.inner.uuid
     }
 
-    <span class="doccomment">/// Allows access to this track&#39;s attached [`TypeMap`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`TypeMap`]s allow additional, user-defined data shared by all handles</span>
-    <span class="doccomment">/// to be attached to any track.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Driver code will never attempt to lock access to this map,</span>
-    <span class="doccomment">/// preventing deadlock/stalling.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typemap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">TypeMap</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">typemap</span>
+    <span class="doccomment">/// Allows access to this track&#39;s attached [`TypeMap`].
+    ///
+    /// [`TypeMap`]s allow additional, user-defined data shared by all handles
+    /// to be attached to any track.
+    ///
+    /// Driver code will never attempt to lock access to this map,
+    /// preventing deadlock/stalling.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>typemap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RwLock&lt;TypeMap&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.typemap
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Send a raw command to the [`Track`] object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Track`]: Track</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cmd</span>: <span class="ident">TrackCommand</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// As the send channels are unbounded, we can be reasonably certain</span>
-        <span class="comment">// that send failure == cancellation.</span>
-        <span class="self">self</span>.<span class="ident">inner</span>
-            .<span class="ident">command_channel</span>
-            .<span class="ident">send</span>(<span class="ident">cmd</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> <span class="ident">ControlError::Finished</span>)
+    <span class="attribute">#[inline]</span>
+    <span class="doccomment">/// Send a raw command to the [`Track`] object.
+    ///
+    /// [`Track`]: Track
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, cmd: TrackCommand) -&gt; TrackResult&lt;()&gt; {
+        <span class="comment">// As the send channels are unbounded, we can be reasonably certain
+        // that send failure == cancellation.
+        </span><span class="self">self</span>.inner
+            .command_channel
+            .send(cmd)
+            .map_err(|_e| ControlError::Finished)
     }
 }
 
-<span class="doccomment">/// Asynchronous reply for an operation applied to a [`TrackHandle`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This object does not need to be `.await`ed for the driver to perform an action.</span>
-<span class="doccomment">/// Async threads can then call, e.g., [`TrackHandle::make_playable`], and safely drop</span>
-<span class="doccomment">/// this callback if the result isn&#39;t needed.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrackCallback</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">fail</span>: <span class="ident">bool</span>,
-    <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PlayError</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Asynchronous reply for an operation applied to a [`TrackHandle`].
+///
+/// This object does not need to be `.await`ed for the driver to perform an action.
+/// Async threads can then call, e.g., [`TrackHandle::make_playable`], and safely drop
+/// this callback if the result isn&#39;t needed.
+</span><span class="kw">pub struct </span>TrackCallback&lt;T&gt; {
+    fail: bool,
+    rx: Receiver&lt;<span class="prelude-ty">Result</span>&lt;T, PlayError&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TrackCallback</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Consumes this handle to await a reply from the driver, blocking the current thread.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">result</span>(<span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fail</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">ControlError::Finished</span>)
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">recv</span>()<span class="question-mark">?</span>.<span class="ident">map_err</span>(<span class="ident">ControlError::Play</span>)
+<span class="kw">impl</span>&lt;T&gt; TrackCallback&lt;T&gt; {
+    <span class="doccomment">/// Consumes this handle to await a reply from the driver, blocking the current thread.
+    </span><span class="kw">pub fn </span>result(<span class="self">self</span>) -&gt; TrackResult&lt;T&gt; {
+        <span class="kw">if </span><span class="self">self</span>.fail {
+            <span class="prelude-val">Err</span>(ControlError::Finished)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.rx.recv()<span class="question-mark">?</span>.map_err(ControlError::Play)
         }
     }
 
-    <span class="doccomment">/// Consumes this handle to await a reply from the driver asynchronously.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">result_async</span>(<span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fail</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">ControlError::Finished</span>)
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span><span class="question-mark">?</span>.<span class="ident">map_err</span>(<span class="ident">ControlError::Play</span>)
+    <span class="doccomment">/// Consumes this handle to await a reply from the driver asynchronously.
+    </span><span class="kw">pub async fn </span>result_async(<span class="self">self</span>) -&gt; TrackResult&lt;T&gt; {
+        <span class="kw">if </span><span class="self">self</span>.fail {
+            <span class="prelude-val">Err</span>(ControlError::Finished)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.rx.recv_async().<span class="kw">await</span><span class="question-mark">?</span>.map_err(ControlError::Play)
         }
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Returns `true` if the operation instantly failed due to the target track being</span>
-    <span class="doccomment">/// removed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_hung_up</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">fail</span>
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Returns `true` if the operation instantly failed due to the target track being
+    /// removed.
+    </span><span class="kw">pub fn </span>is_hung_up(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.fail
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{
-        <span class="ident">constants::test_data::FILE_WAV_TARGET</span>,
-        <span class="ident">driver::Driver</span>,
-        <span class="ident">input::File</span>,
-        <span class="ident">tracks::Track</span>,
-        <span class="ident">Config</span>,
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use crate</span>::{
+        constants::test_data::FILE_WAV_TARGET,
+        driver::Driver,
+        input::File,
+        tracks::Track,
+        Config,
     };
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">make_playable_callback_fires</span>() {
-        <span class="kw">let</span> (<span class="ident">t_handle</span>, <span class="ident">config</span>) <span class="op">=</span> <span class="ident">Config::test_cfg</span>(<span class="bool-val">true</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">driver</span> <span class="op">=</span> <span class="ident">Driver::new</span>(<span class="ident">config</span>.<span class="ident">clone</span>());
+    <span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>make_playable_callback_fires() {
+        <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
 
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::new</span>(<span class="ident">FILE_WAV_TARGET</span>);
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">driver</span>.<span class="ident">play</span>(<span class="ident">Track::from</span>(<span class="ident">file</span>).<span class="ident">pause</span>());
+        <span class="kw">let </span>file = File::new(FILE_WAV_TARGET);
+        <span class="kw">let </span>handle = driver.play(Track::from(file).pause());
 
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">make_playable</span>();
-        <span class="ident">t_handle</span>.<span class="ident">spawn_ticker</span>().<span class="kw">await</span>;
-        <span class="macro">assert!</span>(<span class="ident">callback</span>.<span class="ident">result_async</span>().<span class="kw">await</span>.<span class="ident">is_ok</span>());
+        <span class="kw">let </span>callback = handle.make_playable();
+        t_handle.spawn_ticker().<span class="kw">await</span>;
+        <span class="macro">assert!</span>(callback.result_async().<span class="kw">await</span>.is_ok());
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">seek_callback_fires</span>() {
-        <span class="kw">let</span> (<span class="ident">t_handle</span>, <span class="ident">config</span>) <span class="op">=</span> <span class="ident">Config::test_cfg</span>(<span class="bool-val">true</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">driver</span> <span class="op">=</span> <span class="ident">Driver::new</span>(<span class="ident">config</span>.<span class="ident">clone</span>());
+    <span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>seek_callback_fires() {
+        <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
 
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::new</span>(<span class="ident">FILE_WAV_TARGET</span>);
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">driver</span>.<span class="ident">play</span>(<span class="ident">Track::from</span>(<span class="ident">file</span>).<span class="ident">pause</span>());
+        <span class="kw">let </span>file = File::new(FILE_WAV_TARGET);
+        <span class="kw">let </span>handle = driver.play(Track::from(file).pause());
 
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">500</span>);
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">seek</span>(<span class="ident">target</span>);
-        <span class="ident">t_handle</span>.<span class="ident">spawn_ticker</span>().<span class="kw">await</span>;
+        <span class="kw">let </span>target = Duration::from_millis(<span class="number">500</span>);
+        <span class="kw">let </span>callback = handle.seek(target);
+        t_handle.spawn_ticker().<span class="kw">await</span>;
 
-        <span class="kw">let</span> <span class="ident">answer</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">result_async</span>().<span class="kw">await</span>;
-        <span class="macro">assert!</span>(<span class="ident">answer</span>.<span class="ident">is_ok</span>());
-        <span class="kw">let</span> <span class="ident">answer</span> <span class="op">=</span> <span class="ident">answer</span>.<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">100</span>);
-        <span class="macro">assert!</span>(<span class="ident">answer</span> <span class="op">&gt;</span> <span class="ident">target</span> <span class="op">-</span> <span class="ident">delta</span> <span class="op">&amp;&amp;</span> <span class="ident">answer</span> <span class="op">&lt;</span> <span class="ident">target</span> <span class="op">+</span> <span class="ident">delta</span>);
+        <span class="kw">let </span>answer = callback.result_async().<span class="kw">await</span>;
+        <span class="macro">assert!</span>(answer.is_ok());
+        <span class="kw">let </span>answer = answer.unwrap();
+        <span class="kw">let </span>delta = Duration::from_millis(<span class="number">100</span>);
+        <span class="macro">assert!</span>(answer &gt; target - delta &amp;&amp; answer &lt; target + delta);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

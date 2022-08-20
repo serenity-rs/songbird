@@ -202,207 +202,207 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Live, controllable audio instances.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Tracks add control and event data around the bytestreams offered by [`Input`],</span>
-<span class="doccomment">//! where each represents a live audio source inside of the driver&#39;s mixer. This includes</span>
-<span class="doccomment">//! play state, volume, and looping behaviour.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! To configure an audio source as it is created, you can create a [`Track`] to set the</span>
-<span class="doccomment">//! above playback state [from any `Input` or `T: Into&lt;Input&gt;`](Track#trait-implementations)</span>
-<span class="doccomment">//! using `Track::from(...)`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! To configure an audio source once it has been given to a [`Driver`], you are given a</span>
-<span class="doccomment">//! [`TrackHandle`] once you hand the [`Input`] and state over to be played. These handles</span>
-<span class="doccomment">//! remotely send commands from your bot&#39;s (a)sync context to control playback, register events,</span>
-<span class="doccomment">//! and execute synchronous closures. This design prevents user code from being able to lock</span>
-<span class="doccomment">//! or stall the audio mixer.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Driver`]: crate::driver::Driver</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Live, controllable audio instances.
+//!
+//! Tracks add control and event data around the bytestreams offered by [`Input`],
+//! where each represents a live audio source inside of the driver&#39;s mixer. This includes
+//! play state, volume, and looping behaviour.
+//!
+//! To configure an audio source as it is created, you can create a [`Track`] to set the
+//! above playback state [from any `Input` or `T: Into&lt;Input&gt;`](Track#trait-implementations)
+//! using `Track::from(...)`.
+//!
+//! To configure an audio source once it has been given to a [`Driver`], you are given a
+//! [`TrackHandle`] once you hand the [`Input`] and state over to be played. These handles
+//! remotely send commands from your bot&#39;s (a)sync context to control playback, register events,
+//! and execute synchronous closures. This design prevents user code from being able to lock
+//! or stall the audio mixer.
+//!
+//! [`Driver`]: crate::driver::Driver
 
-<span class="kw">mod</span> <span class="ident">action</span>;
-<span class="kw">mod</span> <span class="ident">command</span>;
-<span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">mod</span> <span class="ident">handle</span>;
-<span class="kw">mod</span> <span class="ident">looping</span>;
-<span class="kw">mod</span> <span class="ident">mode</span>;
-<span class="kw">mod</span> <span class="ident">queue</span>;
-<span class="kw">mod</span> <span class="ident">ready</span>;
-<span class="kw">mod</span> <span class="ident">state</span>;
-<span class="kw">mod</span> <span class="ident">view</span>;
+</span><span class="kw">mod </span>action;
+<span class="kw">mod </span>command;
+<span class="kw">mod </span>error;
+<span class="kw">mod </span>handle;
+<span class="kw">mod </span>looping;
+<span class="kw">mod </span>mode;
+<span class="kw">mod </span>queue;
+<span class="kw">mod </span>ready;
+<span class="kw">mod </span>state;
+<span class="kw">mod </span>view;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">action</span>::<span class="kw-2">*</span>,
-    <span class="ident">error</span>::<span class="kw-2">*</span>,
-    <span class="ident">handle</span>::<span class="kw-2">*</span>,
-    <span class="ident">looping</span>::<span class="kw-2">*</span>,
-    <span class="ident">mode</span>::<span class="kw-2">*</span>,
-    <span class="ident">queue</span>::<span class="kw-2">*</span>,
-    <span class="ident">ready</span>::<span class="kw-2">*</span>,
-    <span class="ident">state</span>::<span class="kw-2">*</span>,
-    <span class="ident">view</span>::<span class="kw-2">*</span>,
+<span class="kw">pub use </span><span class="self">self</span>::{
+    action::<span class="kw-2">*</span>,
+    error::<span class="kw-2">*</span>,
+    handle::<span class="kw-2">*</span>,
+    looping::<span class="kw-2">*</span>,
+    mode::<span class="kw-2">*</span>,
+    queue::<span class="kw-2">*</span>,
+    ready::<span class="kw-2">*</span>,
+    state::<span class="kw-2">*</span>,
+    view::<span class="kw-2">*</span>,
 };
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">command</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>command::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">constants</span>::<span class="kw-2">*</span>, <span class="ident">driver::tasks::message</span>::<span class="kw-2">*</span>, <span class="ident">events::EventStore</span>, <span class="ident">input::Input</span>};
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
-<span class="kw">use</span> <span class="ident">uuid::Uuid</span>;
+<span class="kw">use crate</span>::{constants::<span class="kw-2">*</span>, driver::tasks::message::<span class="kw-2">*</span>, events::EventStore, input::Input};
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>uuid::Uuid;
 
-<span class="doccomment">/// Initial state for audio playback.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Track`]s allow you to configure play modes, volume, event handlers, and other track state</span>
-<span class="doccomment">/// before you pass an input to the [`Driver`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Live track data is accessed via a [`TrackHandle`], which is returned by [`Driver::play`] and</span>
-<span class="doccomment">/// related methods.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust,no_run</span>
-<span class="doccomment">/// use songbird::{driver::Driver, input::File, tracks::Track};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // A Call is also valid here!</span>
-<span class="doccomment">/// let mut driver: Driver = Default::default();</span>
-<span class="doccomment">/// let source = File::new(&quot;../audio/my-favourite-song.mp3&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let handle = driver.play_only(Track::from(source).volume(0.5));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Future access occurs via audio.</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Driver`]: crate::driver::Driver</span>
-<span class="doccomment">/// [`Driver::play`]: crate::driver::Driver::play</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Track</span> {
-    <span class="doccomment">/// Whether or not this sound is currently playing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`PlayMode::Play`].</span>
-    <span class="kw">pub</span> <span class="ident">playing</span>: <span class="ident">PlayMode</span>,
+<span class="doccomment">/// Initial state for audio playback.
+///
+/// [`Track`]s allow you to configure play modes, volume, event handlers, and other track state
+/// before you pass an input to the [`Driver`].
+///
+/// Live track data is accessed via a [`TrackHandle`], which is returned by [`Driver::play`] and
+/// related methods.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use songbird::{driver::Driver, input::File, tracks::Track};
+///
+/// // A Call is also valid here!
+/// let mut driver: Driver = Default::default();
+/// let source = File::new(&quot;../audio/my-favourite-song.mp3&quot;);
+///
+/// let handle = driver.play_only(Track::from(source).volume(0.5));
+///
+/// // Future access occurs via audio.
+/// ```
+///
+/// [`Driver`]: crate::driver::Driver
+/// [`Driver::play`]: crate::driver::Driver::play
+</span><span class="kw">pub struct </span>Track {
+    <span class="doccomment">/// Whether or not this sound is currently playing.
+    ///
+    /// Defaults to [`PlayMode::Play`].
+    </span><span class="kw">pub </span>playing: PlayMode,
 
-    <span class="doccomment">/// The volume for playback.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Sensible values fall between `0.0` and `1.0`. Values outside this range can</span>
-    <span class="doccomment">/// cause clipping or other audio artefacts.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to `1.0`.</span>
-    <span class="kw">pub</span> <span class="ident">volume</span>: <span class="ident">f32</span>,
+    <span class="doccomment">/// The volume for playback.
+    ///
+    /// Sensible values fall between `0.0` and `1.0`. Values outside this range can
+    /// cause clipping or other audio artefacts.
+    ///
+    /// Defaults to `1.0`.
+    </span><span class="kw">pub </span>volume: f32,
 
-    <span class="doccomment">/// The live or lazily-initialised audio stream to be played.</span>
-    <span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">Input</span>,
+    <span class="doccomment">/// The live or lazily-initialised audio stream to be played.
+    </span><span class="kw">pub </span>input: Input,
 
-    <span class="doccomment">/// List of events attached to this audio track.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may be used to add additional events to a track</span>
-    <span class="doccomment">/// before it is sent to the audio context for playing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to an empty set.</span>
-    <span class="kw">pub</span> <span class="ident">events</span>: <span class="ident">EventStore</span>,
+    <span class="doccomment">/// List of events attached to this audio track.
+    ///
+    /// This may be used to add additional events to a track
+    /// before it is sent to the audio context for playing.
+    ///
+    /// Defaults to an empty set.
+    </span><span class="kw">pub </span>events: EventStore,
 
-    <span class="doccomment">/// Count of remaining loops.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to play a track once (i.e., [`LoopState::Finite(0)`]).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`LoopState::Finite(0)`]: LoopState::Finite</span>
-    <span class="kw">pub</span> <span class="ident">loops</span>: <span class="ident">LoopState</span>,
+    <span class="doccomment">/// Count of remaining loops.
+    ///
+    /// Defaults to play a track once (i.e., [`LoopState::Finite(0)`]).
+    ///
+    /// [`LoopState::Finite(0)`]: LoopState::Finite
+    </span><span class="kw">pub </span>loops: LoopState,
 
-    <span class="doccomment">/// Unique identifier for this track.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to a random 128-bit number.</span>
-    <span class="kw">pub</span> <span class="ident">uuid</span>: <span class="ident">Uuid</span>,
+    <span class="doccomment">/// Unique identifier for this track.
+    ///
+    /// Defaults to a random 128-bit number.
+    </span><span class="kw">pub </span>uuid: Uuid,
 }
 
-<span class="kw">impl</span> <span class="ident">Track</span> {
-    <span class="doccomment">/// Create a new track directly from an [`Input`] and a random [`Uuid`].</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">input</span>: <span class="ident">Input</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">uuid</span> <span class="op">=</span> <span class="ident">Uuid::new_v4</span>();
+<span class="kw">impl </span>Track {
+    <span class="doccomment">/// Create a new track directly from an [`Input`] and a random [`Uuid`].
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>new(input: Input) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>uuid = Uuid::new_v4();
 
-        <span class="ident"><span class="self">Self</span>::new_with_uuid</span>(<span class="ident">input</span>, <span class="ident">uuid</span>)
+        <span class="self">Self</span>::new_with_uuid(input, uuid)
     }
 
-    <span class="doccomment">/// Create a new track directly from an [`Input`] with a custom [`Uuid`].</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_uuid</span>(<span class="ident">input</span>: <span class="ident">Input</span>, <span class="ident">uuid</span>: <span class="ident">Uuid</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">playing</span>: <span class="ident">PlayMode::default</span>(),
-            <span class="ident">volume</span>: <span class="number">1.0</span>,
-            <span class="ident">input</span>,
-            <span class="ident">events</span>: <span class="ident">EventStore::new_local</span>(),
-            <span class="ident">loops</span>: <span class="ident">LoopState::Finite</span>(<span class="number">0</span>),
-            <span class="ident">uuid</span>,
+    <span class="doccomment">/// Create a new track directly from an [`Input`] with a custom [`Uuid`].
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>new_with_uuid(input: Input, uuid: Uuid) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            playing: PlayMode::default(),
+            volume: <span class="number">1.0</span>,
+            input,
+            events: EventStore::new_local(),
+            loops: LoopState::Finite(<span class="number">0</span>),
+            uuid,
         }
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Sets a track to playing if it is paused.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">play</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">playing</span> <span class="op">=</span> <span class="ident">PlayMode::Play</span>;
-        <span class="self">self</span>
-    }
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Sets a track to playing if it is paused.
+    </span><span class="kw">pub fn </span>play(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.playing = PlayMode::Play;
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Pre-emptively pauses a track, preventing it from being automatically played.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">playing</span> <span class="op">=</span> <span class="ident">PlayMode::Pause</span>;
-        <span class="self">self</span>
-    }
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Pre-emptively pauses a track, preventing it from being automatically played.
+    </span><span class="kw">pub fn </span>pause(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.playing = PlayMode::Pause;
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Manually stops a track.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will cause the audio track to be removed by the driver almost immediately,</span>
-    <span class="doccomment">/// with any relevant events triggered.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">playing</span> <span class="op">=</span> <span class="ident">PlayMode::Stop</span>;
-        <span class="self">self</span>
-    }
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Manually stops a track.
+    ///
+    /// This will cause the audio track to be removed by the driver almost immediately,
+    /// with any relevant events triggered.
+    </span><span class="kw">pub fn </span>stop(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.playing = PlayMode::Stop;
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Sets [`volume`] in a manner that allows method chaining.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`volume`]: Track::volume</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">volume</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">volume</span>: <span class="ident">f32</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">volume</span> <span class="op">=</span> <span class="ident">volume</span>;
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Sets [`volume`] in a manner that allows method chaining.
+    ///
+    /// [`volume`]: Track::volume
+    </span><span class="kw">pub fn </span>volume(<span class="kw-2">mut </span><span class="self">self</span>, volume: f32) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.volume = volume;
 
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Set an audio track to loop a set number of times.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">loops</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">loops</span>: <span class="ident">LoopState</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">loops</span> <span class="op">=</span> <span class="ident">loops</span>;
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Set an audio track to loop a set number of times.
+    </span><span class="kw">pub fn </span>loops(<span class="kw-2">mut </span><span class="self">self</span>, loops: LoopState) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.loops = loops;
 
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="doccomment">/// Returns this track&#39;s unique identifier.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uuid</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">uuid</span>: <span class="ident">Uuid</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">uuid</span> <span class="op">=</span> <span class="ident">uuid</span>;
+    <span class="attribute">#[must_use]</span>
+    <span class="doccomment">/// Returns this track&#39;s unique identifier.
+    </span><span class="kw">pub fn </span>uuid(<span class="kw-2">mut </span><span class="self">self</span>, uuid: Uuid) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.uuid = uuid;
 
-        <span class="self">self</span>
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_context</span>(<span class="self">self</span>) -&gt; (<span class="ident">TrackHandle</span>, <span class="ident">TrackContext</span>) {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">TrackHandle::new</span>(<span class="ident">tx</span>, <span class="self">self</span>.<span class="ident">uuid</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_context(<span class="self">self</span>) -&gt; (TrackHandle, TrackContext) {
+        <span class="kw">let </span>(tx, receiver) = flume::unbounded();
+        <span class="kw">let </span>handle = TrackHandle::new(tx, <span class="self">self</span>.uuid);
 
-        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">TrackContext</span> {
-            <span class="ident">handle</span>: <span class="ident">handle</span>.<span class="ident">clone</span>(),
-            <span class="ident">track</span>: <span class="self">self</span>,
-            <span class="ident">receiver</span>,
+        <span class="kw">let </span>context = TrackContext {
+            handle: handle.clone(),
+            track: <span class="self">self</span>,
+            receiver,
         };
 
-        (<span class="ident">handle</span>, <span class="ident">context</span>)
+        (handle, context)
     }
 }
 
-<span class="doccomment">/// Any [`Input`] (or struct which can be used as one) can also be made into a [`Track`].</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Track</span> {
-    <span class="comment">// NOTE: this is `Into` to support user-given structs which can</span>
-    <span class="comment">// only `impl Into&lt;Input&gt;`.</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Track::new</span>(<span class="ident">val</span>.<span class="ident">into</span>())
+<span class="doccomment">/// Any [`Input`] (or struct which can be used as one) can also be made into a [`Track`].
+</span><span class="kw">impl</span>&lt;T: Into&lt;Input&gt;&gt; From&lt;T&gt; <span class="kw">for </span>Track {
+    <span class="comment">// NOTE: this is `Into` to support user-given structs which can
+    // only `impl Into&lt;Input&gt;`.
+    </span><span class="kw">fn </span>from(val: T) -&gt; <span class="self">Self </span>{
+        Track::new(val.into())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

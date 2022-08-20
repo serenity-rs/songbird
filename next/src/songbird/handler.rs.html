@@ -490,495 +490,495 @@
 <span id="488">488</span>
 <span id="489">489</span>
 <span id="490">490</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">driver::Driver</span>, <span class="ident">error::ConnectionResult</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::{<span class="ident">JoinError</span>, <span class="ident">JoinResult</span>},
-    <span class="ident">id</span>::{<span class="ident">ChannelId</span>, <span class="ident">GuildId</span>, <span class="ident">UserId</span>},
-    <span class="ident">info</span>::{<span class="ident">ConnectionInfo</span>, <span class="ident">ConnectionProgress</span>},
-    <span class="ident">join</span>::<span class="kw-2">*</span>,
-    <span class="ident">shards</span>::{<span class="ident">Shard</span>, <span class="ident">VoiceUpdate</span>},
-    <span class="ident">Config</span>,
+</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">use crate</span>::{driver::Driver, error::ConnectionResult};
+<span class="kw">use crate</span>::{
+    error::{JoinError, JoinResult},
+    id::{ChannelId, GuildId, UserId},
+    info::{ConnectionInfo, ConnectionProgress},
+    join::<span class="kw-2">*</span>,
+    shards::{Shard, VoiceUpdate},
+    Config,
 };
-<span class="kw">use</span> <span class="ident">flume::Sender</span>;
-<span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
-<span class="kw">use</span> <span class="ident">tracing::instrument</span>;
+<span class="kw">use </span>flume::Sender;
+<span class="kw">use </span>std::fmt::Debug;
+<span class="kw">use </span>tracing::instrument;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">use </span>std::ops::{Deref, DerefMut};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Return</span> {
-    <span class="comment">// Return the connection info as it is received.</span>
-    <span class="ident">Info</span>(<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">ConnectionInfo</span><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="kw">enum </span>Return {
+    <span class="comment">// Return the connection info as it is received.
+    </span>Info(Sender&lt;ConnectionInfo&gt;),
 
-    <span class="comment">// Two channels: first indicates &quot;gateway connection&quot; was successful,</span>
-    <span class="comment">// second indicates that the driver successfully connected.</span>
-    <span class="comment">// The first is needed to cancel a timeout as the driver can/should</span>
-    <span class="comment">// have separate connection timing/retry config.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="ident">Conn</span>(<span class="ident">Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">ConnectionResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="comment">// Two channels: first indicates &quot;gateway connection&quot; was successful,
+    // second indicates that the driver successfully connected.
+    // The first is needed to cancel a timeout as the driver can/should
+    // have separate connection timing/retry config.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    Conn(Sender&lt;()&gt;, Sender&lt;ConnectionResult&lt;()&gt;&gt;),
 }
 
-<span class="doccomment">/// The Call handler is responsible for a single voice connection, acting</span>
-<span class="doccomment">/// as a clean API above the inner state and gateway message management.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the `&quot;driver&quot;` feature is enabled, then a Call exposes all control methods of</span>
-<span class="doccomment">/// [`Driver`] via `Deref(Mut)`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Driver`]: struct@Driver</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Call</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>))]</span>
-    <span class="ident">config</span>: <span class="ident">Config</span>,
+<span class="doccomment">/// The Call handler is responsible for a single voice connection, acting
+/// as a clean API above the inner state and gateway message management.
+///
+/// If the `&quot;driver&quot;` feature is enabled, then a Call exposes all control methods of
+/// [`Driver`] via `Deref(Mut)`.
+///
+/// [`Driver`]: struct@Driver
+</span><span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="kw">pub struct </span>Call {
+    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]</span>
+    config: Config,
 
-    <span class="ident">connection</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ConnectionProgress</span>, <span class="ident">Return</span>)<span class="op">&gt;</span>,
+    connection: <span class="prelude-ty">Option</span>&lt;(ConnectionProgress, Return)&gt;,
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// The internal controller of the voice connection monitor thread.</span>
-    <span class="ident">driver</span>: <span class="ident">Driver</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// The internal controller of the voice connection monitor thread.
+    </span>driver: Driver,
 
-    <span class="ident">guild_id</span>: <span class="ident">GuildId</span>,
-    <span class="doccomment">/// Whether the current handler is set to deafen voice connections.</span>
-    <span class="ident">self_deaf</span>: <span class="ident">bool</span>,
-    <span class="doccomment">/// Whether the current handler is set to mute voice connections.</span>
-    <span class="ident">self_mute</span>: <span class="ident">bool</span>,
-    <span class="ident">user_id</span>: <span class="ident">UserId</span>,
-    <span class="doccomment">/// Will be set when a `Call` is made via the [`new`]</span>
-    <span class="doccomment">/// method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When set via [`standalone`](`Call::standalone`), it will not be</span>
-    <span class="doccomment">/// present.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`new`]: Call::new</span>
-    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
-    <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shard</span><span class="op">&gt;</span>,
+    guild_id: GuildId,
+    <span class="doccomment">/// Whether the current handler is set to deafen voice connections.
+    </span>self_deaf: bool,
+    <span class="doccomment">/// Whether the current handler is set to mute voice connections.
+    </span>self_mute: bool,
+    user_id: UserId,
+    <span class="doccomment">/// Will be set when a `Call` is made via the [`new`]
+    /// method.
+    ///
+    /// When set via [`standalone`](`Call::standalone`), it will not be
+    /// present.
+    ///
+    /// [`new`]: Call::new
+    /// [`standalone`]: Call::standalone
+    </span>ws: <span class="prelude-ty">Option</span>&lt;Shard&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Call</span> {
-    <span class="doccomment">/// Creates a new Call, which will send out WebSocket messages via</span>
-    <span class="doccomment">/// the given shard.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">instrument</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">G</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">guild_id</span>: <span class="ident">G</span>, <span class="ident">ws</span>: <span class="ident">Shard</span>, <span class="ident">user_id</span>: <span class="ident">U</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">G</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">GuildId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
-        <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+<span class="kw">impl </span>Call {
+    <span class="doccomment">/// Creates a new Call, which will send out WebSocket messages via
+    /// the given shard.
+    </span><span class="attribute">#[inline]</span>
+    <span class="attribute">#[instrument]</span>
+    <span class="kw">pub fn </span>new&lt;G, U&gt;(guild_id: G, ws: Shard, user_id: U) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>G: Into&lt;GuildId&gt; + Debug,
+        U: Into&lt;UserId&gt; + Debug,
     {
-        <span class="ident"><span class="self">Self</span>::new_raw_cfg</span>(<span class="ident">guild_id</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="ident">ws</span>), <span class="ident">user_id</span>.<span class="ident">into</span>(), <span class="ident">Config::default</span>())
+        <span class="self">Self</span>::new_raw_cfg(guild_id.into(), <span class="prelude-val">Some</span>(ws), user_id.into(), Config::default())
     }
 
-    <span class="doccomment">/// Creates a new Call, configuring the driver as specified.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">instrument</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_config</span><span class="op">&lt;</span><span class="ident">G</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">guild_id</span>: <span class="ident">G</span>, <span class="ident">ws</span>: <span class="ident">Shard</span>, <span class="ident">user_id</span>: <span class="ident">U</span>, <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">G</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">GuildId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
-        <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+    <span class="doccomment">/// Creates a new Call, configuring the driver as specified.
+    </span><span class="attribute">#[inline]</span>
+    <span class="attribute">#[instrument]</span>
+    <span class="kw">pub fn </span>from_config&lt;G, U&gt;(guild_id: G, ws: Shard, user_id: U, config: Config) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>G: Into&lt;GuildId&gt; + Debug,
+        U: Into&lt;UserId&gt; + Debug,
     {
-        <span class="ident"><span class="self">Self</span>::new_raw_cfg</span>(<span class="ident">guild_id</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="ident">ws</span>), <span class="ident">user_id</span>.<span class="ident">into</span>(), <span class="ident">config</span>)
+        <span class="self">Self</span>::new_raw_cfg(guild_id.into(), <span class="prelude-val">Some</span>(ws), user_id.into(), config)
     }
 
-    <span class="doccomment">/// Creates a new, standalone Call which is not connected via</span>
-    <span class="doccomment">/// WebSocket to the Gateway.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Actions such as muting, deafening, and switching channels will not</span>
-    <span class="doccomment">/// function through this Call and must be done through some other</span>
-    <span class="doccomment">/// method, as the values will only be internally updated.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For most use cases you do not want this.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">instrument</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">standalone</span><span class="op">&lt;</span><span class="ident">G</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">guild_id</span>: <span class="ident">G</span>, <span class="ident">user_id</span>: <span class="ident">U</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">G</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">GuildId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
-        <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+    <span class="doccomment">/// Creates a new, standalone Call which is not connected via
+    /// WebSocket to the Gateway.
+    ///
+    /// Actions such as muting, deafening, and switching channels will not
+    /// function through this Call and must be done through some other
+    /// method, as the values will only be internally updated.
+    ///
+    /// For most use cases you do not want this.
+    </span><span class="attribute">#[inline]</span>
+    <span class="attribute">#[instrument]</span>
+    <span class="kw">pub fn </span>standalone&lt;G, U&gt;(guild_id: G, user_id: U) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>G: Into&lt;GuildId&gt; + Debug,
+        U: Into&lt;UserId&gt; + Debug,
     {
-        <span class="ident"><span class="self">Self</span>::new_raw_cfg</span>(<span class="ident">guild_id</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>, <span class="ident">user_id</span>.<span class="ident">into</span>(), <span class="ident">Config::default</span>())
+        <span class="self">Self</span>::new_raw_cfg(guild_id.into(), <span class="prelude-val">None</span>, user_id.into(), Config::default())
     }
 
-    <span class="doccomment">/// Creates a new standalone Call from the given configuration file.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">instrument</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">standalone_from_config</span><span class="op">&lt;</span><span class="ident">G</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">guild_id</span>: <span class="ident">G</span>, <span class="ident">user_id</span>: <span class="ident">U</span>, <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">G</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">GuildId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
-        <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+    <span class="doccomment">/// Creates a new standalone Call from the given configuration file.
+    </span><span class="attribute">#[inline]</span>
+    <span class="attribute">#[instrument]</span>
+    <span class="kw">pub fn </span>standalone_from_config&lt;G, U&gt;(guild_id: G, user_id: U, config: Config) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>G: Into&lt;GuildId&gt; + Debug,
+        U: Into&lt;UserId&gt; + Debug,
     {
-        <span class="ident"><span class="self">Self</span>::new_raw_cfg</span>(<span class="ident">guild_id</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>, <span class="ident">user_id</span>.<span class="ident">into</span>(), <span class="ident">config</span>)
+        <span class="self">Self</span>::new_raw_cfg(guild_id.into(), <span class="prelude-val">None</span>, user_id.into(), config)
     }
 
-    <span class="kw">fn</span> <span class="ident">new_raw_cfg</span>(<span class="ident">guild_id</span>: <span class="ident">GuildId</span>, <span class="ident">ws</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shard</span><span class="op">&gt;</span>, <span class="ident">user_id</span>: <span class="ident">UserId</span>, <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Call</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>))]</span>
-            <span class="ident">config</span>,
-            <span class="ident">connection</span>: <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="ident">driver</span>: <span class="ident">Driver::new</span>(<span class="ident">config</span>),
-            <span class="ident">guild_id</span>,
-            <span class="ident">self_deaf</span>: <span class="bool-val">false</span>,
-            <span class="ident">self_mute</span>: <span class="bool-val">false</span>,
-            <span class="ident">user_id</span>,
-            <span class="ident">ws</span>,
+    <span class="kw">fn </span>new_raw_cfg(guild_id: GuildId, ws: <span class="prelude-ty">Option</span>&lt;Shard&gt;, user_id: UserId, config: Config) -&gt; <span class="self">Self </span>{
+        Call {
+            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]</span>
+            config,
+            connection: <span class="prelude-val">None</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            driver: Driver::new(config),
+            guild_id,
+            self_deaf: <span class="bool-val">false</span>,
+            self_mute: <span class="bool-val">false</span>,
+            user_id,
+            ws,
         }
     }
 
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">do_connect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">connection</span> {
-            <span class="prelude-val">Some</span>((<span class="ident">ConnectionProgress::Complete</span>(<span class="ident">c</span>), <span class="ident">Return::Info</span>(<span class="ident">tx</span>))) =&gt; {
-                <span class="comment">// It&#39;s okay if the receiver hung up.</span>
-                <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">c</span>.<span class="ident">clone</span>()));
+    <span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">fn </span>do_connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.connection {
+            <span class="prelude-val">Some</span>((ConnectionProgress::Complete(c), Return::Info(tx))) =&gt; {
+                <span class="comment">// It&#39;s okay if the receiver hung up.
+                </span>drop(tx.send(c.clone()));
             },
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="prelude-val">Some</span>((<span class="ident">ConnectionProgress::Complete</span>(<span class="ident">c</span>), <span class="ident">Return::Conn</span>(<span class="ident">first_tx</span>, <span class="ident">driver_tx</span>))) =&gt; {
-                <span class="comment">// It&#39;s okay if the receiver hung up.</span>
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">first_tx</span>.<span class="ident">send</span>(());
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+            <span class="prelude-val">Some</span>((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) =&gt; {
+                <span class="comment">// It&#39;s okay if the receiver hung up.
+                </span><span class="kw">let _ </span>= first_tx.send(());
 
-                <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">raw_connect</span>(<span class="ident">c</span>.<span class="ident">clone</span>(), <span class="ident">driver_tx</span>.<span class="ident">clone</span>());
+                <span class="self">self</span>.driver.raw_connect(c.clone(), driver_tx.clone());
             },
-            <span class="kw">_</span> =&gt; {},
+            <span class="kw">_ </span>=&gt; {},
         }
     }
 
-    <span class="doccomment">/// Sets whether the current connection is to be deafened.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is no live voice connection, then this only acts as a settings</span>
-    <span class="doccomment">/// update for future connections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: Unlike in the official client, you _can_ be deafened while</span>
-    <span class="doccomment">/// not being muted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: If the `Call` was created via [`standalone`], then this</span>
-    <span class="doccomment">/// will _only_ update whether the connection is internally deafened.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">deafen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">deaf</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">self_deaf</span> <span class="op">=</span> <span class="ident">deaf</span>;
+    <span class="doccomment">/// Sets whether the current connection is to be deafened.
+    ///
+    /// If there is no live voice connection, then this only acts as a settings
+    /// update for future connections.
+    ///
+    /// **Note**: Unlike in the official client, you _can_ be deafened while
+    /// not being muted.
+    ///
+    /// **Note**: If the `Call` was created via [`standalone`], then this
+    /// will _only_ update whether the connection is internally deafened.
+    ///
+    /// [`standalone`]: Call::standalone
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub async fn </span>deafen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, deaf: bool) -&gt; JoinResult&lt;()&gt; {
+        <span class="self">self</span>.self_deaf = deaf;
 
-        <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>
+        <span class="self">self</span>.update().<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Returns whether the current connection is self-deafened in this server.
+    ///
+    /// This is purely cosmetic.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>is_deaf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.self_deaf
     }
 
-    <span class="doccomment">/// Returns whether the current connection is self-deafened in this server.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is purely cosmetic.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_deaf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">self_deaf</span>
-    }
-
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">should_actually_join</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">G</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">completion_generator</span>: <span class="ident">F</span>,
-        <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">G</span><span class="op">&gt;</span>,
-        <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>,
-    ) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">G</span>,
+    <span class="kw">async fn </span>should_actually_join&lt;F, G&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        completion_generator: F,
+        tx: <span class="kw-2">&amp;</span>Sender&lt;G&gt;,
+        channel_id: ChannelId,
+    ) -&gt; JoinResult&lt;bool&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; G,
     {
-        <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">conn</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">connection</span> {
-            <span class="kw">if</span> <span class="ident">conn</span>.<span class="number">0</span>.<span class="ident">in_progress</span>() {
-                <span class="self">self</span>.<span class="ident">leave</span>().<span class="kw">await</span><span class="question-mark">?</span>;
-                <span class="bool-val">true</span>
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">conn</span>.<span class="number">0</span>.<span class="ident">channel_id</span>() <span class="op">==</span> <span class="ident">channel_id</span> {
-                <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">completion_generator</span>(<span class="self">self</span>)));
-                <span class="bool-val">false</span>
-            } <span class="kw">else</span> {
-                <span class="comment">// not in progress, and/or a channel change.</span>
-                <span class="bool-val">true</span>
-            }
-        } <span class="kw">else</span> {
-            <span class="bool-val">true</span>
-        })
+        <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(conn) = <span class="kw-2">&amp;</span><span class="self">self</span>.connection {
+            <span class="kw">if </span>conn.<span class="number">0</span>.in_progress() {
+                <span class="self">self</span>.leave().<span class="kw">await</span><span class="question-mark">?</span>;
+                <span class="bool-val">true
+            </span>} <span class="kw">else if </span>conn.<span class="number">0</span>.channel_id() == channel_id {
+                drop(tx.send(completion_generator(<span class="self">self</span>)));
+                <span class="bool-val">false
+            </span>} <span class="kw">else </span>{
+                <span class="comment">// not in progress, and/or a channel change.
+                </span><span class="bool-val">true
+            </span>}
+        } <span class="kw">else </span>{
+            <span class="bool-val">true
+        </span>})
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Connect or switch to the given voice channel by its Id.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function acts as a future in two stages:</span>
-    <span class="doccomment">/// * The first `await` sends the request over the gateway.</span>
-    <span class="doccomment">/// * The second `await`s a the driver&#39;s connection attempt.</span>
-    <span class="doccomment">///   To prevent deadlock, any mutexes around this Call</span>
-    <span class="doccomment">///   *must* be released before this result is queried.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When using [`Songbird::join`], this pattern is correctly handled for you.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Songbird::join`]: crate::Songbird::join</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">join</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">channel_id</span>: <span class="ident">C</span>) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">Join</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">ChannelId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="doccomment">/// Connect or switch to the given voice channel by its Id.
+    ///
+    /// This function acts as a future in two stages:
+    /// * The first `await` sends the request over the gateway.
+    /// * The second `await`s a the driver&#39;s connection attempt.
+    ///   To prevent deadlock, any mutexes around this Call
+    ///   *must* be released before this result is queried.
+    ///
+    /// When using [`Songbird::join`], this pattern is correctly handled for you.
+    ///
+    /// [`Songbird::join`]: crate::Songbird::join
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="attribute">#[inline]</span>
+    <span class="kw">pub async fn </span>join&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: C) -&gt; JoinResult&lt;Join&gt;
+    <span class="kw">where
+        </span>C: Into&lt;ChannelId&gt; + Debug,
     {
-        <span class="self">self</span>.<span class="ident">_join</span>(<span class="ident">channel_id</span>.<span class="ident">into</span>()).<span class="kw">await</span>
-    }
+        <span class="self">self</span>._join(channel_id.into()).<span class="kw">await
+    </span>}
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">_join</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">Join</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
-        <span class="kw">let</span> (<span class="ident">gw_tx</span>, <span class="ident">gw_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+    <span class="kw">async fn </span>_join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: ChannelId) -&gt; JoinResult&lt;Join&gt; {
+        <span class="kw">let </span>(tx, rx) = flume::unbounded();
+        <span class="kw">let </span>(gw_tx, gw_rx) = flume::unbounded();
 
-        <span class="kw">let</span> <span class="ident">do_conn</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">should_actually_join</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> (), <span class="kw-2">&amp;</span><span class="ident">gw_tx</span>, <span class="ident">channel_id</span>)
+        <span class="kw">let </span>do_conn = <span class="self">self
+            </span>.should_actually_join(|<span class="kw">_</span>| (), <span class="kw-2">&amp;</span>gw_tx, channel_id)
             .<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">do_conn</span> {
-            <span class="self">self</span>.<span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">Some</span>((
-                <span class="ident">ConnectionProgress::new</span>(<span class="self">self</span>.<span class="ident">guild_id</span>, <span class="self">self</span>.<span class="ident">user_id</span>, <span class="ident">channel_id</span>),
-                <span class="ident">Return::Conn</span>(<span class="ident">gw_tx</span>, <span class="ident">tx</span>),
+        <span class="kw">if </span>do_conn {
+            <span class="self">self</span>.connection = <span class="prelude-val">Some</span>((
+                ConnectionProgress::new(<span class="self">self</span>.guild_id, <span class="self">self</span>.user_id, channel_id),
+                Return::Conn(gw_tx, tx),
             ));
 
-            <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>().<span class="ident">gateway_timeout</span>;
+            <span class="kw">let </span>timeout = <span class="self">self</span>.config().gateway_timeout;
 
-            <span class="self">self</span>.<span class="ident">update</span>()
-                .<span class="kw">await</span>
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Join::new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">gw_rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">timeout</span>))
-        } <span class="kw">else</span> {
-            <span class="comment">// Skipping the gateway connection implies that the current connection is complete</span>
-            <span class="comment">// AND the channel is a match.</span>
-            <span class="comment">//</span>
-            <span class="comment">// Send a polite request to the driver, which should only *actually* reconnect</span>
-            <span class="comment">// if it had a problem earlier.</span>
-            <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_connection</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>();
-            <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">raw_connect</span>(<span class="ident">info</span>, <span class="ident">tx</span>.<span class="ident">clone</span>());
+            <span class="self">self</span>.update()
+                .<span class="kw">await
+                </span>.map(|<span class="kw">_</span>| Join::new(rx.into_recv_async(), gw_rx.into_recv_async(), timeout))
+        } <span class="kw">else </span>{
+            <span class="comment">// Skipping the gateway connection implies that the current connection is complete
+            // AND the channel is a match.
+            //
+            // Send a polite request to the driver, which should only *actually* reconnect
+            // if it had a problem earlier.
+            </span><span class="kw">let </span>info = <span class="self">self</span>.current_connection().unwrap().clone();
+            <span class="self">self</span>.driver.raw_connect(info, tx.clone());
 
-            <span class="prelude-val">Ok</span>(<span class="ident">Join::new</span>(
-                <span class="ident">rx</span>.<span class="ident">into_recv_async</span>(),
-                <span class="ident">gw_rx</span>.<span class="ident">into_recv_async</span>(),
+            <span class="prelude-val">Ok</span>(Join::new(
+                rx.into_recv_async(),
+                gw_rx.into_recv_async(),
                 <span class="prelude-val">None</span>,
             ))
         }
     }
 
-    <span class="doccomment">/// Join the selected voice channel, *without* running/starting an RTP</span>
-    <span class="doccomment">/// session or running the driver.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use this if you require connection info for lavalink,</span>
-    <span class="doccomment">/// some other voice implementation, or don&#39;t want to use the driver for a given call.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function acts as a future in two stages:</span>
-    <span class="doccomment">/// * The first `await` sends the request over the gateway.</span>
-    <span class="doccomment">/// * The second `await`s voice session data from Discord.</span>
-    <span class="doccomment">///   To prevent deadlock, any mutexes around this Call</span>
-    <span class="doccomment">///   *must* be released before this result is queried.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When using [`Songbird::join_gateway`], this pattern is correctly handled for you.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Songbird::join_gateway`]: crate::Songbird::join_gateway</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">join_gateway</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">channel_id</span>: <span class="ident">C</span>) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">JoinGateway</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">ChannelId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+    <span class="doccomment">/// Join the selected voice channel, *without* running/starting an RTP
+    /// session or running the driver.
+    ///
+    /// Use this if you require connection info for lavalink,
+    /// some other voice implementation, or don&#39;t want to use the driver for a given call.
+    ///
+    /// This function acts as a future in two stages:
+    /// * The first `await` sends the request over the gateway.
+    /// * The second `await`s voice session data from Discord.
+    ///   To prevent deadlock, any mutexes around this Call
+    ///   *must* be released before this result is queried.
+    ///
+    /// When using [`Songbird::join_gateway`], this pattern is correctly handled for you.
+    ///
+    /// [`Songbird::join_gateway`]: crate::Songbird::join_gateway
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="attribute">#[inline]</span>
+    <span class="kw">pub async fn </span>join_gateway&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: C) -&gt; JoinResult&lt;JoinGateway&gt;
+    <span class="kw">where
+        </span>C: Into&lt;ChannelId&gt; + Debug,
     {
-        <span class="self">self</span>.<span class="ident">_join_gateway</span>(<span class="ident">channel_id</span>.<span class="ident">into</span>()).<span class="kw">await</span>
-    }
+        <span class="self">self</span>._join_gateway(channel_id.into()).<span class="kw">await
+    </span>}
 
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">_join_gateway</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">channel_id</span>: <span class="ident">ChannelId</span>) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span><span class="ident">JoinGateway</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+    <span class="kw">async fn </span>_join_gateway(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: ChannelId) -&gt; JoinResult&lt;JoinGateway&gt; {
+        <span class="kw">let </span>(tx, rx) = flume::unbounded();
 
-        <span class="kw">let</span> <span class="ident">do_conn</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">should_actually_join</span>(
-                <span class="op">|</span><span class="ident">call</span><span class="op">|</span> <span class="ident">call</span>.<span class="ident">connection</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="number">0</span>.<span class="ident">info</span>().<span class="ident">unwrap</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">tx</span>,
-                <span class="ident">channel_id</span>,
+        <span class="kw">let </span>do_conn = <span class="self">self
+            </span>.should_actually_join(
+                |call| call.connection.as_ref().unwrap().<span class="number">0</span>.info().unwrap(),
+                <span class="kw-2">&amp;</span>tx,
+                channel_id,
             )
             .<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">do_conn</span> {
-            <span class="self">self</span>.<span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">Some</span>((
-                <span class="ident">ConnectionProgress::new</span>(<span class="self">self</span>.<span class="ident">guild_id</span>, <span class="self">self</span>.<span class="ident">user_id</span>, <span class="ident">channel_id</span>),
-                <span class="ident">Return::Info</span>(<span class="ident">tx</span>),
+        <span class="kw">if </span>do_conn {
+            <span class="self">self</span>.connection = <span class="prelude-val">Some</span>((
+                ConnectionProgress::new(<span class="self">self</span>.guild_id, <span class="self">self</span>.user_id, channel_id),
+                Return::Info(tx),
             ));
 
-            <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>().<span class="ident">gateway_timeout</span>;
+            <span class="kw">let </span>timeout = <span class="self">self</span>.config().gateway_timeout;
 
-            <span class="self">self</span>.<span class="ident">update</span>()
-                .<span class="kw">await</span>
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JoinGateway::new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="ident">timeout</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">JoinGateway::new</span>(<span class="ident">rx</span>.<span class="ident">into_recv_async</span>(), <span class="prelude-val">None</span>))
+            <span class="self">self</span>.update()
+                .<span class="kw">await
+                </span>.map(|<span class="kw">_</span>| JoinGateway::new(rx.into_recv_async(), timeout))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(JoinGateway::new(rx.into_recv_async(), <span class="prelude-val">None</span>))
         }
     }
 
-    <span class="doccomment">/// Returns the current voice connection details for this Call,</span>
-    <span class="doccomment">/// if available.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_connection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ConnectionInfo</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">connection</span> {
-            <span class="prelude-val">Some</span>((<span class="ident">progress</span>, <span class="kw">_</span>)) =&gt; <span class="ident">progress</span>.<span class="ident">get_connection_info</span>(),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Returns the current voice connection details for this Call,
+    /// if available.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>current_connection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ConnectionInfo&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.connection {
+            <span class="prelude-val">Some</span>((progress, <span class="kw">_</span>)) =&gt; progress.get_connection_info(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Returns `id` of the channel, if connected or connecting to any.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This remains set after a connection failure, to allow for reconnection</span>
-    <span class="doccomment">/// as needed. This will change if moved into another voice channel by an</span>
-    <span class="doccomment">/// admin, and will be unset if kicked from a voice channel.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_channel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChannelId</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">connection</span> {
-            <span class="prelude-val">Some</span>((<span class="ident">progress</span>, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">progress</span>.<span class="ident">channel_id</span>()),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Returns `id` of the channel, if connected or connecting to any.
+    ///
+    /// This remains set after a connection failure, to allow for reconnection
+    /// as needed. This will change if moved into another voice channel by an
+    /// admin, and will be unset if kicked from a voice channel.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>current_channel(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ChannelId&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.connection {
+            <span class="prelude-val">Some</span>((progress, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(progress.channel_id()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Leaves the current voice channel, disconnecting from it.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This does _not_ forget settings, like whether to be self-deafened or</span>
-    <span class="doccomment">/// self-muted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: If the `Call` was created via [`standalone`], then this</span>
-    <span class="doccomment">/// will _only_ update whether the connection is internally connected to a</span>
-    <span class="doccomment">/// voice channel.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">leave</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">leave_local</span>();
+    <span class="doccomment">/// Leaves the current voice channel, disconnecting from it.
+    ///
+    /// This does _not_ forget settings, like whether to be self-deafened or
+    /// self-muted.
+    ///
+    /// **Note**: If the `Call` was created via [`standalone`], then this
+    /// will _only_ update whether the connection is internally connected to a
+    /// voice channel.
+    ///
+    /// [`standalone`]: Call::standalone
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub async fn </span>leave(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JoinResult&lt;()&gt; {
+        <span class="self">self</span>.leave_local();
 
-        <span class="comment">// Only send an update if we were in a voice channel.</span>
-        <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>
+        <span class="comment">// Only send an update if we were in a voice channel.
+        </span><span class="self">self</span>.update().<span class="kw">await
+    </span>}
+
+    <span class="kw">fn </span>leave_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.connection = <span class="prelude-val">None</span>;
+
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+        <span class="self">self</span>.driver.leave();
     }
 
-    <span class="kw">fn</span> <span class="ident">leave_local</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">connection</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="doccomment">/// Sets whether the current connection is to be muted.
+    ///
+    /// If there is no live voice connection, then this only acts as a settings
+    /// update for future connections.
+    ///
+    /// **Note**: If the `Call` was created via [`standalone`], then this
+    /// will _only_ update whether the connection is internally muted.
+    ///
+    /// [`standalone`]: Call::standalone
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub async fn </span>mute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mute: bool) -&gt; JoinResult&lt;()&gt; {
+        <span class="self">self</span>.self_mute = mute;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-        <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">leave</span>();
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+        <span class="self">self</span>.driver.mute(mute);
+
+        <span class="self">self</span>.update().<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Returns whether the current connection is self-muted in this server.
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">pub fn </span>is_mute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.self_mute
     }
 
-    <span class="doccomment">/// Sets whether the current connection is to be muted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is no live voice connection, then this only acts as a settings</span>
-    <span class="doccomment">/// update for future connections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// **Note**: If the `Call` was created via [`standalone`], then this</span>
-    <span class="doccomment">/// will _only_ update whether the connection is internally muted.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">mute</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">mute</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">self_mute</span> <span class="op">=</span> <span class="ident">mute</span>;
+    <span class="doccomment">/// Updates the voice server data.
+    ///
+    /// You should only need to use this if you initialized the `Call` via
+    /// [`standalone`].
+    ///
+    /// [`standalone`]: Call::standalone
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, token))]</span>
+    <span class="kw">pub fn </span>update_server(<span class="kw-2">&amp;mut </span><span class="self">self</span>, endpoint: String, token: String) {
+        <span class="kw">let </span>try_conn = <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">ref mut </span>progress, <span class="kw">_</span>)) = <span class="self">self</span>.connection.as_mut() {
+            progress.apply_server_update(endpoint, token)
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>};
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-        <span class="self">self</span>.<span class="ident">driver</span>.<span class="ident">mute</span>(<span class="ident">mute</span>);
-
-        <span class="self">self</span>.<span class="ident">update</span>().<span class="kw">await</span>
-    }
-
-    <span class="doccomment">/// Returns whether the current connection is self-muted in this server.</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_mute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">self_mute</span>
-    }
-
-    <span class="doccomment">/// Updates the voice server data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You should only need to use this if you initialized the `Call` via</span>
-    <span class="doccomment">/// [`standalone`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">token</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_server</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">endpoint</span>: <span class="ident">String</span>, <span class="ident">token</span>: <span class="ident">String</span>) {
-        <span class="kw">let</span> <span class="ident">try_conn</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">progress</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection</span>.<span class="ident">as_mut</span>() {
-            <span class="ident">progress</span>.<span class="ident">apply_server_update</span>(<span class="ident">endpoint</span>, <span class="ident">token</span>)
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        };
-
-        <span class="kw">if</span> <span class="ident">try_conn</span> {
-            <span class="self">self</span>.<span class="ident">do_connect</span>();
+        <span class="kw">if </span>try_conn {
+            <span class="self">self</span>.do_connect();
         }
     }
 
-    <span class="doccomment">/// Updates the internal voice state of the current user.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You should only need to use this if you initialized the `Call` via</span>
-    <span class="doccomment">/// [`standalone`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_state</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">session_id</span>: <span class="ident">String</span>, <span class="ident">channel_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>)
-    <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">ChannelId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span>,
+    <span class="doccomment">/// Updates the internal voice state of the current user.
+    ///
+    /// You should only need to use this if you initialized the `Call` via
+    /// [`standalone`].
+    ///
+    /// [`standalone`]: Call::standalone
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="attribute">#[inline]</span>
+    <span class="kw">pub fn </span>update_state&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, session_id: String, channel_id: <span class="prelude-ty">Option</span>&lt;C&gt;)
+    <span class="kw">where
+        </span>C: Into&lt;ChannelId&gt; + Debug,
     {
-        <span class="self">self</span>.<span class="ident">_update_state</span>(<span class="ident">session_id</span>, <span class="ident">channel_id</span>.<span class="ident">map</span>(<span class="ident">Into::into</span>));
+        <span class="self">self</span>._update_state(session_id, channel_id.map(Into::into));
     }
 
-    <span class="kw">fn</span> <span class="ident">_update_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">session_id</span>: <span class="ident">String</span>, <span class="ident">channel_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChannelId</span><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">channel_id</span>) <span class="op">=</span> <span class="ident">channel_id</span> {
-            <span class="kw">let</span> <span class="ident">try_conn</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">progress</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection</span>.<span class="ident">as_mut</span>() {
-                <span class="ident">progress</span>.<span class="ident">apply_state_update</span>(<span class="ident">session_id</span>, <span class="ident">channel_id</span>)
-            } <span class="kw">else</span> {
-                <span class="bool-val">false</span>
-            };
+    <span class="kw">fn </span>_update_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, session_id: String, channel_id: <span class="prelude-ty">Option</span>&lt;ChannelId&gt;) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(channel_id) = channel_id {
+            <span class="kw">let </span>try_conn = <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">ref mut </span>progress, <span class="kw">_</span>)) = <span class="self">self</span>.connection.as_mut() {
+                progress.apply_state_update(session_id, channel_id)
+            } <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>};
 
-            <span class="kw">if</span> <span class="ident">try_conn</span> {
-                <span class="self">self</span>.<span class="ident">do_connect</span>();
+            <span class="kw">if </span>try_conn {
+                <span class="self">self</span>.do_connect();
             }
-        } <span class="kw">else</span> {
-            <span class="comment">// Likely that we were disconnected by an admin.</span>
-            <span class="self">self</span>.<span class="ident">leave_local</span>();
+        } <span class="kw">else </span>{
+            <span class="comment">// Likely that we were disconnected by an admin.
+            </span><span class="self">self</span>.leave_local();
         }
     }
 
-    <span class="doccomment">/// Send an update for the current session over WS.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Does nothing if initialized via [`standalone`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`standalone`]: Call::standalone</span>
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JoinResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ws</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ws</span>.<span class="ident">as_mut</span>() {
-            <span class="ident">ws</span>.<span class="ident">update_voice_state</span>(
-                <span class="self">self</span>.<span class="ident">guild_id</span>,
-                <span class="self">self</span>.<span class="ident">connection</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="number">0</span>.<span class="ident">channel_id</span>()),
-                <span class="self">self</span>.<span class="ident">self_deaf</span>,
-                <span class="self">self</span>.<span class="ident">self_mute</span>,
+    <span class="doccomment">/// Send an update for the current session over WS.
+    ///
+    /// Does nothing if initialized via [`standalone`].
+    ///
+    /// [`standalone`]: Call::standalone
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
+    <span class="kw">async fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JoinResult&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ws) = <span class="self">self</span>.ws.as_mut() {
+            ws.update_voice_state(
+                <span class="self">self</span>.guild_id,
+                <span class="self">self</span>.connection.as_ref().map(|c| c.<span class="number">0</span>.channel_id()),
+                <span class="self">self</span>.self_deaf,
+                <span class="self">self</span>.self_mute,
             )
-            .<span class="kw">await</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">JoinError::NoSender</span>)
+            .<span class="kw">await
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(JoinError::NoSender)
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>))]</span>
-<span class="kw">impl</span> <span class="ident">Call</span> {
-    <span class="doccomment">/// Access this call handler&#39;s configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Config</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]</span>
+<span class="kw">impl </span>Call {
+    <span class="doccomment">/// Access this call handler&#39;s configuration.
+    </span><span class="kw">pub fn </span>config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Config {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.config
     }
 
-    <span class="doccomment">/// Mutably access this call handler&#39;s configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">config_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Config</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">config</span>
+    <span class="doccomment">/// Mutably access this call handler&#39;s configuration.
+    </span><span class="kw">pub fn </span>config_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Config {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.config
     }
 
-    <span class="doccomment">/// Set this call handler&#39;s configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_config</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">config</span>: <span class="ident">Config</span>) {
-        <span class="self">self</span>.<span class="ident">config</span> <span class="op">=</span> <span class="ident">config</span>;
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Call</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Driver</span>;
-
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">driver</span>
+    <span class="doccomment">/// Set this call handler&#39;s configuration.
+    </span><span class="kw">pub fn </span>set_config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: Config) {
+        <span class="self">self</span>.config = config;
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">Call</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">driver</span>
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">impl </span>Deref <span class="kw">for </span>Call {
+    <span class="kw">type </span>Target = Driver;
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.driver
+    }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">impl </span>DerefMut <span class="kw">for </span>Call {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.driver
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

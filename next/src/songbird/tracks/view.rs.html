@@ -31,36 +31,36 @@
 <span id="29">29</span>
 <span id="30">30</span>
 <span id="31">31</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input::Metadata</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::input::Metadata;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="doccomment">/// Live track and input state exposed during [`TrackHandle::action`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`TrackHandle::action`]: super::[`TrackHandle::action`]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">View</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The current position within this track.</span>
-    <span class="kw">pub</span> <span class="ident">position</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Duration</span>,
+<span class="doccomment">/// Live track and input state exposed during [`TrackHandle::action`].
+///
+/// [`TrackHandle::action`]: super::[`TrackHandle::action`]
+</span><span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub struct </span>View&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// The current position within this track.
+    </span><span class="kw">pub </span>position: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Duration,
 
-    <span class="doccomment">/// The total time a track has been played for.</span>
-    <span class="kw">pub</span> <span class="ident">play_time</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Duration</span>,
+    <span class="doccomment">/// The total time a track has been played for.
+    </span><span class="kw">pub </span>play_time: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Duration,
 
-    <span class="doccomment">/// The current mixing volume of this track.</span>
-    <span class="kw">pub</span> <span class="ident">volume</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">f32</span>,
+    <span class="doccomment">/// The current mixing volume of this track.
+    </span><span class="kw">pub </span>volume: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>f32,
 
-    <span class="doccomment">/// In-stream metadata for this track, if it is fully readied.</span>
-    <span class="kw">pub</span> <span class="ident">meta</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// In-stream metadata for this track, if it is fully readied.
+    </span><span class="kw">pub </span>meta: <span class="prelude-ty">Option</span>&lt;Metadata&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 
-    <span class="doccomment">/// The current play status of this track.</span>
-    <span class="kw">pub</span> <span class="ident">playing</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">PlayMode</span>,
+    <span class="doccomment">/// The current play status of this track.
+    </span><span class="kw">pub </span>playing: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>PlayMode,
 
-    <span class="doccomment">/// Whether this track has been made live, is being processed, or is</span>
-    <span class="doccomment">/// currently uninitialised.</span>
-    <span class="kw">pub</span> <span class="ident">ready</span>: <span class="ident">ReadyState</span>,
+    <span class="doccomment">/// Whether this track has been made live, is being processed, or is
+    /// currently uninitialised.
+    </span><span class="kw">pub </span>ready: ReadyState,
 
-    <span class="doccomment">/// The number of remaning loops on this track.</span>
-    <span class="kw">pub</span> <span class="ident">loops</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">LoopState</span>,
+    <span class="doccomment">/// The number of remaning loops on this track.
+    </span><span class="kw">pub </span>loops: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>LoopState,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

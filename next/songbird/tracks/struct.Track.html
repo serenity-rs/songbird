@@ -13,13 +13,13 @@ before you pass an input to the <a href="../driver/struct.Driver.html"><code>Dri
 <p>Live track data is accessed via a <a href="struct.TrackHandle.html" title="TrackHandle"><code>TrackHandle</code></a>, which is returned by <a href="../driver/struct.Driver.html#method.play"><code>Driver::play</code></a> and
 related methods.</p>
 <h2 id="example"><a href="#example">Example</a></h2>
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">songbird</span>::{<span class="ident">driver::Driver</span>, <span class="ident">input::File</span>, <span class="ident">tracks::Track</span>};
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>songbird::{driver::Driver, input::File, tracks::Track};
 
-<span class="comment">// A Call is also valid here!</span>
-<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">driver</span>: <span class="ident">Driver</span> <span class="op">=</span> <span class="ident">Default::default</span>();
-<span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">File::new</span>(<span class="string">&quot;../audio/my-favourite-song.mp3&quot;</span>);
+<span class="comment">// A Call is also valid here!
+</span><span class="kw">let </span><span class="kw-2">mut </span>driver: Driver = Default::default();
+<span class="kw">let </span>source = File::new(<span class="string">&quot;../audio/my-favourite-song.mp3&quot;</span>);
 
-<span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">driver</span>.<span class="ident">play_only</span>(<span class="ident">Track::from</span>(<span class="ident">source</span>).<span class="ident">volume</span>(<span class="number">0.5</span>));
+<span class="kw">let </span>handle = driver.play_only(Track::from(source).volume(<span class="number">0.5</span>));
 
 <span class="comment">// Future access occurs via audio.</span></code></pre></div>
 </div></details><h2 id="fields" class="fields small-section-header">Fields<a href="#fields" class="anchor"></a></h2><span id="structfield.playing" class="structfield small-section-header"><a href="#structfield.playing" class="anchor field"></a><code>playing: <a class="enum" href="enum.PlayMode.html" title="enum songbird::tracks::PlayMode">PlayMode</a></code></span><div class="docblock"><p>Whether or not this sound is currently playing.</p>
@@ -69,4 +69,4 @@ with any relevant events triggered.</p>
 <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="WithDispatch"><code>WithDispatch</code></a> wrapper. <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_subscriber">Read more</a></p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.with_current_subscriber" class="method trait-impl has-srclink"><span class="rightside"><a class="srclink" href="https://docs.rs/tracing/0.1.36/src/tracing/instrument.rs.html#221">source</a></span><a href="#method.with_current_subscriber" class="anchor"></a><h4 class="code-header">fn <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_current_subscriber" class="fnname">with_current_subscriber</a>(self) -&gt; <a class="struct" href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="struct tracing::instrument::WithDispatch">WithDispatch</a>&lt;Self&gt;</h4></section></summary><div class='docblock'><p>Attaches the current <a href="https://docs.rs/tracing/0.1.36/tracing/dispatcher/index.html#setting-the-default-subscriber">default</a> <a href="https://docs.rs/tracing-core/0.1.22/tracing_core/subscriber/trait.Subscriber.html"><code>Subscriber</code></a> to this type, returning a
 <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/struct.WithDispatch.html" title="WithDispatch"><code>WithDispatch</code></a> wrapper. <a href="https://docs.rs/tracing/0.1.36/tracing/instrument/trait.WithSubscriber.html#method.with_current_subscriber">Read more</a></p>
-</div></details></div></details></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</div></details></div></details></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

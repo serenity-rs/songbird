@@ -80,67 +80,67 @@
 <span id="78">78</span>
 <span id="79">79</span>
 <span id="80">80</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input</span>::{<span class="ident">AudioStream</span>, <span class="ident">AudioStreamError</span>, <span class="ident">AuxMetadata</span>, <span class="ident">Compose</span>, <span class="ident">Input</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span>, <span class="ident">ffi::OsStr</span>, <span class="ident">path::Path</span>};
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{<span class="ident">io::MediaSource</span>, <span class="ident">probe::Hint</span>};
-<span class="kw">use</span> <span class="ident">tokio::process::Command</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, Input};
+<span class="kw">use </span>std::{error::Error, ffi::OsStr, path::Path};
+<span class="kw">use </span>symphonia_core::{io::MediaSource, probe::Hint};
+<span class="kw">use </span>tokio::process::Command;
 
-<span class="doccomment">/// A lazily instantiated local file.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">File</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="ident">path</span>: <span class="ident">P</span>,
+<span class="doccomment">/// A lazily instantiated local file.
+</span><span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="kw">pub struct </span>File&lt;P: AsRef&lt;Path&gt;&gt; {
+    path: P,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">File</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a lazy file object, which will open the target path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is infallible as the path is only checked during creation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">path</span> }
+<span class="kw">impl</span>&lt;P: AsRef&lt;Path&gt;&gt; File&lt;P&gt; {
+    <span class="doccomment">/// Creates a lazy file object, which will open the target path.
+    ///
+    /// This is infallible as the path is only checked during creation.
+    </span><span class="kw">pub fn </span>new(path: P) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ path }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">File</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Input::Lazy</span>(<span class="ident">Box::new</span>(<span class="ident">val</span>))
+<span class="kw">impl</span>&lt;P: AsRef&lt;Path&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt; From&lt;File&lt;P&gt;&gt; <span class="kw">for </span>Input {
+    <span class="kw">fn </span>from(val: File&lt;P&gt;) -&gt; <span class="self">Self </span>{
+        Input::Lazy(Box::new(val))
     }
 }
 
-<span class="attribute">#[<span class="ident">async_trait::async_trait</span>]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">Compose</span> <span class="kw">for</span> <span class="ident">File</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">create</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AudioStream</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">MediaSource</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">err</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="string">&quot;Files should be created asynchronously.&quot;</span>.<span class="ident">to_string</span>().<span class="ident">into</span>();
-        <span class="prelude-val">Err</span>(<span class="ident">AudioStreamError::Fail</span>(<span class="ident">err</span>))
+<span class="attribute">#[async_trait::async_trait]</span>
+<span class="kw">impl</span>&lt;P: AsRef&lt;Path&gt; + Send + Sync&gt; Compose <span class="kw">for </span>File&lt;P&gt; {
+    <span class="kw">fn </span>create(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AudioStream&lt;Box&lt;<span class="kw">dyn </span>MediaSource&gt;&gt;, AudioStreamError&gt; {
+        <span class="kw">let </span>err: Box&lt;<span class="kw">dyn </span>Error + Send + Sync&gt; =
+            <span class="string">&quot;Files should be created asynchronously.&quot;</span>.to_string().into();
+        <span class="prelude-val">Err</span>(AudioStreamError::Fail(err))
     }
 
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_async</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AudioStream</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">MediaSource</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">tokio::fs::File::open</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>)
-            .<span class="kw">await</span>
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">io</span><span class="op">|</span> <span class="ident">AudioStreamError::Fail</span>(<span class="ident">Box::new</span>(<span class="ident">io</span>)))<span class="question-mark">?</span>;
+    <span class="kw">async fn </span>create_async(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;AudioStream&lt;Box&lt;<span class="kw">dyn </span>MediaSource&gt;&gt;, AudioStreamError&gt; {
+        <span class="kw">let </span>file = tokio::fs::File::open(<span class="kw-2">&amp;</span><span class="self">self</span>.path)
+            .<span class="kw">await
+            </span>.map_err(|io| AudioStreamError::Fail(Box::new(io)))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">file</span>.<span class="ident">into_std</span>().<span class="kw">await</span>);
+        <span class="kw">let </span>input = Box::new(file.into_std().<span class="kw">await</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hint</span> <span class="op">=</span> <span class="ident">Hint::default</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ext</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">extension</span>().<span class="ident">and_then</span>(<span class="ident">OsStr::to_str</span>) {
-            <span class="ident">hint</span>.<span class="ident">with_extension</span>(<span class="ident">ext</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>hint = Hint::default();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ext) = <span class="self">self</span>.path.as_ref().extension().and_then(OsStr::to_str) {
+            hint.with_extension(ext);
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">AudioStream</span> {
-            <span class="ident">input</span>,
-            <span class="ident">hint</span>: <span class="prelude-val">Some</span>(<span class="ident">hint</span>),
+        <span class="prelude-val">Ok</span>(AudioStream {
+            input,
+            hint: <span class="prelude-val">Some</span>(hint),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">should_create_async</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="bool-val">true</span>
-    }
+    <span class="kw">fn </span>should_create_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">true
+    </span>}
 
-    <span class="doccomment">/// Probes for metadata about this audio files using `ffprobe`.</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">aux_metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AuxMetadata</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [
+    <span class="doccomment">/// Probes for metadata about this audio files using `ffprobe`.
+    </span><span class="kw">async fn </span>aux_metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AuxMetadata, AudioStreamError&gt; {
+        <span class="kw">let </span>args = [
             <span class="string">&quot;-v&quot;</span>,
             <span class="string">&quot;quiet&quot;</span>,
             <span class="string">&quot;-of&quot;</span>,
@@ -150,15 +150,15 @@
             <span class="string">&quot;-i&quot;</span>,
         ];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="string">&quot;ffprobe&quot;</span>)
-            .<span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>)
-            .<span class="ident">output</span>()
-            .<span class="kw">await</span>
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">AudioStreamError::Fail</span>(<span class="ident">Box::new</span>(<span class="ident">e</span>)))<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>output = Command::new(<span class="string">&quot;ffprobe&quot;</span>)
+            .args(<span class="kw-2">&amp;</span>args)
+            .output()
+            .<span class="kw">await
+            </span>.map_err(|e| AudioStreamError::Fail(Box::new(e)))<span class="question-mark">?</span>;
 
-        <span class="ident">AuxMetadata::from_ffprobe_json</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>.<span class="ident">stdout</span>[..])
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">AudioStreamError::Fail</span>(<span class="ident">Box::new</span>(<span class="ident">e</span>)))
+        AuxMetadata::from_ffprobe_json(<span class="kw-2">&amp;mut </span>output.stdout[..])
+            .map_err(|e| AudioStreamError::Fail(Box::new(e)))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

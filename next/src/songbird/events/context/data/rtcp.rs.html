@@ -15,20 +15,20 @@
 <span id="13">13</span>
 <span id="14">14</span>
 <span id="15">15</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="doccomment">/// Telemetry/statistics packet, received from another stream (detailed in `packet`).</span>
-<span class="doccomment">/// `payload_offset` contains the true payload location within the raw packet&#39;s `payload()`,</span>
-<span class="doccomment">/// to allow manual decoding of `Rtcp` packet bodies.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RtcpData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Raw RTCP packet data.</span>
-    <span class="kw">pub</span> <span class="ident">packet</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Rtcp</span>,
-    <span class="doccomment">/// Byte index into the packet body (after headers) for where the payload begins.</span>
-    <span class="kw">pub</span> <span class="ident">payload_offset</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// Number of bytes at the end of the packet to discard.</span>
-    <span class="kw">pub</span> <span class="ident">payload_end_pad</span>: <span class="ident">usize</span>,
+<span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="doccomment">/// Telemetry/statistics packet, received from another stream (detailed in `packet`).
+/// `payload_offset` contains the true payload location within the raw packet&#39;s `payload()`,
+/// to allow manual decoding of `Rtcp` packet bodies.
+</span><span class="kw">pub struct </span>RtcpData&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Raw RTCP packet data.
+    </span><span class="kw">pub </span>packet: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Rtcp,
+    <span class="doccomment">/// Byte index into the packet body (after headers) for where the payload begins.
+    </span><span class="kw">pub </span>payload_offset: usize,
+    <span class="doccomment">/// Number of bytes at the end of the packet to discard.
+    </span><span class="kw">pub </span>payload_end_pad: usize,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

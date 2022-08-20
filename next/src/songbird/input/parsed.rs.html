@@ -31,36 +31,36 @@
 <span id="29">29</span>
 <span id="30">30</span>
 <span id="31">31</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">symphonia_core</span>::{<span class="ident">codecs::Decoder</span>, <span class="ident">formats::FormatReader</span>, <span class="ident">probe::ProbedMetadata</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>symphonia_core::{codecs::Decoder, formats::FormatReader, probe::ProbedMetadata};
 
-<span class="doccomment">/// An audio file which has had its headers parsed and decoder state built.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Parsed</span> {
-    <span class="doccomment">/// Audio packet, seeking, and state access for all tracks in a file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may be used to access packets one at a time from the input file.</span>
-    <span class="doccomment">/// Additionally, this exposes container-level and per track metadata which</span>
-    <span class="doccomment">/// have been extracted.</span>
-    <span class="kw">pub</span> <span class="ident">format</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FormatReader</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An audio file which has had its headers parsed and decoder state built.
+</span><span class="kw">pub struct </span>Parsed {
+    <span class="doccomment">/// Audio packet, seeking, and state access for all tracks in a file.
+    ///
+    /// This may be used to access packets one at a time from the input file.
+    /// Additionally, this exposes container-level and per track metadata which
+    /// have been extracted.
+    </span><span class="kw">pub </span>format: Box&lt;<span class="kw">dyn </span>FormatReader&gt;,
 
-    <span class="doccomment">/// Decoder state for the chosen track.</span>
-    <span class="kw">pub</span> <span class="ident">decoder</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Decoder</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Decoder state for the chosen track.
+    </span><span class="kw">pub </span>decoder: Box&lt;<span class="kw">dyn </span>Decoder&gt;,
 
-    <span class="doccomment">/// The chosen track&#39;s ID.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is required to identify the correct packet stream inside the container.</span>
-    <span class="kw">pub</span> <span class="ident">track_id</span>: <span class="ident">u32</span>,
+    <span class="doccomment">/// The chosen track&#39;s ID.
+    ///
+    /// This is required to identify the correct packet stream inside the container.
+    </span><span class="kw">pub </span>track_id: u32,
 
-    <span class="doccomment">/// Metadata extracted by symphonia while detecting a file&#39;s format.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Typically, this detects metadata *outside* the file&#39;s core format (i.e.,</span>
-    <span class="doccomment">/// ID3 tags in MP3 and WAV files).</span>
-    <span class="kw">pub</span> <span class="ident">meta</span>: <span class="ident">ProbedMetadata</span>,
+    <span class="doccomment">/// Metadata extracted by symphonia while detecting a file&#39;s format.
+    ///
+    /// Typically, this detects metadata *outside* the file&#39;s core format (i.e.,
+    /// ID3 tags in MP3 and WAV files).
+    </span><span class="kw">pub </span>meta: ProbedMetadata,
 
-    <span class="doccomment">/// Whether the contained format supports arbitrary seeking.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If set to false, Songbird will attempt to recreate the input if</span>
-    <span class="doccomment">/// it must seek backwards.</span>
-    <span class="kw">pub</span> <span class="ident">supports_backseek</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// Whether the contained format supports arbitrary seeking.
+    ///
+    /// If set to false, Songbird will attempt to recreate the input if
+    /// it must seek backwards.
+    </span><span class="kw">pub </span>supports_backseek: bool,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

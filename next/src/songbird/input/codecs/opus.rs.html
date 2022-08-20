@@ -167,87 +167,87 @@
 <span id="165">165</span>
 <span id="166">166</span>
 <span id="167">167</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">audiopus</span>::{
-    <span class="ident">coder</span>::{<span class="ident">Decoder</span> <span class="kw">as</span> <span class="ident">AudiopusDecoder</span>, <span class="ident">GenericCtl</span>},
-    <span class="ident">Channels</span>,
-    <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>,
-    <span class="ident">ErrorCode</span>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::constants::<span class="kw-2">*</span>;
+<span class="kw">use </span>audiopus::{
+    coder::{Decoder <span class="kw">as </span>AudiopusDecoder, GenericCtl},
+    Channels,
+    Error <span class="kw">as </span>OpusError,
+    ErrorCode,
 };
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{
-    <span class="ident">audio</span>::{<span class="ident">AsAudioBufferRef</span>, <span class="ident">AudioBuffer</span>, <span class="ident">AudioBufferRef</span>, <span class="ident">Layout</span>, <span class="ident">Signal</span>, <span class="ident">SignalSpec</span>},
-    <span class="ident">codecs</span>::{
-        <span class="ident">CodecDescriptor</span>,
-        <span class="ident">CodecParameters</span>,
-        <span class="ident">Decoder</span>,
-        <span class="ident">DecoderOptions</span>,
-        <span class="ident">FinalizeResult</span>,
-        <span class="ident">CODEC_TYPE_OPUS</span>,
+<span class="kw">use </span>symphonia_core::{
+    audio::{AsAudioBufferRef, AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec},
+    codecs::{
+        CodecDescriptor,
+        CodecParameters,
+        Decoder,
+        DecoderOptions,
+        FinalizeResult,
+        CODEC_TYPE_OPUS,
     },
-    <span class="ident">errors</span>::{<span class="ident">decode_error</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">SymphResult</span>},
-    <span class="ident">formats::Packet</span>,
+    errors::{decode_error, <span class="prelude-ty">Result </span><span class="kw">as </span>SymphResult},
+    formats::Packet,
 };
 
-<span class="doccomment">/// Opus decoder for symphonia, based on libopus v1.3 (via [`audiopus`]).</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OpusDecoder</span> {
-    <span class="ident">inner</span>: <span class="ident">AudiopusDecoder</span>,
-    <span class="ident">params</span>: <span class="ident">CodecParameters</span>,
-    <span class="ident">buf</span>: <span class="ident">AudioBuffer</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="ident">rawbuf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Opus decoder for symphonia, based on libopus v1.3 (via [`audiopus`]).
+</span><span class="kw">pub struct </span>OpusDecoder {
+    inner: AudiopusDecoder,
+    params: CodecParameters,
+    buf: AudioBuffer&lt;f32&gt;,
+    rawbuf: Vec&lt;f32&gt;,
 }
 
-<span class="doccomment">/// # SAFETY</span>
-<span class="doccomment">/// The underlying Opus decoder (currently) requires only a `&amp;self` parameter</span>
-<span class="doccomment">/// to decode given packets, which is likely a mistaken decision.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This struct makes stronger assumptions and only touches FFI decoder state with a</span>
-<span class="doccomment">/// `&amp;mut self`, preventing data races via `&amp;OpusDecoder` as required by `impl Sync`.</span>
-<span class="doccomment">/// No access to other internal state relies on unsafety or crosses FFI.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">OpusDecoder</span> {}
+<span class="doccomment">/// # SAFETY
+/// The underlying Opus decoder (currently) requires only a `&amp;self` parameter
+/// to decode given packets, which is likely a mistaken decision.
+///
+/// This struct makes stronger assumptions and only touches FFI decoder state with a
+/// `&amp;mut self`, preventing data races via `&amp;OpusDecoder` as required by `impl Sync`.
+/// No access to other internal state relies on unsafety or crosses FFI.
+</span><span class="kw">unsafe impl </span>Sync <span class="kw">for </span>OpusDecoder {}
 
-<span class="kw">impl</span> <span class="ident">OpusDecoder</span> {
-    <span class="kw">fn</span> <span class="ident">decode_inner</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">packet</span>: <span class="kw-2">&amp;</span><span class="ident">Packet</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">s_ct</span> <span class="op">=</span> <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">pkt</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">packet</span>.<span class="ident">buf</span>().<span class="ident">is_empty</span>() {
-                <span class="prelude-val">None</span>
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">checked_pkt</span>) <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">buf</span>().<span class="ident">try_into</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">checked_pkt</span>)
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="ident">decode_error</span>(<span class="string">&quot;Opus packet was too large (greater than i32::MAX bytes).&quot;</span>);
+<span class="kw">impl </span>OpusDecoder {
+    <span class="kw">fn </span>decode_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>, packet: <span class="kw-2">&amp;</span>Packet) -&gt; SymphResult&lt;()&gt; {
+        <span class="kw">let </span>s_ct = <span class="kw">loop </span>{
+            <span class="kw">let </span>pkt = <span class="kw">if </span>packet.buf().is_empty() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else if let </span><span class="prelude-val">Ok</span>(checked_pkt) = packet.buf().try_into() {
+                <span class="prelude-val">Some</span>(checked_pkt)
+            } <span class="kw">else </span>{
+                <span class="kw">return </span>decode_error(<span class="string">&quot;Opus packet was too large (greater than i32::MAX bytes).&quot;</span>);
             };
-            <span class="kw">let</span> <span class="ident">out_space</span> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">rawbuf</span>[..]).<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;The following logic expands this buffer safely below i32::MAX, and we throw our own error.&quot;</span>);
+            <span class="kw">let </span>out_space = (<span class="kw-2">&amp;mut </span><span class="self">self</span>.rawbuf[..]).try_into().expect(<span class="string">&quot;The following logic expands this buffer safely below i32::MAX, and we throw our own error.&quot;</span>);
 
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">decode_float</span>(<span class="ident">pkt</span>, <span class="ident">out_space</span>, <span class="bool-val">false</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="kw">break</span> <span class="ident">v</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">OpusError::Opus</span>(<span class="ident">ErrorCode::BufferTooSmall</span>)) =&gt; {
-                    <span class="comment">// double the buffer size</span>
-                    <span class="comment">// correct behav would be to mirror the decoder logic in the udp_rx set.</span>
-                    <span class="kw">let</span> <span class="ident">new_size</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">rawbuf</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span>).<span class="ident">min</span>(<span class="ident">std::i32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                    <span class="kw">if</span> <span class="ident">new_size</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">rawbuf</span>.<span class="ident">len</span>() {
-                        <span class="kw">return</span> <span class="ident">decode_error</span>(<span class="string">&quot;Opus frame too big: cannot expand opus frame decode buffer any further.&quot;</span>);
+            <span class="kw">match </span><span class="self">self</span>.inner.decode_float(pkt, out_space, <span class="bool-val">false</span>) {
+                <span class="prelude-val">Ok</span>(v) =&gt; <span class="kw">break </span>v,
+                <span class="prelude-val">Err</span>(OpusError::Opus(ErrorCode::BufferTooSmall)) =&gt; {
+                    <span class="comment">// double the buffer size
+                    // correct behav would be to mirror the decoder logic in the udp_rx set.
+                    </span><span class="kw">let </span>new_size = (<span class="self">self</span>.rawbuf.len() * <span class="number">2</span>).min(std::i32::MAX <span class="kw">as </span>usize);
+                    <span class="kw">if </span>new_size == <span class="self">self</span>.rawbuf.len() {
+                        <span class="kw">return </span>decode_error(<span class="string">&quot;Opus frame too big: cannot expand opus frame decode buffer any further.&quot;</span>);
                     }
 
-                    <span class="self">self</span>.<span class="ident">rawbuf</span>.<span class="ident">resize</span>(<span class="ident">new_size</span>, <span class="number">0.0</span>);
-                    <span class="self">self</span>.<span class="ident">buf</span> <span class="op">=</span> <span class="ident">AudioBuffer::new</span>(
-                        <span class="self">self</span>.<span class="ident">rawbuf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">/</span> <span class="number">2</span>,
-                        <span class="ident">SignalSpec::new_with_layout</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">Layout::Stereo</span>),
+                    <span class="self">self</span>.rawbuf.resize(new_size, <span class="number">0.0</span>);
+                    <span class="self">self</span>.buf = AudioBuffer::new(
+                        <span class="self">self</span>.rawbuf.len() <span class="kw">as </span>u64 / <span class="number">2</span>,
+                        SignalSpec::new_with_layout(SAMPLE_RATE_RAW <span class="kw">as </span>u32, Layout::Stereo),
                     );
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="macro">tracing::error!</span>(<span class="string">&quot;Opus decode error: {:?}&quot;</span>, <span class="ident">e</span>);
-                    <span class="kw">return</span> <span class="ident">decode_error</span>(<span class="string">&quot;Opus decode error: see &#39;tracing&#39; logs.&quot;</span>);
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">tracing::error!</span>(<span class="string">&quot;Opus decode error: {:?}&quot;</span>, e);
+                    <span class="kw">return </span>decode_error(<span class="string">&quot;Opus decode error: see &#39;tracing&#39; logs.&quot;</span>);
                 },
             }
         };
 
-        <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">clear</span>();
-        <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">render_reserved</span>(<span class="prelude-val">Some</span>(<span class="ident">s_ct</span>));
+        <span class="self">self</span>.buf.clear();
+        <span class="self">self</span>.buf.render_reserved(<span class="prelude-val">Some</span>(s_ct));
 
-        <span class="comment">// Forcibly assuming stereo, for now.</span>
-        <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">2</span> {
-            <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rawbuf</span>.<span class="ident">chunks_exact</span>(<span class="number">2</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">chunk</span><span class="op">|</span> <span class="ident">chunk</span>[<span class="ident">ch</span>]);
-            <span class="kw">for</span> (<span class="ident">tgt</span>, <span class="ident">src</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">chan_mut</span>(<span class="ident">ch</span>).<span class="ident">iter_mut</span>().<span class="ident">zip</span>(<span class="ident">iter</span>) {
-                <span class="kw-2">*</span><span class="ident">tgt</span> <span class="op">=</span> <span class="ident">src</span>;
+        <span class="comment">// Forcibly assuming stereo, for now.
+        </span><span class="kw">for </span>ch <span class="kw">in </span><span class="number">0</span>..<span class="number">2 </span>{
+            <span class="kw">let </span>iter = <span class="self">self</span>.rawbuf.chunks_exact(<span class="number">2</span>).map(|chunk| chunk[ch]);
+            <span class="kw">for </span>(tgt, src) <span class="kw">in </span><span class="self">self</span>.buf.chan_mut(ch).iter_mut().zip(iter) {
+                <span class="kw-2">*</span>tgt = src;
             }
         }
 
@@ -255,84 +255,84 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Decoder</span> <span class="kw">for</span> <span class="ident">OpusDecoder</span> {
-    <span class="kw">fn</span> <span class="ident">try_new</span>(<span class="ident">params</span>: <span class="kw-2">&amp;</span><span class="ident">CodecParameters</span>, <span class="ident">_options</span>: <span class="kw-2">&amp;</span><span class="ident">DecoderOptions</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">AudiopusDecoder::new</span>(<span class="ident">SAMPLE_RATE</span>, <span class="ident">Channels::Stereo</span>).<span class="ident">unwrap</span>();
+<span class="kw">impl </span>Decoder <span class="kw">for </span>OpusDecoder {
+    <span class="kw">fn </span>try_new(params: <span class="kw-2">&amp;</span>CodecParameters, _options: <span class="kw-2">&amp;</span>DecoderOptions) -&gt; SymphResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>inner = AudiopusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">clone</span>();
-        <span class="ident">params</span>.<span class="ident">with_sample_rate</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>params = params.clone();
+        params.with_sample_rate(SAMPLE_RATE_RAW <span class="kw">as </span>u32);
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">inner</span>,
-            <span class="ident">params</span>,
-            <span class="ident">buf</span>: <span class="ident">AudioBuffer::new</span>(
-                <span class="ident">MONO_FRAME_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span>,
-                <span class="ident">SignalSpec::new_with_layout</span>(<span class="ident">SAMPLE_RATE_RAW</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">Layout::Stereo</span>),
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            inner,
+            params,
+            buf: AudioBuffer::new(
+                MONO_FRAME_SIZE <span class="kw">as </span>u64,
+                SignalSpec::new_with_layout(SAMPLE_RATE_RAW <span class="kw">as </span>u32, Layout::Stereo),
             ),
-            <span class="ident">rawbuf</span>: <span class="macro">vec!</span>[<span class="number">0.0f32</span>; <span class="ident">STEREO_FRAME_SIZE</span>],
+            rawbuf: <span class="macro">vec!</span>[<span class="number">0.0f32</span>; STEREO_FRAME_SIZE],
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">supported_codecs</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">CodecDescriptor</span>] {
+    <span class="kw">fn </span>supported_codecs() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[CodecDescriptor] {
         <span class="kw-2">&amp;</span>[<span class="macro">symphonia_core::support_codec!</span>(
-            <span class="ident">CODEC_TYPE_OPUS</span>,
+            CODEC_TYPE_OPUS,
             <span class="string">&quot;opus&quot;</span>,
-            <span class="string">&quot;libopus (1.3+, audiopus)&quot;</span>
-        )]
+            <span class="string">&quot;libopus (1.3+, audiopus)&quot;
+        </span>)]
     }
 
-    <span class="kw">fn</span> <span class="ident">codec_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CodecParameters</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">params</span>
+    <span class="kw">fn </span>codec_params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CodecParameters {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.params
     }
 
-    <span class="kw">fn</span> <span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">packet</span>: <span class="kw-2">&amp;</span><span class="ident">Packet</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span><span class="ident">AudioBufferRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_inner</span>(<span class="ident">packet</span>) {
-            <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">clear</span>();
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">as_audio_buffer_ref</span>())
+    <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, packet: <span class="kw-2">&amp;</span>Packet) -&gt; SymphResult&lt;AudioBufferRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.decode_inner(packet) {
+            <span class="self">self</span>.buf.clear();
+            <span class="prelude-val">Err</span>(e)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>.buf.as_audio_buffer_ref())
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">reset_state</span>();
+    <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let _ </span>= <span class="self">self</span>.inner.reset_state();
     }
 
-    <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">FinalizeResult</span> {
-        <span class="ident">FinalizeResult::default</span>()
+    <span class="kw">fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FinalizeResult {
+        FinalizeResult::default()
     }
 
-    <span class="kw">fn</span> <span class="ident">last_decoded</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AudioBufferRef</span> {
-        <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">as_audio_buffer_ref</span>()
+    <span class="kw">fn </span>last_decoded(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AudioBufferRef {
+        <span class="self">self</span>.buf.as_audio_buffer_ref()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::{
-        <span class="ident">constants::test_data::FILE_WEBM_TARGET</span>,
-        <span class="ident">input</span>::{<span class="ident">input_tests</span>::<span class="kw-2">*</span>, <span class="ident">File</span>},
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">mod </span>tests {
+    <span class="kw">use crate</span>::{
+        constants::test_data::FILE_WEBM_TARGET,
+        input::{input_tests::<span class="kw-2">*</span>, File},
     };
 
-    <span class="comment">// NOTE: this covers youtube audio in a non-copyright-violating way, since</span>
-    <span class="comment">// those depend on an HttpRequest internally anyhow.</span>
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">webm_track_plays</span>() {
-        <span class="ident">track_plays_passthrough</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">File::new</span>(<span class="ident">FILE_WEBM_TARGET</span>)).<span class="kw">await</span>;
+    <span class="comment">// NOTE: this covers youtube audio in a non-copyright-violating way, since
+    // those depend on an HttpRequest internally anyhow.
+    </span><span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>webm_track_plays() {
+        track_plays_passthrough(|| File::new(FILE_WEBM_TARGET)).<span class="kw">await</span>;
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">webm_forward_seek_correct</span>() {
-        <span class="ident">forward_seek_correct</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">File::new</span>(<span class="ident">FILE_WEBM_TARGET</span>)).<span class="kw">await</span>;
+    <span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>webm_forward_seek_correct() {
+        forward_seek_correct(|| File::new(FILE_WEBM_TARGET)).<span class="kw">await</span>;
     }
 
-    <span class="attribute">#[<span class="ident">tokio::test</span>]</span>
-    <span class="attribute">#[<span class="ident">ntest::timeout</span>(<span class="number">10_000</span>)]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">webm_backward_seek_correct</span>() {
-        <span class="ident">backward_seek_correct</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">File::new</span>(<span class="ident">FILE_WEBM_TARGET</span>)).<span class="kw">await</span>;
+    <span class="attribute">#[tokio::test]</span>
+    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
+    <span class="kw">async fn </span>webm_backward_seek_correct() {
+        backward_seek_correct(|| File::new(FILE_WEBM_TARGET)).<span class="kw">await</span>;
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

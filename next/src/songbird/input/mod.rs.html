@@ -384,389 +384,389 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Raw audio input data streams and sources.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Input`]s in Songbird are based on [symphonia], which provides demuxing,</span>
-<span class="doccomment">//! decoding and management of synchronous byte sources (i.e., any items which</span>
-<span class="doccomment">//! `impl` [`Read`]).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Songbird adds support for the Opus codec to symphonia via [`OpusDecoder`],</span>
-<span class="doccomment">//! the [DCA1] file format via [`DcaReader`], and a simple PCM adapter via [`RawReader`];</span>
-<span class="doccomment">//! the [format] and [codec registries] in [`codecs`] install these on top of those</span>
-<span class="doccomment">//! enabled in your `Cargo.toml` when you include symphonia.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Common sources</span>
-<span class="doccomment">//! * Any owned byte slice: `&amp;&#39;static [u8]`, `Bytes`, or `Vec&lt;u8&gt;`,</span>
-<span class="doccomment">//! * [`File`] offers a lazy way to open local audio files,</span>
-<span class="doccomment">//! * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,</span>
-<span class="doccomment">//! * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape</span>
-<span class="doccomment">//!   a target URL for a usable audio stream, before opening an [`HttpRequest`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Adapters</span>
-<span class="doccomment">//! Songbird includes several adapters to make developing your own inputs easier:</span>
-<span class="doccomment">//! * [`cached::*`], which allow seeking and shared caching of an input stream (storing</span>
-<span class="doccomment">//!   it in memory in a variety of formats),</span>
-<span class="doccomment">//! * [`ChildContainer`] for managing audio given by a process chain,</span>
-<span class="doccomment">//! * [`RawAdapter`], for feeding in a synchronous `f32`-PCM stream, and</span>
-<span class="doccomment">//! * [`AsyncAdapterStream`], for passing bytes from an `AsyncRead` (`+ AsyncSeek`) stream</span>
-<span class="doccomment">//!   into the mixer.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Opus frame passthrough.</span>
-<span class="doccomment">//! Some sources, such as [`Compressed`] or any WebM/Opus/DCA file, support</span>
-<span class="doccomment">//! direct frame passthrough to the driver. This lets you directly send the</span>
-<span class="doccomment">//! audio data you have *without decoding, re-encoding, or mixing*. In many</span>
-<span class="doccomment">//! cases, this can greatly reduce the CPU cost required by the driver.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This functionality requires that:</span>
-<span class="doccomment">//!  * only one track is active (including paused tracks),</span>
-<span class="doccomment">//!  * that track&#39;s input supports direct Opus frame reads,</span>
-<span class="doccomment">//!  * this input&#39;s frames are all sized to 20ms.</span>
-<span class="doccomment">//!  * and that track&#39;s volume is set to `1.0`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Input`]s which are almost suitable but which have **any** illegal frames will be</span>
-<span class="doccomment">//! blocked from passthrough to prevent glitches such as repeated encoder frame gaps.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [symphonia]: https://docs.rs/symphonia</span>
-<span class="doccomment">//! [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
-<span class="doccomment">//! [`Compressed`]: cached::Compressed</span>
-<span class="doccomment">//! [DCA1]: https://github.com/bwmarrin/dca</span>
-<span class="doccomment">//! [`registry::*`]: registry</span>
-<span class="doccomment">//! [`cached::*`]: cached</span>
-<span class="doccomment">//! [`OpusDecoder`]: codecs::OpusDecoder</span>
-<span class="doccomment">//! [`DcaReader`]: codecs::DcaReader</span>
-<span class="doccomment">//! [`RawReader`]: codecs::RawReader</span>
-<span class="doccomment">//! [format]: static@codecs::PROBE</span>
-<span class="doccomment">//! [codec registries]: static@codecs::CODEC_REGISTRY</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Raw audio input data streams and sources.
+//!
+//! [`Input`]s in Songbird are based on [symphonia], which provides demuxing,
+//! decoding and management of synchronous byte sources (i.e., any items which
+//! `impl` [`Read`]).
+//!
+//! Songbird adds support for the Opus codec to symphonia via [`OpusDecoder`],
+//! the [DCA1] file format via [`DcaReader`], and a simple PCM adapter via [`RawReader`];
+//! the [format] and [codec registries] in [`codecs`] install these on top of those
+//! enabled in your `Cargo.toml` when you include symphonia.
+//!
+//! ## Common sources
+//! * Any owned byte slice: `&amp;&#39;static [u8]`, `Bytes`, or `Vec&lt;u8&gt;`,
+//! * [`File`] offers a lazy way to open local audio files,
+//! * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,
+//! * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape
+//!   a target URL for a usable audio stream, before opening an [`HttpRequest`].
+//!
+//! ## Adapters
+//! Songbird includes several adapters to make developing your own inputs easier:
+//! * [`cached::*`], which allow seeking and shared caching of an input stream (storing
+//!   it in memory in a variety of formats),
+//! * [`ChildContainer`] for managing audio given by a process chain,
+//! * [`RawAdapter`], for feeding in a synchronous `f32`-PCM stream, and
+//! * [`AsyncAdapterStream`], for passing bytes from an `AsyncRead` (`+ AsyncSeek`) stream
+//!   into the mixer.
+//!
+//! ## Opus frame passthrough.
+//! Some sources, such as [`Compressed`] or any WebM/Opus/DCA file, support
+//! direct frame passthrough to the driver. This lets you directly send the
+//! audio data you have *without decoding, re-encoding, or mixing*. In many
+//! cases, this can greatly reduce the CPU cost required by the driver.
+//!
+//! This functionality requires that:
+//!  * only one track is active (including paused tracks),
+//!  * that track&#39;s input supports direct Opus frame reads,
+//!  * this input&#39;s frames are all sized to 20ms.
+//!  * and that track&#39;s volume is set to `1.0`.
+//!
+//! [`Input`]s which are almost suitable but which have **any** illegal frames will be
+//! blocked from passthrough to prevent glitches such as repeated encoder frame gaps.
+//!
+//! [symphonia]: https://docs.rs/symphonia
+//! [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+//! [`Compressed`]: cached::Compressed
+//! [DCA1]: https://github.com/bwmarrin/dca
+//! [`registry::*`]: registry
+//! [`cached::*`]: cached
+//! [`OpusDecoder`]: codecs::OpusDecoder
+//! [`DcaReader`]: codecs::DcaReader
+//! [`RawReader`]: codecs::RawReader
+//! [format]: static@codecs::PROBE
+//! [codec registries]: static@codecs::CODEC_REGISTRY
 
-<span class="kw">mod</span> <span class="ident">adapters</span>;
-<span class="kw">mod</span> <span class="ident">audiostream</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">codecs</span>;
-<span class="kw">mod</span> <span class="ident">compose</span>;
-<span class="kw">mod</span> <span class="ident">error</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">input_tests</span>;
-<span class="kw">mod</span> <span class="ident">live_input</span>;
-<span class="kw">mod</span> <span class="ident">metadata</span>;
-<span class="kw">mod</span> <span class="ident">parsed</span>;
-<span class="kw">mod</span> <span class="ident">sources</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">utils</span>;
+</span><span class="kw">mod </span>adapters;
+<span class="kw">mod </span>audiostream;
+<span class="kw">pub mod </span>codecs;
+<span class="kw">mod </span>compose;
+<span class="kw">mod </span>error;
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">pub mod </span>input_tests;
+<span class="kw">mod </span>live_input;
+<span class="kw">mod </span>metadata;
+<span class="kw">mod </span>parsed;
+<span class="kw">mod </span>sources;
+<span class="kw">pub mod </span>utils;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">adapters</span>::<span class="kw-2">*</span>,
-    <span class="ident">audiostream</span>::<span class="kw-2">*</span>,
-    <span class="ident">compose</span>::<span class="kw-2">*</span>,
-    <span class="ident">error</span>::<span class="kw-2">*</span>,
-    <span class="ident">live_input</span>::<span class="kw-2">*</span>,
-    <span class="ident">metadata</span>::<span class="kw-2">*</span>,
-    <span class="ident">parsed</span>::<span class="kw-2">*</span>,
-    <span class="ident">sources</span>::<span class="kw-2">*</span>,
+<span class="kw">pub use </span><span class="self">self</span>::{
+    adapters::<span class="kw-2">*</span>,
+    audiostream::<span class="kw-2">*</span>,
+    compose::<span class="kw-2">*</span>,
+    error::<span class="kw-2">*</span>,
+    live_input::<span class="kw-2">*</span>,
+    metadata::<span class="kw-2">*</span>,
+    parsed::<span class="kw-2">*</span>,
+    sources::<span class="kw-2">*</span>,
 };
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">symphonia_core</span> <span class="kw">as</span> <span class="ident">core</span>;
+<span class="kw">pub use </span>symphonia_core <span class="kw">as </span>core;
 
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span>, <span class="ident">io::Cursor</span>};
-<span class="kw">use</span> <span class="ident">symphonia_core</span>::{<span class="ident">codecs::CodecRegistry</span>, <span class="ident">probe::Probe</span>};
-<span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span> <span class="kw">as</span> <span class="ident">TokioHandle</span>;
+<span class="kw">use </span>std::{error::Error, io::Cursor};
+<span class="kw">use </span>symphonia_core::{codecs::CodecRegistry, probe::Probe};
+<span class="kw">use </span>tokio::runtime::Handle <span class="kw">as </span>TokioHandle;
 
-<span class="doccomment">/// An audio source, which can be live or lazily initialised.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This can be created from a wide variety of sources:</span>
-<span class="doccomment">/// * Any owned byte slice: `&amp;&#39;static [u8]`, `Bytes`, or `Vec&lt;u8&gt;`,</span>
-<span class="doccomment">/// * [`File`] offers a lazy way to open local audio files,</span>
-<span class="doccomment">/// * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,</span>
-<span class="doccomment">/// * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape</span>
-<span class="doccomment">///   a target URL for a usable audio stream, before opening an [`HttpRequest`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Any [`Input`] (or struct with `impl Into&lt;Input&gt;`) can also be made into a [`Track`] via</span>
-<span class="doccomment">/// `From`/`Into`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use tokio::runtime;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # let basic_rt = runtime::Builder::new_current_thread().enable_io().build().unwrap();</span>
-<span class="doccomment">/// # basic_rt.block_on(async {</span>
-<span class="doccomment">/// use songbird::{</span>
-<span class="doccomment">///     driver::Driver,</span>
-<span class="doccomment">///     input::{codecs::*, Compose, Input, MetadataError, YoutubeDl},</span>
-<span class="doccomment">///     tracks::Track,</span>
-<span class="doccomment">/// };</span>
-<span class="doccomment">/// // Inputs are played using a `Driver`, or `Call`.</span>
-<span class="doccomment">/// let mut driver = Driver::new(Default::default());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Lazy inputs take very little resources, and don&#39;t occupy any resources until we</span>
-<span class="doccomment">/// // need to play them (by default).</span>
-<span class="doccomment">/// let mut lazy = YoutubeDl::new(</span>
-<span class="doccomment">///     reqwest::Client::new(),</span>
-<span class="doccomment">///     // Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/</span>
-<span class="doccomment">///     &quot;https://cloudkicker.bandcamp.com/track/94-days&quot;.to_string(),</span>
-<span class="doccomment">/// );</span>
-<span class="doccomment">/// let lazy_c = lazy.clone();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // With sources like `YoutubeDl`, we can get metadata from, e.g., a track&#39;s page.</span>
-<span class="doccomment">/// let aux_metadata = lazy.aux_metadata().await.unwrap();</span>
-<span class="doccomment">/// assert_eq!(aux_metadata.track, Some(&quot;94 Days&quot;.to_string()));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Once we pass an `Input` to the `Driver`, we can only remotely control it via</span>
-<span class="doccomment">/// // a `TrackHandle`.</span>
-<span class="doccomment">/// let handle = driver.play_input(lazy.into());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // We can also modify some of its initial state via `Track`s.</span>
-<span class="doccomment">/// let handle = driver.play(Track::from(lazy_c).volume(0.5).pause());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // In-memory sources like `Vec&lt;u8&gt;`, or `&amp;&#39;static [u8]` are easy to use, and only take a</span>
-<span class="doccomment">/// // little time for the mixer to parse their headers.</span>
-<span class="doccomment">/// // You can also use the adapters in `songbird::input::cached::*`to keep a source</span>
-<span class="doccomment">/// // from the Internet, HTTP, or a File in-memory *and* share it among calls.</span>
-<span class="doccomment">/// let in_memory = include_bytes!(&quot;../../resources/ting.mp3&quot;);</span>
-<span class="doccomment">/// let mut in_memory_input = in_memory.into();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // This source is live...</span>
-<span class="doccomment">/// assert!(matches!(in_memory_input, Input::Live(..)));</span>
-<span class="doccomment">/// // ...but not yet playable, and we can&#39;t access its `Metadata`.</span>
-<span class="doccomment">/// assert!(!in_memory_input.is_playable());</span>
-<span class="doccomment">/// assert!(matches!(in_memory_input.metadata(), Err(MetadataError::NotParsed)));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // If we want to inspect metadata (and we can&#39;t use AuxMetadata for any reason), we have</span>
-<span class="doccomment">/// // to parse the track ourselves.</span>
-<span class="doccomment">/// //</span>
-<span class="doccomment">/// // We can access it on a live track using `TrackHandle::action()`.</span>
-<span class="doccomment">/// in_memory_input = in_memory_input</span>
-<span class="doccomment">///     .make_playable_async(&amp;CODEC_REGISTRY, &amp;PROBE)</span>
-<span class="doccomment">///     .await</span>
-<span class="doccomment">///     .expect(&quot;WAV support is included, and this file is good!&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Symphonia&#39;s metadata can be difficult to use: prefer `AuxMetadata` when you can!</span>
-<span class="doccomment">/// use symphonia_core::meta::{StandardTagKey, Value};</span>
-<span class="doccomment">/// let mut metadata = in_memory_input.metadata();</span>
-<span class="doccomment">/// let meta = metadata.as_mut().unwrap();</span>
-<span class="doccomment">/// let mut probed = meta.probe.get().unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let track_name = probed</span>
-<span class="doccomment">///     .current().unwrap()</span>
-<span class="doccomment">///     .tags().iter().filter(|v| v.std_key == Some(StandardTagKey::TrackTitle))</span>
-<span class="doccomment">///     .next().unwrap();</span>
-<span class="doccomment">/// if let Value::String(s) = &amp;track_name.value {</span>
-<span class="doccomment">///     assert_eq!(s, &quot;Ting!&quot;);</span>
-<span class="doccomment">/// } else { panic!() };</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // ...and these are played like any other input.</span>
-<span class="doccomment">/// let handle = driver.play_input(in_memory_input);</span>
-<span class="doccomment">/// # });</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Track`]: crate::tracks::Track</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Input</span> {
-    <span class="doccomment">/// A byte source which is not yet initialised.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When a parent track is either played or explicitly readied, the inner [`Compose`]</span>
-    <span class="doccomment">/// is used to create an [`Input::Live`].</span>
-    <span class="ident">Lazy</span>(
-        <span class="doccomment">/// A trait object which can be used to (re)create a usable byte stream.</span>
-        <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An audio source, which can be live or lazily initialised.
+///
+/// This can be created from a wide variety of sources:
+/// * Any owned byte slice: `&amp;&#39;static [u8]`, `Bytes`, or `Vec&lt;u8&gt;`,
+/// * [`File`] offers a lazy way to open local audio files,
+/// * [`HttpRequest`] streams a given file from a URL using the reqwest HTTP library,
+/// * [`YoutubeDl`] uses `yt-dlp` (or any other `youtube-dl`-like program) to scrape
+///   a target URL for a usable audio stream, before opening an [`HttpRequest`].
+///
+/// Any [`Input`] (or struct with `impl Into&lt;Input&gt;`) can also be made into a [`Track`] via
+/// `From`/`Into`.
+///
+/// # Example
+///
+/// ```
+/// # use tokio::runtime;
+/// #
+/// # let basic_rt = runtime::Builder::new_current_thread().enable_io().build().unwrap();
+/// # basic_rt.block_on(async {
+/// use songbird::{
+///     driver::Driver,
+///     input::{codecs::*, Compose, Input, MetadataError, YoutubeDl},
+///     tracks::Track,
+/// };
+/// // Inputs are played using a `Driver`, or `Call`.
+/// let mut driver = Driver::new(Default::default());
+///
+/// // Lazy inputs take very little resources, and don&#39;t occupy any resources until we
+/// // need to play them (by default).
+/// let mut lazy = YoutubeDl::new(
+///     reqwest::Client::new(),
+///     // Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+///     &quot;https://cloudkicker.bandcamp.com/track/94-days&quot;.to_string(),
+/// );
+/// let lazy_c = lazy.clone();
+///
+/// // With sources like `YoutubeDl`, we can get metadata from, e.g., a track&#39;s page.
+/// let aux_metadata = lazy.aux_metadata().await.unwrap();
+/// assert_eq!(aux_metadata.track, Some(&quot;94 Days&quot;.to_string()));
+///
+/// // Once we pass an `Input` to the `Driver`, we can only remotely control it via
+/// // a `TrackHandle`.
+/// let handle = driver.play_input(lazy.into());
+///
+/// // We can also modify some of its initial state via `Track`s.
+/// let handle = driver.play(Track::from(lazy_c).volume(0.5).pause());
+///
+/// // In-memory sources like `Vec&lt;u8&gt;`, or `&amp;&#39;static [u8]` are easy to use, and only take a
+/// // little time for the mixer to parse their headers.
+/// // You can also use the adapters in `songbird::input::cached::*`to keep a source
+/// // from the Internet, HTTP, or a File in-memory *and* share it among calls.
+/// let in_memory = include_bytes!(&quot;../../resources/ting.mp3&quot;);
+/// let mut in_memory_input = in_memory.into();
+///
+/// // This source is live...
+/// assert!(matches!(in_memory_input, Input::Live(..)));
+/// // ...but not yet playable, and we can&#39;t access its `Metadata`.
+/// assert!(!in_memory_input.is_playable());
+/// assert!(matches!(in_memory_input.metadata(), Err(MetadataError::NotParsed)));
+///
+/// // If we want to inspect metadata (and we can&#39;t use AuxMetadata for any reason), we have
+/// // to parse the track ourselves.
+/// //
+/// // We can access it on a live track using `TrackHandle::action()`.
+/// in_memory_input = in_memory_input
+///     .make_playable_async(&amp;CODEC_REGISTRY, &amp;PROBE)
+///     .await
+///     .expect(&quot;WAV support is included, and this file is good!&quot;);
+///
+/// // Symphonia&#39;s metadata can be difficult to use: prefer `AuxMetadata` when you can!
+/// use symphonia_core::meta::{StandardTagKey, Value};
+/// let mut metadata = in_memory_input.metadata();
+/// let meta = metadata.as_mut().unwrap();
+/// let mut probed = meta.probe.get().unwrap();
+///
+/// let track_name = probed
+///     .current().unwrap()
+///     .tags().iter().filter(|v| v.std_key == Some(StandardTagKey::TrackTitle))
+///     .next().unwrap();
+/// if let Value::String(s) = &amp;track_name.value {
+///     assert_eq!(s, &quot;Ting!&quot;);
+/// } else { panic!() };
+///
+/// // ...and these are played like any other input.
+/// let handle = driver.play_input(in_memory_input);
+/// # });
+/// ```
+///
+/// [`Track`]: crate::tracks::Track
+</span><span class="kw">pub enum </span>Input {
+    <span class="doccomment">/// A byte source which is not yet initialised.
+    ///
+    /// When a parent track is either played or explicitly readied, the inner [`Compose`]
+    /// is used to create an [`Input::Live`].
+    </span>Lazy(
+        <span class="doccomment">/// A trait object which can be used to (re)create a usable byte stream.
+        </span>Box&lt;<span class="kw">dyn </span>Compose&gt;,
     ),
-    <span class="doccomment">/// An initialised byte source.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This contains a raw byte stream, the lazy initialiser that was used,</span>
-    <span class="doccomment">/// as well as any symphonia-specific format data and/or hints.</span>
-    <span class="ident">Live</span>(
-        <span class="doccomment">/// The byte source, plus symphonia-specific data.</span>
-        <span class="ident">LiveInput</span>,
-        <span class="doccomment">/// The struct used to initialise this source, if available.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// This is used to recreate the stream when a source does not support</span>
-        <span class="doccomment">/// backward seeking, if present.</span>
-        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Compose</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// An initialised byte source.
+    ///
+    /// This contains a raw byte stream, the lazy initialiser that was used,
+    /// as well as any symphonia-specific format data and/or hints.
+    </span>Live(
+        <span class="doccomment">/// The byte source, plus symphonia-specific data.
+        </span>LiveInput,
+        <span class="doccomment">/// The struct used to initialise this source, if available.
+        ///
+        /// This is used to recreate the stream when a source does not support
+        /// backward seeking, if present.
+        </span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Compose&gt;&gt;,
     ),
 }
 
-<span class="kw">impl</span> <span class="ident">Input</span> {
-    <span class="doccomment">/// Requests auxiliary metadata which can be accessed without parsing the file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will never be called by songbird but allows, for instance, access to metadata</span>
-    <span class="doccomment">/// which might only be visible to a web crawler, e.g., uploader or source URL.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires that the [`Input`] has a [`Compose`] available to use, otherwise it</span>
-    <span class="doccomment">/// will always fail with [`AudioStreamError::Unsupported`].</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">aux_metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AuxMetadata</span>, <span class="ident">AuxMetadataError</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">composer</span>) =&gt; <span class="ident">composer</span>.<span class="ident">aux_metadata</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">Into::into</span>),
-            <span class="ident"><span class="self">Self</span>::Live</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">composer</span>)) =&gt;
-                <span class="ident">composer</span>.<span class="ident">aux_metadata</span>().<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">Into::into</span>),
-            <span class="ident"><span class="self">Self</span>::Live</span>(<span class="kw">_</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">AuxMetadataError::NoCompose</span>),
+<span class="kw">impl </span>Input {
+    <span class="doccomment">/// Requests auxiliary metadata which can be accessed without parsing the file.
+    ///
+    /// This method will never be called by songbird but allows, for instance, access to metadata
+    /// which might only be visible to a web crawler, e.g., uploader or source URL.
+    ///
+    /// This requires that the [`Input`] has a [`Compose`] available to use, otherwise it
+    /// will always fail with [`AudioStreamError::Unsupported`].
+    </span><span class="kw">pub async fn </span>aux_metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AuxMetadata, AuxMetadataError&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Lazy(<span class="kw-2">ref mut </span>composer) =&gt; composer.aux_metadata().<span class="kw">await</span>.map_err(Into::into),
+            <span class="self">Self</span>::Live(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>composer)) =&gt;
+                composer.aux_metadata().<span class="kw">await</span>.map_err(Into::into),
+            <span class="self">Self</span>::Live(<span class="kw">_</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(AuxMetadataError::NoCompose),
         }
     }
 
-    <span class="doccomment">/// Tries to get any information about this audio stream acquired during parsing.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Only exists when this input is both [`Self::Live`] and has been fully parsed.</span>
-    <span class="doccomment">/// In general, you probably want to use [`Self::aux_metadata`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Metadata</span>, <span class="ident">MetadataError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">live</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">live</span>.<span class="ident">metadata</span>()
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">MetadataError::NotLive</span>)
+    <span class="doccomment">/// Tries to get any information about this audio stream acquired during parsing.
+    ///
+    /// Only exists when this input is both [`Self::Live`] and has been fully parsed.
+    /// In general, you probably want to use [`Self::aux_metadata`].
+    </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Metadata, MetadataError&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::Live(live, <span class="kw">_</span>) = <span class="self">self </span>{
+            live.metadata()
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(MetadataError::NotLive)
         }
     }
 
-    <span class="doccomment">/// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],</span>
-    <span class="doccomment">/// placing blocking I/O on the current thread.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *This is a blocking operation. If you wish to use this from an async task, you</span>
-    <span class="doccomment">/// must do so via [`Self::make_live_async`].*</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a no-op for an [`Input::Live`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_live</span>(<span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">TokioHandle</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw-2">mut</span> <span class="ident">lazy</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="kw">let</span> (<span class="ident">created</span>, <span class="ident">lazy</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lazy</span>.<span class="ident">should_create_async</span>() {
-                <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>(<span class="number">1</span>);
-                <span class="ident">handle</span>.<span class="ident">spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-                    <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">lazy</span>.<span class="ident">create_async</span>().<span class="kw">await</span>;
-                    <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send_async</span>((<span class="ident">out</span>, <span class="ident">lazy</span>)));
+    <span class="doccomment">/// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the current thread.
+    ///
+    /// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.
+    ///
+    /// *This is a blocking operation. If you wish to use this from an async task, you
+    /// must do so via [`Self::make_live_async`].*
+    ///
+    /// This is a no-op for an [`Input::Live`].
+    </span><span class="kw">pub fn </span>make_live(<span class="self">self</span>, handle: <span class="kw-2">&amp;</span>TokioHandle) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, AudioStreamError&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::Lazy(<span class="kw-2">mut </span>lazy) = <span class="self">self </span>{
+            <span class="kw">let </span>(created, lazy) = <span class="kw">if </span>lazy.should_create_async() {
+                <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
+                handle.spawn(<span class="kw">async move </span>{
+                    <span class="kw">let </span>out = lazy.create_async().<span class="kw">await</span>;
+                    drop(tx.send_async((out, lazy)));
                 });
-                <span class="ident">rx</span>.<span class="ident">recv</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">err_msg</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="op">=</span>
-                        <span class="string">&quot;async Input create handler panicked&quot;</span>.<span class="ident">into</span>();
-                    <span class="ident">AudioStreamError::Fail</span>(<span class="ident">err_msg</span>)
-                })<span class="question-mark">?</span>
-            } <span class="kw">else</span> {
-                (<span class="ident">lazy</span>.<span class="ident">create</span>(), <span class="ident">lazy</span>)
+                rx.recv().map_err(|<span class="kw">_</span>| {
+                    <span class="kw">let </span>err_msg: Box&lt;<span class="kw">dyn </span>Error + Send + Sync&gt; =
+                        <span class="string">&quot;async Input create handler panicked&quot;</span>.into();
+                    AudioStreamError::Fail(err_msg)
+                })<span class="question-mark">?
+            </span>} <span class="kw">else </span>{
+                (lazy.create(), lazy)
             };
 
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">LiveInput::Raw</span>(<span class="ident">created</span><span class="question-mark">?</span>), <span class="prelude-val">Some</span>(<span class="ident">lazy</span>)))
-        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Live(LiveInput::Raw(created<span class="question-mark">?</span>), <span class="prelude-val">Some</span>(lazy)))
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         }
     }
 
-    <span class="doccomment">/// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],</span>
-    <span class="doccomment">/// placing blocking I/O on the a `spawn_blocking` executor.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is a no-op for an [`Input::Live`].</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">make_live_async</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw-2">mut</span> <span class="ident">lazy</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="kw">let</span> (<span class="ident">created</span>, <span class="ident">lazy</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lazy</span>.<span class="ident">should_create_async</span>() {
-                (<span class="ident">lazy</span>.<span class="ident">create_async</span>().<span class="kw">await</span>, <span class="ident">lazy</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">lazy</span>.<span class="ident">create</span>(), <span class="ident">lazy</span>))
-                    .<span class="kw">await</span>
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">err_msg</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="op">=</span>
-                            <span class="string">&quot;synchronous Input create handler panicked&quot;</span>.<span class="ident">into</span>();
-                        <span class="ident">AudioStreamError::Fail</span>(<span class="ident">err_msg</span>)
-                    })<span class="question-mark">?</span>
-            };
+    <span class="doccomment">/// Initialises (but does not parse) an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the a `spawn_blocking` executor.
+    ///
+    /// This is a no-op for an [`Input::Live`].
+    </span><span class="kw">pub async fn </span>make_live_async(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, AudioStreamError&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::Lazy(<span class="kw-2">mut </span>lazy) = <span class="self">self </span>{
+            <span class="kw">let </span>(created, lazy) = <span class="kw">if </span>lazy.should_create_async() {
+                (lazy.create_async().<span class="kw">await</span>, lazy)
+            } <span class="kw">else </span>{
+                tokio::task::spawn_blocking(<span class="kw">move </span>|| (lazy.create(), lazy))
+                    .<span class="kw">await
+                    </span>.map_err(|<span class="kw">_</span>| {
+                        <span class="kw">let </span>err_msg: Box&lt;<span class="kw">dyn </span>Error + Send + Sync&gt; =
+                            <span class="string">&quot;synchronous Input create handler panicked&quot;</span>.into();
+                        AudioStreamError::Fail(err_msg)
+                    })<span class="question-mark">?
+            </span>};
 
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">LiveInput::Raw</span>(<span class="ident">created</span><span class="question-mark">?</span>), <span class="prelude-val">Some</span>(<span class="ident">lazy</span>)))
-        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Live(LiveInput::Raw(created<span class="question-mark">?</span>), <span class="prelude-val">Some</span>(lazy)))
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         }
     }
 
-    <span class="doccomment">/// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],</span>
-    <span class="doccomment">/// placing blocking I/O on the current thread.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.</span>
-    <span class="doccomment">/// If you can&#39;t access one, then consider manually using [`LiveInput::promote`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// *This is a blocking operation. Symphonia uses standard library I/O (e.g., [`Read`], [`Seek`]).</span>
-    <span class="doccomment">/// If you wish to use this from an async task, you must do so within `spawn_blocking`.*</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
-    <span class="doccomment">/// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_playable</span>(
+    <span class="doccomment">/// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on the current thread.
+    ///
+    /// This requires a [`TokioHandle`] to a tokio runtime to spawn any `async` sources.
+    /// If you can&#39;t access one, then consider manually using [`LiveInput::promote`].
+    ///
+    /// *This is a blocking operation. Symphonia uses standard library I/O (e.g., [`Read`], [`Seek`]).
+    /// If you wish to use this from an async task, you must do so within `spawn_blocking`.*
+    ///
+    /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+    /// [`Seek`]: https://doc.rust-lang.org/std/io/trait.Seek.html
+    </span><span class="kw">pub fn </span>make_playable(
         <span class="self">self</span>,
-        <span class="ident">codecs</span>: <span class="kw-2">&amp;</span><span class="ident">CodecRegistry</span>,
-        <span class="ident">probe</span>: <span class="kw-2">&amp;</span><span class="ident">Probe</span>,
-        <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">TokioHandle</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">MakePlayableError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">make_live</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="ident">out</span> {
-            <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">input</span>, <span class="ident">lazy</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">promote</span>(<span class="ident">codecs</span>, <span class="ident">probe</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">promoted</span>, <span class="ident">lazy</span>))
+        codecs: <span class="kw-2">&amp;</span>CodecRegistry,
+        probe: <span class="kw-2">&amp;</span>Probe,
+        handle: <span class="kw-2">&amp;</span>TokioHandle,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, MakePlayableError&gt; {
+        <span class="kw">let </span>out = <span class="self">self</span>.make_live(handle)<span class="question-mark">?</span>;
+        <span class="kw">match </span>out {
+            <span class="self">Self</span>::Lazy(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            <span class="self">Self</span>::Live(input, lazy) =&gt; {
+                <span class="kw">let </span>promoted = input.promote(codecs, probe)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Live(promoted, lazy))
             },
         }
     }
 
-    <span class="doccomment">/// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],</span>
-    <span class="doccomment">/// placing blocking I/O on a tokio blocking thread.</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">make_playable_async</span>(
+    <span class="doccomment">/// Initialises and parses an [`Input::Lazy`] into an [`Input::Live`],
+    /// placing blocking I/O on a tokio blocking thread.
+    </span><span class="kw">pub async fn </span>make_playable_async(
         <span class="self">self</span>,
-        <span class="ident">codecs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CodecRegistry</span>,
-        <span class="ident">probe</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Probe</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">MakePlayableError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">make_live_async</span>().<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="ident">out</span> {
-            <span class="ident"><span class="self">Self</span>::Lazy</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">input</span>, <span class="ident">lazy</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">promote</span>(<span class="ident">codecs</span>, <span class="ident">probe</span>))
-                    .<span class="kw">await</span>
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MakePlayableError::Panicked</span>)<span class="question-mark">?</span><span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">promoted</span>, <span class="ident">lazy</span>))
+        codecs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>CodecRegistry,
+        probe: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Probe,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, MakePlayableError&gt; {
+        <span class="kw">let </span>out = <span class="self">self</span>.make_live_async().<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">match </span>out {
+            <span class="self">Self</span>::Lazy(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            <span class="self">Self</span>::Live(input, lazy) =&gt; {
+                <span class="kw">let </span>promoted = tokio::task::spawn_blocking(<span class="kw">move </span>|| input.promote(codecs, probe))
+                    .<span class="kw">await
+                    </span>.map_err(|<span class="kw">_</span>| MakePlayableError::Panicked)<span class="question-mark">??</span>;
+                <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Live(promoted, lazy))
             },
         }
     }
 
-    <span class="doccomment">/// Returns whether this audio stream is full initialised, parsed, and</span>
-    <span class="doccomment">/// ready to play (e.g., `Self::Live(LiveInput::Parsed(p), _)`).</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_playable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">input</span>.<span class="ident">is_playable</span>()
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+    <span class="doccomment">/// Returns whether this audio stream is full initialised, parsed, and
+    /// ready to play (e.g., `Self::Live(LiveInput::Parsed(p), _)`).
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>is_playable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if let </span><span class="self">Self</span>::Live(input, <span class="kw">_</span>) = <span class="self">self </span>{
+            input.is_playable()
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 
-    <span class="doccomment">/// Returns a reference to the live input, if it has been created via</span>
-    <span class="doccomment">/// [`Self::make_live`] or [`Self::make_live_async`].</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">live</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">LiveInput</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Live</span>(<span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">input</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="doccomment">/// Returns a reference to the live input, if it has been created via
+    /// [`Self::make_live`] or [`Self::make_live_async`].
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>live(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>LiveInput&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::Live(input, <span class="kw">_</span>) = <span class="self">self </span>{
+            <span class="prelude-val">Some</span>(input)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the live input, if it been created via</span>
-    <span class="doccomment">/// [`Self::make_live`] or [`Self::make_live_async`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">live_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">LiveInput</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Live</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">input</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="doccomment">/// Returns a mutable reference to the live input, if it been created via
+    /// [`Self::make_live`] or [`Self::make_live_async`].
+    </span><span class="kw">pub fn </span>live_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>LiveInput&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::Live(<span class="kw-2">ref mut </span>input, <span class="kw">_</span>) = <span class="self">self </span>{
+            <span class="prelude-val">Some</span>(input)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="doccomment">/// Returns a reference to the data parsed from this input stream, if it has</span>
-    <span class="doccomment">/// been made available via [`Self::make_playable`] or [`LiveInput::promote`].</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Parsed</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">live</span>().<span class="ident">and_then</span>(<span class="ident">LiveInput::parsed</span>)
+    <span class="doccomment">/// Returns a reference to the data parsed from this input stream, if it has
+    /// been made available via [`Self::make_playable`] or [`LiveInput::promote`].
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>parsed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Parsed&gt; {
+        <span class="self">self</span>.live().and_then(LiveInput::parsed)
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the data parsed from this input stream, if it</span>
-    <span class="doccomment">/// has been made available via [`Self::make_playable`] or [`LiveInput::promote`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parsed_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Parsed</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">live_mut</span>().<span class="ident">and_then</span>(<span class="ident">LiveInput::parsed_mut</span>)
+    <span class="doccomment">/// Returns a mutable reference to the data parsed from this input stream, if it
+    /// has been made available via [`Self::make_playable`] or [`LiveInput::promote`].
+    </span><span class="kw">pub fn </span>parsed_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Parsed&gt; {
+        <span class="self">self</span>.live_mut().and_then(LiveInput::parsed_mut)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Input</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">raw_src</span> <span class="op">=</span> <span class="ident">LiveInput::Raw</span>(<span class="ident">AudioStream</span> {
-            <span class="ident">input</span>: <span class="ident">Box::new</span>(<span class="ident">Cursor::new</span>(<span class="ident">val</span>)),
-            <span class="ident">hint</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;T: AsRef&lt;[u8]&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt; From&lt;T&gt; <span class="kw">for </span>Input {
+    <span class="kw">fn </span>from(val: T) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>raw_src = LiveInput::Raw(AudioStream {
+            input: Box::new(Cursor::new(val)),
+            hint: <span class="prelude-val">None</span>,
         });
 
-        <span class="ident">Input::Live</span>(<span class="ident">raw_src</span>, <span class="prelude-val">None</span>)
+        Input::Live(raw_src, <span class="prelude-val">None</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

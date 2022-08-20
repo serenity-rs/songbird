@@ -139,144 +139,144 @@
 <span id="137">137</span>
 <span id="138">138</span>
 <span id="139">139</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::message</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">events</span>::{<span class="ident">EventStore</span>, <span class="ident">GlobalEvents</span>, <span class="ident">TrackEvent</span>},
-    <span class="ident">tracks</span>::{<span class="ident">ReadyState</span>, <span class="ident">TrackHandle</span>, <span class="ident">TrackState</span>},
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::message::<span class="kw-2">*</span>;
+<span class="kw">use crate</span>::{
+    events::{EventStore, GlobalEvents, TrackEvent},
+    tracks::{ReadyState, TrackHandle, TrackState},
 };
-<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">info</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>};
+<span class="kw">use </span>flume::Receiver;
+<span class="kw">use </span>tracing::{debug, info, instrument, trace};
 
-<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">_interconnect</span>, <span class="ident">evt_rx</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(<span class="ident">_interconnect</span>: <span class="ident">Interconnect</span>, <span class="ident">evt_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">EventMessage</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">GlobalEvents::default</span>();
+<span class="attribute">#[instrument(skip(_interconnect, evt_rx))]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>runner(_interconnect: Interconnect, evt_rx: Receiver&lt;EventMessage&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>global = GlobalEvents::default();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">events</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EventStore</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackState</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handles</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackHandle</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>events: Vec&lt;EventStore&gt; = <span class="macro">vec!</span>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>states: Vec&lt;TrackState&gt; = <span class="macro">vec!</span>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>handles: Vec&lt;TrackHandle&gt; = <span class="macro">vec!</span>[];
 
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">evt_rx</span>.<span class="ident">recv_async</span>().<span class="kw">await</span> {
-        <span class="kw">match</span> <span class="ident">msg</span> {
-            <span class="ident">EventMessage::AddGlobalEvent</span>(<span class="ident">data</span>) =&gt; {
+    <span class="kw">while let </span><span class="prelude-val">Ok</span>(msg) = evt_rx.recv_async().<span class="kw">await </span>{
+        <span class="kw">match </span>msg {
+            EventMessage::AddGlobalEvent(data) =&gt; {
                 <span class="macro">info!</span>(<span class="string">&quot;Global event added.&quot;</span>);
-                <span class="ident">global</span>.<span class="ident">add_event</span>(<span class="ident">data</span>);
+                global.add_event(data);
             },
-            <span class="ident">EventMessage::AddTrackEvent</span>(<span class="ident">i</span>, <span class="ident">data</span>) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Adding event to track {}.&quot;</span>, <span class="ident">i</span>);
+            EventMessage::AddTrackEvent(i, data) =&gt; {
+                <span class="macro">info!</span>(<span class="string">&quot;Adding event to track {}.&quot;</span>, i);
 
-                <span class="kw">let</span> <span class="ident">event_store</span> <span class="op">=</span> <span class="ident">events</span>
-                    .<span class="ident">get_mut</span>(<span class="ident">i</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;Event thread was given an illegal store index for AddTrackEvent.&quot;</span>);
-                <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">states</span>
-                    .<span class="ident">get_mut</span>(<span class="ident">i</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;Event thread was given an illegal state index for AddTrackEvent.&quot;</span>);
+                <span class="kw">let </span>event_store = events
+                    .get_mut(i)
+                    .expect(<span class="string">&quot;Event thread was given an illegal store index for AddTrackEvent.&quot;</span>);
+                <span class="kw">let </span>state = states
+                    .get_mut(i)
+                    .expect(<span class="string">&quot;Event thread was given an illegal state index for AddTrackEvent.&quot;</span>);
 
-                <span class="ident">event_store</span>.<span class="ident">add_event</span>(<span class="ident">data</span>, <span class="ident">state</span>.<span class="ident">position</span>);
+                event_store.add_event(data, state.position);
             },
-            <span class="ident">EventMessage::FireCoreEvent</span>(<span class="ident">ctx</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">to_user_context</span>();
-                <span class="kw">let</span> <span class="ident">evt</span> <span class="op">=</span> <span class="ident">ctx</span>
-                    .<span class="ident">to_core_event</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;Event thread was passed a non-core event in FireCoreEvent.&quot;</span>);
+            EventMessage::FireCoreEvent(ctx) =&gt; {
+                <span class="kw">let </span>ctx = ctx.to_user_context();
+                <span class="kw">let </span>evt = ctx
+                    .to_core_event()
+                    .expect(<span class="string">&quot;Event thread was passed a non-core event in FireCoreEvent.&quot;</span>);
 
-                <span class="macro">trace!</span>(<span class="string">&quot;Firing core event {:?}.&quot;</span>, <span class="ident">evt</span>);
+                <span class="macro">trace!</span>(<span class="string">&quot;Firing core event {:?}.&quot;</span>, evt);
 
-                <span class="ident">global</span>.<span class="ident">fire_core_event</span>(<span class="ident">evt</span>, <span class="ident">ctx</span>).<span class="kw">await</span>;
+                global.fire_core_event(evt, ctx).<span class="kw">await</span>;
             },
-            <span class="ident">EventMessage::RemoveGlobalEvents</span> =&gt; {
-                <span class="ident">global</span>.<span class="ident">remove_handlers</span>();
+            EventMessage::RemoveGlobalEvents =&gt; {
+                global.remove_handlers();
             },
-            <span class="ident">EventMessage::AddTrack</span>(<span class="ident">store</span>, <span class="ident">state</span>, <span class="ident">handle</span>) =&gt; {
-                <span class="ident">events</span>.<span class="ident">push</span>(<span class="ident">store</span>);
-                <span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">state</span>);
-                <span class="ident">handles</span>.<span class="ident">push</span>(<span class="ident">handle</span>);
+            EventMessage::AddTrack(store, state, handle) =&gt; {
+                events.push(store);
+                states.push(state);
+                handles.push(handle);
 
-                <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} added&quot;</span>, <span class="ident">events</span>.<span class="ident">len</span>());
+                <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} added&quot;</span>, events.len());
             },
-            <span class="ident">EventMessage::ChangeState</span>(<span class="ident">i</span>, <span class="ident">change</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">max_states</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">len</span>();
+            EventMessage::ChangeState(i, change) =&gt; {
+                <span class="kw">let </span>max_states = states.len();
                 <span class="macro">debug!</span>(
                     <span class="string">&quot;Changing state for track {} of {}: {:?}&quot;</span>,
-                    <span class="ident">i</span>, <span class="ident">max_states</span>, <span class="ident">change</span>
+                    i, max_states, change
                 );
 
-                <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">states</span>
-                    .<span class="ident">get_mut</span>(<span class="ident">i</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;Event thread was given an illegal state index for ChangeState.&quot;</span>);
+                <span class="kw">let </span>state = states
+                    .get_mut(i)
+                    .expect(<span class="string">&quot;Event thread was given an illegal state index for ChangeState.&quot;</span>);
 
-                <span class="kw">match</span> <span class="ident">change</span> {
-                    <span class="ident">TrackStateChange::Mode</span>(<span class="kw-2">mut</span> <span class="ident">mode</span>) =&gt; {
-                        <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">playing</span>, <span class="kw-2">&amp;mut</span> <span class="ident">mode</span>);
-                        <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">playing</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mode</span> {
-                            <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">state</span>.<span class="ident">playing</span>.<span class="ident">as_track_event</span>(), <span class="ident">i</span>);
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">other_evts</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">playing</span>.<span class="ident">also_fired_track_events</span>() {
-                                <span class="kw">for</span> <span class="ident">evt</span> <span class="kw">in</span> <span class="ident">other_evts</span> {
-                                    <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">evt</span>, <span class="ident">i</span>);
+                <span class="kw">match </span>change {
+                    TrackStateChange::Mode(<span class="kw-2">mut </span>mode) =&gt; {
+                        std::mem::swap(<span class="kw-2">&amp;mut </span>state.playing, <span class="kw-2">&amp;mut </span>mode);
+                        <span class="kw">if </span>state.playing != mode {
+                            global.fire_track_event(state.playing.as_track_event(), i);
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(other_evts) = state.playing.also_fired_track_events() {
+                                <span class="kw">for </span>evt <span class="kw">in </span>other_evts {
+                                    global.fire_track_event(evt, i);
                                 }
                             }
                         }
                     },
-                    <span class="ident">TrackStateChange::Volume</span>(<span class="ident">vol</span>) =&gt; {
-                        <span class="ident">state</span>.<span class="ident">volume</span> <span class="op">=</span> <span class="ident">vol</span>;
+                    TrackStateChange::Volume(vol) =&gt; {
+                        state.volume = vol;
                     },
-                    <span class="ident">TrackStateChange::Position</span>(<span class="ident">pos</span>) =&gt; {
-                        <span class="comment">// Currently, only Tick should fire time events.</span>
-                        <span class="ident">state</span>.<span class="ident">position</span> <span class="op">=</span> <span class="ident">pos</span>;
+                    TrackStateChange::Position(pos) =&gt; {
+                        <span class="comment">// Currently, only Tick should fire time events.
+                        </span>state.position = pos;
                     },
-                    <span class="ident">TrackStateChange::Loops</span>(<span class="ident">loops</span>, <span class="ident">user_set</span>) =&gt; {
-                        <span class="ident">state</span>.<span class="ident">loops</span> <span class="op">=</span> <span class="ident">loops</span>;
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">user_set</span> {
-                            <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">TrackEvent::Loop</span>, <span class="ident">i</span>);
+                    TrackStateChange::Loops(loops, user_set) =&gt; {
+                        state.loops = loops;
+                        <span class="kw">if </span>!user_set {
+                            global.fire_track_event(TrackEvent::Loop, i);
                         }
                     },
-                    <span class="ident">TrackStateChange::Total</span>(<span class="ident">new</span>) =&gt; {
-                        <span class="comment">// Massive, unprecedented state changes.</span>
-                        <span class="kw-2">*</span><span class="ident">state</span> <span class="op">=</span> <span class="ident">new</span>;
+                    TrackStateChange::Total(new) =&gt; {
+                        <span class="comment">// Massive, unprecedented state changes.
+                        </span><span class="kw-2">*</span>state = new;
                     },
-                    <span class="ident">TrackStateChange::Ready</span>(<span class="ident">ready_state</span>) =&gt; {
-                        <span class="ident">state</span>.<span class="ident">ready</span> <span class="op">=</span> <span class="ident">ready_state</span>;
+                    TrackStateChange::Ready(ready_state) =&gt; {
+                        state.ready = ready_state;
 
-                        <span class="kw">match</span> <span class="ident">ready_state</span> {
-                            <span class="ident">ReadyState::Playable</span> =&gt; {
-                                <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">TrackEvent::Playable</span>, <span class="ident">i</span>);
+                        <span class="kw">match </span>ready_state {
+                            ReadyState::Playable =&gt; {
+                                global.fire_track_event(TrackEvent::Playable, i);
                             },
-                            <span class="ident">ReadyState::Preparing</span> =&gt; {
-                                <span class="ident">global</span>.<span class="ident">fire_track_event</span>(<span class="ident">TrackEvent::Preparing</span>, <span class="ident">i</span>);
+                            ReadyState::Preparing =&gt; {
+                                global.fire_track_event(TrackEvent::Preparing, i);
                             },
-                            <span class="ident">ReadyState::Uninitialised</span> =&gt; {},
+                            ReadyState::Uninitialised =&gt; {},
                         }
                     },
                 }
             },
-            <span class="ident">EventMessage::RemoveAllTracks</span> =&gt; {
+            EventMessage::RemoveAllTracks =&gt; {
                 <span class="macro">info!</span>(<span class="string">&quot;Event state for all tracks removed.&quot;</span>);
 
-                <span class="ident">events</span>.<span class="ident">clear</span>();
-                <span class="ident">states</span>.<span class="ident">clear</span>();
-                <span class="ident">handles</span>.<span class="ident">clear</span>();
+                events.clear();
+                states.clear();
+                handles.clear();
             },
-            <span class="ident">EventMessage::Tick</span> =&gt; {
-                <span class="comment">// NOTE: this should fire saved up blocks of state change evts.</span>
-                <span class="ident">global</span>.<span class="ident">tick</span>(<span class="kw-2">&amp;mut</span> <span class="ident">events</span>, <span class="kw-2">&amp;mut</span> <span class="ident">states</span>, <span class="kw-2">&amp;mut</span> <span class="ident">handles</span>).<span class="kw">await</span>;
+            EventMessage::Tick =&gt; {
+                <span class="comment">// NOTE: this should fire saved up blocks of state change evts.
+                </span>global.tick(<span class="kw-2">&amp;mut </span>events, <span class="kw-2">&amp;mut </span>states, <span class="kw-2">&amp;mut </span>handles).<span class="kw">await</span>;
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">states</span>.<span class="ident">len</span>() {
-                    <span class="kw">if</span> <span class="ident">states</span>[<span class="ident">i</span>].<span class="ident">playing</span>.<span class="ident">is_done</span>() {
-                        <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} of {} removed.&quot;</span>, <span class="ident">i</span>, <span class="ident">events</span>.<span class="ident">len</span>());
+                <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+                <span class="kw">while </span>i &lt; states.len() {
+                    <span class="kw">if </span>states[i].playing.is_done() {
+                        <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} of {} removed.&quot;</span>, i, events.len());
 
-                        <span class="ident">events</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
-                        <span class="ident">states</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
-                        <span class="ident">handles</span>.<span class="ident">swap_remove</span>(<span class="ident">i</span>);
-                    } <span class="kw">else</span> {
-                        <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        events.swap_remove(i);
+                        states.swap_remove(i);
+                        handles.swap_remove(i);
+                    } <span class="kw">else </span>{
+                        i += <span class="number">1</span>;
                     }
                 }
             },
-            <span class="ident">EventMessage::Poison</span> =&gt; <span class="kw">break</span>,
+            EventMessage::Poison =&gt; <span class="kw">break</span>,
         }
     }
 
     <span class="macro">trace!</span>(<span class="string">&quot;Event thread exited.&quot;</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

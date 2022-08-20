@@ -117,122 +117,122 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Constants affecting driver function and API handling.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Constants affecting driver function and API handling.
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="ident">Bitrate</span>, <span class="ident">SampleRate</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">discortp::rtp::RtpType</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">use </span>audiopus::{Bitrate, SampleRate};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="kw">use </span>discortp::rtp::RtpType;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="doccomment">/// The voice gateway version used by the library.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VOICE_GATEWAY_VERSION</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::model::constants::GATEWAY_VERSION</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="doccomment">/// The voice gateway version used by the library.
+</span><span class="kw">pub const </span>VOICE_GATEWAY_VERSION: u8 = <span class="kw">crate</span>::model::constants::GATEWAY_VERSION;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="doccomment">/// Sample rate of audio to be sent to Discord.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SAMPLE_RATE</span>: <span class="ident">SampleRate</span> <span class="op">=</span> <span class="ident">SampleRate::Hz48000</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="doccomment">/// Sample rate of audio to be sent to Discord.
+</span><span class="kw">pub const </span>SAMPLE_RATE: SampleRate = SampleRate::Hz48000;
 
-<span class="doccomment">/// Sample rate of audio to be sent to Discord.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SAMPLE_RATE_RAW</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">48_000</span>;
+<span class="doccomment">/// Sample rate of audio to be sent to Discord.
+</span><span class="kw">pub const </span>SAMPLE_RATE_RAW: usize = <span class="number">48_000</span>;
 
-<span class="doccomment">/// Number of audio frames/packets to be sent per second.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AUDIO_FRAME_RATE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">50</span>;
+<span class="doccomment">/// Number of audio frames/packets to be sent per second.
+</span><span class="kw">pub const </span>AUDIO_FRAME_RATE: usize = <span class="number">50</span>;
 
-<span class="doccomment">/// Length of time between any two audio frames.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIMESTEP_LENGTH</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">1000</span> <span class="op">/</span> <span class="ident">AUDIO_FRAME_RATE</span> <span class="kw">as</span> <span class="ident">u64</span>);
+<span class="doccomment">/// Length of time between any two audio frames.
+</span><span class="kw">pub const </span>TIMESTEP_LENGTH: Duration = Duration::from_millis(<span class="number">1000 </span>/ AUDIO_FRAME_RATE <span class="kw">as </span>u64);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="doccomment">/// Default bitrate for audio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_BITRATE</span>: <span class="ident">Bitrate</span> <span class="op">=</span> <span class="ident">Bitrate::BitsPerSecond</span>(<span class="number">128_000</span>);
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="doccomment">/// Default bitrate for audio.
+</span><span class="kw">pub const </span>DEFAULT_BITRATE: Bitrate = Bitrate::BitsPerSecond(<span class="number">128_000</span>);
 
-<span class="doccomment">/// Number of output samples at 48kHZ to produced when resampling subframes.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">RESAMPLE_OUTPUT_FRAME_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">MONO_FRAME_SIZE</span> <span class="op">/</span> <span class="number">2</span>;
+<span class="doccomment">/// Number of output samples at 48kHZ to produced when resampling subframes.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>RESAMPLE_OUTPUT_FRAME_SIZE: usize = MONO_FRAME_SIZE / <span class="number">2</span>;
 
-<span class="doccomment">/// The maximum number of bad frames to allow in an Opus source before blocking passthrough.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">OPUS_PASSTHROUGH_STRIKE_LIMIT</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="doccomment">/// The maximum number of bad frames to allow in an Opus source before blocking passthrough.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>OPUS_PASSTHROUGH_STRIKE_LIMIT: u8 = <span class="number">3</span>;
 
-<span class="doccomment">/// Number of samples in one complete frame of audio per channel.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is equally the number of stereo (joint) samples in an audio frame.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MONO_FRAME_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">SAMPLE_RATE_RAW</span> <span class="op">/</span> <span class="ident">AUDIO_FRAME_RATE</span>;
+<span class="doccomment">/// Number of samples in one complete frame of audio per channel.
+///
+/// This is equally the number of stereo (joint) samples in an audio frame.
+</span><span class="kw">pub const </span>MONO_FRAME_SIZE: usize = SAMPLE_RATE_RAW / AUDIO_FRAME_RATE;
 
-<span class="doccomment">/// Number of individual samples in one complete frame of stereo audio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STEREO_FRAME_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">MONO_FRAME_SIZE</span>;
+<span class="doccomment">/// Number of individual samples in one complete frame of stereo audio.
+</span><span class="kw">pub const </span>STEREO_FRAME_SIZE: usize = <span class="number">2 </span>* MONO_FRAME_SIZE;
 
-<span class="doccomment">/// Number of bytes in one complete frame of raw `f32`-encoded mono audio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MONO_FRAME_BYTE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">MONO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
+<span class="doccomment">/// Number of bytes in one complete frame of raw `f32`-encoded mono audio.
+</span><span class="kw">pub const </span>MONO_FRAME_BYTE_SIZE: usize = MONO_FRAME_SIZE * std::mem::size_of::&lt;f32&gt;();
 
-<span class="doccomment">/// Number of bytes in one complete frame of raw `f32`-encoded stereo audio.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STEREO_FRAME_BYTE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">STEREO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>();
+<span class="doccomment">/// Number of bytes in one complete frame of raw `f32`-encoded stereo audio.
+</span><span class="kw">pub const </span>STEREO_FRAME_BYTE_SIZE: usize = STEREO_FRAME_SIZE * std::mem::size_of::&lt;f32&gt;();
 
-<span class="doccomment">/// Length (in milliseconds) of any audio frame.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FRAME_LEN_MS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1000</span> <span class="op">/</span> <span class="ident">AUDIO_FRAME_RATE</span>;
+<span class="doccomment">/// Length (in milliseconds) of any audio frame.
+</span><span class="kw">pub const </span>FRAME_LEN_MS: usize = <span class="number">1000 </span>/ AUDIO_FRAME_RATE;
 
-<span class="doccomment">/// Maximum number of audio frames/packets to be sent per second to be buffered.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CHILD_BUFFER_LEN</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">AUDIO_FRAME_RATE</span> <span class="op">/</span> <span class="number">2</span>;
+<span class="doccomment">/// Maximum number of audio frames/packets to be sent per second to be buffered.
+</span><span class="kw">pub const </span>CHILD_BUFFER_LEN: usize = AUDIO_FRAME_RATE / <span class="number">2</span>;
 
-<span class="doccomment">/// Maximum packet size for a voice packet.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Set a safe amount below the Ethernet MTU to avoid fragmentation/rejection.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VOICE_PACKET_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1460</span>;
+<span class="doccomment">/// Maximum packet size for a voice packet.
+///
+/// Set a safe amount below the Ethernet MTU to avoid fragmentation/rejection.
+</span><span class="kw">pub const </span>VOICE_PACKET_MAX: usize = <span class="number">1460</span>;
 
-<span class="doccomment">/// Delay between sends of UDP keepalive frames.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Passive monitoring of Discord itself shows that these fire every 5 seconds</span>
-<span class="doccomment">/// irrespective of outgoing UDP traffic.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UDP_KEEPALIVE_GAP_MS</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">5_000</span>;
+<span class="doccomment">/// Delay between sends of UDP keepalive frames.
+///
+/// Passive monitoring of Discord itself shows that these fire every 5 seconds
+/// irrespective of outgoing UDP traffic.
+</span><span class="kw">pub const </span>UDP_KEEPALIVE_GAP_MS: u64 = <span class="number">5_000</span>;
 
-<span class="doccomment">/// Type-converted delay between sends of UDP keepalive frames.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Passive monitoring of Discord itself shows that these fire every 5 seconds</span>
-<span class="doccomment">/// irrespective of outgoing UDP traffic.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UDP_KEEPALIVE_GAP</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="ident">UDP_KEEPALIVE_GAP_MS</span>);
+<span class="doccomment">/// Type-converted delay between sends of UDP keepalive frames.
+///
+/// Passive monitoring of Discord itself shows that these fire every 5 seconds
+/// irrespective of outgoing UDP traffic.
+</span><span class="kw">pub const </span>UDP_KEEPALIVE_GAP: Duration = Duration::from_millis(UDP_KEEPALIVE_GAP_MS);
 
-<span class="doccomment">/// Opus silent frame, used to signal speech start and end (and prevent audio glitching).</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SILENT_FRAME</span>: [<span class="ident">u8</span>; <span class="number">3</span>] <span class="op">=</span> [<span class="number">0xf8</span>, <span class="number">0xff</span>, <span class="number">0xfe</span>];
+<span class="doccomment">/// Opus silent frame, used to signal speech start and end (and prevent audio glitching).
+</span><span class="kw">pub const </span>SILENT_FRAME: [u8; <span class="number">3</span>] = [<span class="number">0xf8</span>, <span class="number">0xff</span>, <span class="number">0xfe</span>];
 
-<span class="doccomment">/// The one (and only) RTP version.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RTP_VERSION</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="doccomment">/// The one (and only) RTP version.
+</span><span class="kw">pub const </span>RTP_VERSION: u8 = <span class="number">2</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="doccomment">/// Profile type used by Discord&#39;s Opus audio traffic.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RTP_PROFILE_TYPE</span>: <span class="ident">RtpType</span> <span class="op">=</span> <span class="ident">RtpType::Dynamic</span>(<span class="number">120</span>);
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
+<span class="doccomment">/// Profile type used by Discord&#39;s Opus audio traffic.
+</span><span class="kw">pub const </span>RTP_PROFILE_TYPE: RtpType = RtpType::Dynamic(<span class="number">120</span>);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">test_data</span> {
-    <span class="doccomment">/// URL for a source which YTDL must extract.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">YTDL_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;https://cloudkicker.bandcamp.com/track/94-days&quot;</span>;
+<span class="attribute">#[cfg(test)]</span>
+<span class="kw">pub mod </span>test_data {
+    <span class="doccomment">/// URL for a source which YTDL must extract.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    </span><span class="kw">pub const </span>YTDL_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://cloudkicker.bandcamp.com/track/94-days&quot;</span>;
 
-    <span class="doccomment">/// URL for a source which can be read via an Http Request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HTTP_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%202011%2007.mp3&quot;</span>;
+    <span class="doccomment">/// URL for a source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    </span><span class="kw">pub const </span>HTTP_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%202011%2007.mp3&quot;</span>;
 
-    <span class="doccomment">/// URL for an opus/ogg source which can be read via an Http Request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HTTP_OPUS_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.opus&quot;</span>;
+    <span class="doccomment">/// URL for an opus/ogg source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    </span><span class="kw">pub const </span>HTTP_OPUS_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.opus&quot;</span>;
 
-    <span class="doccomment">/// URL for an opus/webm source which can be read via an Http Request.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HTTP_WEBM_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.webm&quot;</span>;
+    <span class="doccomment">/// URL for an opus/webm source which can be read via an Http Request.
+    ///
+    /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    </span><span class="kw">pub const </span>HTTP_WEBM_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://github.com/FelixMcFelix/songbird/raw/symphonia/resources/Cloudkicker%20-%20Making%20Will%20Mad.webm&quot;</span>;
 
-    <span class="doccomment">/// Path to a DCA source.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FILE_DCA_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;resources/Cloudkicker - 2011 07.dca1&quot;</span>;
+    <span class="doccomment">/// Path to a DCA source.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
+    </span><span class="kw">pub const </span>FILE_DCA_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;resources/Cloudkicker - 2011 07.dca1&quot;</span>;
 
-    <span class="doccomment">/// Path to an opus source which can be read via a File.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FILE_WEBM_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;resources/Cloudkicker - Making Will Mad.webm&quot;</span>;
+    <span class="doccomment">/// Path to an opus source which can be read via a File.
+    ///
+    /// Referenced under CC BY 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    </span><span class="kw">pub const </span>FILE_WEBM_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;resources/Cloudkicker - Making Will Mad.webm&quot;</span>;
 
-    <span class="doccomment">/// Path to a Wav source which can be read via a File.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FILE_WAV_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;resources/loop.wav&quot;</span>;
+    <span class="doccomment">/// Path to a Wav source which can be read via a File.
+    </span><span class="kw">pub const </span>FILE_WAV_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;resources/loop.wav&quot;</span>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

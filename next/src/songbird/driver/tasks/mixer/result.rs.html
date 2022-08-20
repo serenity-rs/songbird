@@ -55,60 +55,60 @@
 <span id="53">53</span>
 <span id="54">54</span>
 <span id="55">55</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">input::AudioStreamError</span>,
-    <span class="ident">tracks</span>::{<span class="ident">PlayError</span>, <span class="ident">SeekRequest</span>},
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    input::AudioStreamError,
+    tracks::{PlayError, SeekRequest},
 };
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-<span class="kw">use</span> <span class="ident">symphonia_core::errors::Error</span> <span class="kw">as</span> <span class="ident">SymphoniaError</span>;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>symphonia_core::errors::Error <span class="kw">as </span>SymphoniaError;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MixType</span> {
-    <span class="ident">Passthrough</span>(<span class="ident">usize</span>),
-    <span class="ident">MixedPcm</span>(<span class="ident">usize</span>),
+<span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq)]</span>
+<span class="kw">pub enum </span>MixType {
+    Passthrough(usize),
+    MixedPcm(usize),
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MixStatus</span> {
-    <span class="ident">Live</span>,
-    <span class="ident">Ended</span>,
-    <span class="ident">Errored</span>(<span class="ident">SymphoniaError</span>),
+<span class="kw">pub enum </span>MixStatus {
+    Live,
+    Ended,
+    Errored(SymphoniaError),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SymphoniaError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MixStatus</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">SymphoniaError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Errored</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;SymphoniaError&gt; <span class="kw">for </span>MixStatus {
+    <span class="kw">fn </span>from(e: SymphoniaError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Errored(e)
     }
 }
 
-<span class="comment">// The Symph errors are Arc&#39;d here since if they come up, they will always</span>
-<span class="comment">// be Arc&#39;d anyway via into_user.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">InputReadyingError</span> {
-    <span class="ident">Parsing</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SymphoniaError</span><span class="op">&gt;</span>),
-    <span class="ident">Creation</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AudioStreamError</span><span class="op">&gt;</span>),
-    <span class="ident">Seeking</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SymphoniaError</span><span class="op">&gt;</span>),
-    <span class="ident">Dropped</span>,
-    <span class="ident">Waiting</span>,
-    <span class="ident">NeedsSeek</span>(<span class="ident">SeekRequest</span>),
+<span class="comment">// The Symph errors are Arc&#39;d here since if they come up, they will always
+// be Arc&#39;d anyway via into_user.
+</span><span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="kw">pub enum </span>InputReadyingError {
+    Parsing(Arc&lt;SymphoniaError&gt;),
+    Creation(Arc&lt;AudioStreamError&gt;),
+    Seeking(Arc&lt;SymphoniaError&gt;),
+    Dropped,
+    Waiting,
+    NeedsSeek(SeekRequest),
 }
 
-<span class="kw">impl</span> <span class="ident">InputReadyingError</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_user</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PlayError</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Parsing</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">PlayError::Parse</span>(<span class="ident">e</span>.<span class="ident">clone</span>())),
-            <span class="ident"><span class="self">Self</span>::Creation</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">PlayError::Create</span>(<span class="ident">e</span>.<span class="ident">clone</span>())),
-            <span class="ident"><span class="self">Self</span>::Seeking</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">PlayError::Seek</span>(<span class="ident">e</span>.<span class="ident">clone</span>())),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span>InputReadyingError {
+    <span class="kw">pub fn </span>as_user(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PlayError&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Parsing(e) =&gt; <span class="prelude-val">Some</span>(PlayError::Parse(e.clone())),
+            <span class="self">Self</span>::Creation(e) =&gt; <span class="prelude-val">Some</span>(PlayError::Create(e.clone())),
+            <span class="self">Self</span>::Seeking(e) =&gt; <span class="prelude-val">Some</span>(PlayError::Seek(e.clone())),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_seek_request</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SeekRequest</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::NeedsSeek</span>(<span class="ident">a</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">a</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+    <span class="kw">pub fn </span>into_seek_request(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SeekRequest&gt; {
+        <span class="kw">if let </span><span class="self">Self</span>::NeedsSeek(a) = <span class="self">self </span>{
+            <span class="prelude-val">Some</span>(a)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -182,20 +182,20 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Seek</span>, <span class="ident">SeekFrom</span>};
-<span class="kw">use</span> <span class="ident">symphonia::core</span>::{
-    <span class="ident">audio::Channels</span>,
-    <span class="ident">codecs</span>::{<span class="ident">CodecParameters</span>, <span class="ident">CODEC_TYPE_PCM_F32LE</span>},
-    <span class="ident">errors</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">symph_err</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">SymphResult</span>, <span class="ident">SeekErrorKind</span>},
-    <span class="ident">formats::prelude</span>::<span class="kw-2">*</span>,
-    <span class="ident">io</span>::{<span class="ident">MediaSource</span>, <span class="ident">MediaSourceStream</span>, <span class="ident">ReadBytes</span>, <span class="ident">SeekBuffered</span>},
-    <span class="ident">meta</span>::{<span class="ident">Metadata</span> <span class="kw">as</span> <span class="ident">SymphMetadata</span>, <span class="ident">MetadataLog</span>},
-    <span class="ident">probe</span>::{<span class="ident">Descriptor</span>, <span class="ident">Instantiate</span>, <span class="ident">QueryDescriptor</span>},
-    <span class="ident">units::TimeStamp</span>,
+</pre><pre class="rust"><code><span class="kw">use </span>std::io::{Seek, SeekFrom};
+<span class="kw">use </span>symphonia::core::{
+    audio::Channels,
+    codecs::{CodecParameters, CODEC_TYPE_PCM_F32LE},
+    errors::{<span class="self">self </span><span class="kw">as </span>symph_err, <span class="prelude-ty">Result </span><span class="kw">as </span>SymphResult, SeekErrorKind},
+    formats::prelude::<span class="kw-2">*</span>,
+    io::{MediaSource, MediaSourceStream, ReadBytes, SeekBuffered},
+    meta::{Metadata <span class="kw">as </span>SymphMetadata, MetadataLog},
+    probe::{Descriptor, Instantiate, QueryDescriptor},
+    units::TimeStamp,
 };
 
-<span class="kw">impl</span> <span class="ident">QueryDescriptor</span> <span class="kw">for</span> <span class="ident">RawReader</span> {
-    <span class="kw">fn</span> <span class="ident">query</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">Descriptor</span>] {
+<span class="kw">impl </span>QueryDescriptor <span class="kw">for </span>RawReader {
+    <span class="kw">fn </span>query() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[Descriptor] {
         <span class="kw-2">&amp;</span>[<span class="macro">symphonia_core::support_format!</span>(
             <span class="string">&quot;raw&quot;</span>,
             <span class="string">&quot;Raw arbitrary-length f32 audio container.&quot;</span>,
@@ -205,164 +205,164 @@
         )]
     }
 
-    <span class="kw">fn</span> <span class="ident">score</span>(<span class="ident">_context</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">u8</span> {
-        <span class="number">255</span>
-    }
+    <span class="kw">fn </span>score(_context: <span class="kw-2">&amp;</span>[u8]) -&gt; u8 {
+        <span class="number">255
+    </span>}
 }
 
-<span class="doccomment">/// Symphonia support for a simple container for raw f32-PCM data of unknown duration.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Contained files have a simple header:</span>
-<span class="doccomment">/// * the 8-byte signature `b&quot;SbirdRaw&quot;`,</span>
-<span class="doccomment">/// * the sample rate, as a little-endian `u32`,</span>
-<span class="doccomment">/// * the channel count, as a little-endian `u32`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The remainder of the file is interleaved little-endian `f32` samples.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawReader</span> {
-    <span class="ident">source</span>: <span class="ident">MediaSourceStream</span>,
-    <span class="ident">track</span>: <span class="ident">Track</span>,
-    <span class="ident">meta</span>: <span class="ident">MetadataLog</span>,
-    <span class="ident">curr_ts</span>: <span class="ident">TimeStamp</span>,
-    <span class="ident">max_ts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TimeStamp</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Symphonia support for a simple container for raw f32-PCM data of unknown duration.
+///
+/// Contained files have a simple header:
+/// * the 8-byte signature `b&quot;SbirdRaw&quot;`,
+/// * the sample rate, as a little-endian `u32`,
+/// * the channel count, as a little-endian `u32`.
+///
+/// The remainder of the file is interleaved little-endian `f32` samples.
+</span><span class="kw">pub struct </span>RawReader {
+    source: MediaSourceStream,
+    track: Track,
+    meta: MetadataLog,
+    curr_ts: TimeStamp,
+    max_ts: <span class="prelude-ty">Option</span>&lt;TimeStamp&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">FormatReader</span> <span class="kw">for</span> <span class="ident">RawReader</span> {
-    <span class="kw">fn</span> <span class="ident">try_new</span>(<span class="kw-2">mut</span> <span class="ident">source</span>: <span class="ident">MediaSourceStream</span>, <span class="ident">_options</span>: <span class="kw-2">&amp;</span><span class="ident">FormatOptions</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">magic</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">8</span>];
-        <span class="ident">ReadBytes::read_buf_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">source</span>, <span class="kw-2">&amp;mut</span> <span class="ident">magic</span>[..])<span class="question-mark">?</span>;
+<span class="kw">impl </span>FormatReader <span class="kw">for </span>RawReader {
+    <span class="kw">fn </span>try_new(<span class="kw-2">mut </span>source: MediaSourceStream, _options: <span class="kw-2">&amp;</span>FormatOptions) -&gt; SymphResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>magic = [<span class="number">0u8</span>; <span class="number">8</span>];
+        ReadBytes::read_buf_exact(<span class="kw-2">&amp;mut </span>source, <span class="kw-2">&amp;mut </span>magic[..])<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&quot;SbirdRaw&quot;</span> {
-            <span class="ident">source</span>.<span class="ident">seek_buffered_rel</span>(<span class="op">-</span>(<span class="ident">magic</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">isize</span>));
-            <span class="kw">return</span> <span class="ident">symph_err::decode_error</span>(<span class="string">&quot;rawf32: illegal magic byte sequence.&quot;</span>);
+        <span class="kw">if </span><span class="kw-2">&amp;</span>magic != <span class="string">b&quot;SbirdRaw&quot; </span>{
+            source.seek_buffered_rel(-(magic.len() <span class="kw">as </span>isize));
+            <span class="kw">return </span>symph_err::decode_error(<span class="string">&quot;rawf32: illegal magic byte sequence.&quot;</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">sample_rate</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">read_u32</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">n_chans</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">read_u32</span>()<span class="question-mark">?</span>;
+        <span class="kw">let </span>sample_rate = source.read_u32()<span class="question-mark">?</span>;
+        <span class="kw">let </span>n_chans = source.read_u32()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">chans</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">n_chans</span> {
-            <span class="number">1</span> =&gt; <span class="ident">Channels::FRONT_LEFT</span>,
-            <span class="number">2</span> =&gt; <span class="ident">Channels::FRONT_LEFT</span> <span class="op">|</span> <span class="ident">Channels::FRONT_RIGHT</span>,
-            <span class="kw">_</span> =&gt;
-                <span class="kw">return</span> <span class="ident">symph_err::decode_error</span>(
+        <span class="kw">let </span>chans = <span class="kw">match </span>n_chans {
+            <span class="number">1 </span>=&gt; Channels::FRONT_LEFT,
+            <span class="number">2 </span>=&gt; Channels::FRONT_LEFT | Channels::FRONT_RIGHT,
+            <span class="kw">_ </span>=&gt;
+                <span class="kw">return </span>symph_err::decode_error(
                     <span class="string">&quot;rawf32: channel layout is not stereo or mono for fmt_pcm&quot;</span>,
                 ),
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">codec_params</span> <span class="op">=</span> <span class="ident">CodecParameters::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>codec_params = CodecParameters::new();
 
-        <span class="ident">codec_params</span>
-            .<span class="ident">for_codec</span>(<span class="ident">CODEC_TYPE_PCM_F32LE</span>)
-            .<span class="ident">with_bits_per_coded_sample</span>((<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">*</span> <span class="number">8</span>)
-            .<span class="ident">with_bits_per_sample</span>((<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">*</span> <span class="number">8</span>)
-            .<span class="ident">with_sample_rate</span>(<span class="ident">sample_rate</span>)
-            .<span class="ident">with_time_base</span>(<span class="ident">TimeBase::new</span>(<span class="number">1</span>, <span class="ident">sample_rate</span>))
-            .<span class="ident">with_sample_format</span>(<span class="ident">symphonia_core::sample::SampleFormat::F32</span>)
-            .<span class="ident">with_max_frames_per_packet</span>(<span class="ident">sample_rate</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">/</span> <span class="number">50</span>)
-            .<span class="ident">with_channels</span>(<span class="ident">chans</span>);
+        codec_params
+            .for_codec(CODEC_TYPE_PCM_F32LE)
+            .with_bits_per_coded_sample((std::mem::size_of::&lt;f32&gt;() <span class="kw">as </span>u32) * <span class="number">8</span>)
+            .with_bits_per_sample((std::mem::size_of::&lt;f32&gt;() <span class="kw">as </span>u32) * <span class="number">8</span>)
+            .with_sample_rate(sample_rate)
+            .with_time_base(TimeBase::new(<span class="number">1</span>, sample_rate))
+            .with_sample_format(symphonia_core::sample::SampleFormat::F32)
+            .with_max_frames_per_packet(sample_rate <span class="kw">as </span>u64 / <span class="number">50</span>)
+            .with_channels(chans);
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">source</span>,
-            <span class="ident">track</span>: <span class="ident">Track</span> {
-                <span class="ident">id</span>: <span class="number">0</span>,
-                <span class="ident">language</span>: <span class="prelude-val">None</span>,
-                <span class="ident">codec_params</span>,
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            source,
+            track: Track {
+                id: <span class="number">0</span>,
+                language: <span class="prelude-val">None</span>,
+                codec_params,
             },
-            <span class="ident">meta</span>: <span class="ident">MetadataLog::default</span>(),
-            <span class="ident">curr_ts</span>: <span class="number">0</span>,
-            <span class="ident">max_ts</span>: <span class="prelude-val">None</span>,
+            meta: MetadataLog::default(),
+            curr_ts: <span class="number">0</span>,
+            max_ts: <span class="prelude-val">None</span>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">cues</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Cue</span>] {
+    <span class="kw">fn </span>cues(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Cue] {
         <span class="kw-2">&amp;</span>[]
     }
 
-    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SymphMetadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">meta</span>.<span class="ident">metadata</span>()
+    <span class="kw">fn </span>metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SymphMetadata&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="self">self</span>.meta.metadata()
     }
 
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_mode</span>: <span class="ident">SeekMode</span>, <span class="ident">to</span>: <span class="ident">SeekTo</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span><span class="ident">SeekedTo</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">can_backseek</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">is_seekable</span>();
+    <span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _mode: SeekMode, to: SeekTo) -&gt; SymphResult&lt;SeekedTo&gt; {
+        <span class="kw">let </span>can_backseek = <span class="self">self</span>.source.is_seekable();
 
-        <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">track</span>;
-        <span class="kw">let</span> <span class="ident">rate</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">codec_params</span>.<span class="ident">sample_rate</span>;
-        <span class="kw">let</span> <span class="ident">ts</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">to</span> {
-            <span class="ident">SeekTo::Time</span> { <span class="ident">time</span>, .. } =&gt;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rate</span>) <span class="op">=</span> <span class="ident">rate</span> {
-                    <span class="ident">TimeBase::new</span>(<span class="number">1</span>, <span class="ident">rate</span>).<span class="ident">calc_timestamp</span>(<span class="ident">time</span>)
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="ident">symph_err::seek_error</span>(<span class="ident">SeekErrorKind::Unseekable</span>);
+        <span class="kw">let </span>track = <span class="kw-2">&amp;</span><span class="self">self</span>.track;
+        <span class="kw">let </span>rate = track.codec_params.sample_rate;
+        <span class="kw">let </span>ts = <span class="kw">match </span>to {
+            SeekTo::Time { time, .. } =&gt;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(rate) = rate {
+                    TimeBase::new(<span class="number">1</span>, rate).calc_timestamp(time)
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span>symph_err::seek_error(SeekErrorKind::Unseekable);
                 },
-            <span class="ident">SeekTo::TimeStamp</span> { <span class="ident">ts</span>, .. } =&gt; <span class="ident">ts</span>,
+            SeekTo::TimeStamp { ts, .. } =&gt; ts,
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">max_ts</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">max_ts</span> {
-            <span class="kw">if</span> <span class="ident">ts</span> <span class="op">&gt;</span> <span class="ident">max_ts</span> {
-                <span class="kw">return</span> <span class="ident">symph_err::seek_error</span>(<span class="ident">SeekErrorKind::OutOfRange</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(max_ts) = <span class="self">self</span>.max_ts {
+            <span class="kw">if </span>ts &gt; max_ts {
+                <span class="kw">return </span>symph_err::seek_error(SeekErrorKind::OutOfRange);
             }
         }
 
-        <span class="kw">let</span> <span class="ident">backseek_needed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">curr_ts</span> <span class="op">&gt;</span> <span class="ident">ts</span>;
+        <span class="kw">let </span>backseek_needed = <span class="self">self</span>.curr_ts &gt; ts;
 
-        <span class="kw">if</span> <span class="ident">backseek_needed</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">can_backseek</span> {
-            <span class="kw">return</span> <span class="ident">symph_err::seek_error</span>(<span class="ident">SeekErrorKind::ForwardOnly</span>);
+        <span class="kw">if </span>backseek_needed &amp;&amp; !can_backseek {
+            <span class="kw">return </span>symph_err::seek_error(SeekErrorKind::ForwardOnly);
         }
 
-        <span class="kw">let</span> <span class="ident">chan_count</span> <span class="op">=</span> <span class="ident">track</span>
-            .<span class="ident">codec_params</span>
-            .<span class="ident">channels</span>
-            .<span class="ident">expect</span>(<span class="string">&quot;Channel count is built into format.&quot;</span>)
-            .<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let </span>chan_count = track
+            .codec_params
+            .channels
+            .expect(<span class="string">&quot;Channel count is built into format.&quot;</span>)
+            .count() <span class="kw">as </span>u64;
 
-        <span class="kw">let</span> <span class="ident">seek_pos</span> <span class="op">=</span> <span class="number">16</span> <span class="op">+</span> (<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">*</span> (<span class="ident">ts</span> <span class="op">*</span> <span class="ident">chan_count</span>);
+        <span class="kw">let </span>seek_pos = <span class="number">16 </span>+ (std::mem::size_of::&lt;f32&gt;() <span class="kw">as </span>u64) * (ts * chan_count);
 
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="ident">seek_pos</span>))<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">curr_ts</span> <span class="op">=</span> <span class="ident">ts</span>;
+        <span class="self">self</span>.source.seek(SeekFrom::Start(seek_pos))<span class="question-mark">?</span>;
+        <span class="self">self</span>.curr_ts = ts;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">SeekedTo</span> {
-            <span class="ident">track_id</span>: <span class="ident">track</span>.<span class="ident">id</span>,
-            <span class="ident">required_ts</span>: <span class="ident">ts</span>,
-            <span class="ident">actual_ts</span>: <span class="ident">ts</span>,
+        <span class="prelude-val">Ok</span>(SeekedTo {
+            track_id: track.id,
+            required_ts: ts,
+            actual_ts: ts,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">tracks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Track</span>] {
-        <span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">track</span>)
+    <span class="kw">fn </span>tracks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Track] {
+        std::slice::from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.track)
     }
 
-    <span class="kw">fn</span> <span class="ident">default_track</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Track</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">track</span>)
+    <span class="kw">fn </span>default_track(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Track&gt; {
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.track)
     }
 
-    <span class="kw">fn</span> <span class="ident">next_packet</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SymphResult</span><span class="op">&lt;</span><span class="ident">Packet</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">track</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">track</span>;
-        <span class="kw">let</span> <span class="ident">rate</span> <span class="op">=</span> <span class="ident">track</span>
-            .<span class="ident">codec_params</span>
-            .<span class="ident">sample_rate</span>
-            .<span class="ident">expect</span>(<span class="string">&quot;Sample rate is built into format.&quot;</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+    <span class="kw">fn </span>next_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SymphResult&lt;Packet&gt; {
+        <span class="kw">let </span>track = <span class="kw-2">&amp;</span><span class="self">self</span>.track;
+        <span class="kw">let </span>rate = track
+            .codec_params
+            .sample_rate
+            .expect(<span class="string">&quot;Sample rate is built into format.&quot;</span>) <span class="kw">as </span>usize;
 
-        <span class="kw">let</span> <span class="ident">chan_count</span> <span class="op">=</span> <span class="ident">track</span>
-            .<span class="ident">codec_params</span>
-            .<span class="ident">channels</span>
-            .<span class="ident">expect</span>(<span class="string">&quot;Channel count is built into format.&quot;</span>)
-            .<span class="ident">count</span>();
+        <span class="kw">let </span>chan_count = track
+            .codec_params
+            .channels
+            .expect(<span class="string">&quot;Channel count is built into format.&quot;</span>)
+            .count();
 
-        <span class="kw">let</span> <span class="ident">sample_unit</span> <span class="op">=</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">chan_count</span>;
+        <span class="kw">let </span>sample_unit = std::mem::size_of::&lt;f32&gt;() * chan_count;
 
-        <span class="comment">// Aim for 20ms (50Hz).</span>
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">read_boxed_slice</span>((<span class="ident">rate</span> <span class="op">/</span> <span class="number">50</span>) <span class="op">*</span> <span class="ident">sample_unit</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Aim for 20ms (50Hz).
+        </span><span class="kw">let </span>buf = <span class="self">self</span>.source.read_boxed_slice((rate / <span class="number">50</span>) * sample_unit)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">sample_ct</span> <span class="op">=</span> (<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="ident">sample_unit</span>) <span class="kw">as</span> <span class="ident">u64</span>;
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">Packet::new_from_boxed_slice</span>(<span class="number">0</span>, <span class="self">self</span>.<span class="ident">curr_ts</span>, <span class="ident">sample_ct</span>, <span class="ident">buf</span>);
+        <span class="kw">let </span>sample_ct = (buf.len() / sample_unit) <span class="kw">as </span>u64;
+        <span class="kw">let </span>out = Packet::new_from_boxed_slice(<span class="number">0</span>, <span class="self">self</span>.curr_ts, sample_ct, buf);
 
-        <span class="self">self</span>.<span class="ident">curr_ts</span> <span class="op">+</span><span class="op">=</span> <span class="ident">sample_ct</span>;
+        <span class="self">self</span>.curr_ts += sample_ct;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">out</span>)
+        <span class="prelude-val">Ok</span>(out)
     }
 
-    <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">MediaSourceStream</span> {
-        <span class="self">self</span>.<span class="ident">source</span>
+    <span class="kw">fn </span>into_inner(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;) -&gt; MediaSourceStream {
+        <span class="self">self</span>.source
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

@@ -17,22 +17,22 @@
 <span id="15">15</span>
 <span id="16">16</span>
 <span id="17">17</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+</pre><pre class="rust"><code><span class="attribute">#![allow(missing_docs)]</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Interconnect</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::driver::Config</span>;
-<span class="kw">use</span> <span class="ident">dashmap</span>::{<span class="ident">DashMap</span>, <span class="ident">DashSet</span>};
-<span class="kw">use</span> <span class="ident">serenity_voice_model::id::UserId</span>;
+<span class="kw">use </span><span class="kw">super</span>::Interconnect;
+<span class="kw">use </span><span class="kw">crate</span>::driver::Config;
+<span class="kw">use </span>dashmap::{DashMap, DashSet};
+<span class="kw">use </span>serenity_voice_model::id::UserId;
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UdpRxMessage</span> {
-    <span class="ident">SetConfig</span>(<span class="ident">Config</span>),
-    <span class="ident">ReplaceInterconnect</span>(<span class="ident">Interconnect</span>),
+<span class="kw">pub enum </span>UdpRxMessage {
+    SetConfig(Config),
+    ReplaceInterconnect(Interconnect),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SsrcTracker</span> {
-    <span class="kw">pub</span> <span class="ident">disconnected_users</span>: <span class="ident">DashSet</span><span class="op">&lt;</span><span class="ident">UserId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">user_ssrc_map</span>: <span class="ident">DashMap</span><span class="op">&lt;</span><span class="ident">UserId</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Default)]</span>
+<span class="kw">pub struct </span>SsrcTracker {
+    <span class="kw">pub </span>disconnected_users: DashSet&lt;UserId&gt;,
+    <span class="kw">pub </span>user_ssrc_map: DashMap&lt;UserId, u32&gt;,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

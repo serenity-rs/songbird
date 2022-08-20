@@ -332,337 +332,337 @@
 <span id="330">330</span>
 <span id="331">331</span>
 <span id="332">332</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input::AudioStreamError</span>;
-<span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
-<span class="kw">use</span> <span class="ident">flume</span>::{<span class="ident">Receiver</span>, <span class="ident">RecvError</span>, <span class="ident">Sender</span>, <span class="ident">TryRecvError</span>};
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future::Either</span>, <span class="ident">stream::FuturesUnordered</span>, <span class="ident">FutureExt</span>, <span class="ident">StreamExt</span>};
-<span class="kw">use</span> <span class="ident">ringbuf</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">io</span>::{
-        <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>,
-        <span class="ident">ErrorKind</span> <span class="kw">as</span> <span class="ident">IoErrorKind</span>,
-        <span class="ident">Read</span>,
-        <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">IoResult</span>,
-        <span class="ident">Seek</span>,
-        <span class="ident">SeekFrom</span>,
-        <span class="ident">Write</span>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::input::AudioStreamError;
+<span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>flume::{Receiver, RecvError, Sender, TryRecvError};
+<span class="kw">use </span>futures::{future::Either, stream::FuturesUnordered, FutureExt, StreamExt};
+<span class="kw">use </span>ringbuf::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::{
+    io::{
+        Error <span class="kw">as </span>IoError,
+        ErrorKind <span class="kw">as </span>IoErrorKind,
+        Read,
+        <span class="prelude-ty">Result </span><span class="kw">as </span>IoResult,
+        Seek,
+        SeekFrom,
+        Write,
     },
-    <span class="ident">sync</span>::{
-        <span class="ident">atomic</span>::{<span class="ident">AtomicBool</span>, <span class="ident">Ordering</span>},
-        <span class="ident">Arc</span>,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
     },
 };
-<span class="kw">use</span> <span class="ident">symphonia_core::io::MediaSource</span>;
-<span class="kw">use</span> <span class="ident">tokio</span>::{
-    <span class="ident">io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncReadExt</span>, <span class="ident">AsyncSeek</span>, <span class="ident">AsyncSeekExt</span>},
-    <span class="ident">sync::Notify</span>,
+<span class="kw">use </span>symphonia_core::io::MediaSource;
+<span class="kw">use </span>tokio::{
+    io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt},
+    sync::Notify,
 };
 
-<span class="kw">struct</span> <span class="ident">AsyncAdapterSink</span> {
-    <span class="ident">bytes_in</span>: <span class="ident">Producer</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="ident">req_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">AdapterRequest</span><span class="op">&gt;</span>,
-    <span class="ident">resp_tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">AdapterResponse</span><span class="op">&gt;</span>,
-    <span class="ident">stream</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">AsyncMediaSource</span><span class="op">&gt;</span>,
-    <span class="ident">notify_rx</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Notify</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>AsyncAdapterSink {
+    bytes_in: Producer&lt;u8&gt;,
+    req_rx: Receiver&lt;AdapterRequest&gt;,
+    resp_tx: Sender&lt;AdapterResponse&gt;,
+    stream: Box&lt;<span class="kw">dyn </span>AsyncMediaSource&gt;,
+    notify_rx: Arc&lt;Notify&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">AsyncAdapterSink</span> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">launch</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">10</span> <span class="op">*</span> <span class="number">1024</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_region</span> <span class="op">=</span> <span class="number">0</span>..<span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hit_end</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocked</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pause_buf_moves</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seek_res</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen_bytes</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">impl </span>AsyncAdapterSink {
+    <span class="kw">async fn </span>launch(<span class="kw-2">mut </span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner_buf = [<span class="number">0u8</span>; <span class="number">10 </span>* <span class="number">1024</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>read_region = <span class="number">0</span>..<span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>hit_end = <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>blocked = <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>pause_buf_moves = <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>seek_res = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>seen_bytes = <span class="number">0</span>;
 
-        <span class="kw">loop</span> {
-            <span class="comment">// if read_region is empty, refill from src.</span>
-            <span class="comment">//  if that read is zero, tell other half.</span>
-            <span class="comment">// if WouldBlock, block on msg acquire,</span>
-            <span class="comment">// else non_block msg acquire.</span>
+        <span class="kw">loop </span>{
+            <span class="comment">// if read_region is empty, refill from src.
+            //  if that read is zero, tell other half.
+            // if WouldBlock, block on msg acquire,
+            // else non_block msg acquire.
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">pause_buf_moves</span> {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">hit_end</span> <span class="op">&amp;&amp;</span> <span class="ident">read_region</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">inner_buf</span>).<span class="kw">await</span> {
-                        <span class="ident">read_region</span> <span class="op">=</span> <span class="number">0</span>..<span class="ident">n</span>;
-                        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
-                            <span class="ident">drop</span>(<span class="self">self</span>.<span class="ident">resp_tx</span>.<span class="ident">send_async</span>(<span class="ident">AdapterResponse::ReadZero</span>).<span class="kw">await</span>);
-                            <span class="ident">hit_end</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            </span><span class="kw">if </span>!pause_buf_moves {
+                <span class="kw">if </span>!hit_end &amp;&amp; read_region.is_empty() {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(n) = <span class="self">self</span>.stream.read(<span class="kw-2">&amp;mut </span>inner_buf).<span class="kw">await </span>{
+                        read_region = <span class="number">0</span>..n;
+                        <span class="kw">if </span>n == <span class="number">0 </span>{
+                            drop(<span class="self">self</span>.resp_tx.send_async(AdapterResponse::ReadZero).<span class="kw">await</span>);
+                            hit_end = <span class="bool-val">true</span>;
                         }
-                        <span class="ident">seen_bytes</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>;
-                    } <span class="kw">else</span> {
-                        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">try_resume</span>(<span class="ident">seen_bytes</span>).<span class="kw">await</span> {
-                            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; {
-                                <span class="self">self</span>.<span class="ident">stream</span> <span class="op">=</span> <span class="ident">s</span>;
+                        seen_bytes += n <span class="kw">as </span>u64;
+                    } <span class="kw">else </span>{
+                        <span class="kw">match </span><span class="self">self</span>.stream.try_resume(seen_bytes).<span class="kw">await </span>{
+                            <span class="prelude-val">Ok</span>(s) =&gt; {
+                                <span class="self">self</span>.stream = s;
                             },
-                            <span class="prelude-val">Err</span>(<span class="ident">_e</span>) =&gt; <span class="kw">break</span>,
+                            <span class="prelude-val">Err</span>(_e) =&gt; <span class="kw">break</span>,
                         }
                     }
                 }
 
-                <span class="kw">while</span> <span class="op">!</span><span class="ident">read_region</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">blocked</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">n_moved</span>) <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">bytes_in</span>
-                        .<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">inner_buf</span>[<span class="ident">read_region</span>.<span class="ident">start</span>..<span class="ident">read_region</span>.<span class="ident">end</span>])
+                <span class="kw">while </span>!read_region.is_empty() &amp;&amp; !blocked {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(n_moved) = <span class="self">self
+                        </span>.bytes_in
+                        .write(<span class="kw-2">&amp;</span>inner_buf[read_region.start..read_region.end])
                     {
-                        <span class="ident">read_region</span>.<span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n_moved</span>;
-                    } <span class="kw">else</span> {
-                        <span class="ident">blocked</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        read_region.start += n_moved;
+                    } <span class="kw">else </span>{
+                        blocked = <span class="bool-val">true</span>;
                     }
                 }
             }
 
-            <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">blocked</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hit_end</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fs</span> <span class="op">=</span> <span class="ident">FuturesUnordered::new</span>();
-                <span class="ident">fs</span>.<span class="ident">push</span>(<span class="ident">Either::Left</span>(<span class="self">self</span>.<span class="ident">req_rx</span>.<span class="ident">recv_async</span>()));
-                <span class="ident">fs</span>.<span class="ident">push</span>(<span class="ident">Either::Right</span>(<span class="self">self</span>.<span class="ident">notify_rx</span>.<span class="ident">notified</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">o</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AdapterRequest</span>, <span class="ident">RecvError</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(<span class="ident">AdapterRequest::Wake</span>);
-                    <span class="ident">o</span>
+            <span class="kw">let </span>msg = <span class="kw">if </span>blocked || hit_end {
+                <span class="kw">let </span><span class="kw-2">mut </span>fs = FuturesUnordered::new();
+                fs.push(Either::Left(<span class="self">self</span>.req_rx.recv_async()));
+                fs.push(Either::Right(<span class="self">self</span>.notify_rx.notified().map(|<span class="kw">_</span>| {
+                    <span class="kw">let </span>o: <span class="prelude-ty">Result</span>&lt;AdapterRequest, RecvError&gt; = <span class="prelude-val">Ok</span>(AdapterRequest::Wake);
+                    o
                 })));
 
-                <span class="kw">match</span> <span class="ident">fs</span>.<span class="ident">next</span>().<span class="kw">await</span> {
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">a</span>)) =&gt; <span class="ident">a</span>,
-                    <span class="kw">_</span> =&gt; <span class="kw">break</span>,
+                <span class="kw">match </span>fs.next().<span class="kw">await </span>{
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(a)) =&gt; a,
+                    <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
                 }
-            } <span class="kw">else</span> {
-                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">req_rx</span>.<span class="ident">try_recv</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>) =&gt; <span class="kw">continue</span>,
-                    <span class="kw">_</span> =&gt; <span class="kw">break</span>,
+            } <span class="kw">else </span>{
+                <span class="kw">match </span><span class="self">self</span>.req_rx.try_recv() {
+                    <span class="prelude-val">Ok</span>(a) =&gt; a,
+                    <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; <span class="kw">continue</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
                 }
             };
 
-            <span class="kw">match</span> <span class="ident">msg</span> {
-                <span class="ident">AdapterRequest::Wake</span> =&gt; <span class="ident">blocked</span> <span class="op">=</span> <span class="bool-val">false</span>,
-                <span class="ident">AdapterRequest::ByteLen</span> =&gt; {
-                    <span class="ident">drop</span>(
-                        <span class="self">self</span>.<span class="ident">resp_tx</span>
-                            .<span class="ident">send_async</span>(<span class="ident">AdapterResponse::ByteLen</span>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">byte_len</span>().<span class="kw">await</span>))
+            <span class="kw">match </span>msg {
+                AdapterRequest::Wake =&gt; blocked = <span class="bool-val">false</span>,
+                AdapterRequest::ByteLen =&gt; {
+                    drop(
+                        <span class="self">self</span>.resp_tx
+                            .send_async(AdapterResponse::ByteLen(<span class="self">self</span>.stream.byte_len().<span class="kw">await</span>))
                             .<span class="kw">await</span>,
                     );
                 },
-                <span class="ident">AdapterRequest::Seek</span>(<span class="ident">pos</span>) =&gt; {
-                    <span class="ident">pause_buf_moves</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    <span class="ident">drop</span>(<span class="self">self</span>.<span class="ident">resp_tx</span>.<span class="ident">send_async</span>(<span class="ident">AdapterResponse::SeekClear</span>).<span class="kw">await</span>);
-                    <span class="ident">seek_res</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">seek</span>(<span class="ident">pos</span>).<span class="kw">await</span>);
+                AdapterRequest::Seek(pos) =&gt; {
+                    pause_buf_moves = <span class="bool-val">true</span>;
+                    drop(<span class="self">self</span>.resp_tx.send_async(AdapterResponse::SeekClear).<span class="kw">await</span>);
+                    seek_res = <span class="prelude-val">Some</span>(<span class="self">self</span>.stream.seek(pos).<span class="kw">await</span>);
                 },
-                <span class="ident">AdapterRequest::SeekCleared</span> =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">res</span>) <span class="op">=</span> <span class="ident">seek_res</span>.<span class="ident">take</span>() {
-                        <span class="ident">drop</span>(
-                            <span class="self">self</span>.<span class="ident">resp_tx</span>
-                                .<span class="ident">send_async</span>(<span class="ident">AdapterResponse::SeekResult</span>(<span class="ident">res</span>))
+                AdapterRequest::SeekCleared =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(res) = seek_res.take() {
+                        drop(
+                            <span class="self">self</span>.resp_tx
+                                .send_async(AdapterResponse::SeekResult(res))
                                 .<span class="kw">await</span>,
                         );
                     }
-                    <span class="ident">pause_buf_moves</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                    pause_buf_moves = <span class="bool-val">false</span>;
                 },
             }
         }
     }
 }
 
-<span class="doccomment">/// An adapter for converting an async media source into a synchronous one</span>
-<span class="doccomment">/// usable by symphonia.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This adapter takes a source implementing `AsyncRead`, and allows the receive side to</span>
-<span class="doccomment">/// pass along seek requests needed. This allows for passing bytes from exclusively `AsyncRead`</span>
-<span class="doccomment">/// streams (e.g., hyper HTTP sessions) to Songbird.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsyncAdapterStream</span> {
-    <span class="ident">bytes_out</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="ident">can_seek</span>: <span class="ident">bool</span>,
-    <span class="comment">// Note: this is Atomic just to work around the need for</span>
-    <span class="comment">// check_messages to take &amp;self rather than &amp;mut.</span>
-    <span class="ident">finalised</span>: <span class="ident">AtomicBool</span>,
-    <span class="ident">req_tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">AdapterRequest</span><span class="op">&gt;</span>,
-    <span class="ident">resp_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">AdapterResponse</span><span class="op">&gt;</span>,
-    <span class="ident">notify_tx</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Notify</span><span class="op">&gt;</span>,
+<span class="doccomment">/// An adapter for converting an async media source into a synchronous one
+/// usable by symphonia.
+///
+/// This adapter takes a source implementing `AsyncRead`, and allows the receive side to
+/// pass along seek requests needed. This allows for passing bytes from exclusively `AsyncRead`
+/// streams (e.g., hyper HTTP sessions) to Songbird.
+</span><span class="kw">pub struct </span>AsyncAdapterStream {
+    bytes_out: Consumer&lt;u8&gt;,
+    can_seek: bool,
+    <span class="comment">// Note: this is Atomic just to work around the need for
+    // check_messages to take &amp;self rather than &amp;mut.
+    </span>finalised: AtomicBool,
+    req_tx: Sender&lt;AdapterRequest&gt;,
+    resp_rx: Receiver&lt;AdapterResponse&gt;,
+    notify_tx: Arc&lt;Notify&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">AsyncAdapterStream</span> {
-    <span class="doccomment">/// Wrap and pull from an async file stream, with an intermediate ring-buffer of size `buf_len`</span>
-    <span class="doccomment">/// between the async and sync halves.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">AsyncMediaSource</span><span class="op">&gt;</span>, <span class="ident">buf_len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">AsyncAdapterStream</span> {
-        <span class="kw">let</span> (<span class="ident">bytes_in</span>, <span class="ident">bytes_out</span>) <span class="op">=</span> <span class="ident">RingBuffer::new</span>(<span class="ident">buf_len</span>).<span class="ident">split</span>();
-        <span class="kw">let</span> (<span class="ident">resp_tx</span>, <span class="ident">resp_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
-        <span class="kw">let</span> (<span class="ident">req_tx</span>, <span class="ident">req_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
-        <span class="kw">let</span> <span class="ident">can_seek</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">is_seekable</span>();
-        <span class="kw">let</span> <span class="ident">notify_rx</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Notify::new</span>());
-        <span class="kw">let</span> <span class="ident">notify_tx</span> <span class="op">=</span> <span class="ident">notify_rx</span>.<span class="ident">clone</span>();
+<span class="kw">impl </span>AsyncAdapterStream {
+    <span class="doccomment">/// Wrap and pull from an async file stream, with an intermediate ring-buffer of size `buf_len`
+    /// between the async and sync halves.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>new(stream: Box&lt;<span class="kw">dyn </span>AsyncMediaSource&gt;, buf_len: usize) -&gt; AsyncAdapterStream {
+        <span class="kw">let </span>(bytes_in, bytes_out) = RingBuffer::new(buf_len).split();
+        <span class="kw">let </span>(resp_tx, resp_rx) = flume::unbounded();
+        <span class="kw">let </span>(req_tx, req_rx) = flume::unbounded();
+        <span class="kw">let </span>can_seek = stream.is_seekable();
+        <span class="kw">let </span>notify_rx = Arc::new(Notify::new());
+        <span class="kw">let </span>notify_tx = notify_rx.clone();
 
-        <span class="kw">let</span> <span class="ident">sink</span> <span class="op">=</span> <span class="ident">AsyncAdapterSink</span> {
-            <span class="ident">bytes_in</span>,
-            <span class="ident">req_rx</span>,
-            <span class="ident">resp_tx</span>,
-            <span class="ident">stream</span>,
-            <span class="ident">notify_rx</span>,
+        <span class="kw">let </span>sink = AsyncAdapterSink {
+            bytes_in,
+            req_rx,
+            resp_tx,
+            stream,
+            notify_rx,
         };
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">AsyncAdapterStream</span> {
-            <span class="ident">bytes_out</span>,
-            <span class="ident">can_seek</span>,
-            <span class="ident">finalised</span>: <span class="bool-val">false</span>.<span class="ident">into</span>(),
-            <span class="ident">req_tx</span>,
-            <span class="ident">resp_rx</span>,
-            <span class="ident">notify_tx</span>,
+        <span class="kw">let </span>stream = AsyncAdapterStream {
+            bytes_out,
+            can_seek,
+            finalised: <span class="bool-val">false</span>.into(),
+            req_tx,
+            resp_rx,
+            notify_tx,
         };
 
-        <span class="ident">tokio::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-            <span class="ident">sink</span>.<span class="ident">launch</span>().<span class="kw">await</span>;
+        tokio::spawn(<span class="kw">async move </span>{
+            sink.launch().<span class="kw">await</span>;
         });
 
-        <span class="ident">stream</span>
+        stream
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_messages</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">block</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AdapterResponse</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">resp_rx</span>.<span class="ident">try_recv</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">AdapterResponse::ReadZero</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">finalised</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
+    <span class="kw">fn </span>handle_messages(<span class="kw-2">&amp;</span><span class="self">self</span>, block: bool) -&gt; <span class="prelude-ty">Option</span>&lt;AdapterResponse&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><span class="self">self</span>.resp_rx.try_recv() {
+                <span class="prelude-val">Ok</span>(AdapterResponse::ReadZero) =&gt; {
+                    <span class="self">self</span>.finalised.store(<span class="bool-val">true</span>, Ordering::Relaxed);
                 },
-                <span class="prelude-val">Ok</span>(<span class="ident">a</span>) =&gt; <span class="kw">break</span> <span class="prelude-val">Some</span>(<span class="ident">a</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">block</span> =&gt; <span class="kw">break</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Disconnected</span>) =&gt; <span class="kw">break</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError::Empty</span>) =&gt; {},
+                <span class="prelude-val">Ok</span>(a) =&gt; <span class="kw">break </span><span class="prelude-val">Some</span>(a),
+                <span class="prelude-val">Err</span>(TryRecvError::Empty) <span class="kw">if </span>!block =&gt; <span class="kw">break </span><span class="prelude-val">None</span>,
+                <span class="prelude-val">Err</span>(TryRecvError::Disconnected) =&gt; <span class="kw">break </span><span class="prelude-val">None</span>,
+                <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; {},
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_dropped_and_clear</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">resp_rx</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">resp_rx</span>.<span class="ident">is_disconnected</span>()
+    <span class="kw">fn </span>is_dropped_and_clear(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.resp_rx.is_empty() &amp;&amp; <span class="self">self</span>.resp_rx.is_disconnected()
     }
 
-    <span class="kw">fn</span> <span class="ident">check_dropped</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_dropped_and_clear</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
-                <span class="ident">IoErrorKind::UnexpectedEof</span>,
+    <span class="kw">fn </span>check_dropped(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IoResult&lt;()&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_dropped_and_clear() {
+            <span class="prelude-val">Err</span>(IoError::new(
+                IoErrorKind::UnexpectedEof,
                 <span class="string">&quot;Async half was dropped.&quot;</span>,
             ))
-        } <span class="kw">else</span> {
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">AsyncAdapterStream</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="comment">// TODO: make this run via condvar instead?</span>
-        <span class="comment">// This needs to remain blocking or spin loopy</span>
-        <span class="comment">// Mainly because this is at odds with &quot;keep CPU low.&quot;</span>
-        <span class="kw">loop</span> {
-            <span class="ident">drop</span>(<span class="self">self</span>.<span class="ident">handle_messages</span>(<span class="bool-val">false</span>));
+<span class="kw">impl </span>Read <span class="kw">for </span>AsyncAdapterStream {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; IoResult&lt;usize&gt; {
+        <span class="comment">// TODO: make this run via condvar instead?
+        // This needs to remain blocking or spin loopy
+        // Mainly because this is at odds with &quot;keep CPU low.&quot;
+        </span><span class="kw">loop </span>{
+            drop(<span class="self">self</span>.handle_messages(<span class="bool-val">false</span>));
 
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">bytes_out</span>.<span class="ident">read</span>(<span class="ident">buf</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">n</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">notify_tx</span>.<span class="ident">notify_one</span>();
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">n</span>);
+            <span class="kw">match </span><span class="self">self</span>.bytes_out.read(buf) {
+                <span class="prelude-val">Ok</span>(n) =&gt; {
+                    <span class="self">self</span>.notify_tx.notify_one();
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(n);
                 },
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">IoErrorKind::WouldBlock</span> =&gt; {
-                    <span class="comment">// receive side must ABSOLUTELY be unblocked here.</span>
-                    <span class="self">self</span>.<span class="ident">notify_tx</span>.<span class="ident">notify_one</span>();
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">finalised</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+                <span class="prelude-val">Err</span>(e) <span class="kw">if </span>e.kind() == IoErrorKind::WouldBlock =&gt; {
+                    <span class="comment">// receive side must ABSOLUTELY be unblocked here.
+                    </span><span class="self">self</span>.notify_tx.notify_one();
+                    <span class="kw">if </span><span class="self">self</span>.finalised.load(Ordering::Relaxed) {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
                     }
 
-                    <span class="self">self</span>.<span class="ident">check_dropped</span>()<span class="question-mark">?</span>;
-                    <span class="ident">std::thread::yield_now</span>();
+                    <span class="self">self</span>.check_dropped()<span class="question-mark">?</span>;
+                    std::thread::yield_now();
                 },
-                <span class="ident">a</span> =&gt; {
-                    <span class="macro">println!</span>(<span class="string">&quot;Misc err {:?}&quot;</span>, <span class="ident">a</span>);
-                    <span class="kw">return</span> <span class="ident">a</span>;
+                a =&gt; {
+                    <span class="macro">println!</span>(<span class="string">&quot;Misc err {:?}&quot;</span>, a);
+                    <span class="kw">return </span>a;
                 },
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">AsyncAdapterStream</span> {
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">can_seek</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IoError::new</span>(
-                <span class="ident">IoErrorKind::Unsupported</span>,
+<span class="kw">impl </span>Seek <span class="kw">for </span>AsyncAdapterStream {
+    <span class="kw">fn </span>seek(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: SeekFrom) -&gt; IoResult&lt;u64&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.can_seek {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(IoError::new(
+                IoErrorKind::Unsupported,
                 <span class="string">&quot;Async half does not support seek operations.&quot;</span>,
             ));
         }
 
-        <span class="self">self</span>.<span class="ident">check_dropped</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.check_dropped()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">req_tx</span>.<span class="ident">send</span>(<span class="ident">AdapterRequest::Seek</span>(<span class="ident">pos</span>));
+        <span class="kw">let _ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::Seek(pos));
 
-        <span class="comment">// wait for async to tell us that it has stopped writing,</span>
-        <span class="comment">// then clear buf and allow async to write again.</span>
-        <span class="self">self</span>.<span class="ident">finalised</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Ordering::Relaxed</span>);
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">handle_messages</span>(<span class="bool-val">true</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">AdapterResponse::SeekClear</span>) =&gt; {},
-            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">check_dropped</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">unreachable!</span>())<span class="question-mark">?</span>,
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+        <span class="comment">// wait for async to tell us that it has stopped writing,
+        // then clear buf and allow async to write again.
+        </span><span class="self">self</span>.finalised.store(<span class="bool-val">false</span>, Ordering::Relaxed);
+        <span class="kw">match </span><span class="self">self</span>.handle_messages(<span class="bool-val">true</span>) {
+            <span class="prelude-val">Some</span>(AdapterResponse::SeekClear) =&gt; {},
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.check_dropped().map(|<span class="kw">_</span>| <span class="macro">unreachable!</span>())<span class="question-mark">?</span>,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
 
-        <span class="self">self</span>.<span class="ident">bytes_out</span>.<span class="ident">discard</span>(<span class="self">self</span>.<span class="ident">bytes_out</span>.<span class="ident">capacity</span>());
+        <span class="self">self</span>.bytes_out.discard(<span class="self">self</span>.bytes_out.capacity());
 
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">req_tx</span>.<span class="ident">send</span>(<span class="ident">AdapterRequest::SeekCleared</span>);
+        <span class="kw">let _ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::SeekCleared);
 
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">handle_messages</span>(<span class="bool-val">true</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">AdapterResponse::SeekResult</span>(<span class="ident">a</span>)) =&gt; <span class="ident">a</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">check_dropped</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">unreachable!</span>()),
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">MediaSource</span> <span class="kw">for</span> <span class="ident">AsyncAdapterStream</span> {
-    <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">can_seek</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">byte_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">check_dropped</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">req_tx</span>.<span class="ident">send</span>(<span class="ident">AdapterRequest::ByteLen</span>);
-
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">handle_messages</span>(<span class="bool-val">true</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">AdapterResponse::ByteLen</span>(<span class="ident">a</span>)) =&gt; <span class="ident">a</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">check_dropped</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">unreachable!</span>()),
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+        <span class="kw">match </span><span class="self">self</span>.handle_messages(<span class="bool-val">true</span>) {
+            <span class="prelude-val">Some</span>(AdapterResponse::SeekResult(a)) =&gt; a,
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.check_dropped().map(|<span class="kw">_</span>| <span class="macro">unreachable!</span>()),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
 
-<span class="kw">enum</span> <span class="ident">AdapterRequest</span> {
-    <span class="ident">Wake</span>,
-    <span class="ident">Seek</span>(<span class="ident">SeekFrom</span>),
-    <span class="ident">SeekCleared</span>,
-    <span class="ident">ByteLen</span>,
+<span class="kw">impl </span>MediaSource <span class="kw">for </span>AsyncAdapterStream {
+    <span class="kw">fn </span>is_seekable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.can_seek
+    }
+
+    <span class="kw">fn </span>byte_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="self">self</span>.check_dropped().ok()<span class="question-mark">?</span>;
+
+        <span class="kw">let _ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::ByteLen);
+
+        <span class="kw">match </span><span class="self">self</span>.handle_messages(<span class="bool-val">true</span>) {
+            <span class="prelude-val">Some</span>(AdapterResponse::ByteLen(a)) =&gt; a,
+            <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.check_dropped().ok().map(|<span class="kw">_</span>| <span class="macro">unreachable!</span>()),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+        }
+    }
 }
 
-<span class="kw">enum</span> <span class="ident">AdapterResponse</span> {
-    <span class="ident">SeekResult</span>(<span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>),
-    <span class="ident">SeekClear</span>,
-    <span class="ident">ByteLen</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>),
-    <span class="ident">ReadZero</span>,
+<span class="kw">enum </span>AdapterRequest {
+    Wake,
+    Seek(SeekFrom),
+    SeekCleared,
+    ByteLen,
 }
 
-<span class="doccomment">/// An async port of symphonia&#39;s [`MediaSource`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Streams which are not seekable should implement `AsyncSeek` such that all operations</span>
-<span class="doccomment">/// fail with `Unsupported`, and implement `fn is_seekable(&amp;self) -&gt; { false }`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`MediaSource`]: MediaSource</span>
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsyncMediaSource</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncSeek</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Unpin</span> {
-    <span class="doccomment">/// Returns if the source is seekable. This may be an expensive operation.</span>
-    <span class="kw">fn</span> <span class="ident">is_seekable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
+<span class="kw">enum </span>AdapterResponse {
+    SeekResult(IoResult&lt;u64&gt;),
+    SeekClear,
+    ByteLen(<span class="prelude-ty">Option</span>&lt;u64&gt;),
+    ReadZero,
+}
 
-    <span class="doccomment">/// Returns the length in bytes, if available. This may be an expensive operation.</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">byte_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An async port of symphonia&#39;s [`MediaSource`].
+///
+/// Streams which are not seekable should implement `AsyncSeek` such that all operations
+/// fail with `Unsupported`, and implement `fn is_seekable(&amp;self) -&gt; { false }`.
+///
+/// [`MediaSource`]: MediaSource
+</span><span class="attribute">#[async_trait]</span>
+<span class="kw">pub trait </span>AsyncMediaSource: AsyncRead + AsyncSeek + Send + Sync + Unpin {
+    <span class="doccomment">/// Returns if the source is seekable. This may be an expensive operation.
+    </span><span class="kw">fn </span>is_seekable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 
-    <span class="doccomment">/// Tries to recreate this stream in event of an error, resuming from the given offset.</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">try_resume</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_offset</span>: <span class="ident">u64</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">AsyncMediaSource</span><span class="op">&gt;</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">AudioStreamError::Unsupported</span>)
+    <span class="doccomment">/// Returns the length in bytes, if available. This may be an expensive operation.
+    </span><span class="kw">async fn </span>byte_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt;;
+
+    <span class="doccomment">/// Tries to recreate this stream in event of an error, resuming from the given offset.
+    </span><span class="kw">async fn </span>try_resume(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _offset: u64,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>AsyncMediaSource&gt;, AudioStreamError&gt; {
+        <span class="prelude-val">Err</span>(AudioStreamError::Unsupported)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

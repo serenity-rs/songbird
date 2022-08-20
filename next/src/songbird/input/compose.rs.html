@@ -40,45 +40,45 @@
 <span id="38">38</span>
 <span id="39">39</span>
 <span id="40">40</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">AudioStream</span>, <span class="ident">AudioStreamError</span>, <span class="ident">AuxMetadata</span>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::{AudioStream, AudioStreamError, AuxMetadata};
 
-<span class="kw">use</span> <span class="ident">symphonia_core::io::MediaSource</span>;
+<span class="kw">use </span>symphonia_core::io::MediaSource;
 
-<span class="doccomment">/// Data and behaviour required to instantiate a lazy audio source.</span>
-<span class="attribute">#[<span class="ident">async_trait::async_trait</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Compose</span>: <span class="ident">Send</span> {
-    <span class="doccomment">/// Create a source synchronously.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If [`should_create_async`] returns `false`, this method will chosen at runtime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`should_create_async`]: Self::should_create_async</span>
-    <span class="kw">fn</span> <span class="ident">create</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AudioStream</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">MediaSource</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Data and behaviour required to instantiate a lazy audio source.
+</span><span class="attribute">#[async_trait::async_trait]</span>
+<span class="kw">pub trait </span>Compose: Send {
+    <span class="doccomment">/// Create a source synchronously.
+    ///
+    /// If [`should_create_async`] returns `false`, this method will chosen at runtime.
+    ///
+    /// [`should_create_async`]: Self::should_create_async
+    </span><span class="kw">fn </span>create(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AudioStream&lt;Box&lt;<span class="kw">dyn </span>MediaSource&gt;&gt;, AudioStreamError&gt;;
 
-    <span class="doccomment">/// Create a source asynchronously.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If [`should_create_async`] returns `true`, this method will chosen at runtime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`should_create_async`]: Self::should_create_async</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_async</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>)
-        -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AudioStream</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">MediaSource</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Create a source asynchronously.
+    ///
+    /// If [`should_create_async`] returns `true`, this method will chosen at runtime.
+    ///
+    /// [`should_create_async`]: Self::should_create_async
+    </span><span class="kw">async fn </span>create_async(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
+        -&gt; <span class="prelude-ty">Result</span>&lt;AudioStream&lt;Box&lt;<span class="kw">dyn </span>MediaSource&gt;&gt;, AudioStreamError&gt;;
 
-    <span class="doccomment">/// Determines whether this source will be instantiated using [`create`] or [`create_async`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Songbird will create the audio stream using either a dynamically sized thread pool,</span>
-    <span class="doccomment">/// or a task on the async runtime it was spawned in respectively. Users do not need to</span>
-    <span class="doccomment">/// support both these methods.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`create_async`]: Self::create_async</span>
-    <span class="doccomment">/// [`create`]: Self::create</span>
-    <span class="kw">fn</span> <span class="ident">should_create_async</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
+    <span class="doccomment">/// Determines whether this source will be instantiated using [`create`] or [`create_async`].
+    ///
+    /// Songbird will create the audio stream using either a dynamically sized thread pool,
+    /// or a task on the async runtime it was spawned in respectively. Users do not need to
+    /// support both these methods.
+    ///
+    /// [`create_async`]: Self::create_async
+    /// [`create`]: Self::create
+    </span><span class="kw">fn </span>should_create_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 
-    <span class="doccomment">/// Requests auxiliary metadata which can be accessed without parsing the file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will never be called by songbird but allows, for instance, access to metadata</span>
-    <span class="doccomment">/// which might only be visible to a web crawler e.g., uploader or source URL.</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">aux_metadata</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AuxMetadata</span>, <span class="ident">AudioStreamError</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">AudioStreamError::Unsupported</span>)
+    <span class="doccomment">/// Requests auxiliary metadata which can be accessed without parsing the file.
+    ///
+    /// This method will never be called by songbird but allows, for instance, access to metadata
+    /// which might only be visible to a web crawler e.g., uploader or source URL.
+    </span><span class="kw">async fn </span>aux_metadata(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AuxMetadata, AudioStreamError&gt; {
+        <span class="prelude-val">Err</span>(AudioStreamError::Unsupported)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>

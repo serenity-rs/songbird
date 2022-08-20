@@ -82,87 +82,87 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::PlayError</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::events::TrackEvent</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::PlayError;
+<span class="kw">use </span><span class="kw">crate</span>::events::TrackEvent;
 
-<span class="doccomment">/// Playback status of a track.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PlayMode</span> {
-    <span class="doccomment">/// The track is currently playing.</span>
-    <span class="ident">Play</span>,
-    <span class="doccomment">/// The track is currently paused, and may be resumed.</span>
-    <span class="ident">Pause</span>,
-    <span class="doccomment">/// The track has been manually stopped, and cannot be restarted.</span>
-    <span class="ident">Stop</span>,
-    <span class="doccomment">/// The track has naturally ended, and cannot be restarted.</span>
-    <span class="ident">End</span>,
-    <span class="doccomment">/// The track has encountered a runtime or initialisation error, and cannot be restarted.</span>
-    <span class="ident">Errored</span>(<span class="ident">PlayError</span>),
+<span class="doccomment">/// Playback status of a track.
+</span><span class="attribute">#[derive(Clone, Debug)]</span>
+<span class="attribute">#[non_exhaustive]</span>
+<span class="kw">pub enum </span>PlayMode {
+    <span class="doccomment">/// The track is currently playing.
+    </span>Play,
+    <span class="doccomment">/// The track is currently paused, and may be resumed.
+    </span>Pause,
+    <span class="doccomment">/// The track has been manually stopped, and cannot be restarted.
+    </span>Stop,
+    <span class="doccomment">/// The track has naturally ended, and cannot be restarted.
+    </span>End,
+    <span class="doccomment">/// The track has encountered a runtime or initialisation error, and cannot be restarted.
+    </span>Errored(PlayError),
 }
 
-<span class="kw">impl</span> <span class="ident">PlayMode</span> {
-    <span class="doccomment">/// Returns whether the track has irreversibly stopped.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_done</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">PlayMode::Stop</span> <span class="op">|</span> <span class="ident">PlayMode::End</span> <span class="op">|</span> <span class="ident">PlayMode::Errored</span>(<span class="kw">_</span>))
+<span class="kw">impl </span>PlayMode {
+    <span class="doccomment">/// Returns whether the track has irreversibly stopped.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub fn </span>is_done(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, PlayMode::Stop | PlayMode::End | PlayMode::Errored(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Returns whether the track has irreversibly stopped.</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_playing</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">PlayMode::Play</span>)
+    <span class="doccomment">/// Returns whether the track has irreversibly stopped.
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_playing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, PlayMode::Play)
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="comment">// Idea: a finished track cannot be restarted -- this action is final.</span>
-        <span class="comment">// We may want to change this in future so that seekable tracks can uncancel</span>
-        <span class="comment">// themselves, perhaps, but this requires a bit more machinery to readd...</span>
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Play</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Pause</span> =&gt; <span class="ident">other</span>,
-            <span class="ident">state</span> =&gt; <span class="ident">state</span>,
+    <span class="attribute">#[must_use]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_state(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="comment">// Idea: a finished track cannot be restarted -- this action is final.
+        // We may want to change this in future so that seekable tracks can uncancel
+        // themselves, perhaps, but this requires a bit more machinery to readd...
+        </span><span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Play | <span class="self">Self</span>::Pause =&gt; other,
+            state =&gt; state,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">change_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">next_state</span>(<span class="ident">other</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>change_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="self">Self</span>) {
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="self">self</span>.clone().next_state(other);
     }
 
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_track_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackEvent</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Play</span> =&gt; <span class="ident">TrackEvent::Play</span>,
-            <span class="ident"><span class="self">Self</span>::Pause</span> =&gt; <span class="ident">TrackEvent::Pause</span>,
-            <span class="ident"><span class="self">Self</span>::Stop</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::End</span> =&gt; <span class="ident">TrackEvent::End</span>,
-            <span class="ident"><span class="self">Self</span>::Errored</span>(<span class="kw">_</span>) =&gt; <span class="ident">TrackEvent::Error</span>,
+    <span class="attribute">#[must_use]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_track_event(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackEvent {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Play =&gt; TrackEvent::Play,
+            <span class="self">Self</span>::Pause =&gt; TrackEvent::Pause,
+            <span class="self">Self</span>::Stop | <span class="self">Self</span>::End =&gt; TrackEvent::End,
+            <span class="self">Self</span>::Errored(<span class="kw">_</span>) =&gt; TrackEvent::Error,
         }
     }
 
-    <span class="comment">// The above fn COULD just return a Vec, but the below means we only allocate a Vec</span>
-    <span class="comment">// in the rare error case.</span>
-    <span class="comment">// Also, see discussion on bitsets in src/events/track.rs</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">also_fired_track_events</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackEvent</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Errored</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="ident">TrackEvent::End</span>]),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="comment">// The above fn COULD just return a Vec, but the below means we only allocate a Vec
+    // in the rare error case.
+    // Also, see discussion on bitsets in src/events/track.rs
+    </span><span class="attribute">#[must_use]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>also_fired_track_events(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;TrackEvent&gt;&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Errored(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[TrackEvent::End]),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PlayMode</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">PlayMode::Play</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>PlayMode {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        PlayMode::Play
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">PlayMode</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">as_track_event</span>() <span class="op">==</span> <span class="ident">other</span>.<span class="ident">as_track_event</span>()
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>PlayMode {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.as_track_event() == other.as_track_event()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">PlayMode</span> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>PlayMode {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>
