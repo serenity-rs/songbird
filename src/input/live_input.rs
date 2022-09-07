@@ -1,7 +1,7 @@
 use super::{AudioStream, Metadata, MetadataError, Parsed};
 
 use symphonia_core::{
-    codecs::{CodecRegistry, Decoder, DecoderOptions},
+    codecs::{CodecRegistry, DecoderOptions},
     errors::Error as SymphError,
     formats::FormatOptions,
     io::{MediaSource, MediaSourceStream, MediaSourceStreamOptions},
@@ -66,31 +66,30 @@ impl LiveInput {
             let format = probe_data.format;
             let meta = probe_data.metadata;
 
-            let mut default_track_id = format.default_track().map(|track| track.id);
-            let mut decoder: Option<Box<dyn Decoder>> = None;
-
-            // Awkward loop: we need BOTH a track ID, and a decoder matching that track ID.
-            // Take default track (if it exists), take first track to be found otherwise.
-            for track in format.tracks() {
-                if default_track_id.is_some() && Some(track.id) != default_track_id {
-                    continue;
-                }
-
-                let this_decoder = codecs.make(&track.codec_params, &DecoderOptions::default())?;
-
-                decoder = Some(this_decoder);
-                default_track_id = Some(track.id);
-
-                break;
-            }
+            // if default track exists, try to make a decoder
+            // if that fails, linear scan and take first that succeeds
+            let decoder = format
+                .default_track()
+                .and_then(|track| {
+                    codecs
+                        .make(&track.codec_params, &DecoderOptions::default())
+                        .ok()
+                        .map(|d| (d, track.id))
+                })
+                .or_else(|| {
+                    format.tracks().iter().find_map(|track| {
+                        codecs
+                            .make(&track.codec_params, &DecoderOptions::default())
+                            .ok()
+                            .map(|d| (d, track.id))
+                    })
+                });
 
             // No tracks is a playout error, a bad default track is also possible.
             // These are probably malformed? We could go best-effort, and fall back to tracks[0]
             // but drop such tracks for now.
-            let track_id = default_track_id.ok_or(SymphError::DecodeError("no track found"))?;
-            let decoder = decoder.ok_or(SymphError::DecodeError(
-                "reported default track did not exist",
-            ))?;
+            let (decoder, track_id) =
+                decoder.ok_or(SymphError::DecodeError("no compatible track found"))?;
 
             let p = Parsed {
                 format,
@@ -143,5 +142,26 @@ impl LiveInput {
         } else {
             Err(MetadataError::NotParsed)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        constants::test_data::FILE_VID_TARGET,
+        input::{codecs::*, File, Input},
+    };
+
+    #[tokio::test]
+    #[ntest::timeout(10_000)]
+    async fn promote_finds_valid_audio() {
+        // Video files often set their default to... the video stream, unsurprisingly.
+        // In these cases we still want to play the attached audio -- this checks that songbird
+        // finds the audio on a non-default track via `LiveInput::promote`.
+        let input = Input::from(File::new(FILE_VID_TARGET));
+        input
+            .make_playable_async(&CODEC_REGISTRY, &PROBE)
+            .await
+            .unwrap();
     }
 }
