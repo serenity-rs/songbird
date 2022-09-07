@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/connection/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/connection/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -358,358 +352,357 @@
 <span id="350">350</span>
 <span id="351">351</span>
 <span id="352">352</span>
-</pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
+</pre><pre class="rust"><code><span class="kw">pub mod </span>error;
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">tasks</span>::{<span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">udp_rx</span>, <span class="ident">udp_tx</span>, <span class="ident">ws</span> <span class="kw">as</span> <span class="ident">ws_task</span>},
-    <span class="ident">Config</span>,
-    <span class="ident">CryptoMode</span>,
+<span class="kw">use super</span>::{
+    tasks::{message::<span class="kw-2">*</span>, udp_rx, udp_tx, ws <span class="kw">as </span>ws_task},
+    Config,
+    CryptoMode,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">constants</span>::<span class="kw-2">*</span>,
-    <span class="ident">model</span>::{
-        <span class="ident">payload</span>::{<span class="ident">Identify</span>, <span class="ident">Resume</span>, <span class="ident">SelectProtocol</span>},
-        <span class="ident">Event</span> <span class="kw">as</span> <span class="ident">GatewayEvent</span>,
-        <span class="ident">ProtocolData</span>,
+<span class="kw">use crate</span>::{
+    constants::<span class="kw-2">*</span>,
+    model::{
+        payload::{Identify, Resume, SelectProtocol},
+        Event <span class="kw">as </span>GatewayEvent,
+        ProtocolData,
     },
-    <span class="ident">ws</span>::{<span class="self">self</span>, <span class="ident">ReceiverExt</span>, <span class="ident">SenderExt</span>, <span class="ident">WsStream</span>},
-    <span class="ident">ConnectionInfo</span>,
+    ws::{<span class="self">self</span>, ReceiverExt, SenderExt, WsStream},
+    ConnectionInfo,
 };
-<span class="kw">use</span> <span class="ident">discortp::discord</span>::{<span class="ident">IpDiscoveryPacket</span>, <span class="ident">IpDiscoveryType</span>, <span class="ident">MutableIpDiscoveryPacket</span>};
-<span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">flume::Sender</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">net::IpAddr</span>, <span class="ident">str::FromStr</span>, <span class="ident">sync::Arc</span>};
-<span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">net::UdpSocket</span>, <span class="ident">spawn</span>, <span class="ident">time::timeout</span>};
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">info</span>, <span class="ident">instrument</span>};
-<span class="kw">use</span> <span class="ident">url::Url</span>;
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305</span>::{<span class="ident">aead::NewAead</span>, <span class="ident">XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>};
+<span class="kw">use </span>discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
+<span class="kw">use </span>error::{Error, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>flume::Sender;
+<span class="kw">use </span>std::{net::IpAddr, str::FromStr, sync::Arc};
+<span class="kw">use </span>tokio::{net::UdpSocket, spawn, time::timeout};
+<span class="kw">use </span>tracing::{debug, info, instrument};
+<span class="kw">use </span>url::Url;
+<span class="kw">use </span>xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 <span class="kw">as </span>Cipher};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-<span class="kw">use</span> <span class="ident">ws::create_rustls_client</span>;
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+</span><span class="kw">use </span>ws::create_rustls_client;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">ws::create_native_tls_client</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;native-marker&quot;</span>)]
+</span><span class="kw">use </span>ws::create_native_tls_client;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Connection</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ssrc</span>: <span class="ident">u32</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ws</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">WsMessage</span><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connection {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) info: ConnectionInfo,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) ssrc: u32,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) ws: Sender&lt;WsMessage&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Connection</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
-        <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>,
-        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>,
-        <span class="ident">idx</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">config</span>.<span class="ident">driver_timeout</span> {
-            <span class="ident">timeout</span>(<span class="ident">t</span>, <span class="ident">Connection::new_inner</span>(<span class="ident">info</span>, <span class="ident">interconnect</span>, <span class="ident">config</span>, <span class="ident">idx</span>)).<span class="kw">await</span><span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="ident">Connection::new_inner</span>(<span class="ident">info</span>, <span class="ident">interconnect</span>, <span class="ident">config</span>, <span class="ident">idx</span>).<span class="kw">await</span>
-        }
+<span class="kw">impl </span>Connection {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>new(
+        info: ConnectionInfo,
+        interconnect: <span class="kw-2">&amp;</span>Interconnect,
+        config: <span class="kw-2">&amp;</span>Config,
+        idx: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Connection&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = config.driver_timeout {
+            timeout(t, Connection::new_inner(info, interconnect, config, idx)).<span class="kw">await</span><span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            Connection::new_inner(info, interconnect, config, idx).<span class="kw">await
+        </span>}
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new_inner</span>(
-        <span class="kw-2">mut</span> <span class="ident">info</span>: <span class="ident">ConnectionInfo</span>,
-        <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>,
-        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>,
-        <span class="ident">idx</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">generate_url</span>(<span class="kw-2">&amp;mut</span> <span class="ident">info</span>.<span class="ident">endpoint</span>)<span class="question-mark">?</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>new_inner(
+        <span class="kw-2">mut </span>info: ConnectionInfo,
+        interconnect: <span class="kw-2">&amp;</span>Interconnect,
+        config: <span class="kw-2">&amp;</span>Config,
+        idx: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Connection&gt; {
+        <span class="kw">let </span>url = generate_url(<span class="kw-2">&amp;mut </span>info.endpoint)<span class="question-mark">?</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">create_rustls_client</span>(<span class="ident">url</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>client = create_rustls_client(url).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)]</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">create_native_tls_client</span>(<span class="ident">url</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;native-marker&quot;</span>)]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>client = create_native_tls_client(url).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hello</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ready</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>hello = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>ready = <span class="prelude-val">None</span>;
 
-        <span class="ident">client</span>
-            .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent::from</span>(<span class="ident">Identify</span> {
-                <span class="ident">server_id</span>: <span class="ident">info</span>.<span class="ident">guild_id</span>.<span class="ident">into</span>(),
-                <span class="ident">session_id</span>: <span class="ident">info</span>.<span class="ident">session_id</span>.<span class="ident">clone</span>(),
-                <span class="ident">token</span>: <span class="ident">info</span>.<span class="ident">token</span>.<span class="ident">clone</span>(),
-                <span class="ident">user_id</span>: <span class="ident">info</span>.<span class="ident">user_id</span>.<span class="ident">into</span>(),
+        client
+            .send_json(<span class="kw-2">&amp;</span>GatewayEvent::from(Identify {
+                server_id: info.guild_id.into(),
+                session_id: info.session_id.clone(),
+                token: info.token.clone(),
+                user_id: info.user_id.into(),
             }))
             .<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">client</span>.<span class="ident">recv_json</span>().<span class="kw">await</span><span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
-                <span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>value = <span class="kw">match </span>client.recv_json().<span class="kw">await</span><span class="question-mark">? </span>{
+                <span class="prelude-val">Some</span>(value) =&gt; value,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
             };
 
-            <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="ident">GatewayEvent::Ready</span>(<span class="ident">r</span>) =&gt; {
-                    <span class="ident">ready</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>);
-                    <span class="kw">if</span> <span class="ident">hello</span>.<span class="ident">is_some</span>() {
+            <span class="kw">match </span>value {
+                GatewayEvent::Ready(r) =&gt; {
+                    ready = <span class="prelude-val">Some</span>(r);
+                    <span class="kw">if </span>hello.is_some() {
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">GatewayEvent::Hello</span>(<span class="ident">h</span>) =&gt; {
-                    <span class="ident">hello</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">h</span>);
-                    <span class="kw">if</span> <span class="ident">ready</span>.<span class="ident">is_some</span>() {
+                GatewayEvent::Hello(h) =&gt; {
+                    hello = <span class="prelude-val">Some</span>(h);
+                    <span class="kw">if </span>ready.is_some() {
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">other</span> =&gt; {
-                    <span class="macro">debug!</span>(<span class="string">&quot;Expected ready/hello; got: {:?}&quot;</span>, <span class="ident">other</span>);
+                other =&gt; {
+                    <span class="macro">debug!</span>(<span class="string">&quot;Expected ready/hello; got: {:?}&quot;</span>, other);
 
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::ExpectedHandshake</span>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ExpectedHandshake);
                 },
             }
         }
 
-        <span class="kw">let</span> <span class="ident">hello</span> <span class="op">=</span>
-            <span class="ident">hello</span>.<span class="ident">expect</span>(<span class="string">&quot;Hello packet expected in connection initialisation, but not found.&quot;</span>);
-        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span>
-            <span class="ident">ready</span>.<span class="ident">expect</span>(<span class="string">&quot;Ready packet expected in connection initialisation, but not found.&quot;</span>);
+        <span class="kw">let </span>hello =
+            hello.expect(<span class="string">&quot;Hello packet expected in connection initialisation, but not found.&quot;</span>);
+        <span class="kw">let </span>ready =
+            ready.expect(<span class="string">&quot;Ready packet expected in connection initialisation, but not found.&quot;</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">has_valid_mode</span>(<span class="kw-2">&amp;</span><span class="ident">ready</span>.<span class="ident">modes</span>, <span class="ident">config</span>.<span class="ident">crypto_mode</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::CryptoModeUnavailable</span>);
+        <span class="kw">if </span>!has_valid_mode(<span class="kw-2">&amp;</span>ready.modes, config.crypto_mode) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CryptoModeUnavailable);
         }
 
-        <span class="kw">let</span> <span class="ident">udp</span> <span class="op">=</span> <span class="ident">UdpSocket::bind</span>(<span class="string">&quot;0.0.0.0:0&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="ident">udp</span>.<span class="ident">connect</span>((<span class="ident">ready</span>.<span class="ident">ip</span>, <span class="ident">ready</span>.<span class="ident">port</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>udp = UdpSocket::bind(<span class="string">&quot;0.0.0.0:0&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        udp.connect((ready.ip, ready.port)).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="comment">// Follow Discord&#39;s IP Discovery procedures, in case NAT tunnelling is needed.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0</span>; <span class="ident">IpDiscoveryPacket::const_packet_size</span>()];
+        <span class="comment">// Follow Discord&#39;s IP Discovery procedures, in case NAT tunnelling is needed.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = [<span class="number">0</span>; IpDiscoveryPacket::const_packet_size()];
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">MutableIpDiscoveryPacket::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>[..]).<span class="ident">expect</span>(
+            <span class="kw">let </span><span class="kw-2">mut </span>view = MutableIpDiscoveryPacket::new(<span class="kw-2">&amp;mut </span>bytes[..]).expect(
                 <span class="string">&quot;Too few bytes in &#39;bytes&#39; for IPDiscovery packet.\
                     (Blame: IpDiscoveryPacket::const_packet_size()?)&quot;</span>,
             );
-            <span class="ident">view</span>.<span class="ident">set_pkt_type</span>(<span class="ident">IpDiscoveryType::Request</span>);
-            <span class="ident">view</span>.<span class="ident">set_length</span>(<span class="number">70</span>);
-            <span class="ident">view</span>.<span class="ident">set_ssrc</span>(<span class="ident">ready</span>.<span class="ident">ssrc</span>);
+            view.set_pkt_type(IpDiscoveryType::Request);
+            view.set_length(<span class="number">70</span>);
+            view.set_ssrc(ready.ssrc);
         }
 
-        <span class="ident">udp</span>.<span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        udp.send(<span class="kw-2">&amp;</span>bytes).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">let</span> (<span class="ident">len</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">udp</span>.<span class="ident">recv_from</span>(<span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>(len, _addr) = udp.recv_from(<span class="kw-2">&amp;mut </span>bytes).<span class="kw">await</span><span class="question-mark">?</span>;
         {
-            <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span>
-                <span class="ident">IpDiscoveryPacket::new</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[..<span class="ident">len</span>]).<span class="ident">ok_or</span>(<span class="ident">Error::IllegalDiscoveryResponse</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>view =
+                IpDiscoveryPacket::new(<span class="kw-2">&amp;</span>bytes[..len]).ok_or(Error::IllegalDiscoveryResponse)<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="ident">view</span>.<span class="ident">get_pkt_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">IpDiscoveryType::Response</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::IllegalDiscoveryResponse</span>);
+            <span class="kw">if </span>view.get_pkt_type() != IpDiscoveryType::Response {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::IllegalDiscoveryResponse);
             }
 
-            <span class="comment">// We could do something clever like binary search,</span>
-            <span class="comment">// but possibility of UDP spoofing precludes us from</span>
-            <span class="comment">// making the assumption we can find a &quot;left edge&quot; of &#39;\0&#39;s.</span>
-            <span class="kw">let</span> <span class="ident">nul_byte_index</span> <span class="op">=</span> <span class="ident">view</span>
-                .<span class="ident">get_address_raw</span>()
-                .<span class="ident">iter</span>()
-                .<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">==</span> <span class="number">0</span>)
-                .<span class="ident">ok_or</span>(<span class="ident">Error::IllegalIp</span>)<span class="question-mark">?</span>;
+            <span class="comment">// We could do something clever like binary search,
+            // but possibility of UDP spoofing precludes us from
+            // making the assumption we can find a &quot;left edge&quot; of &#39;\0&#39;s.
+            </span><span class="kw">let </span>nul_byte_index = view
+                .get_address_raw()
+                .iter()
+                .position(|<span class="kw-2">&amp;</span>b| b == <span class="number">0</span>)
+                .ok_or(Error::IllegalIp)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">address_str</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">view</span>.<span class="ident">get_address_raw</span>()[..<span class="ident">nul_byte_index</span>])
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error::IllegalIp</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>address_str = std::str::from_utf8(<span class="kw-2">&amp;</span>view.get_address_raw()[..nul_byte_index])
+                .map_err(|<span class="kw">_</span>| Error::IllegalIp)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">IpAddr::from_str</span>(<span class="ident">address_str</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>);
-                <span class="ident">Error::IllegalIp</span>
+            <span class="kw">let </span>address = IpAddr::from_str(address_str).map_err(|e| {
+                <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, e);
+                Error::IllegalIp
             })<span class="question-mark">?</span>;
 
-            <span class="ident">client</span>
-                .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent::from</span>(<span class="ident">SelectProtocol</span> {
-                    <span class="ident">protocol</span>: <span class="string">&quot;udp&quot;</span>.<span class="ident">into</span>(),
-                    <span class="ident">data</span>: <span class="ident">ProtocolData</span> {
-                        <span class="ident">address</span>,
-                        <span class="ident">mode</span>: <span class="ident">config</span>.<span class="ident">crypto_mode</span>.<span class="ident">to_request_str</span>().<span class="ident">into</span>(),
-                        <span class="ident">port</span>: <span class="ident">view</span>.<span class="ident">get_port</span>(),
+            client
+                .send_json(<span class="kw-2">&amp;</span>GatewayEvent::from(SelectProtocol {
+                    protocol: <span class="string">&quot;udp&quot;</span>.into(),
+                    data: ProtocolData {
+                        address,
+                        mode: config.crypto_mode.to_request_str().into(),
+                        port: view.get_port(),
                     },
                 }))
                 .<span class="kw">await</span><span class="question-mark">?</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">cipher</span> <span class="op">=</span> <span class="ident">init_cipher</span>(<span class="kw-2">&amp;mut</span> <span class="ident">client</span>, <span class="ident">config</span>.<span class="ident">crypto_mode</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>cipher = init_cipher(<span class="kw-2">&amp;mut </span>client, config.crypto_mode).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="macro">info!</span>(<span class="string">&quot;Connected to: {}&quot;</span>, <span class="ident">info</span>.<span class="ident">endpoint</span>);
+        <span class="macro">info!</span>(<span class="string">&quot;Connected to: {}&quot;</span>, info.endpoint);
 
-        <span class="macro">info!</span>(<span class="string">&quot;WS heartbeat duration {}ms.&quot;</span>, <span class="ident">hello</span>.<span class="ident">heartbeat_interval</span>,);
+        <span class="macro">info!</span>(<span class="string">&quot;WS heartbeat duration {}ms.&quot;</span>, hello.heartbeat_interval,);
 
-        <span class="kw">let</span> (<span class="ident">ws_msg_tx</span>, <span class="ident">ws_msg_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
-        <span class="kw">let</span> (<span class="ident">udp_sender_msg_tx</span>, <span class="ident">udp_sender_msg_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
-        <span class="kw">let</span> (<span class="ident">udp_receiver_msg_tx</span>, <span class="ident">udp_receiver_msg_rx</span>) <span class="op">=</span> <span class="ident">flume::unbounded</span>();
+        <span class="kw">let </span>(ws_msg_tx, ws_msg_rx) = flume::unbounded();
+        <span class="kw">let </span>(udp_sender_msg_tx, udp_sender_msg_rx) = flume::unbounded();
+        <span class="kw">let </span>(udp_receiver_msg_tx, udp_receiver_msg_rx) = flume::unbounded();
 
-        <span class="kw">let</span> (<span class="ident">udp_rx</span>, <span class="ident">udp_tx</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">udp_rx</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">udp</span>);
-            <span class="kw">let</span> <span class="ident">udp_tx</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">udp_rx</span>);
-            (<span class="ident">udp_rx</span>, <span class="ident">udp_tx</span>)
+        <span class="kw">let </span>(udp_rx, udp_tx) = {
+            <span class="kw">let </span>udp_rx = Arc::new(udp);
+            <span class="kw">let </span>udp_tx = Arc::clone(<span class="kw-2">&amp;</span>udp_rx);
+            (udp_rx, udp_tx)
         };
 
-        <span class="kw">let</span> <span class="ident">ssrc</span> <span class="op">=</span> <span class="ident">ready</span>.<span class="ident">ssrc</span>;
+        <span class="kw">let </span>ssrc = ready.ssrc;
 
-        <span class="kw">let</span> <span class="ident">mix_conn</span> <span class="op">=</span> <span class="ident">MixerConnection</span> {
-            <span class="ident">cipher</span>: <span class="ident">cipher</span>.<span class="ident">clone</span>(),
-            <span class="ident">crypto_state</span>: <span class="ident">config</span>.<span class="ident">crypto_mode</span>.<span class="ident">into</span>(),
-            <span class="ident">udp_rx</span>: <span class="ident">udp_receiver_msg_tx</span>,
-            <span class="ident">udp_tx</span>: <span class="ident">udp_sender_msg_tx</span>,
+        <span class="kw">let </span>mix_conn = MixerConnection {
+            cipher: cipher.clone(),
+            crypto_state: config.crypto_mode.into(),
+            udp_rx: udp_receiver_msg_tx,
+            udp_tx: udp_sender_msg_tx,
         };
 
-        <span class="ident">interconnect</span>
-            .<span class="ident">mixer</span>
-            .<span class="ident">send</span>(<span class="ident">MixerMessage::Ws</span>(<span class="prelude-val">Some</span>(<span class="ident">ws_msg_tx</span>.<span class="ident">clone</span>())))<span class="question-mark">?</span>;
+        interconnect
+            .mixer
+            .send(MixerMessage::Ws(<span class="prelude-val">Some</span>(ws_msg_tx.clone())))<span class="question-mark">?</span>;
 
-        <span class="ident">interconnect</span>
-            .<span class="ident">mixer</span>
-            .<span class="ident">send</span>(<span class="ident">MixerMessage::SetConn</span>(<span class="ident">mix_conn</span>, <span class="ident">ready</span>.<span class="ident">ssrc</span>))<span class="question-mark">?</span>;
+        interconnect
+            .mixer
+            .send(MixerMessage::SetConn(mix_conn, ready.ssrc))<span class="question-mark">?</span>;
 
-        <span class="ident">spawn</span>(<span class="ident">ws_task::runner</span>(
-            <span class="ident">interconnect</span>.<span class="ident">clone</span>(),
-            <span class="ident">ws_msg_rx</span>,
-            <span class="ident">client</span>,
-            <span class="ident">ssrc</span>,
-            <span class="ident">hello</span>.<span class="ident">heartbeat_interval</span>,
-            <span class="ident">idx</span>,
-            <span class="ident">info</span>.<span class="ident">clone</span>(),
+        spawn(ws_task::runner(
+            interconnect.clone(),
+            ws_msg_rx,
+            client,
+            ssrc,
+            hello.heartbeat_interval,
+            idx,
+            info.clone(),
         ));
 
-        <span class="ident">spawn</span>(<span class="ident">udp_rx::runner</span>(
-            <span class="ident">interconnect</span>.<span class="ident">clone</span>(),
-            <span class="ident">udp_receiver_msg_rx</span>,
-            <span class="ident">cipher</span>,
-            <span class="ident">config</span>.<span class="ident">clone</span>(),
-            <span class="ident">udp_rx</span>,
+        spawn(udp_rx::runner(
+            interconnect.clone(),
+            udp_receiver_msg_rx,
+            cipher,
+            config.clone(),
+            udp_rx,
         ));
-        <span class="ident">spawn</span>(<span class="ident">udp_tx::runner</span>(<span class="ident">udp_sender_msg_rx</span>, <span class="ident">ssrc</span>, <span class="ident">udp_tx</span>));
+        spawn(udp_tx::runner(udp_sender_msg_rx, ssrc, udp_tx));
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Connection</span> {
-            <span class="ident">info</span>,
-            <span class="ident">ssrc</span>,
-            <span class="ident">ws</span>: <span class="ident">ws_msg_tx</span>,
+        <span class="prelude-val">Ok</span>(Connection {
+            info,
+            ssrc,
+            ws: ws_msg_tx,
         })
     }
 
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">reconnect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">config</span>.<span class="ident">driver_timeout</span> {
-            <span class="ident">timeout</span>(<span class="ident">t</span>, <span class="self">self</span>.<span class="ident">reconnect_inner</span>()).<span class="kw">await</span><span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">reconnect_inner</span>().<span class="kw">await</span>
-        }
+    <span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub async fn </span>reconnect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = config.driver_timeout {
+            timeout(t, <span class="self">self</span>.reconnect_inner()).<span class="kw">await</span><span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            <span class="self">self</span>.reconnect_inner().<span class="kw">await
+        </span>}
     }
 
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">reconnect_inner</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">generate_url</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">endpoint</span>)<span class="question-mark">?</span>;
+    <span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub async fn </span>reconnect_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>url = generate_url(<span class="kw-2">&amp;mut </span><span class="self">self</span>.info.endpoint)<span class="question-mark">?</span>;
 
-        <span class="comment">// Thread may have died, we want to send to prompt a clean exit</span>
-        <span class="comment">// (if at all possible) and then proceed as normal.</span>
+        <span class="comment">// Thread may have died, we want to send to prompt a clean exit
+        // (if at all possible) and then proceed as normal.
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">create_rustls_client</span>(<span class="ident">url</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        </span><span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>client = create_rustls_client(url).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)]</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">create_native_tls_client</span>(<span class="ident">url</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;native-marker&quot;</span>)]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>client = create_native_tls_client(url).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="ident">client</span>
-            .<span class="ident">send_json</span>(<span class="kw-2">&amp;</span><span class="ident">GatewayEvent::from</span>(<span class="ident">Resume</span> {
-                <span class="ident">server_id</span>: <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">guild_id</span>.<span class="ident">into</span>(),
-                <span class="ident">session_id</span>: <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">session_id</span>.<span class="ident">clone</span>(),
-                <span class="ident">token</span>: <span class="self">self</span>.<span class="ident">info</span>.<span class="ident">token</span>.<span class="ident">clone</span>(),
+        client
+            .send_json(<span class="kw-2">&amp;</span>GatewayEvent::from(Resume {
+                server_id: <span class="self">self</span>.info.guild_id.into(),
+                session_id: <span class="self">self</span>.info.session_id.clone(),
+                token: <span class="self">self</span>.info.token.clone(),
             }))
             .<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hello</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resumed</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>hello = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>resumed = <span class="prelude-val">None</span>;
 
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">client</span>.<span class="ident">recv_json</span>().<span class="kw">await</span><span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
-                <span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>value = <span class="kw">match </span>client.recv_json().<span class="kw">await</span><span class="question-mark">? </span>{
+                <span class="prelude-val">Some</span>(value) =&gt; value,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
             };
 
-            <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="ident">GatewayEvent::Resumed</span> =&gt; {
-                    <span class="ident">resumed</span> <span class="op">=</span> <span class="prelude-val">Some</span>(());
-                    <span class="kw">if</span> <span class="ident">hello</span>.<span class="ident">is_some</span>() {
+            <span class="kw">match </span>value {
+                GatewayEvent::Resumed =&gt; {
+                    resumed = <span class="prelude-val">Some</span>(());
+                    <span class="kw">if </span>hello.is_some() {
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">GatewayEvent::Hello</span>(<span class="ident">h</span>) =&gt; {
-                    <span class="ident">hello</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">h</span>);
-                    <span class="kw">if</span> <span class="ident">resumed</span>.<span class="ident">is_some</span>() {
+                GatewayEvent::Hello(h) =&gt; {
+                    hello = <span class="prelude-val">Some</span>(h);
+                    <span class="kw">if </span>resumed.is_some() {
                         <span class="kw">break</span>;
                     }
                 },
-                <span class="ident">other</span> =&gt; {
-                    <span class="macro">debug!</span>(<span class="string">&quot;Expected resumed/hello; got: {:?}&quot;</span>, <span class="ident">other</span>);
+                other =&gt; {
+                    <span class="macro">debug!</span>(<span class="string">&quot;Expected resumed/hello; got: {:?}&quot;</span>, other);
 
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::ExpectedHandshake</span>);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::ExpectedHandshake);
                 },
             }
         }
 
-        <span class="kw">let</span> <span class="ident">hello</span> <span class="op">=</span>
-            <span class="ident">hello</span>.<span class="ident">expect</span>(<span class="string">&quot;Hello packet expected in connection initialisation, but not found.&quot;</span>);
+        <span class="kw">let </span>hello =
+            hello.expect(<span class="string">&quot;Hello packet expected in connection initialisation, but not found.&quot;</span>);
 
-        <span class="self">self</span>.<span class="ident">ws</span>
-            .<span class="ident">send</span>(<span class="ident">WsMessage::SetKeepalive</span>(<span class="ident">hello</span>.<span class="ident">heartbeat_interval</span>))<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">ws</span>.<span class="ident">send</span>(<span class="ident">WsMessage::Ws</span>(<span class="ident">Box::new</span>(<span class="ident">client</span>)))<span class="question-mark">?</span>;
+        <span class="self">self</span>.ws
+            .send(WsMessage::SetKeepalive(hello.heartbeat_interval))<span class="question-mark">?</span>;
+        <span class="self">self</span>.ws.send(WsMessage::Ws(Box::new(client)))<span class="question-mark">?</span>;
 
-        <span class="macro">info!</span>(<span class="string">&quot;Reconnected to: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">info</span>.<span class="ident">endpoint</span>);
+        <span class="macro">info!</span>(<span class="string">&quot;Reconnected to: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.info.endpoint);
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Connection</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Connection {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">info!</span>(<span class="string">&quot;Disconnected&quot;</span>);
     }
 }
 
-<span class="kw">fn</span> <span class="ident">generate_url</span>(<span class="ident">endpoint</span>: <span class="kw-2">&amp;mut</span> <span class="ident">String</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">endpoint</span>.<span class="ident">ends_with</span>(<span class="string">&quot;:80&quot;</span>) {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">endpoint</span>.<span class="ident">len</span>();
+<span class="kw">fn </span>generate_url(endpoint: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;Url&gt; {
+    <span class="kw">if </span>endpoint.ends_with(<span class="string">&quot;:80&quot;</span>) {
+        <span class="kw">let </span>len = endpoint.len();
 
-        <span class="ident">endpoint</span>.<span class="ident">truncate</span>(<span class="ident">len</span> <span class="op">-</span> <span class="number">3</span>);
+        endpoint.truncate(len - <span class="number">3</span>);
     }
 
-    <span class="ident">Url::parse</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;wss://{}/?v={}&quot;</span>, <span class="ident">endpoint</span>, <span class="ident">VOICE_GATEWAY_VERSION</span>))
-        .<span class="ident">or</span>(<span class="prelude-val">Err</span>(<span class="ident">Error::EndpointUrl</span>))
+    Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;wss://{}/?v={}&quot;</span>, endpoint, VOICE_GATEWAY_VERSION))
+        .or(<span class="prelude-val">Err</span>(Error::EndpointUrl))
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">init_cipher</span>(<span class="ident">client</span>: <span class="kw-2">&amp;mut</span> <span class="ident">WsStream</span>, <span class="ident">mode</span>: <span class="ident">CryptoMode</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cipher</span><span class="op">&gt;</span> {
-    <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">client</span>.<span class="ident">recv_json</span>().<span class="kw">await</span><span class="question-mark">?</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
+<span class="attribute">#[inline]
+</span><span class="kw">async fn </span>init_cipher(client: <span class="kw-2">&amp;mut </span>WsStream, mode: CryptoMode) -&gt; <span class="prelude-ty">Result</span>&lt;Cipher&gt; {
+    <span class="kw">loop </span>{
+        <span class="kw">let </span>value = <span class="kw">match </span>client.recv_json().<span class="kw">await</span><span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(value) =&gt; value,
+            <span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
         };
 
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">GatewayEvent::SessionDescription</span>(<span class="ident">desc</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">mode</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mode</span>.<span class="ident">to_request_str</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::CryptoModeInvalid</span>);
+        <span class="kw">match </span>value {
+            GatewayEvent::SessionDescription(desc) =&gt; {
+                <span class="kw">if </span>desc.mode != mode.to_request_str() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CryptoModeInvalid);
                 }
 
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Cipher::new_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">desc</span>.<span class="ident">secret_key</span>)<span class="question-mark">?</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(Cipher::new_from_slice(<span class="kw-2">&amp;</span>desc.secret_key)<span class="question-mark">?</span>);
             },
-            <span class="ident">other</span> =&gt; {
+            other =&gt; {
                 <span class="macro">debug!</span>(
                     <span class="string">&quot;Expected ready for key; got: op{}/v{:?}&quot;</span>,
-                    <span class="ident">other</span>.<span class="ident">kind</span>() <span class="kw">as</span> <span class="ident">u8</span>,
-                    <span class="ident">other</span>
+                    other.kind() <span class="kw">as </span>u8,
+                    other
                 );
             },
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">has_valid_mode</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">It</span><span class="op">&gt;</span>(<span class="ident">modes</span>: <span class="ident">It</span>, <span class="ident">mode</span>: <span class="ident">CryptoMode</span>) -&gt; <span class="ident">bool</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">It</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+<span class="attribute">#[inline]
+</span><span class="kw">fn </span>has_valid_mode&lt;T, It&gt;(modes: It, mode: CryptoMode) -&gt; bool
+<span class="kw">where
+    </span>T: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;,
+    It: IntoIterator&lt;Item = T&gt;,
 {
-    <span class="ident">modes</span>.<span class="ident">into_iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">mode</span>.<span class="ident">to_request_str</span>())
+    modes.into_iter().any(|s| s == mode.to_request_str())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

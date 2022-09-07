@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/ws.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ws.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/ws.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ws.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -207,207 +201,206 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::model::Event</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::model::Event;
 
-<span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
-<span class="kw">use</span> <span class="ident">async_tungstenite</span>::{
-    <span class="self">self</span> <span class="kw">as</span> <span class="ident">tungstenite</span>,
-    <span class="ident">tokio::ConnectStream</span>,
-    <span class="ident">tungstenite</span>::{<span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">TungsteniteError</span>, <span class="ident">protocol::CloseFrame</span>, <span class="ident">Message</span>},
-    <span class="ident">WebSocketStream</span>,
+<span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>async_tungstenite::{
+    <span class="self">self </span><span class="kw">as </span>tungstenite,
+    tokio::ConnectStream,
+    tungstenite::{error::Error <span class="kw">as </span>TungsteniteError, protocol::CloseFrame, Message},
+    WebSocketStream,
 };
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">SinkExt</span>, <span class="ident">StreamExt</span>, <span class="ident">TryStreamExt</span>};
-<span class="kw">use</span> <span class="ident">serde_json::Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>;
-<span class="kw">use</span> <span class="ident">tokio::time</span>::{<span class="ident">timeout</span>, <span class="ident">Duration</span>};
-<span class="kw">use</span> <span class="ident">tracing::instrument</span>;
+<span class="kw">use </span>futures::{SinkExt, StreamExt, TryStreamExt};
+<span class="kw">use </span>serde_json::Error <span class="kw">as </span>JsonError;
+<span class="kw">use </span>tokio::time::{timeout, Duration};
+<span class="kw">use </span>tracing::instrument;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">WsStream</span> <span class="op">=</span> <span class="ident">WebSocketStream</span><span class="op">&lt;</span><span class="ident">ConnectStream</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>WsStream = WebSocketStream&lt;ConnectStream&gt;;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, Error&gt;;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="ident">Json</span>(<span class="ident">JsonError</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-    <span class="ident">Tls</span>(<span class="ident">RustlsError</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Error {
+    Json(JsonError),
+    <span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+    </span>Tls(RustlsError),
 
-    <span class="doccomment">/// The discord voice gateway does not support or offer zlib compression.</span>
-    <span class="doccomment">/// As a result, only text messages are expected.</span>
-    <span class="ident">UnexpectedBinaryMessage</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// The discord voice gateway does not support or offer zlib compression.
+    /// As a result, only text messages are expected.
+    </span>UnexpectedBinaryMessage(Vec&lt;u8&gt;),
 
-    <span class="ident">Ws</span>(<span class="ident">TungsteniteError</span>),
+    Ws(TungsteniteError),
 
-    <span class="ident">WsClosed</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CloseFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    WsClosed(<span class="prelude-ty">Option</span>&lt;CloseFrame&lt;<span class="lifetime">&#39;static</span>&gt;&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsonError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">JsonError</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::Json</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;JsonError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: JsonError) -&gt; Error {
+        Error::Json(e)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RustlsError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">RustlsError</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::Tls</span>(<span class="ident">e</span>)
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+</span><span class="kw">impl </span>From&lt;RustlsError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: RustlsError) -&gt; Error {
+        Error::Tls(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TungsteniteError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">TungsteniteError</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::Ws</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;TungsteniteError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: TungsteniteError) -&gt; Error {
+        Error::Ws(e)
     }
 }
 
-<span class="kw">use</span> <span class="ident">futures::stream::SplitSink</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">StdError</span>,
-    <span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">FmtResult</span>},
-    <span class="ident">io::Error</span> <span class="kw">as</span> <span class="ident">IoError</span>,
+<span class="kw">use </span>futures::stream::SplitSink;
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+</span><span class="kw">use </span>std::{
+    error::Error <span class="kw">as </span>StdError,
+    fmt::{Display, Formatter, <span class="prelude-ty">Result </span><span class="kw">as </span>FmtResult},
+    io::Error <span class="kw">as </span>IoError,
 };
-<span class="kw">use</span> <span class="ident">url::Url</span>;
+<span class="kw">use </span>url::Url;
 
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ReceiverExt</span> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_json</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_json_no_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="attribute">#[async_trait]
+</span><span class="kw">pub trait </span>ReceiverExt {
+    <span class="kw">async fn </span>recv_json(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Event&gt;&gt;;
+    <span class="kw">async fn </span>recv_json_no_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Event&gt;&gt;;
 }
 
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SenderExt</span> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_json</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="attribute">#[async_trait]
+</span><span class="kw">pub trait </span>SenderExt {
+    <span class="kw">async fn </span>send_json(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Event) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;;
 }
 
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">impl</span> <span class="ident">ReceiverExt</span> <span class="kw">for</span> <span class="ident">WsStream</span> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_json</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">const</span> <span class="ident">TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">500</span>);
+<span class="attribute">#[async_trait]
+</span><span class="kw">impl </span>ReceiverExt <span class="kw">for </span>WsStream {
+    <span class="kw">async fn </span>recv_json(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Event&gt;&gt; {
+        <span class="kw">const </span>TIMEOUT: Duration = Duration::from_millis(<span class="number">500</span>);
 
-        <span class="kw">let</span> <span class="ident">ws_message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">timeout</span>(<span class="ident">TIMEOUT</span>, <span class="self">self</span>.<span class="ident">next</span>()).<span class="kw">await</span> {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">v</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="ident">v</span>),
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>()),
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">let </span>ws_message = <span class="kw">match </span>timeout(TIMEOUT, <span class="self">self</span>.next()).<span class="kw">await </span>{
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(v))) =&gt; <span class="prelude-val">Some</span>(v),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e))) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e.into()),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         };
 
-        <span class="ident">convert_ws_message</span>(<span class="ident">ws_message</span>)
+        convert_ws_message(ws_message)
     }
 
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_json_no_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">convert_ws_message</span>(<span class="self">self</span>.<span class="ident">try_next</span>().<span class="kw">await</span><span class="question-mark">?</span>)
-    }
-}
-
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">impl</span> <span class="ident">SenderExt</span> <span class="kw">for</span> <span class="ident">SplitSink</span><span class="op">&lt;</span><span class="ident">WsStream</span>, <span class="ident">Message</span><span class="op">&gt;</span> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_json</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">serde_json::to_string</span>(<span class="ident">value</span>)
-            .<span class="ident">map</span>(<span class="ident">Message::Text</span>)
-            .<span class="ident">map_err</span>(<span class="ident">Error::from</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">m</span>))<span class="question-mark">?</span>
-            .<span class="kw">await</span><span class="question-mark">?</span>)
+    <span class="kw">async fn </span>recv_json_no_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Event&gt;&gt; {
+        convert_ws_message(<span class="self">self</span>.try_next().<span class="kw">await</span><span class="question-mark">?</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">impl</span> <span class="ident">SenderExt</span> <span class="kw">for</span> <span class="ident">WsStream</span> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_json</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">serde_json::to_string</span>(<span class="ident">value</span>)
-            .<span class="ident">map</span>(<span class="ident">Message::Text</span>)
-            .<span class="ident">map_err</span>(<span class="ident">Error::from</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">send</span>(<span class="ident">m</span>))<span class="question-mark">?</span>
-            .<span class="kw">await</span><span class="question-mark">?</span>)
+<span class="attribute">#[async_trait]
+</span><span class="kw">impl </span>SenderExt <span class="kw">for </span>SplitSink&lt;WsStream, Message&gt; {
+    <span class="kw">async fn </span>send_json(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Event) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="prelude-val">Ok</span>(serde_json::to_string(value)
+            .map(Message::Text)
+            .map_err(Error::from)
+            .map(|m| <span class="self">self</span>.send(m))<span class="question-mark">?
+            </span>.<span class="kw">await</span><span class="question-mark">?</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">convert_ws_message</span>(<span class="ident">message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">message</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">Message::Text</span>(<span class="ident">payload</span>)) =&gt; <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">payload</span>).<span class="ident">map</span>(<span class="prelude-val">Some</span>)<span class="question-mark">?</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">Message::Binary</span>(<span class="ident">bytes</span>)) =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::UnexpectedBinaryMessage</span>(<span class="ident">bytes</span>));
+<span class="attribute">#[async_trait]
+</span><span class="kw">impl </span>SenderExt <span class="kw">for </span>WsStream {
+    <span class="kw">async fn </span>send_json(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Event) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="prelude-val">Ok</span>(serde_json::to_string(value)
+            .map(Message::Text)
+            .map_err(Error::from)
+            .map(|m| <span class="self">self</span>.send(m))<span class="question-mark">?
+            </span>.<span class="kw">await</span><span class="question-mark">?</span>)
+    }
+}
+
+<span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>convert_ws_message(message: <span class="prelude-ty">Option</span>&lt;Message&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Event&gt;&gt; {
+    <span class="prelude-val">Ok</span>(<span class="kw">match </span>message {
+        <span class="prelude-val">Some</span>(Message::Text(payload)) =&gt; serde_json::from_str(<span class="kw-2">&amp;</span>payload).map(<span class="prelude-val">Some</span>)<span class="question-mark">?</span>,
+        <span class="prelude-val">Some</span>(Message::Binary(bytes)) =&gt; {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedBinaryMessage(bytes));
         },
-        <span class="prelude-val">Some</span>(<span class="ident">Message::Close</span>(<span class="prelude-val">Some</span>(<span class="ident">frame</span>))) =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::WsClosed</span>(<span class="prelude-val">Some</span>(<span class="ident">frame</span>)));
+        <span class="prelude-val">Some</span>(Message::Close(<span class="prelude-val">Some</span>(frame))) =&gt; {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::WsClosed(<span class="prelude-val">Some</span>(frame)));
         },
-        <span class="comment">// Ping/Pong message behaviour is internally handled by tungstenite.</span>
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="comment">// Ping/Pong message behaviour is internally handled by tungstenite.
+        </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     })
 }
 
-<span class="doccomment">/// An error that occured while connecting over rustls</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RustlsError</span> {
-    <span class="doccomment">/// An error with the handshake in tungstenite</span>
-    <span class="ident">HandshakeError</span>,
-    <span class="doccomment">/// Standard IO error happening while creating the tcp stream</span>
-    <span class="ident">Io</span>(<span class="ident">IoError</span>),
+<span class="doccomment">/// An error that occured while connecting over rustls
+</span><span class="attribute">#[derive(Debug)]
+#[non_exhaustive]
+#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+</span><span class="kw">pub enum </span>RustlsError {
+    <span class="doccomment">/// An error with the handshake in tungstenite
+    </span>HandshakeError,
+    <span class="doccomment">/// Standard IO error happening while creating the tcp stream
+    </span>Io(IoError),
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">IoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RustlsError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">IoError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">RustlsError::Io</span>(<span class="ident">e</span>)
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+</span><span class="kw">impl </span>From&lt;IoError&gt; <span class="kw">for </span>RustlsError {
+    <span class="kw">fn </span>from(e: IoError) -&gt; <span class="self">Self </span>{
+        RustlsError::Io(e)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">RustlsError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">FmtResult</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">RustlsError::HandshakeError</span> =&gt;
-                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;TLS handshake failed when making the websocket connection&quot;</span>),
-            <span class="ident">RustlsError::Io</span>(<span class="ident">inner</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">inner</span>, <span class="ident">f</span>),
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+</span><span class="kw">impl </span>Display <span class="kw">for </span>RustlsError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; FmtResult {
+        <span class="kw">match </span><span class="self">self </span>{
+            RustlsError::HandshakeError =&gt;
+                f.write_str(<span class="string">&quot;TLS handshake failed when making the websocket connection&quot;</span>),
+            RustlsError::Io(inner) =&gt; Display::fmt(<span class="kw-2">&amp;</span>inner, f),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-<span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">RustlsError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">RustlsError::Io</span>(<span class="ident">inner</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">inner</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+</span><span class="kw">impl </span>StdError <span class="kw">for </span>RustlsError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            RustlsError::Io(inner) =&gt; <span class="prelude-val">Some</span>(inner),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-marker&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)))]</span>
-<span class="attribute">#[<span class="ident">instrument</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_rustls_client</span>(<span class="ident">url</span>: <span class="ident">Url</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WsStream</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">stream</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tungstenite::tokio::connect_async_with_config</span>::<span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span>(
-        <span class="ident">url</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">tungstenite::tungstenite::protocol::WebSocketConfig</span> {
-            <span class="ident">max_message_size</span>: <span class="prelude-val">None</span>,
-            <span class="ident">max_frame_size</span>: <span class="prelude-val">None</span>,
-            <span class="ident">max_send_queue</span>: <span class="prelude-val">None</span>,
-            ..<span class="ident">Default::default</span>()
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;rustls-marker&quot;</span>, not(feature = <span class="string">&quot;native-marker&quot;</span>)))]
+#[instrument]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>create_rustls_client(url: Url) -&gt; <span class="prelude-ty">Result</span>&lt;WsStream&gt; {
+    <span class="kw">let </span>(stream, <span class="kw">_</span>) = tungstenite::tokio::connect_async_with_config::&lt;Url&gt;(
+        url,
+        <span class="prelude-val">Some</span>(tungstenite::tungstenite::protocol::WebSocketConfig {
+            max_message_size: <span class="prelude-val">None</span>,
+            max_frame_size: <span class="prelude-val">None</span>,
+            max_send_queue: <span class="prelude-val">None</span>,
+            ..Default::default()
         }),
     )
-    .<span class="kw">await</span>
-    .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RustlsError::HandshakeError</span>)<span class="question-mark">?</span>;
+    .<span class="kw">await
+    </span>.map_err(|<span class="kw">_</span>| RustlsError::HandshakeError)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<span class="ident">stream</span>)
+    <span class="prelude-val">Ok</span>(stream)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-marker&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">instrument</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_native_tls_client</span>(<span class="ident">url</span>: <span class="ident">Url</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WsStream</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">stream</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">tungstenite::tokio::connect_async_with_config</span>::<span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span>(
-        <span class="ident">url</span>,
-        <span class="prelude-val">Some</span>(<span class="ident">tungstenite::tungstenite::protocol::WebSocketConfig</span> {
-            <span class="ident">max_message_size</span>: <span class="prelude-val">None</span>,
-            <span class="ident">max_frame_size</span>: <span class="prelude-val">None</span>,
-            <span class="ident">max_send_queue</span>: <span class="prelude-val">None</span>,
-            ..<span class="ident">Default::default</span>()
+<span class="attribute">#[cfg(feature = <span class="string">&quot;native-marker&quot;</span>)]
+#[instrument]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>create_native_tls_client(url: Url) -&gt; <span class="prelude-ty">Result</span>&lt;WsStream&gt; {
+    <span class="kw">let </span>(stream, <span class="kw">_</span>) = tungstenite::tokio::connect_async_with_config::&lt;Url&gt;(
+        url,
+        <span class="prelude-val">Some</span>(tungstenite::tungstenite::protocol::WebSocketConfig {
+            max_message_size: <span class="prelude-val">None</span>,
+            max_frame_size: <span class="prelude-val">None</span>,
+            max_send_queue: <span class="prelude-val">None</span>,
+            ..Default::default()
         }),
     )
     .<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(<span class="ident">stream</span>)
+    <span class="prelude-val">Ok</span>(stream)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

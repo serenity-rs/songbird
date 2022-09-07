@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/child.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>child.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/child.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>child.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -93,93 +87,92 @@
 <span id="85">85</span>
 <span id="86">86</span>
 <span id="87">87</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">io</span>::{<span class="ident">BufReader</span>, <span class="ident">Read</span>},
-    <span class="ident">mem</span>,
-    <span class="ident">process::Child</span>,
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::{
+    io::{BufReader, Read},
+    mem,
+    process::Child,
 };
-<span class="kw">use</span> <span class="ident">tokio::runtime::Handle</span>;
-<span class="kw">use</span> <span class="ident">tracing::debug</span>;
+<span class="kw">use </span>tokio::runtime::Handle;
+<span class="kw">use </span>tracing::debug;
 
-<span class="doccomment">/// Handle for a child process which ensures that any subprocesses are properly closed</span>
-<span class="doccomment">/// on drop.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Warning</span>
-<span class="doccomment">/// To allow proper cleanup of child processes, if you create a process chain you must</span>
-<span class="doccomment">/// make sure to use `From&lt;Vec&lt;Child&gt;&gt;`. Here, the *last* process in the `Vec` will be</span>
-<span class="doccomment">/// used as the audio byte source.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChildContainer</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Handle for a child process which ensures that any subprocesses are properly closed
+/// on drop.
+///
+/// # Warning
+/// To allow proper cleanup of child processes, if you create a process chain you must
+/// make sure to use `From&lt;Vec&lt;Child&gt;&gt;`. Here, the *last* process in the `Vec` will be
+/// used as the audio byte source.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ChildContainer(Vec&lt;Child&gt;);
 
-<span class="kw">impl</span> <span class="ident">ChildContainer</span> {
-    <span class="doccomment">/// Create a new [`ChildContainer`] from a child process</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">children</span>)
+<span class="kw">impl </span>ChildContainer {
+    <span class="doccomment">/// Create a new [`ChildContainer`] from a child process
+    </span><span class="kw">pub fn </span>new(children: Vec&lt;Child&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(children)
     }
 }
 
-<span class="doccomment">/// Create a [`Reader`] from a child process</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">children_to_reader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) -&gt; <span class="ident">Reader</span> {
-    <span class="ident">Reader::Pipe</span>(<span class="ident">BufReader::with_capacity</span>(
-        <span class="ident">STEREO_FRAME_SIZE</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">CHILD_BUFFER_LEN</span>,
-        <span class="ident">ChildContainer</span>(<span class="ident">children</span>),
+<span class="doccomment">/// Create a [`Reader`] from a child process
+</span><span class="kw">pub fn </span>children_to_reader&lt;T&gt;(children: Vec&lt;Child&gt;) -&gt; Reader {
+    Reader::Pipe(BufReader::with_capacity(
+        STEREO_FRAME_SIZE * mem::size_of::&lt;T&gt;() * CHILD_BUFFER_LEN,
+        ChildContainer(children),
     ))
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Reader</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">container</span>: <span class="ident">Child</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">children_to_reader</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="macro">vec!</span>[<span class="ident">container</span>])
+<span class="kw">impl </span>From&lt;Child&gt; <span class="kw">for </span>Reader {
+    <span class="kw">fn </span>from(container: Child) -&gt; <span class="self">Self </span>{
+        children_to_reader::&lt;f32&gt;(<span class="macro">vec!</span>[container])
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Reader</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">container</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">children_to_reader</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="ident">container</span>)
+<span class="kw">impl </span>From&lt;Vec&lt;Child&gt;&gt; <span class="kw">for </span>Reader {
+    <span class="kw">fn </span>from(container: Vec&lt;Child&gt;) -&gt; <span class="self">Self </span>{
+        children_to_reader::&lt;f32&gt;(container)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">ChildContainer</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">last_mut</span>() {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">child</span>) =&gt; <span class="ident">child</span>.<span class="ident">stdout</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">read</span>(<span class="ident">buffer</span>),
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+<span class="kw">impl </span>Read <span class="kw">for </span>ChildContainer {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span>[u8]) -&gt; IoResult&lt;usize&gt; {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0</span>.last_mut() {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>child) =&gt; child.stdout.as_mut().unwrap().read(buffer),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ChildContainer</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="number">0</span>);
+<span class="kw">impl </span>Drop <span class="kw">for </span>ChildContainer {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>children = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="ident">Handle::try_current</span>() {
-            <span class="ident">handle</span>.<span class="ident">spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-                <span class="ident">cleanup_child_processes</span>(<span class="ident">children</span>);
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(handle) = Handle::try_current() {
+            handle.spawn_blocking(<span class="kw">move </span>|| {
+                cleanup_child_processes(children);
             });
-        } <span class="kw">else</span> {
-            <span class="ident">cleanup_child_processes</span>(<span class="ident">children</span>);
+        } <span class="kw">else </span>{
+            cleanup_child_processes(children);
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">cleanup_child_processes</span>(<span class="kw-2">mut</span> <span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Child</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">attempt</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">child</span>) <span class="op">=</span> <span class="ident">children</span>.<span class="ident">last_mut</span>() {
-        <span class="ident">child</span>.<span class="ident">kill</span>()
-    } <span class="kw">else</span> {
+<span class="kw">fn </span>cleanup_child_processes(<span class="kw-2">mut </span>children: Vec&lt;Child&gt;) {
+    <span class="kw">let </span>attempt = <span class="kw">if let </span><span class="prelude-val">Some</span>(child) = children.last_mut() {
+        child.kill()
+    } <span class="kw">else </span>{
         <span class="kw">return</span>;
     };
 
-    <span class="kw">let</span> <span class="ident">attempt</span> <span class="op">=</span> <span class="ident">attempt</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-        <span class="ident">children</span>
-            .<span class="ident">iter_mut</span>()
-            .<span class="ident">rev</span>()
-            .<span class="ident">try_for_each</span>(<span class="op">|</span><span class="ident">child</span><span class="op">|</span> <span class="ident">child</span>.<span class="ident">wait</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()))
+    <span class="kw">let </span>attempt = attempt.and_then(|<span class="kw">_</span>| {
+        children
+            .iter_mut()
+            .rev()
+            .try_for_each(|child| child.wait().map(|<span class="kw">_</span>| ()))
     });
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">attempt</span> {
-        <span class="macro">debug!</span>(<span class="string">&quot;Error awaiting child process: {:?}&quot;</span>, <span class="ident">e</span>);
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = attempt {
+        <span class="macro">debug!</span>(<span class="string">&quot;Error awaiting child process: {:?}&quot;</span>, e);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

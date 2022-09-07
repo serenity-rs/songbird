@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/udp_rx.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp_rx.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/udp_rx.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp_rx.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -432,432 +426,431 @@
 <span id="424">424</span>
 <span id="425">425</span>
 <span id="426">426</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>},
-    <span class="ident">message</span>::<span class="kw-2">*</span>,
-    <span class="ident">Config</span>,
+</pre><pre class="rust"><code><span class="kw">use super</span>::{
+    error::{Error, <span class="prelude-ty">Result</span>},
+    message::<span class="kw-2">*</span>,
+    Config,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">constants</span>::<span class="kw-2">*</span>,
-    <span class="ident">driver::DecodeMode</span>,
-    <span class="ident">events</span>::{<span class="ident">internal_data</span>::<span class="kw-2">*</span>, <span class="ident">CoreContext</span>},
+<span class="kw">use crate</span>::{
+    constants::<span class="kw-2">*</span>,
+    driver::DecodeMode,
+    events::{internal_data::<span class="kw-2">*</span>, CoreContext},
 };
-<span class="kw">use</span> <span class="ident">audiopus</span>::{
-    <span class="ident">coder::Decoder</span> <span class="kw">as</span> <span class="ident">OpusDecoder</span>,
-    <span class="ident">error</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>, <span class="ident">ErrorCode</span>},
-    <span class="ident">packet::Packet</span> <span class="kw">as</span> <span class="ident">OpusPacket</span>,
-    <span class="ident">Channels</span>,
+<span class="kw">use </span>audiopus::{
+    coder::Decoder <span class="kw">as </span>OpusDecoder,
+    error::{Error <span class="kw">as </span>OpusError, ErrorCode},
+    packet::Packet <span class="kw">as </span>OpusPacket,
+    Channels,
 };
-<span class="kw">use</span> <span class="ident">discortp</span>::{
-    <span class="ident">demux</span>::{<span class="self">self</span>, <span class="ident">DemuxedMut</span>},
-    <span class="ident">rtp</span>::{<span class="ident">RtpExtensionPacket</span>, <span class="ident">RtpPacket</span>},
-    <span class="ident">FromPacket</span>,
-    <span class="ident">Packet</span>,
-    <span class="ident">PacketSize</span>,
+<span class="kw">use </span>discortp::{
+    demux::{<span class="self">self</span>, DemuxedMut},
+    rtp::{RtpExtensionPacket, RtpPacket},
+    FromPacket,
+    Packet,
+    PacketSize,
 };
-<span class="kw">use</span> <span class="ident">flume::Receiver</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">convert::TryInto</span>, <span class="ident">sync::Arc</span>};
-<span class="kw">use</span> <span class="ident">tokio</span>::{<span class="ident">net::UdpSocket</span>, <span class="ident">select</span>};
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">error</span>, <span class="ident">instrument</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
-<span class="kw">use</span> <span class="ident">xsalsa20poly1305::XSalsa20Poly1305</span> <span class="kw">as</span> <span class="ident">Cipher</span>;
+<span class="kw">use </span>flume::Receiver;
+<span class="kw">use </span>std::{collections::HashMap, convert::TryInto, sync::Arc};
+<span class="kw">use </span>tokio::{net::UdpSocket, select};
+<span class="kw">use </span>tracing::{error, instrument, trace, warn};
+<span class="kw">use </span>xsalsa20poly1305::XSalsa20Poly1305 <span class="kw">as </span>Cipher;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">SsrcState</span> {
-    <span class="ident">silent_frame_count</span>: <span class="ident">u16</span>,
-    <span class="ident">decoder</span>: <span class="ident">OpusDecoder</span>,
-    <span class="ident">last_seq</span>: <span class="ident">u16</span>,
-    <span class="ident">decode_size</span>: <span class="ident">PacketDecodeSize</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>SsrcState {
+    silent_frame_count: u16,
+    decoder: OpusDecoder,
+    last_seq: u16,
+    decode_size: PacketDecodeSize,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">PacketDecodeSize</span> {
-    <span class="doccomment">/// Minimum frame size on Discord.</span>
-    <span class="ident">TwentyMillis</span>,
-    <span class="doccomment">/// Hybrid packet, sent by Firefox web client.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Likely 20ms frame + 10ms frame.</span>
-    <span class="ident">ThirtyMillis</span>,
-    <span class="doccomment">/// Next largest frame size.</span>
-    <span class="ident">FortyMillis</span>,
-    <span class="doccomment">/// Maximum Opus frame size.</span>
-    <span class="ident">SixtyMillis</span>,
-    <span class="doccomment">/// Maximum Opus packet size: 120ms.</span>
-    <span class="ident">Max</span>,
+<span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+</span><span class="kw">enum </span>PacketDecodeSize {
+    <span class="doccomment">/// Minimum frame size on Discord.
+    </span>TwentyMillis,
+    <span class="doccomment">/// Hybrid packet, sent by Firefox web client.
+    ///
+    /// Likely 20ms frame + 10ms frame.
+    </span>ThirtyMillis,
+    <span class="doccomment">/// Next largest frame size.
+    </span>FortyMillis,
+    <span class="doccomment">/// Maximum Opus frame size.
+    </span>SixtyMillis,
+    <span class="doccomment">/// Maximum Opus packet size: 120ms.
+    </span>Max,
 }
 
-<span class="kw">impl</span> <span class="ident">PacketDecodeSize</span> {
-    <span class="kw">fn</span> <span class="ident">bump_up</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">PacketDecodeSize</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TwentyMillis</span> =&gt; <span class="ident">ThirtyMillis</span>,
-            <span class="ident">ThirtyMillis</span> =&gt; <span class="ident">FortyMillis</span>,
-            <span class="ident">FortyMillis</span> =&gt; <span class="ident">SixtyMillis</span>,
-            <span class="ident">SixtyMillis</span> <span class="op">|</span> <span class="ident">Max</span> =&gt; <span class="ident">Max</span>,
+<span class="kw">impl </span>PacketDecodeSize {
+    <span class="kw">fn </span>bump_up(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>PacketDecodeSize::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            TwentyMillis =&gt; ThirtyMillis,
+            ThirtyMillis =&gt; FortyMillis,
+            FortyMillis =&gt; SixtyMillis,
+            SixtyMillis | Max =&gt; Max,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">can_bump_up</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">!</span><span class="op">=</span> <span class="ident">PacketDecodeSize::Max</span>
+    <span class="kw">fn </span>can_bump_up(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self </span>!= PacketDecodeSize::Max
     }
 
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">use</span> <span class="ident">PacketDecodeSize</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TwentyMillis</span> =&gt; <span class="ident">STEREO_FRAME_SIZE</span>,
-            <span class="ident">ThirtyMillis</span> =&gt; (<span class="ident">STEREO_FRAME_SIZE</span> <span class="op">/</span> <span class="number">2</span>) <span class="op">*</span> <span class="number">3</span>,
-            <span class="ident">FortyMillis</span> =&gt; <span class="number">2</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
-            <span class="ident">SixtyMillis</span> =&gt; <span class="number">3</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
-            <span class="ident">Max</span> =&gt; <span class="number">6</span> <span class="op">*</span> <span class="ident">STEREO_FRAME_SIZE</span>,
+    <span class="kw">fn </span>len(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">use </span>PacketDecodeSize::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            TwentyMillis =&gt; STEREO_FRAME_SIZE,
+            ThirtyMillis =&gt; (STEREO_FRAME_SIZE / <span class="number">2</span>) * <span class="number">3</span>,
+            FortyMillis =&gt; <span class="number">2 </span>* STEREO_FRAME_SIZE,
+            SixtyMillis =&gt; <span class="number">3 </span>* STEREO_FRAME_SIZE,
+            Max =&gt; <span class="number">6 </span>* STEREO_FRAME_SIZE,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">SpeakingDelta</span> {
-    <span class="ident">Same</span>,
-    <span class="ident">Start</span>,
-    <span class="ident">Stop</span>,
+<span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+</span><span class="kw">enum </span>SpeakingDelta {
+    Same,
+    Start,
+    Stop,
 }
 
-<span class="kw">impl</span> <span class="ident">SsrcState</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">pkt</span>: <span class="ident">RtpPacket</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">silent_frame_count</span>: <span class="number">5</span>, <span class="comment">// We do this to make the first speech packet fire an event.</span>
-            <span class="ident">decoder</span>: <span class="ident">OpusDecoder::new</span>(<span class="ident">SAMPLE_RATE</span>, <span class="ident">Channels::Stereo</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Failed to create new Opus decoder for source.&quot;</span>),
-            <span class="ident">last_seq</span>: <span class="ident">pkt</span>.<span class="ident">get_sequence</span>().<span class="ident">into</span>(),
-            <span class="ident">decode_size</span>: <span class="ident">PacketDecodeSize::TwentyMillis</span>,
+<span class="kw">impl </span>SsrcState {
+    <span class="kw">fn </span>new(pkt: RtpPacket&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            silent_frame_count: <span class="number">5</span>, <span class="comment">// We do this to make the first speech packet fire an event.
+            </span>decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
+                .expect(<span class="string">&quot;Failed to create new Opus decoder for source.&quot;</span>),
+            last_seq: pkt.get_sequence().into(),
+            decode_size: PacketDecodeSize::TwentyMillis,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">process</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">pkt</span>: <span class="ident">RtpPacket</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">data_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">data_trailer</span>: <span class="ident">usize</span>,
-        <span class="ident">decode_mode</span>: <span class="ident">DecodeMode</span>,
-        <span class="ident">decrypted</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SpeakingDelta</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">new_seq</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">get_sequence</span>().<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">payload_len</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">payload</span>().<span class="ident">len</span>();
+    <span class="kw">fn </span>process(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        pkt: RtpPacket&lt;<span class="lifetime">&#39;_</span>&gt;,
+        data_offset: usize,
+        data_trailer: usize,
+        decode_mode: DecodeMode,
+        decrypted: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(SpeakingDelta, <span class="prelude-ty">Option</span>&lt;Vec&lt;i16&gt;&gt;)&gt; {
+        <span class="kw">let </span>new_seq: u16 = pkt.get_sequence().into();
+        <span class="kw">let </span>payload_len = pkt.payload().len();
 
-        <span class="kw">let</span> <span class="ident">extensions</span> <span class="op">=</span> <span class="ident">pkt</span>.<span class="ident">get_extension</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">seq_delta</span> <span class="op">=</span> <span class="ident">new_seq</span>.<span class="ident">wrapping_sub</span>(<span class="self">self</span>.<span class="ident">last_seq</span>);
-        <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">seq_delta</span> <span class="op">&gt;</span><span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">15</span>) {
-            <span class="comment">// Overflow, reordered (previously missing) packet.</span>
-            (<span class="ident">SpeakingDelta::Same</span>, <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[]))
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">last_seq</span> <span class="op">=</span> <span class="ident">new_seq</span>;
-            <span class="kw">let</span> <span class="ident">missed_packets</span> <span class="op">=</span> <span class="ident">seq_delta</span>.<span class="ident">saturating_sub</span>(<span class="number">1</span>);
+        <span class="kw">let </span>extensions = pkt.get_extension() != <span class="number">0</span>;
+        <span class="kw">let </span>seq_delta = new_seq.wrapping_sub(<span class="self">self</span>.last_seq);
+        <span class="prelude-val">Ok</span>(<span class="kw">if </span>seq_delta &gt;= (<span class="number">1 </span>&lt;&lt; <span class="number">15</span>) {
+            <span class="comment">// Overflow, reordered (previously missing) packet.
+            </span>(SpeakingDelta::Same, <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[]))
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.last_seq = new_seq;
+            <span class="kw">let </span>missed_packets = seq_delta.saturating_sub(<span class="number">1</span>);
 
-            <span class="comment">// Note: we still need to handle this for non-decoded.</span>
-            <span class="comment">// This is mainly because packet events and speaking events can be handed to the</span>
-            <span class="comment">// user.</span>
-            <span class="kw">let</span> (<span class="ident">audio</span>, <span class="ident">pkt_size</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">decode_mode</span>.<span class="ident">should_decrypt</span>() <span class="op">&amp;&amp;</span> <span class="ident">decrypted</span> {
-                <span class="self">self</span>.<span class="ident">scan_and_decode</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">pkt</span>.<span class="ident">payload</span>()[<span class="ident">data_offset</span>..<span class="ident">payload_len</span> <span class="op">-</span> <span class="ident">data_trailer</span>],
-                    <span class="ident">extensions</span>,
-                    <span class="ident">missed_packets</span>,
-                    <span class="ident">decode_mode</span> <span class="op">==</span> <span class="ident">DecodeMode::Decode</span>,
-                )<span class="question-mark">?</span>
-            } <span class="kw">else</span> {
-                <span class="comment">// The latter part is an upper bound, as we cannot determine</span>
-                <span class="comment">// how long packet extensions are.</span>
-                <span class="comment">// WIthout decryption, speaking detection is thus broken.</span>
-                (<span class="prelude-val">None</span>, <span class="ident">payload_len</span> <span class="op">-</span> <span class="ident">data_offset</span> <span class="op">-</span> <span class="ident">data_trailer</span>)
+            <span class="comment">// Note: we still need to handle this for non-decoded.
+            // This is mainly because packet events and speaking events can be handed to the
+            // user.
+            </span><span class="kw">let </span>(audio, pkt_size) = <span class="kw">if </span>decode_mode.should_decrypt() &amp;&amp; decrypted {
+                <span class="self">self</span>.scan_and_decode(
+                    <span class="kw-2">&amp;</span>pkt.payload()[data_offset..payload_len - data_trailer],
+                    extensions,
+                    missed_packets,
+                    decode_mode == DecodeMode::Decode,
+                )<span class="question-mark">?
+            </span>} <span class="kw">else </span>{
+                <span class="comment">// The latter part is an upper bound, as we cannot determine
+                // how long packet extensions are.
+                // WIthout decryption, speaking detection is thus broken.
+                </span>(<span class="prelude-val">None</span>, payload_len - data_offset - data_trailer)
             };
 
-            <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">pkt_size</span> <span class="op">==</span> <span class="ident">SILENT_FRAME</span>.<span class="ident">len</span>() {
-                <span class="comment">// Frame is silent.</span>
-                <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">silent_frame_count</span>;
-                <span class="self">self</span>.<span class="ident">silent_frame_count</span> <span class="op">=</span>
-                    <span class="self">self</span>.<span class="ident">silent_frame_count</span>.<span class="ident">saturating_add</span>(<span class="number">1</span> <span class="op">+</span> <span class="ident">missed_packets</span>);
+            <span class="kw">let </span>delta = <span class="kw">if </span>pkt_size == SILENT_FRAME.len() {
+                <span class="comment">// Frame is silent.
+                </span><span class="kw">let </span>old = <span class="self">self</span>.silent_frame_count;
+                <span class="self">self</span>.silent_frame_count =
+                    <span class="self">self</span>.silent_frame_count.saturating_add(<span class="number">1 </span>+ missed_packets);
 
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">silent_frame_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">old</span> <span class="op">&lt;</span> <span class="number">5</span> {
-                    <span class="ident">SpeakingDelta::Stop</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">SpeakingDelta::Same</span>
+                <span class="kw">if </span><span class="self">self</span>.silent_frame_count &gt;= <span class="number">5 </span>&amp;&amp; old &lt; <span class="number">5 </span>{
+                    SpeakingDelta::Stop
+                } <span class="kw">else </span>{
+                    SpeakingDelta::Same
                 }
-            } <span class="kw">else</span> {
-                <span class="comment">// Frame has meaningful audio.</span>
-                <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">silent_frame_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span> {
-                    <span class="ident">SpeakingDelta::Start</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">SpeakingDelta::Same</span>
+            } <span class="kw">else </span>{
+                <span class="comment">// Frame has meaningful audio.
+                </span><span class="kw">let </span>out = <span class="kw">if </span><span class="self">self</span>.silent_frame_count &gt;= <span class="number">5 </span>{
+                    SpeakingDelta::Start
+                } <span class="kw">else </span>{
+                    SpeakingDelta::Same
                 };
-                <span class="self">self</span>.<span class="ident">silent_frame_count</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="ident">out</span>
+                <span class="self">self</span>.silent_frame_count = <span class="number">0</span>;
+                out
             };
 
-            (<span class="ident">delta</span>, <span class="ident">audio</span>)
+            (delta, audio)
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">scan_and_decode</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">extension</span>: <span class="ident">bool</span>,
-        <span class="ident">missed_packets</span>: <span class="ident">u16</span>,
-        <span class="ident">decode</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">extension</span> {
-            <span class="ident">RtpExtensionPacket::new</span>(<span class="ident">data</span>)
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pkt</span><span class="op">|</span> <span class="ident">pkt</span>.<span class="ident">packet_size</span>())
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+    <span class="kw">fn </span>scan_and_decode(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        data: <span class="kw-2">&amp;</span>[u8],
+        extension: bool,
+        missed_packets: u16,
+        decode: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;Vec&lt;i16&gt;&gt;, usize)&gt; {
+        <span class="kw">let </span>start = <span class="kw">if </span>extension {
+            RtpExtensionPacket::new(data)
+                .map(|pkt| pkt.packet_size())
+                .ok_or_else(|| {
                     <span class="macro">error!</span>(<span class="string">&quot;Extension packet indicated, but insufficient space.&quot;</span>);
-                    <span class="ident">Error::IllegalVoicePacket</span>
+                    Error::IllegalVoicePacket
                 })
-        } <span class="kw">else</span> {
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="number">0</span>)
         }<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">pkt</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">decode</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">decode_size</span>.<span class="ident">len</span>()];
+        <span class="kw">let </span>pkt = <span class="kw">if </span>decode {
+            <span class="kw">let </span><span class="kw-2">mut </span>out = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="self">self</span>.decode_size.len()];
 
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">missed_packets</span> {
-                <span class="kw">let</span> <span class="ident">missing_frame</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OpusPacket</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                <span class="kw">let</span> <span class="ident">dest_samples</span> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="ident">out</span>[..])
-                    .<span class="ident">try_into</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;Decode logic will cap decode buffer size at i32::MAX.&quot;</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">decoder</span>.<span class="ident">decode</span>(<span class="ident">missing_frame</span>, <span class="ident">dest_samples</span>, <span class="bool-val">false</span>) {
-                    <span class="macro">warn!</span>(<span class="string">&quot;Issue while decoding for missed packet: {:?}.&quot;</span>, <span class="ident">e</span>);
+            <span class="kw">for _ in </span><span class="number">0</span>..missed_packets {
+                <span class="kw">let </span>missing_frame: <span class="prelude-ty">Option</span>&lt;OpusPacket&gt; = <span class="prelude-val">None</span>;
+                <span class="kw">let </span>dest_samples = (<span class="kw-2">&amp;mut </span>out[..])
+                    .try_into()
+                    .expect(<span class="string">&quot;Decode logic will cap decode buffer size at i32::MAX.&quot;</span>);
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.decoder.decode(missing_frame, dest_samples, <span class="bool-val">false</span>) {
+                    <span class="macro">warn!</span>(<span class="string">&quot;Issue while decoding for missed packet: {:?}.&quot;</span>, e);
                 }
             }
 
-            <span class="comment">// In general, we should expect 20 ms frames.</span>
-            <span class="comment">// However, Discord occasionally like to surprise us with something bigger.</span>
-            <span class="comment">// This is *sender-dependent behaviour*.</span>
-            <span class="comment">//</span>
-            <span class="comment">// This should scan up to find the &quot;correct&quot; size that a source is using,</span>
-            <span class="comment">// and then remember that.</span>
-            <span class="kw">loop</span> {
-                <span class="kw">let</span> <span class="ident">tried_audio_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decoder</span>.<span class="ident">decode</span>(
-                    <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="ident">start</span>..]).<span class="ident">try_into</span>()<span class="question-mark">?</span>),
-                    (<span class="kw-2">&amp;mut</span> <span class="ident">out</span>[..]).<span class="ident">try_into</span>()<span class="question-mark">?</span>,
+            <span class="comment">// In general, we should expect 20 ms frames.
+            // However, Discord occasionally like to surprise us with something bigger.
+            // This is *sender-dependent behaviour*.
+            //
+            // This should scan up to find the &quot;correct&quot; size that a source is using,
+            // and then remember that.
+            </span><span class="kw">loop </span>{
+                <span class="kw">let </span>tried_audio_len = <span class="self">self</span>.decoder.decode(
+                    <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span>data[start..]).try_into()<span class="question-mark">?</span>),
+                    (<span class="kw-2">&amp;mut </span>out[..]).try_into()<span class="question-mark">?</span>,
                     <span class="bool-val">false</span>,
                 );
 
-                <span class="kw">match</span> <span class="ident">tried_audio_len</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">audio_len</span>) =&gt; {
-                        <span class="comment">// Decoding to stereo: audio_len refers to sample count irrespective of channel count.</span>
-                        <span class="comment">// =&gt; multiply by number of channels.</span>
-                        <span class="ident">out</span>.<span class="ident">truncate</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">audio_len</span>);
+                <span class="kw">match </span>tried_audio_len {
+                    <span class="prelude-val">Ok</span>(audio_len) =&gt; {
+                        <span class="comment">// Decoding to stereo: audio_len refers to sample count irrespective of channel count.
+                        // =&gt; multiply by number of channels.
+                        </span>out.truncate(<span class="number">2 </span>* audio_len);
 
                         <span class="kw">break</span>;
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">OpusError::Opus</span>(<span class="ident">ErrorCode::BufferTooSmall</span>)) =&gt; {
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">decode_size</span>.<span class="ident">can_bump_up</span>() {
-                            <span class="self">self</span>.<span class="ident">decode_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_size</span>.<span class="ident">bump_up</span>();
-                            <span class="ident">out</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">decode_size</span>.<span class="ident">len</span>()];
-                        } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(OpusError::Opus(ErrorCode::BufferTooSmall)) =&gt; {
+                        <span class="kw">if </span><span class="self">self</span>.decode_size.can_bump_up() {
+                            <span class="self">self</span>.decode_size = <span class="self">self</span>.decode_size.bump_up();
+                            out = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="self">self</span>.decode_size.len()];
+                        } <span class="kw">else </span>{
                             <span class="macro">error!</span>(<span class="string">&quot;Received packet larger than Opus standard maximum,&quot;</span>);
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::IllegalVoicePacket</span>);
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::IllegalVoicePacket);
                         }
                     },
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                        <span class="macro">error!</span>(<span class="string">&quot;Failed to decode received packet: {:?}.&quot;</span>, <span class="ident">e</span>);
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>());
+                    <span class="prelude-val">Err</span>(e) =&gt; {
+                        <span class="macro">error!</span>(<span class="string">&quot;Failed to decode received packet: {:?}.&quot;</span>, e);
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(e.into());
                     },
                 }
             }
 
-            <span class="prelude-val">Some</span>(<span class="ident">out</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
+            <span class="prelude-val">Some</span>(out)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
 
-        <span class="prelude-val">Ok</span>((<span class="ident">pkt</span>, <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">start</span>))
+        <span class="prelude-val">Ok</span>((pkt, data.len() - start))
     }
 }
 
-<span class="kw">struct</span> <span class="ident">UdpRx</span> {
-    <span class="ident">cipher</span>: <span class="ident">Cipher</span>,
-    <span class="ident">decoder_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">SsrcState</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="ident">config</span>: <span class="ident">Config</span>,
-    <span class="ident">packet_buffer</span>: [<span class="ident">u8</span>; <span class="ident">VOICE_PACKET_MAX</span>],
-    <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>UdpRx {
+    cipher: Cipher,
+    decoder_map: HashMap&lt;u32, SsrcState&gt;,
+    <span class="attribute">#[allow(dead_code)]
+    </span>config: Config,
+    packet_buffer: [u8; VOICE_PACKET_MAX],
+    rx: Receiver&lt;UdpRxMessage&gt;,
 
-    <span class="ident">udp_socket</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">UdpSocket</span><span class="op">&gt;</span>,
+    udp_socket: Arc&lt;UdpSocket&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">UdpRx</span> {
-    <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interconnect</span>) {
-        <span class="kw">loop</span> {
-            <span class="macro">select!</span> {
-                <span class="prelude-val">Ok</span>((<span class="ident">len</span>, <span class="ident">_addr</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">udp_socket</span>.<span class="ident">recv_from</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">packet_buffer</span>[..]) =&gt; {
-                    <span class="self">self</span>.<span class="ident">process_udp_message</span>(<span class="ident">interconnect</span>, <span class="ident">len</span>);
+<span class="kw">impl </span>UdpRx {
+    <span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">async fn </span>run(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interconnect: <span class="kw-2">&amp;mut </span>Interconnect) {
+        <span class="kw">loop </span>{
+            <span class="macro">select! </span>{
+                <span class="prelude-val">Ok</span>((len, _addr)) = <span class="self">self</span>.udp_socket.recv_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>.packet_buffer[..]) =&gt; {
+                    <span class="self">self</span>.process_udp_message(interconnect, len);
                 }
-                <span class="ident">msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">recv_async</span>() =&gt; {
-                    <span class="kw">use</span> <span class="ident">UdpRxMessage</span>::<span class="kw-2">*</span>;
-                    <span class="kw">match</span> <span class="ident">msg</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">ReplaceInterconnect</span>(<span class="ident">i</span>)) =&gt; {
-                            <span class="kw-2">*</span><span class="ident">interconnect</span> <span class="op">=</span> <span class="ident">i</span>;
+                msg = <span class="self">self</span>.rx.recv_async() =&gt; {
+                    <span class="kw">use </span>UdpRxMessage::<span class="kw-2">*</span>;
+                    <span class="kw">match </span>msg {
+                        <span class="prelude-val">Ok</span>(ReplaceInterconnect(i)) =&gt; {
+                            <span class="kw-2">*</span>interconnect = i;
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">SetConfig</span>(<span class="ident">c</span>)) =&gt; {
-                            <span class="self">self</span>.<span class="ident">config</span> <span class="op">=</span> <span class="ident">c</span>;
+                        <span class="prelude-val">Ok</span>(SetConfig(c)) =&gt; {
+                            <span class="self">self</span>.config = c;
                         },
-                        <span class="prelude-val">Ok</span>(<span class="ident">Poison</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
+                        <span class="prelude-val">Ok</span>(Poison) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
                     }
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">process_udp_message</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interconnect</span>: <span class="kw-2">&amp;</span><span class="ident">Interconnect</span>, <span class="ident">len</span>: <span class="ident">usize</span>) {
-        <span class="comment">// NOTE: errors here (and in general for UDP) are not fatal to the connection.</span>
-        <span class="comment">// Panics should be avoided due to adversarial nature of rx&#39;d packets,</span>
-        <span class="comment">// but correct handling should not prompt a reconnect.</span>
-        <span class="comment">//</span>
-        <span class="comment">// For simplicity, we nominate the mixing context to rebuild the event</span>
-        <span class="comment">// context if it fails (hence, the `let _ =` statements.), as it will try to</span>
-        <span class="comment">// make contact every 20ms.</span>
-        <span class="kw">let</span> <span class="ident">crypto_mode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">crypto_mode</span>;
-        <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">packet_buffer</span>[..<span class="ident">len</span>];
+    <span class="kw">fn </span>process_udp_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interconnect: <span class="kw-2">&amp;</span>Interconnect, len: usize) {
+        <span class="comment">// NOTE: errors here (and in general for UDP) are not fatal to the connection.
+        // Panics should be avoided due to adversarial nature of rx&#39;d packets,
+        // but correct handling should not prompt a reconnect.
+        //
+        // For simplicity, we nominate the mixing context to rebuild the event
+        // context if it fails (hence, the `let _ =` statements.), as it will try to
+        // make contact every 20ms.
+        </span><span class="kw">let </span>crypto_mode = <span class="self">self</span>.config.crypto_mode;
+        <span class="kw">let </span>packet = <span class="kw-2">&amp;mut </span><span class="self">self</span>.packet_buffer[..len];
 
-        <span class="kw">match</span> <span class="ident">demux::demux_mut</span>(<span class="ident">packet</span>) {
-            <span class="ident">DemuxedMut::Rtp</span>(<span class="kw-2">mut</span> <span class="ident">rtp</span>) =&gt; {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">rtp_valid</span>(<span class="ident">rtp</span>.<span class="ident">to_immutable</span>()) {
+        <span class="kw">match </span>demux::demux_mut(packet) {
+            DemuxedMut::Rtp(<span class="kw-2">mut </span>rtp) =&gt; {
+                <span class="kw">if </span>!rtp_valid(rtp.to_immutable()) {
                     <span class="macro">error!</span>(<span class="string">&quot;Illegal RTP message received.&quot;</span>);
                     <span class="kw">return</span>;
                 }
 
-                <span class="kw">let</span> <span class="ident">packet_data</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">decode_mode</span>.<span class="ident">should_decrypt</span>() {
-                    <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">crypto_mode</span>
-                        .<span class="ident">decrypt_in_place</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rtp</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cipher</span>)
-                        .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">s</span>, <span class="ident">t</span>)<span class="op">|</span> (<span class="ident">s</span>, <span class="ident">t</span>, <span class="bool-val">true</span>));
+                <span class="kw">let </span>packet_data = <span class="kw">if </span><span class="self">self</span>.config.decode_mode.should_decrypt() {
+                    <span class="kw">let </span>out = crypto_mode
+                        .decrypt_in_place(<span class="kw-2">&amp;mut </span>rtp, <span class="kw-2">&amp;</span><span class="self">self</span>.cipher)
+                        .map(|(s, t)| (s, t, <span class="bool-val">true</span>));
 
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">out</span> {
-                        <span class="macro">warn!</span>(<span class="string">&quot;RTP decryption failed: {:?}&quot;</span>, <span class="ident">e</span>);
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = out {
+                        <span class="macro">warn!</span>(<span class="string">&quot;RTP decryption failed: {:?}&quot;</span>, e);
                     }
 
-                    <span class="ident">out</span>.<span class="ident">ok</span>()
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                };
+                    out.ok()
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
 
-                <span class="kw">let</span> (<span class="ident">rtp_body_start</span>, <span class="ident">rtp_body_tail</span>, <span class="ident">decrypted</span>) <span class="op">=</span> <span class="ident">packet_data</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="kw">let </span>(rtp_body_start, rtp_body_tail, decrypted) = packet_data.unwrap_or_else(|| {
                     (
-                        <span class="ident">crypto_mode</span>.<span class="ident">payload_prefix_len</span>(),
-                        <span class="ident">crypto_mode</span>.<span class="ident">payload_suffix_len</span>(),
+                        crypto_mode.payload_prefix_len(),
+                        crypto_mode.payload_suffix_len(),
                         <span class="bool-val">false</span>,
                     )
                 });
 
-                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">decoder_map</span>
-                    .<span class="ident">entry</span>(<span class="ident">rtp</span>.<span class="ident">get_ssrc</span>())
-                    .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">SsrcState::new</span>(<span class="ident">rtp</span>.<span class="ident">to_immutable</span>()));
+                <span class="kw">let </span>entry = <span class="self">self
+                    </span>.decoder_map
+                    .entry(rtp.get_ssrc())
+                    .or_insert_with(|| SsrcState::new(rtp.to_immutable()));
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">delta</span>, <span class="ident">audio</span>)) <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">process</span>(
-                    <span class="ident">rtp</span>.<span class="ident">to_immutable</span>(),
-                    <span class="ident">rtp_body_start</span>,
-                    <span class="ident">rtp_body_tail</span>,
-                    <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">decode_mode</span>,
-                    <span class="ident">decrypted</span>,
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>((delta, audio)) = entry.process(
+                    rtp.to_immutable(),
+                    rtp_body_start,
+                    rtp_body_tail,
+                    <span class="self">self</span>.config.decode_mode,
+                    decrypted,
                 ) {
-                    <span class="kw">match</span> <span class="ident">delta</span> {
-                        <span class="ident">SpeakingDelta::Start</span> =&gt; {
-                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
-                                <span class="ident">CoreContext::SpeakingUpdate</span>(<span class="ident">InternalSpeakingUpdate</span> {
-                                    <span class="ident">ssrc</span>: <span class="ident">rtp</span>.<span class="ident">get_ssrc</span>(),
-                                    <span class="ident">speaking</span>: <span class="bool-val">true</span>,
+                    <span class="kw">match </span>delta {
+                        SpeakingDelta::Start =&gt; {
+                            <span class="kw">let _ </span>= interconnect.events.send(EventMessage::FireCoreEvent(
+                                CoreContext::SpeakingUpdate(InternalSpeakingUpdate {
+                                    ssrc: rtp.get_ssrc(),
+                                    speaking: <span class="bool-val">true</span>,
                                 }),
                             ));
                         },
-                        <span class="ident">SpeakingDelta::Stop</span> =&gt; {
-                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
-                                <span class="ident">CoreContext::SpeakingUpdate</span>(<span class="ident">InternalSpeakingUpdate</span> {
-                                    <span class="ident">ssrc</span>: <span class="ident">rtp</span>.<span class="ident">get_ssrc</span>(),
-                                    <span class="ident">speaking</span>: <span class="bool-val">false</span>,
+                        SpeakingDelta::Stop =&gt; {
+                            <span class="kw">let _ </span>= interconnect.events.send(EventMessage::FireCoreEvent(
+                                CoreContext::SpeakingUpdate(InternalSpeakingUpdate {
+                                    ssrc: rtp.get_ssrc(),
+                                    speaking: <span class="bool-val">false</span>,
                                 }),
                             ));
                         },
-                        <span class="kw">_</span> =&gt; {},
+                        <span class="kw">_ </span>=&gt; {},
                     }
 
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">interconnect</span>.<span class="ident">events</span>.<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(
-                        <span class="ident">CoreContext::VoicePacket</span>(<span class="ident">InternalVoicePacket</span> {
-                            <span class="ident">audio</span>,
-                            <span class="ident">packet</span>: <span class="ident">rtp</span>.<span class="ident">from_packet</span>(),
-                            <span class="ident">payload_offset</span>: <span class="ident">rtp_body_start</span>,
-                            <span class="ident">payload_end_pad</span>: <span class="ident">rtp_body_tail</span>,
+                    <span class="kw">let _ </span>= interconnect.events.send(EventMessage::FireCoreEvent(
+                        CoreContext::VoicePacket(InternalVoicePacket {
+                            audio,
+                            packet: rtp.from_packet(),
+                            payload_offset: rtp_body_start,
+                            payload_end_pad: rtp_body_tail,
                         }),
                     ));
-                } <span class="kw">else</span> {
+                } <span class="kw">else </span>{
                     <span class="macro">warn!</span>(<span class="string">&quot;RTP decoding/processing failed.&quot;</span>);
                 }
             },
-            <span class="ident">DemuxedMut::Rtcp</span>(<span class="kw-2">mut</span> <span class="ident">rtcp</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">packet_data</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">decode_mode</span>.<span class="ident">should_decrypt</span>() {
-                    <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">crypto_mode</span>.<span class="ident">decrypt_in_place</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rtcp</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cipher</span>);
+            DemuxedMut::Rtcp(<span class="kw-2">mut </span>rtcp) =&gt; {
+                <span class="kw">let </span>packet_data = <span class="kw">if </span><span class="self">self</span>.config.decode_mode.should_decrypt() {
+                    <span class="kw">let </span>out = crypto_mode.decrypt_in_place(<span class="kw-2">&amp;mut </span>rtcp, <span class="kw-2">&amp;</span><span class="self">self</span>.cipher);
 
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">out</span> {
-                        <span class="macro">warn!</span>(<span class="string">&quot;RTCP decryption failed: {:?}&quot;</span>, <span class="ident">e</span>);
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = out {
+                        <span class="macro">warn!</span>(<span class="string">&quot;RTCP decryption failed: {:?}&quot;</span>, e);
                     }
 
-                    <span class="ident">out</span>.<span class="ident">ok</span>()
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                };
+                    out.ok()
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
 
-                <span class="kw">let</span> (<span class="ident">start</span>, <span class="ident">tail</span>) <span class="op">=</span> <span class="ident">packet_data</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="kw">let </span>(start, tail) = packet_data.unwrap_or_else(|| {
                     (
-                        <span class="ident">crypto_mode</span>.<span class="ident">payload_prefix_len</span>(),
-                        <span class="ident">crypto_mode</span>.<span class="ident">payload_suffix_len</span>(),
+                        crypto_mode.payload_prefix_len(),
+                        crypto_mode.payload_suffix_len(),
                     )
                 });
 
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span>
-                    <span class="ident">interconnect</span>
-                        .<span class="ident">events</span>
-                        .<span class="ident">send</span>(<span class="ident">EventMessage::FireCoreEvent</span>(<span class="ident">CoreContext::RtcpPacket</span>(
-                            <span class="ident">InternalRtcpPacket</span> {
-                                <span class="ident">packet</span>: <span class="ident">rtcp</span>.<span class="ident">from_packet</span>(),
-                                <span class="ident">payload_offset</span>: <span class="ident">start</span>,
-                                <span class="ident">payload_end_pad</span>: <span class="ident">tail</span>,
+                <span class="kw">let _ </span>=
+                    interconnect
+                        .events
+                        .send(EventMessage::FireCoreEvent(CoreContext::RtcpPacket(
+                            InternalRtcpPacket {
+                                packet: rtcp.from_packet(),
+                                payload_offset: start,
+                                payload_end_pad: tail,
                             },
                         )));
             },
-            <span class="ident">DemuxedMut::FailedParse</span>(<span class="ident">t</span>) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Failed to parse message of type {:?}.&quot;</span>, <span class="ident">t</span>);
+            DemuxedMut::FailedParse(t) =&gt; {
+                <span class="macro">warn!</span>(<span class="string">&quot;Failed to parse message of type {:?}.&quot;</span>, t);
             },
-            <span class="kw">_</span> =&gt; {
+            <span class="kw">_ </span>=&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;Illegal UDP packet from voice server.&quot;</span>);
             },
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">interconnect</span>, <span class="ident">rx</span>, <span class="ident">cipher</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">runner</span>(
-    <span class="kw-2">mut</span> <span class="ident">interconnect</span>: <span class="ident">Interconnect</span>,
-    <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">UdpRxMessage</span><span class="op">&gt;</span>,
-    <span class="ident">cipher</span>: <span class="ident">Cipher</span>,
-    <span class="ident">config</span>: <span class="ident">Config</span>,
-    <span class="ident">udp_socket</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">UdpSocket</span><span class="op">&gt;</span>,
+<span class="attribute">#[instrument(skip(interconnect, rx, cipher))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>runner(
+    <span class="kw-2">mut </span>interconnect: Interconnect,
+    rx: Receiver&lt;UdpRxMessage&gt;,
+    cipher: Cipher,
+    config: Config,
+    udp_socket: Arc&lt;UdpSocket&gt;,
 ) {
     <span class="macro">trace!</span>(<span class="string">&quot;UDP receive handle started.&quot;</span>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">UdpRx</span> {
-        <span class="ident">cipher</span>,
-        <span class="ident">decoder_map</span>: <span class="ident">Default::default</span>(),
-        <span class="ident">config</span>,
-        <span class="ident">packet_buffer</span>: [<span class="number">0u8</span>; <span class="ident">VOICE_PACKET_MAX</span>],
-        <span class="ident">rx</span>,
-        <span class="ident">udp_socket</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>state = UdpRx {
+        cipher,
+        decoder_map: Default::default(),
+        config,
+        packet_buffer: [<span class="number">0u8</span>; VOICE_PACKET_MAX],
+        rx,
+        udp_socket,
     };
 
-    <span class="ident">state</span>.<span class="ident">run</span>(<span class="kw-2">&amp;mut</span> <span class="ident">interconnect</span>).<span class="kw">await</span>;
+    state.run(<span class="kw-2">&amp;mut </span>interconnect).<span class="kw">await</span>;
 
     <span class="macro">trace!</span>(<span class="string">&quot;UDP receive handle stopped.&quot;</span>);
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">rtp_valid</span>(<span class="ident">packet</span>: <span class="ident">RtpPacket</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-    <span class="ident">packet</span>.<span class="ident">get_version</span>() <span class="op">==</span> <span class="ident">RTP_VERSION</span> <span class="op">&amp;&amp;</span> <span class="ident">packet</span>.<span class="ident">get_payload_type</span>() <span class="op">==</span> <span class="ident">RTP_PROFILE_TYPE</span>
+<span class="attribute">#[inline]
+</span><span class="kw">fn </span>rtp_valid(packet: RtpPacket&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+    packet.get_version() == RTP_VERSION &amp;&amp; packet.get_payload_type() == RTP_PROFILE_TYPE
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

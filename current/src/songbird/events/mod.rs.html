@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -153,153 +147,152 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Events relating to tracks, timing, and other callers.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Listening for events</span>
-<span class="doccomment">//! Driver events in Songbird are composed of two parts:</span>
-<span class="doccomment">//! * An [`Event`] to listen out for. These may be discrete events,</span>
-<span class="doccomment">//!   or generated by timers.</span>
-<span class="doccomment">//! * An [`EventHandler`] to be called on receipt of an event. As event</span>
-<span class="doccomment">//!   handlers may be shared between several events, the handler is called</span>
-<span class="doccomment">//!   with an [`EventContext`] describing which event was fired.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Event handlers are registered using functions such as [`Driver::add_global_event`],</span>
-<span class="doccomment">//! or [`TrackHandle::add_event`], or. Internally, these pairs are stored</span>
-<span class="doccomment">//! as [`EventData`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## `EventHandler` lifecycle</span>
-<span class="doccomment">//! An event handler is essentially just an async function which may return</span>
-<span class="doccomment">//! another type of event to listen out for (an `Option&lt;Event&gt;`). For instance,</span>
-<span class="doccomment">//! [`Some(Event::Cancel)`] will remove that event listener, while `None` won&#39;t</span>
-<span class="doccomment">//! change it at all.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The exception is one-off events like [`Event::Delayed`], which remove themselves</span>
-<span class="doccomment">//! after one call *unless* an [`Event`] override is returned.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Global and local listeners</span>
-<span class="doccomment">//! *Global* event listeners are those which are placed onto the [`Driver`],</span>
-<span class="doccomment">//! while *local* event listeners are those which are placed on a</span>
-<span class="doccomment">//! [`Track`]/[`Handle`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Track or timed events, when local, return a reference to the parent track.</span>
-<span class="doccomment">//! When registered globally, they fire on a per-tick basis, returning references to</span>
-<span class="doccomment">//! all relevant tracks in that 20ms window. Global/local timed events use a global</span>
-<span class="doccomment">//! timer or a [track&#39;s playback time], respectively.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`CoreEvent`]s may only be registered globally.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`Event`]: Event</span>
-<span class="doccomment">//! [`EventHandler`]: EventHandler</span>
-<span class="doccomment">//! [`EventContext`]: EventContext</span>
-<span class="doccomment">//! [`Driver::add_global_event`]: crate::driver::Driver::add_global_event</span>
-<span class="doccomment">//! [`Driver`]: crate::driver::Driver::add_global_event</span>
-<span class="doccomment">//! [`TrackHandle::add_event`]: crate::tracks::TrackHandle::add_event</span>
-<span class="doccomment">//! [`Track`]: crate::tracks::Track::events</span>
-<span class="doccomment">//! [`Handle`]: crate::tracks::TrackHandle::add_event</span>
-<span class="doccomment">//! [`EventData`]: EventData</span>
-<span class="doccomment">//! [`Some(Event::Cancel)`]: Event::Cancel</span>
-<span class="doccomment">//! [`Event::Delayed`]: Event::Delayed</span>
-<span class="doccomment">//! [track&#39;s playback time]: crate::tracks::TrackState::play_time</span>
-<span class="doccomment">//! [`CoreEvent`]: CoreEvent</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Events relating to tracks, timing, and other callers.
+//!
+//! ## Listening for events
+//! Driver events in Songbird are composed of two parts:
+//! * An [`Event`] to listen out for. These may be discrete events,
+//!   or generated by timers.
+//! * An [`EventHandler`] to be called on receipt of an event. As event
+//!   handlers may be shared between several events, the handler is called
+//!   with an [`EventContext`] describing which event was fired.
+//!
+//! Event handlers are registered using functions such as [`Driver::add_global_event`],
+//! or [`TrackHandle::add_event`], or. Internally, these pairs are stored
+//! as [`EventData`].
+//!
+//! ## `EventHandler` lifecycle
+//! An event handler is essentially just an async function which may return
+//! another type of event to listen out for (an `Option&lt;Event&gt;`). For instance,
+//! [`Some(Event::Cancel)`] will remove that event listener, while `None` won&#39;t
+//! change it at all.
+//!
+//! The exception is one-off events like [`Event::Delayed`], which remove themselves
+//! after one call *unless* an [`Event`] override is returned.
+//!
+//! ## Global and local listeners
+//! *Global* event listeners are those which are placed onto the [`Driver`],
+//! while *local* event listeners are those which are placed on a
+//! [`Track`]/[`Handle`].
+//!
+//! Track or timed events, when local, return a reference to the parent track.
+//! When registered globally, they fire on a per-tick basis, returning references to
+//! all relevant tracks in that 20ms window. Global/local timed events use a global
+//! timer or a [track&#39;s playback time], respectively.
+//!
+//! [`CoreEvent`]s may only be registered globally.
+//!
+//! [`Event`]: Event
+//! [`EventHandler`]: EventHandler
+//! [`EventContext`]: EventContext
+//! [`Driver::add_global_event`]: crate::driver::Driver::add_global_event
+//! [`Driver`]: crate::driver::Driver::add_global_event
+//! [`TrackHandle::add_event`]: crate::tracks::TrackHandle::add_event
+//! [`Track`]: crate::tracks::Track::events
+//! [`Handle`]: crate::tracks::TrackHandle::add_event
+//! [`EventData`]: EventData
+//! [`Some(Event::Cancel)`]: Event::Cancel
+//! [`Event::Delayed`]: Event::Delayed
+//! [track&#39;s playback time]: crate::tracks::TrackState::play_time
+//! [`CoreEvent`]: CoreEvent
 
-<span class="kw">mod</span> <span class="ident">context</span>;
-<span class="kw">mod</span> <span class="ident">core</span>;
-<span class="kw">mod</span> <span class="ident">data</span>;
-<span class="kw">mod</span> <span class="ident">store</span>;
-<span class="kw">mod</span> <span class="ident">track</span>;
-<span class="kw">mod</span> <span class="ident">untimed</span>;
+</span><span class="kw">mod </span>context;
+<span class="kw">mod </span>core;
+<span class="kw">mod </span>data;
+<span class="kw">mod </span>store;
+<span class="kw">mod </span>track;
+<span class="kw">mod </span>untimed;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">context</span>::{<span class="ident">context_data</span>, <span class="ident">EventContext</span>},
-    <span class="ident">core</span>::<span class="kw-2">*</span>,
-    <span class="ident">data</span>::<span class="kw-2">*</span>,
-    <span class="ident">store</span>::<span class="kw-2">*</span>,
-    <span class="ident">track</span>::<span class="kw-2">*</span>,
-    <span class="ident">untimed</span>::<span class="kw-2">*</span>,
+<span class="kw">pub use </span><span class="self">self</span>::{
+    context::{context_data, EventContext},
+    core::<span class="kw-2">*</span>,
+    data::<span class="kw-2">*</span>,
+    store::<span class="kw-2">*</span>,
+    track::<span class="kw-2">*</span>,
+    untimed::<span class="kw-2">*</span>,
 };
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">context</span>::{<span class="ident">internal_data</span>, <span class="ident">CoreContext</span>};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>context::{internal_data, CoreContext};
 
-<span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>std::time::Duration;
 
-<span class="doccomment">/// Trait to handle an event which can be fired per-track, or globally.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// These may be feasibly reused between several event sources.</span>
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">EventHandler</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> {
-    <span class="doccomment">/// Respond to one received event.</span>
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">act</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">EventContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Trait to handle an event which can be fired per-track, or globally.
+///
+/// These may be feasibly reused between several event sources.
+</span><span class="attribute">#[async_trait]
+</span><span class="kw">pub trait </span>EventHandler: Send + Sync {
+    <span class="doccomment">/// Respond to one received event.
+    </span><span class="kw">async fn </span>act(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>EventContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Event&gt;;
 }
 
-<span class="doccomment">/// Classes of event which may occur, triggering a handler</span>
-<span class="doccomment">/// at the local (track-specific) or global level.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Local time-based events rely upon the current playback</span>
-<span class="doccomment">/// time of a track, and so will not fire if a track becomes paused</span>
-<span class="doccomment">/// or stops. In case this is required, global events are a better</span>
-<span class="doccomment">/// fit.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Event handlers themselves are described in [`EventData::new`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`EventData::new`]: EventData::new</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span> {
-    <span class="doccomment">/// Periodic events rely upon two parameters: a *period*</span>
-    <span class="doccomment">/// and an optional *phase*.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the *phase* is `None`, then the event will first fire</span>
-    <span class="doccomment">/// in one *period*. Periodic events repeat automatically</span>
-    <span class="doccomment">/// so long as the `action` in [`EventData`] returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EventData`]: EventData</span>
-    <span class="ident">Periodic</span>(<span class="ident">Duration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// Delayed events rely upon a *delay* parameter, and</span>
-    <span class="doccomment">/// fire one *delay* after the audio context processes them.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Delayed events are automatically removed once fired,</span>
-    <span class="doccomment">/// so long as the `action` in [`EventData`] returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EventData`]: EventData</span>
-    <span class="ident">Delayed</span>(<span class="ident">Duration</span>),
-    <span class="doccomment">/// Track events correspond to certain actions or changes</span>
-    <span class="doccomment">/// of state, such as a track finishing, looping, or being</span>
-    <span class="doccomment">/// manually stopped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Track events persist while the `action` in [`EventData`]</span>
-    <span class="doccomment">/// returns `None`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EventData`]: EventData</span>
-    <span class="ident">Track</span>(<span class="ident">TrackEvent</span>),
-    <span class="doccomment">/// Core events</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Track events persist while the `action` in [`EventData`]</span>
-    <span class="doccomment">/// returns `None`. Core events **must** be applied globally,</span>
-    <span class="doccomment">/// as attaching them to a track is a no-op.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EventData`]: EventData</span>
-    <span class="ident">Core</span>(<span class="ident">CoreEvent</span>),
-    <span class="doccomment">/// Cancels the event, if it was intended to persist.</span>
-    <span class="ident">Cancel</span>,
+<span class="doccomment">/// Classes of event which may occur, triggering a handler
+/// at the local (track-specific) or global level.
+///
+/// Local time-based events rely upon the current playback
+/// time of a track, and so will not fire if a track becomes paused
+/// or stops. In case this is required, global events are a better
+/// fit.
+///
+/// Event handlers themselves are described in [`EventData::new`].
+///
+/// [`EventData::new`]: EventData::new
+</span><span class="attribute">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>Event {
+    <span class="doccomment">/// Periodic events rely upon two parameters: a *period*
+    /// and an optional *phase*.
+    ///
+    /// If the *phase* is `None`, then the event will first fire
+    /// in one *period*. Periodic events repeat automatically
+    /// so long as the `action` in [`EventData`] returns `None`.
+    ///
+    /// [`EventData`]: EventData
+    </span>Periodic(Duration, <span class="prelude-ty">Option</span>&lt;Duration&gt;),
+    <span class="doccomment">/// Delayed events rely upon a *delay* parameter, and
+    /// fire one *delay* after the audio context processes them.
+    ///
+    /// Delayed events are automatically removed once fired,
+    /// so long as the `action` in [`EventData`] returns `None`.
+    ///
+    /// [`EventData`]: EventData
+    </span>Delayed(Duration),
+    <span class="doccomment">/// Track events correspond to certain actions or changes
+    /// of state, such as a track finishing, looping, or being
+    /// manually stopped.
+    ///
+    /// Track events persist while the `action` in [`EventData`]
+    /// returns `None`.
+    ///
+    /// [`EventData`]: EventData
+    </span>Track(TrackEvent),
+    <span class="doccomment">/// Core events
+    ///
+    /// Track events persist while the `action` in [`EventData`]
+    /// returns `None`. Core events **must** be applied globally,
+    /// as attaching them to a track is a no-op.
+    ///
+    /// [`EventData`]: EventData
+    </span>Core(CoreEvent),
+    <span class="doccomment">/// Cancels the event, if it was intended to persist.
+    </span>Cancel,
 }
 
-<span class="kw">impl</span> <span class="ident">Event</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_global_only</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Core</span>(<span class="kw">_</span>))
+<span class="kw">impl </span>Event {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_global_only(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Core(<span class="kw">_</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TrackEvent</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Event</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">evt</span>: <span class="ident">TrackEvent</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Event::Track</span>(<span class="ident">evt</span>)
+<span class="kw">impl </span>From&lt;TrackEvent&gt; <span class="kw">for </span>Event {
+    <span class="kw">fn </span>from(evt: TrackEvent) -&gt; <span class="self">Self </span>{
+        Event::Track(evt)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CoreEvent</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Event</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">evt</span>: <span class="ident">CoreEvent</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Event::Core</span>(<span class="ident">evt</span>)
+<span class="kw">impl </span>From&lt;CoreEvent&gt; <span class="kw">for </span>Event {
+    <span class="kw">fn </span>from(evt: CoreEvent) -&gt; <span class="self">Self </span>{
+        Event::Core(evt)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

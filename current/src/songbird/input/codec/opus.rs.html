@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/codec/opus.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>opus.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/codec/opus.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>opus.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -49,49 +43,48 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="ident">coder::Decoder</span> <span class="kw">as</span> <span class="ident">OpusDecoder</span>, <span class="ident">Channels</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>};
-<span class="kw">use</span> <span class="ident">parking_lot::Mutex</span>;
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::constants::<span class="kw-2">*</span>;
+<span class="kw">use </span>audiopus::{coder::Decoder <span class="kw">as </span>OpusDecoder, Channels, Error <span class="kw">as </span>OpusError};
+<span class="kw">use </span>parking_lot::Mutex;
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// Inner state used to decode Opus input sources.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OpusDecoderState</span> {
-    <span class="doccomment">/// Inner decoder used to convert opus frames into a stream of samples.</span>
-    <span class="kw">pub</span> <span class="ident">decoder</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">OpusDecoder</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Controls whether this source allows direct Opus frame passthrough.</span>
-    <span class="doccomment">/// Defaults to `true`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Enabling this flag is a promise from the programmer to the audio core</span>
-    <span class="doccomment">/// that the source has been encoded at 48kHz, using 20ms long frames.</span>
-    <span class="doccomment">/// If you cannot guarantee this, disable this flag (or else risk nasal demons)</span>
-    <span class="doccomment">/// and bizarre audio behaviour.</span>
-    <span class="kw">pub</span> <span class="ident">allow_passthrough</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">current_frame</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">frame_pos</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">should_reset</span>: <span class="ident">bool</span>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="doccomment">/// Inner state used to decode Opus input sources.
+</span><span class="kw">pub struct </span>OpusDecoderState {
+    <span class="doccomment">/// Inner decoder used to convert opus frames into a stream of samples.
+    </span><span class="kw">pub </span>decoder: Arc&lt;Mutex&lt;OpusDecoder&gt;&gt;,
+    <span class="doccomment">/// Controls whether this source allows direct Opus frame passthrough.
+    /// Defaults to `true`.
+    ///
+    /// Enabling this flag is a promise from the programmer to the audio core
+    /// that the source has been encoded at 48kHz, using 20ms long frames.
+    /// If you cannot guarantee this, disable this flag (or else risk nasal demons)
+    /// and bizarre audio behaviour.
+    </span><span class="kw">pub </span>allow_passthrough: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) current_frame: Vec&lt;f32&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) frame_pos: usize,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) should_reset: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">OpusDecoderState</span> {
-    <span class="doccomment">/// Creates a new decoder, having stereo output at 48kHz.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">OpusError</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from_decoder</span>(<span class="ident">OpusDecoder::new</span>(
-            <span class="ident">SAMPLE_RATE</span>,
-            <span class="ident">Channels::Stereo</span>,
+<span class="kw">impl </span>OpusDecoderState {
+    <span class="doccomment">/// Creates a new decoder, having stereo output at 48kHz.
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, OpusError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_decoder(OpusDecoder::new(
+            SAMPLE_RATE,
+            Channels::Stereo,
         )<span class="question-mark">?</span>))
     }
 
-    <span class="doccomment">/// Creates a new decoder pre-configured by the user.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_decoder</span>(<span class="ident">decoder</span>: <span class="ident">OpusDecoder</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">decoder</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">decoder</span>)),
-            <span class="ident">allow_passthrough</span>: <span class="bool-val">true</span>,
-            <span class="ident">current_frame</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">STEREO_FRAME_SIZE</span>),
-            <span class="ident">frame_pos</span>: <span class="number">0</span>,
-            <span class="ident">should_reset</span>: <span class="bool-val">false</span>,
+    <span class="doccomment">/// Creates a new decoder pre-configured by the user.
+    </span><span class="kw">pub fn </span>from_decoder(decoder: OpusDecoder) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            decoder: Arc::new(Mutex::new(decoder)),
+            allow_passthrough: <span class="bool-val">true</span>,
+            current_frame: Vec::with_capacity(STEREO_FRAME_SIZE),
+            frame_pos: <span class="number">0</span>,
+            should_reset: <span class="bool-val">false</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -339,339 +333,338 @@
 <span id="331">331</span>
 <span id="332">332</span>
 <span id="333">333</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">driver::Driver</span>,
-    <span class="ident">events</span>::{<span class="ident">Event</span>, <span class="ident">EventContext</span>, <span class="ident">EventData</span>, <span class="ident">EventHandler</span>, <span class="ident">TrackEvent</span>},
-    <span class="ident">input::Input</span>,
-    <span class="ident">tracks</span>::{<span class="self">self</span>, <span class="ident">Track</span>, <span class="ident">TrackHandle</span>, <span class="ident">TrackResult</span>},
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    driver::Driver,
+    events::{Event, EventContext, EventData, EventHandler, TrackEvent},
+    input::Input,
+    tracks::{<span class="self">self</span>, Track, TrackHandle, TrackResult},
 };
-<span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
-<span class="kw">use</span> <span class="ident">parking_lot::Mutex</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::VecDeque</span>, <span class="ident">ops::Deref</span>, <span class="ident">sync::Arc</span>, <span class="ident">time::Duration</span>};
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">info</span>, <span class="ident">warn</span>};
+<span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>parking_lot::Mutex;
+<span class="kw">use </span>std::{collections::VecDeque, ops::Deref, sync::Arc, time::Duration};
+<span class="kw">use </span>tracing::{info, warn};
 
-<span class="doccomment">/// A simple queue for several audio sources, designed to</span>
-<span class="doccomment">/// play in sequence.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This makes use of [`TrackEvent`]s to determine when the current</span>
-<span class="doccomment">/// song or audio file has finished before playing the next entry.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// One of these is automatically included via [`Driver::queue`] when</span>
-<span class="doccomment">/// the `&quot;builtin-queue&quot;` feature is enabled.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `examples/serenity/voice_events_queue` demonstrates how a user might manage,</span>
-<span class="doccomment">/// track and use this to run a song queue in many guilds in parallel.</span>
-<span class="doccomment">/// This code is trivial to extend if extra functionality is needed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust,no_run</span>
-<span class="doccomment">/// use songbird::{</span>
-<span class="doccomment">///     driver::Driver,</span>
-<span class="doccomment">///     id::GuildId,</span>
-<span class="doccomment">///     ffmpeg,</span>
-<span class="doccomment">///     tracks::{create_player, TrackQueue},</span>
-<span class="doccomment">/// };</span>
-<span class="doccomment">/// use std::collections::HashMap;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # async {</span>
-<span class="doccomment">/// let guild = GuildId(0);</span>
-<span class="doccomment">/// // A Call is also valid here!</span>
-<span class="doccomment">/// let mut driver: Driver = Default::default();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut queues: HashMap&lt;GuildId, TrackQueue&gt; = Default::default();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let source = ffmpeg(&quot;../audio/my-favourite-song.mp3&quot;)</span>
-<span class="doccomment">///     .await</span>
-<span class="doccomment">///     .expect(&quot;This might fail: handle this error!&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // We need to ensure that this guild has a TrackQueue created for it.</span>
-<span class="doccomment">/// let queue = queues.entry(guild)</span>
-<span class="doccomment">///     .or_default();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Queueing a track is this easy!</span>
-<span class="doccomment">/// queue.add_source(source, &amp;mut driver);</span>
-<span class="doccomment">/// # };</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`TrackEvent`]: crate::events::TrackEvent</span>
-<span class="doccomment">/// [`Driver::queue`]: crate::driver::Driver</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrackQueue</span> {
-    <span class="comment">// NOTE: the choice of a parking lot mutex is quite deliberate</span>
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">TrackQueueCore</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A simple queue for several audio sources, designed to
+/// play in sequence.
+///
+/// This makes use of [`TrackEvent`]s to determine when the current
+/// song or audio file has finished before playing the next entry.
+///
+/// One of these is automatically included via [`Driver::queue`] when
+/// the `&quot;builtin-queue&quot;` feature is enabled.
+///
+/// `examples/serenity/voice_events_queue` demonstrates how a user might manage,
+/// track and use this to run a song queue in many guilds in parallel.
+/// This code is trivial to extend if extra functionality is needed.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use songbird::{
+///     driver::Driver,
+///     id::GuildId,
+///     ffmpeg,
+///     tracks::{create_player, TrackQueue},
+/// };
+/// use std::collections::HashMap;
+///
+/// # async {
+/// let guild = GuildId(0);
+/// // A Call is also valid here!
+/// let mut driver: Driver = Default::default();
+///
+/// let mut queues: HashMap&lt;GuildId, TrackQueue&gt; = Default::default();
+///
+/// let source = ffmpeg(&quot;../audio/my-favourite-song.mp3&quot;)
+///     .await
+///     .expect(&quot;This might fail: handle this error!&quot;);
+///
+/// // We need to ensure that this guild has a TrackQueue created for it.
+/// let queue = queues.entry(guild)
+///     .or_default();
+///
+/// // Queueing a track is this easy!
+/// queue.add_source(source, &amp;mut driver);
+/// # };
+/// ```
+///
+/// [`TrackEvent`]: crate::events::TrackEvent
+/// [`Driver::queue`]: crate::driver::Driver
+</span><span class="attribute">#[derive(Clone, Debug, Default)]
+</span><span class="kw">pub struct </span>TrackQueue {
+    <span class="comment">// NOTE: the choice of a parking lot mutex is quite deliberate
+    </span>inner: Arc&lt;Mutex&lt;TrackQueueCore&gt;&gt;,
 }
 
-<span class="doccomment">/// Reference to a track which is known to be part of a queue.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Instances *should not* be moved from one queue to another.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Queued</span>(<span class="ident">TrackHandle</span>);
+<span class="doccomment">/// Reference to a track which is known to be part of a queue.
+///
+/// Instances *should not* be moved from one queue to another.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Queued(TrackHandle);
 
-<span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Queued</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">TrackHandle</span>;
+<span class="kw">impl </span>Deref <span class="kw">for </span>Queued {
+    <span class="kw">type </span>Target = TrackHandle;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl </span>Queued {
+    <span class="doccomment">/// Clones the inner handle
+    </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackHandle {
+        <span class="self">self</span>.<span class="number">0</span>.clone()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Queued</span> {
-    <span class="doccomment">/// Clones the inner handle</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>()
-    }
+<span class="attribute">#[derive(Debug, Default)]
+</span><span class="doccomment">/// Inner portion of a [`TrackQueue`].
+///
+/// This abstracts away thread-safety from the user,
+/// and offers a convenient location to store further state if required.
+///
+/// [`TrackQueue`]: TrackQueue
+</span><span class="kw">struct </span>TrackQueueCore {
+    tracks: VecDeque&lt;Queued&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="doccomment">/// Inner portion of a [`TrackQueue`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This abstracts away thread-safety from the user,</span>
-<span class="doccomment">/// and offers a convenient location to store further state if required.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`TrackQueue`]: TrackQueue</span>
-<span class="kw">struct</span> <span class="ident">TrackQueueCore</span> {
-    <span class="ident">tracks</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Queued</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>QueueHandler {
+    remote_lock: Arc&lt;Mutex&lt;TrackQueueCore&gt;&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">QueueHandler</span> {
-    <span class="ident">remote_lock</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">TrackQueueCore</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-}
+<span class="attribute">#[async_trait]
+</span><span class="kw">impl </span>EventHandler <span class="kw">for </span>QueueHandler {
+    <span class="kw">async fn </span>act(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>EventContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Event&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.remote_lock.lock();
 
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">impl</span> <span class="ident">EventHandler</span> <span class="kw">for</span> <span class="ident">QueueHandler</span> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">act</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">EventContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">remote_lock</span>.<span class="ident">lock</span>();
-
-        <span class="comment">// Due to possibility that users might remove, reorder,</span>
-        <span class="comment">// or dequeue+stop tracks, we need to verify that the FIRST</span>
-        <span class="comment">// track is the one who has ended.</span>
-        <span class="kw">match</span> <span class="ident">ctx</span> {
-            <span class="ident">EventContext::Track</span>(<span class="ident">ts</span>) =&gt; {
-                <span class="comment">// This slice should have exactly one entry.</span>
-                <span class="comment">// If the ended track has same id as the queue head, then</span>
-                <span class="comment">// we can progress the queue.</span>
-                <span class="kw">if</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">front</span>()<span class="question-mark">?</span>.<span class="ident">uuid</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ts</span>.<span class="ident">first</span>()<span class="question-mark">?</span>.<span class="number">1</span>.<span class="ident">uuid</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="comment">// Due to possibility that users might remove, reorder,
+        // or dequeue+stop tracks, we need to verify that the FIRST
+        // track is the one who has ended.
+        </span><span class="kw">match </span>ctx {
+            EventContext::Track(ts) =&gt; {
+                <span class="comment">// This slice should have exactly one entry.
+                // If the ended track has same id as the queue head, then
+                // we can progress the queue.
+                </span><span class="kw">if </span>inner.tracks.front()<span class="question-mark">?</span>.uuid() != ts.first()<span class="question-mark">?</span>.<span class="number">1</span>.uuid() {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
             },
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         }
 
-        <span class="kw">let</span> <span class="ident">_old</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">pop_front</span>();
+        <span class="kw">let </span>_old = inner.tracks.pop_front();
 
-        <span class="macro">info!</span>(<span class="string">&quot;Queued track ended: {:?}.&quot;</span>, <span class="ident">ctx</span>);
-        <span class="macro">info!</span>(<span class="string">&quot;{} tracks remain.&quot;</span>, <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">len</span>());
+        <span class="macro">info!</span>(<span class="string">&quot;Queued track ended: {:?}.&quot;</span>, ctx);
+        <span class="macro">info!</span>(<span class="string">&quot;{} tracks remain.&quot;</span>, inner.tracks.len());
 
-        <span class="comment">// Keep going until we find one track which works, or we run out.</span>
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">front</span>() {
-            <span class="kw">if</span> <span class="ident">new</span>.<span class="ident">play</span>().<span class="ident">is_err</span>() {
-                <span class="comment">// Discard files which cannot be used for whatever reason.</span>
-                <span class="macro">warn!</span>(<span class="string">&quot;Track in Queue couldn&#39;t be played...&quot;</span>);
-                <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">pop_front</span>();
-            } <span class="kw">else</span> {
+        <span class="comment">// Keep going until we find one track which works, or we run out.
+        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(new) = inner.tracks.front() {
+            <span class="kw">if </span>new.play().is_err() {
+                <span class="comment">// Discard files which cannot be used for whatever reason.
+                </span><span class="macro">warn!</span>(<span class="string">&quot;Track in Queue couldn&#39;t be played...&quot;</span>);
+                inner.tracks.pop_front();
+            } <span class="kw">else </span>{
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">struct</span> <span class="ident">SongPreloader</span> {
-    <span class="ident">remote_lock</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">TrackQueueCore</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>SongPreloader {
+    remote_lock: Arc&lt;Mutex&lt;TrackQueueCore&gt;&gt;,
 }
 
-<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-<span class="kw">impl</span> <span class="ident">EventHandler</span> <span class="kw">for</span> <span class="ident">SongPreloader</span> {
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">act</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="ident">EventContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">remote_lock</span>.<span class="ident">lock</span>();
+<span class="attribute">#[async_trait]
+</span><span class="kw">impl </span>EventHandler <span class="kw">for </span>SongPreloader {
+    <span class="kw">async fn </span>act(<span class="kw-2">&amp;</span><span class="self">self</span>, _ctx: <span class="kw-2">&amp;</span>EventContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Event&gt; {
+        <span class="kw">let </span>inner = <span class="self">self</span>.remote_lock.lock();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">track</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">track</span>.<span class="number">0</span>.<span class="ident">make_playable</span>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(track) = inner.tracks.get(<span class="number">1</span>) {
+            <span class="kw">let _ </span>= track.<span class="number">0</span>.make_playable();
         }
 
-        <span class="prelude-val">None</span>
-    }
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">TrackQueue</span> {
-    <span class="doccomment">/// Create a new, empty, track queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">TrackQueueCore</span> {
-                <span class="ident">tracks</span>: <span class="ident">VecDeque::new</span>(),
+<span class="kw">impl </span>TrackQueue {
+    <span class="doccomment">/// Create a new, empty, track queue.
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: Arc::new(Mutex::new(TrackQueueCore {
+                tracks: VecDeque::new(),
             })),
         }
     }
 
-    <span class="doccomment">/// Adds an audio source to the queue, to be played in the channel managed by `handler`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="ident">Input</span>, <span class="ident">handler</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Driver</span>) -&gt; <span class="ident">TrackHandle</span> {
-        <span class="kw">let</span> (<span class="ident">track</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident">tracks::create_player</span>(<span class="ident">source</span>);
-        <span class="self">self</span>.<span class="ident">add</span>(<span class="ident">track</span>, <span class="ident">handler</span>);
+    <span class="doccomment">/// Adds an audio source to the queue, to be played in the channel managed by `handler`.
+    </span><span class="kw">pub fn </span>add_source(<span class="kw-2">&amp;</span><span class="self">self</span>, source: Input, handler: <span class="kw-2">&amp;mut </span>Driver) -&gt; TrackHandle {
+        <span class="kw">let </span>(track, handle) = tracks::create_player(source);
+        <span class="self">self</span>.add(track, handler);
 
-        <span class="ident">handle</span>
+        handle
     }
 
-    <span class="doccomment">/// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is used with [`create_player`] if additional configuration or event handlers</span>
-    <span class="doccomment">/// are required before enqueueing the audio track.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Track`]: Track</span>
-    <span class="doccomment">/// [`create_player`]: super::create_player</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">track</span>: <span class="ident">Track</span>, <span class="ident">handler</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Driver</span>) {
-        <span class="self">self</span>.<span class="ident">add_raw</span>(<span class="kw-2">&amp;mut</span> <span class="ident">track</span>);
-        <span class="ident">handler</span>.<span class="ident">play</span>(<span class="ident">track</span>);
+    <span class="doccomment">/// Adds a [`Track`] object to the queue, to be played in the channel managed by `handler`.
+    ///
+    /// This is used with [`create_player`] if additional configuration or event handlers
+    /// are required before enqueueing the audio track.
+    ///
+    /// [`Track`]: Track
+    /// [`create_player`]: super::create_player
+    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>track: Track, handler: <span class="kw-2">&amp;mut </span>Driver) {
+        <span class="self">self</span>.add_raw(<span class="kw-2">&amp;mut </span>track);
+        handler.play(track);
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">track</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Track</span>) {
+    <span class="attribute">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, track: <span class="kw-2">&amp;mut </span>Track) {
         <span class="macro">info!</span>(<span class="string">&quot;Track added to queue.&quot;</span>);
-        <span class="kw">let</span> <span class="ident">remote_lock</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+        <span class="kw">let </span>remote_lock = <span class="self">self</span>.inner.clone();
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="kw">let</span> <span class="ident">track_handle</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">handle</span>.<span class="ident">clone</span>();
+        <span class="kw">let </span>track_handle = track.handle.clone();
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">track</span>.<span class="ident">pause</span>();
+        <span class="kw">if </span>!inner.tracks.is_empty() {
+            track.pause();
         }
 
-        <span class="ident">track</span>
-            .<span class="ident">events</span>
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Queue inspecting EventStore on new Track: did not exist.&quot;</span>)
-            .<span class="ident">add_event</span>(
-                <span class="ident">EventData::new</span>(<span class="ident">Event::Track</span>(<span class="ident">TrackEvent::End</span>), <span class="ident">QueueHandler</span> { <span class="ident">remote_lock</span> }),
-                <span class="ident">track</span>.<span class="ident">position</span>,
+        track
+            .events
+            .as_mut()
+            .expect(<span class="string">&quot;Queue inspecting EventStore on new Track: did not exist.&quot;</span>)
+            .add_event(
+                EventData::new(Event::Track(TrackEvent::End), QueueHandler { remote_lock }),
+                track.position,
             );
 
-        <span class="comment">// Attempts to start loading the next track before this one ends.</span>
-        <span class="comment">// Idea is to provide as close to gapless playback as possible,</span>
-        <span class="comment">// while minimising memory use.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>) <span class="op">=</span> <span class="ident">track</span>.<span class="ident">source</span>.<span class="ident">metadata</span>.<span class="ident">duration</span> {
-            <span class="kw">let</span> <span class="ident">preload_time</span> <span class="op">=</span> <span class="ident">time</span>.<span class="ident">checked_sub</span>(<span class="ident">Duration::from_secs</span>(<span class="number">5</span>)).<span class="ident">unwrap_or_default</span>();
-            <span class="kw">let</span> <span class="ident">remote_lock</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>();
+        <span class="comment">// Attempts to start loading the next track before this one ends.
+        // Idea is to provide as close to gapless playback as possible,
+        // while minimising memory use.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(time) = track.source.metadata.duration {
+            <span class="kw">let </span>preload_time = time.checked_sub(Duration::from_secs(<span class="number">5</span>)).unwrap_or_default();
+            <span class="kw">let </span>remote_lock = <span class="self">self</span>.inner.clone();
 
-            <span class="ident">track</span>
-                .<span class="ident">events</span>
-                .<span class="ident">as_mut</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Queue inspecting EventStore on new Track: did not exist.&quot;</span>)
-                .<span class="ident">add_event</span>(
-                    <span class="ident">EventData::new</span>(<span class="ident">Event::Delayed</span>(<span class="ident">preload_time</span>), <span class="ident">SongPreloader</span> { <span class="ident">remote_lock</span> }),
-                    <span class="ident">track</span>.<span class="ident">position</span>,
+            track
+                .events
+                .as_mut()
+                .expect(<span class="string">&quot;Queue inspecting EventStore on new Track: did not exist.&quot;</span>)
+                .add_event(
+                    EventData::new(Event::Delayed(preload_time), SongPreloader { remote_lock }),
+                    track.position,
                 );
         }
 
-        <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">push_back</span>(<span class="ident">Queued</span>(<span class="ident">track_handle</span>));
+        inner.tracks.push_back(Queued(track_handle));
     }
 
-    <span class="doccomment">/// Returns a handle to the currently playing track.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TrackHandle</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+    <span class="doccomment">/// Returns a handle to the currently playing track.
+    </span><span class="kw">pub fn </span>current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;TrackHandle&gt; {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">front</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">handle</span>())
+        inner.tracks.front().map(|h| h.handle())
     }
 
-    <span class="doccomment">/// Attempts to remove a track from the specified index.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned entry can be readded to *this* queue via [`modify_queue`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`modify_queue`]: TrackQueue::modify_queue</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dequeue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Queued</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">modify_queue</span>(<span class="op">|</span><span class="ident">vq</span><span class="op">|</span> <span class="ident">vq</span>.<span class="ident">remove</span>(<span class="ident">index</span>))
+    <span class="doccomment">/// Attempts to remove a track from the specified index.
+    ///
+    /// The returned entry can be readded to *this* queue via [`modify_queue`].
+    ///
+    /// [`modify_queue`]: TrackQueue::modify_queue
+    </span><span class="kw">pub fn </span>dequeue(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Queued&gt; {
+        <span class="self">self</span>.modify_queue(|vq| vq.remove(index))
     }
 
-    <span class="doccomment">/// Returns the number of tracks currently in the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+    <span class="doccomment">/// Returns the number of tracks currently in the queue.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">len</span>()
+        inner.tracks.len()
     }
 
-    <span class="doccomment">/// Returns whether there are no tracks currently in the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+    <span class="doccomment">/// Returns whether there are no tracks currently in the queue.
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">is_empty</span>()
+        inner.tracks.is_empty()
     }
 
-    <span class="doccomment">/// Allows modification of the inner queue (i.e., deletion, reordering).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Users must be careful to `stop` removed tracks, so as to prevent</span>
-    <span class="doccomment">/// resource leaks.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">modify_queue</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">O</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="ident">O</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Queued</span><span class="op">&gt;</span>) -&gt; <span class="ident">O</span>,
+    <span class="doccomment">/// Allows modification of the inner queue (i.e., deletion, reordering).
+    ///
+    /// Users must be careful to `stop` removed tracks, so as to prevent
+    /// resource leaks.
+    </span><span class="kw">pub fn </span>modify_queue&lt;F, O&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, func: F) -&gt; O
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>VecDeque&lt;Queued&gt;) -&gt; O,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
-        <span class="ident">func</span>(<span class="kw-2">&amp;mut</span> <span class="ident">inner</span>.<span class="ident">tracks</span>)
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock();
+        func(<span class="kw-2">&amp;mut </span>inner.tracks)
     }
 
-    <span class="doccomment">/// Pause the track at the head of the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+    <span class="doccomment">/// Pause the track at the head of the queue.
+    </span><span class="kw">pub fn </span>pause(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">front</span>() {
-            <span class="ident">handle</span>.<span class="ident">pause</span>()
-        } <span class="kw">else</span> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = inner.tracks.front() {
+            handle.pause()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="doccomment">/// Resume the track at the head of the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+    <span class="doccomment">/// Resume the track at the head of the queue.
+    </span><span class="kw">pub fn </span>resume(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">front</span>() {
-            <span class="ident">handle</span>.<span class="ident">play</span>()
-        } <span class="kw">else</span> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = inner.tracks.front() {
+            handle.play()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="doccomment">/// Stop the currently playing track, and clears the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+    <span class="doccomment">/// Stop the currently playing track, and clears the queue.
+    </span><span class="kw">pub fn </span>stop(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="kw">for</span> <span class="ident">track</span> <span class="kw">in</span> <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">drain</span>(..) {
-            <span class="comment">// Errors when removing tracks don&#39;t really make</span>
-            <span class="comment">// a difference: an error just implies it&#39;s already gone.</span>
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">track</span>.<span class="ident">stop</span>();
+        <span class="kw">for </span>track <span class="kw">in </span>inner.tracks.drain(..) {
+            <span class="comment">// Errors when removing tracks don&#39;t really make
+            // a difference: an error just implies it&#39;s already gone.
+            </span><span class="kw">let _ </span>= track.stop();
         }
     }
 
-    <span class="doccomment">/// Skip to the next track in the queue, if it exists.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+    <span class="doccomment">/// Skip to the next track in the queue, if it exists.
+    </span><span class="kw">pub fn </span>skip(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="ident">inner</span>.<span class="ident">stop_current</span>()
+        inner.stop_current()
     }
 
-    <span class="doccomment">/// Returns a list of currently queued tracks.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Does not allow for modification of the queue, instead returns a snapshot of the queue at the time of calling.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use [`modify_queue`] for direct modification of the queue.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`modify_queue`]: TrackQueue::modify_queue</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_queue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackHandle</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>();
+    <span class="doccomment">/// Returns a list of currently queued tracks.
+    ///
+    /// Does not allow for modification of the queue, instead returns a snapshot of the queue at the time of calling.
+    ///
+    /// Use [`modify_queue`] for direct modification of the queue.
+    ///
+    /// [`modify_queue`]: TrackQueue::modify_queue
+    </span><span class="kw">pub fn </span>current_queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;TrackHandle&gt; {
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
-        <span class="ident">inner</span>.<span class="ident">tracks</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="ident">q</span>.<span class="ident">handle</span>()).<span class="ident">collect</span>()
+        inner.tracks.iter().map(|q| q.handle()).collect()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TrackQueueCore</span> {
-    <span class="doccomment">/// Skip to the next track in the queue, if it exists.</span>
-    <span class="kw">fn</span> <span class="ident">stop_current</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TrackResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">tracks</span>.<span class="ident">front</span>() {
-            <span class="ident">handle</span>.<span class="ident">stop</span>()
-        } <span class="kw">else</span> {
+<span class="kw">impl </span>TrackQueueCore {
+    <span class="doccomment">/// Skip to the next track in the queue, if it exists.
+    </span><span class="kw">fn </span>stop_current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = <span class="self">self</span>.tracks.front() {
+            handle.stop()
+        } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

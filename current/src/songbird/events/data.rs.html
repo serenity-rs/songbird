@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/data.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/data.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -94,94 +88,93 @@
 <span id="86">86</span>
 <span id="87">87</span>
 <span id="88">88</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp::Ordering</span>, <span class="ident">time::Duration</span>};
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::{cmp::Ordering, time::Duration};
 
-<span class="doccomment">/// Internal representation of an event, as handled by the audio context.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EventData</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">event</span>: <span class="ident">Event</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">fire_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">action</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">EventHandler</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Internal representation of an event, as handled by the audio context.
+</span><span class="kw">pub struct </span>EventData {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) event: Event,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) fire_time: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) action: Box&lt;<span class="kw">dyn </span>EventHandler&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">EventData</span> {
-    <span class="doccomment">/// Create a representation of an event and its associated handler.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An event handler, `action`, receives an [`EventContext`] and optionally</span>
-    <span class="doccomment">/// produces a new [`Event`] type for itself. Returning `None` will</span>
-    <span class="doccomment">/// maintain the same event type, while removing any [`Delayed`] entries.</span>
-    <span class="doccomment">/// Event handlers will be re-added with their new trigger condition,</span>
-    <span class="doccomment">/// or removed if [`Cancel`]led</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`EventContext`]: EventContext</span>
-    <span class="doccomment">/// [`Event`]: Event</span>
-    <span class="doccomment">/// [`Delayed`]: Event::Delayed</span>
-    <span class="doccomment">/// [`Cancel`]: Event::Cancel</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">EventHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">event</span>: <span class="ident">Event</span>, <span class="ident">action</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">event</span>,
-            <span class="ident">fire_time</span>: <span class="prelude-val">None</span>,
-            <span class="ident">action</span>: <span class="ident">Box::new</span>(<span class="ident">action</span>),
+<span class="kw">impl </span>EventData {
+    <span class="doccomment">/// Create a representation of an event and its associated handler.
+    ///
+    /// An event handler, `action`, receives an [`EventContext`] and optionally
+    /// produces a new [`Event`] type for itself. Returning `None` will
+    /// maintain the same event type, while removing any [`Delayed`] entries.
+    /// Event handlers will be re-added with their new trigger condition,
+    /// or removed if [`Cancel`]led
+    ///
+    /// [`EventContext`]: EventContext
+    /// [`Event`]: Event
+    /// [`Delayed`]: Event::Delayed
+    /// [`Cancel`]: Event::Cancel
+    </span><span class="kw">pub fn </span>new&lt;F: EventHandler + <span class="lifetime">&#39;static</span>&gt;(event: Event, action: F) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            event,
+            fire_time: <span class="prelude-val">None</span>,
+            action: Box::new(action),
         }
     }
 
-    <span class="doccomment">/// Computes the next firing time for a timer event.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_activation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">now</span>: <span class="ident">Duration</span>) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">event</span> {
-            <span class="ident">Event::Periodic</span>(<span class="ident">period</span>, <span class="ident">phase</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">fire_time</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">now</span> <span class="op">+</span> <span class="ident">phase</span>.<span class="ident">unwrap_or</span>(<span class="ident">period</span>));
+    <span class="doccomment">/// Computes the next firing time for a timer event.
+    </span><span class="kw">pub fn </span>compute_activation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: Duration) {
+        <span class="kw">match </span><span class="self">self</span>.event {
+            Event::Periodic(period, phase) =&gt; {
+                <span class="self">self</span>.fire_time = <span class="prelude-val">Some</span>(now + phase.unwrap_or(period));
             },
-            <span class="ident">Event::Delayed</span>(<span class="ident">offset</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">fire_time</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">now</span> <span class="op">+</span> <span class="ident">offset</span>);
+            Event::Delayed(offset) =&gt; {
+                <span class="self">self</span>.fire_time = <span class="prelude-val">Some</span>(now + offset);
             },
-            <span class="kw">_</span> =&gt; {},
+            <span class="kw">_ </span>=&gt; {},
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">EventData</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std::fmt::Error</span><span class="op">&gt;</span> {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>EventData {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), std::fmt::Error&gt; {
         <span class="macro">write!</span>(
-            <span class="ident">f</span>,
+            f,
             <span class="string">&quot;Event {{ event: {:?}, fire_time: {:?}, action: &lt;fn&gt; }}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">event</span>, <span class="self">self</span>.<span class="ident">fire_time</span>
+            <span class="self">self</span>.event, <span class="self">self</span>.fire_time
         )
     }
 }
 
-<span class="doccomment">/// Events are ordered/compared based on their firing time.</span>
-<span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">EventData</span> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fire_time</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">other</span>.<span class="ident">fire_time</span>.<span class="ident">is_some</span>() {
-            <span class="kw">let</span> <span class="ident">t1</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">fire_time</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;T1 known to be well-defined by above.&quot;</span>);
-            <span class="kw">let</span> <span class="ident">t2</span> <span class="op">=</span> <span class="ident">other</span>
-                .<span class="ident">fire_time</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;T2 known to be well-defined by above.&quot;</span>);
+<span class="doccomment">/// Events are ordered/compared based on their firing time.
+</span><span class="kw">impl </span>Ord <span class="kw">for </span>EventData {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
+        <span class="kw">if </span><span class="self">self</span>.fire_time.is_some() &amp;&amp; other.fire_time.is_some() {
+            <span class="kw">let </span>t1 = <span class="self">self
+                </span>.fire_time
+                .as_ref()
+                .expect(<span class="string">&quot;T1 known to be well-defined by above.&quot;</span>);
+            <span class="kw">let </span>t2 = other
+                .fire_time
+                .as_ref()
+                .expect(<span class="string">&quot;T2 known to be well-defined by above.&quot;</span>);
 
-            <span class="ident">t2</span>.<span class="ident">cmp</span>(<span class="ident">t1</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">Ordering::Equal</span>
+            t2.cmp(t1)
+        } <span class="kw">else </span>{
+            Ordering::Equal
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">EventData</span> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">cmp</span>(<span class="ident">other</span>))
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>EventData {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">EventData</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">fire_time</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">fire_time</span>
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>EventData {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.fire_time == other.fire_time
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">EventData</span> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>EventData {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

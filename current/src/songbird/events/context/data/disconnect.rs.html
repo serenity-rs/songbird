@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/context/data/disconnect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>disconnect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/context/data/disconnect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>disconnect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -122,122 +116,121 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error::ConnectionError</span>,
-    <span class="ident">id</span>::<span class="kw-2">*</span>,
-    <span class="ident">model</span>::{<span class="ident">CloseCode</span> <span class="kw">as</span> <span class="ident">VoiceCloseCode</span>, <span class="ident">FromPrimitive</span>},
-    <span class="ident">ws::Error</span> <span class="kw">as</span> <span class="ident">WsError</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    error::ConnectionError,
+    id::<span class="kw-2">*</span>,
+    model::{CloseCode <span class="kw">as </span>VoiceCloseCode, FromPrimitive},
+    ws::Error <span class="kw">as </span>WsError,
 };
-<span class="kw">use</span> <span class="ident">async_tungstenite::tungstenite::protocol::frame::coding::CloseCode</span>;
+<span class="kw">use </span>async_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 
-<span class="doccomment">/// Voice connection details gathered at termination or failure.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In the event of a failure, this event data is gathered after</span>
-<span class="doccomment">/// a reconnection strategy has exhausted all of its attempts.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DisconnectData</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The location that a voice connection was terminated.</span>
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">DisconnectKind</span>,
-    <span class="doccomment">/// The cause of any connection failure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `None`, then this disconnect was requested by the user in some way</span>
-    <span class="doccomment">/// (i.e., leaving or changing voice channels).</span>
-    <span class="kw">pub</span> <span class="ident">reason</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DisconnectReason</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// ID of the voice channel being joined, if it is known.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If this is available, then this can be used to reconnect/renew</span>
-    <span class="doccomment">/// a voice session via thew gateway.</span>
-    <span class="kw">pub</span> <span class="ident">channel_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChannelId</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// ID of the target voice channel&#39;s parent guild.</span>
-    <span class="kw">pub</span> <span class="ident">guild_id</span>: <span class="ident">GuildId</span>,
-    <span class="doccomment">/// Unique string describing this session for validation/authentication purposes.</span>
-    <span class="kw">pub</span> <span class="ident">session_id</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+<span class="doccomment">/// Voice connection details gathered at termination or failure.
+///
+/// In the event of a failure, this event data is gathered after
+/// a reconnection strategy has exhausted all of its attempts.
+</span><span class="attribute">#[derive(Debug)]
+#[non_exhaustive]
+</span><span class="kw">pub struct </span>DisconnectData&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// The location that a voice connection was terminated.
+    </span><span class="kw">pub </span>kind: DisconnectKind,
+    <span class="doccomment">/// The cause of any connection failure.
+    ///
+    /// If `None`, then this disconnect was requested by the user in some way
+    /// (i.e., leaving or changing voice channels).
+    </span><span class="kw">pub </span>reason: <span class="prelude-ty">Option</span>&lt;DisconnectReason&gt;,
+    <span class="doccomment">/// ID of the voice channel being joined, if it is known.
+    ///
+    /// If this is available, then this can be used to reconnect/renew
+    /// a voice session via thew gateway.
+    </span><span class="kw">pub </span>channel_id: <span class="prelude-ty">Option</span>&lt;ChannelId&gt;,
+    <span class="doccomment">/// ID of the target voice channel&#39;s parent guild.
+    </span><span class="kw">pub </span>guild_id: GuildId,
+    <span class="doccomment">/// Unique string describing this session for validation/authentication purposes.
+    </span><span class="kw">pub </span>session_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
 }
 
-<span class="doccomment">/// The location that a voice connection was terminated.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DisconnectKind</span> {
-    <span class="doccomment">/// The voice driver failed to connect to the server.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires explicit handling at the gateway level</span>
-    <span class="doccomment">/// to either reconnect or fully disconnect.</span>
-    <span class="ident">Connect</span>,
-    <span class="doccomment">/// The voice driver failed to reconnect to the server.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This requires explicit handling at the gateway level</span>
-    <span class="doccomment">/// to either reconnect or fully disconnect.</span>
-    <span class="ident">Reconnect</span>,
-    <span class="doccomment">/// The voice connection was terminated mid-session by either</span>
-    <span class="doccomment">/// the user or Discord.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `reason == None`, then this disconnection is either</span>
-    <span class="doccomment">/// a full disconnect or a user-requested channel change.</span>
-    <span class="doccomment">/// Otherwise, this is likely a session expiry (requiring user</span>
-    <span class="doccomment">/// handling to fully disconnect/reconnect).</span>
-    <span class="ident">Runtime</span>,
+<span class="doccomment">/// The location that a voice connection was terminated.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>DisconnectKind {
+    <span class="doccomment">/// The voice driver failed to connect to the server.
+    ///
+    /// This requires explicit handling at the gateway level
+    /// to either reconnect or fully disconnect.
+    </span>Connect,
+    <span class="doccomment">/// The voice driver failed to reconnect to the server.
+    ///
+    /// This requires explicit handling at the gateway level
+    /// to either reconnect or fully disconnect.
+    </span>Reconnect,
+    <span class="doccomment">/// The voice connection was terminated mid-session by either
+    /// the user or Discord.
+    ///
+    /// If `reason == None`, then this disconnection is either
+    /// a full disconnect or a user-requested channel change.
+    /// Otherwise, this is likely a session expiry (requiring user
+    /// handling to fully disconnect/reconnect).
+    </span>Runtime,
 }
 
-<span class="doccomment">/// The reason that a voice connection failed.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DisconnectReason</span> {
-    <span class="doccomment">/// This (re)connection attempt was dropped due to another request.</span>
-    <span class="ident">AttemptDiscarded</span>,
-    <span class="doccomment">/// Songbird had an internal error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This should never happen; if this is ever seen, raise an issue with logs.</span>
-    <span class="ident">Internal</span>,
-    <span class="doccomment">/// A host-specific I/O error caused the fault; this is likely transient, and</span>
-    <span class="doccomment">/// should be retried some time later.</span>
-    <span class="ident">Io</span>,
-    <span class="doccomment">/// Songbird and Discord disagreed on the protocol used to establish a</span>
-    <span class="doccomment">/// voice connection.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This should never happen; if this is ever seen, raise an issue with logs.</span>
-    <span class="ident">ProtocolViolation</span>,
-    <span class="doccomment">/// A voice connection was not established in the specified time.</span>
-    <span class="ident">TimedOut</span>,
-    <span class="doccomment">/// The Websocket connection was closed by Discord.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This typically indicates that the voice session has expired,</span>
-    <span class="doccomment">/// and a new one needs to be requested via the gateway.</span>
-    <span class="ident">WsClosed</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VoiceCloseCode</span><span class="op">&gt;</span>),
+<span class="doccomment">/// The reason that a voice connection failed.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>DisconnectReason {
+    <span class="doccomment">/// This (re)connection attempt was dropped due to another request.
+    </span>AttemptDiscarded,
+    <span class="doccomment">/// Songbird had an internal error.
+    ///
+    /// This should never happen; if this is ever seen, raise an issue with logs.
+    </span>Internal,
+    <span class="doccomment">/// A host-specific I/O error caused the fault; this is likely transient, and
+    /// should be retried some time later.
+    </span>Io,
+    <span class="doccomment">/// Songbird and Discord disagreed on the protocol used to establish a
+    /// voice connection.
+    ///
+    /// This should never happen; if this is ever seen, raise an issue with logs.
+    </span>ProtocolViolation,
+    <span class="doccomment">/// A voice connection was not established in the specified time.
+    </span>TimedOut,
+    <span class="doccomment">/// The Websocket connection was closed by Discord.
+    ///
+    /// This typically indicates that the voice session has expired,
+    /// and a new one needs to be requested via the gateway.
+    </span>WsClosed(<span class="prelude-ty">Option</span>&lt;VoiceCloseCode&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ConnectionError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DisconnectReason</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">ConnectionError</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">ConnectionError</span>::<span class="kw-2">*</span>;
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>ConnectionError&gt; <span class="kw">for </span>DisconnectReason {
+    <span class="kw">fn </span>from(e: <span class="kw-2">&amp;</span>ConnectionError) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>ConnectionError::<span class="kw-2">*</span>;
 
-        <span class="kw">match</span> <span class="ident">e</span> {
-            <span class="ident">AttemptDiscarded</span> =&gt; <span class="ident"><span class="self">Self</span>::AttemptDiscarded</span>,
-            <span class="ident">CryptoModeInvalid</span>
-            <span class="op">|</span> <span class="ident">CryptoModeUnavailable</span>
-            <span class="op">|</span> <span class="ident">EndpointUrl</span>
-            <span class="op">|</span> <span class="ident">ExpectedHandshake</span>
-            <span class="op">|</span> <span class="ident">IllegalDiscoveryResponse</span>
-            <span class="op">|</span> <span class="ident">IllegalIp</span>
-            <span class="op">|</span> <span class="ident">Json</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::ProtocolViolation</span>,
-            <span class="ident">Io</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::Io</span>,
-            <span class="ident">Crypto</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">InterconnectFailure</span>(<span class="kw">_</span>) =&gt; <span class="ident"><span class="self">Self</span>::Internal</span>,
-            <span class="ident">Ws</span>(<span class="ident">ws</span>) =&gt; <span class="ident">ws</span>.<span class="ident">into</span>(),
-            <span class="ident">TimedOut</span> =&gt; <span class="ident"><span class="self">Self</span>::TimedOut</span>,
+        <span class="kw">match </span>e {
+            AttemptDiscarded =&gt; <span class="self">Self</span>::AttemptDiscarded,
+            CryptoModeInvalid
+            | CryptoModeUnavailable
+            | EndpointUrl
+            | ExpectedHandshake
+            | IllegalDiscoveryResponse
+            | IllegalIp
+            | Json(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::ProtocolViolation,
+            Io(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::Io,
+            Crypto(<span class="kw">_</span>) | InterconnectFailure(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::Internal,
+            Ws(ws) =&gt; ws.into(),
+            TimedOut =&gt; <span class="self">Self</span>::TimedOut,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WsError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DisconnectReason</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">WsError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::WsClosed</span>(<span class="kw">match</span> <span class="ident">e</span> {
-            <span class="ident">WsError::WsClosed</span>(<span class="prelude-val">Some</span>(<span class="ident">frame</span>)) =&gt; <span class="kw">match</span> <span class="ident">frame</span>.<span class="ident">code</span> {
-                <span class="ident">CloseCode::Library</span>(<span class="ident">l</span>) =&gt; <span class="ident">VoiceCloseCode::from_u16</span>(<span class="ident">l</span>),
-                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>WsError&gt; <span class="kw">for </span>DisconnectReason {
+    <span class="kw">fn </span>from(e: <span class="kw-2">&amp;</span>WsError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::WsClosed(<span class="kw">match </span>e {
+            WsError::WsClosed(<span class="prelude-val">Some</span>(frame)) =&gt; <span class="kw">match </span>frame.code {
+                CloseCode::Library(l) =&gt; VoiceCloseCode::from_u16(l),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             },
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

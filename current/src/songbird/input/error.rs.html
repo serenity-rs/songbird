@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -165,165 +159,164 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Errors caused by input creation.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Errors caused by input creation.
 
-<span class="kw">use</span> <span class="ident">audiopus::Error</span> <span class="kw">as</span> <span class="ident">OpusError</span>;
-<span class="kw">use</span> <span class="ident">core::fmt</span>;
-<span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>, <span class="ident">Value</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error::Error</span> <span class="kw">as</span> <span class="ident">StdError</span>, <span class="ident">io::Error</span> <span class="kw">as</span> <span class="ident">IoError</span>, <span class="ident">process::Output</span>};
-<span class="kw">use</span> <span class="ident">streamcatcher::CatcherError</span>;
+</span><span class="kw">use </span>audiopus::Error <span class="kw">as </span>OpusError;
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>serde_json::{Error <span class="kw">as </span>JsonError, Value};
+<span class="kw">use </span>std::{error::Error <span class="kw">as </span>StdError, io::Error <span class="kw">as </span>IoError, process::Output};
+<span class="kw">use </span>streamcatcher::CatcherError;
 
-<span class="doccomment">/// An error returned when creating a new [`Input`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: crate::input::Input</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// An error occurred while opening a new DCA source.</span>
-    <span class="ident">Dca</span>(<span class="ident">DcaError</span>),
-    <span class="doccomment">/// An error occurred while reading, or opening a file.</span>
-    <span class="ident">Io</span>(<span class="ident">IoError</span>),
-    <span class="doccomment">/// An error occurred while parsing JSON (i.e., during metadata/stereo detection).</span>
-    <span class="ident">Json</span> {
-        <span class="doccomment">/// Json error</span>
-        <span class="ident">error</span>: <span class="ident">JsonError</span>,
-        <span class="doccomment">/// Text that failed to be parsed</span>
-        <span class="ident">parsed_text</span>: <span class="ident">String</span>,
+<span class="doccomment">/// An error returned when creating a new [`Input`].
+///
+/// [`Input`]: crate::input::Input
+</span><span class="attribute">#[derive(Debug)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>Error {
+    <span class="doccomment">/// An error occurred while opening a new DCA source.
+    </span>Dca(DcaError),
+    <span class="doccomment">/// An error occurred while reading, or opening a file.
+    </span>Io(IoError),
+    <span class="doccomment">/// An error occurred while parsing JSON (i.e., during metadata/stereo detection).
+    </span>Json {
+        <span class="doccomment">/// Json error
+        </span>error: JsonError,
+        <span class="doccomment">/// Text that failed to be parsed
+        </span>parsed_text: String,
     },
-    <span class="doccomment">/// An error occurred within the Opus codec.</span>
-    <span class="ident">Opus</span>(<span class="ident">OpusError</span>),
-    <span class="doccomment">/// Failed to extract metadata from alternate pipe.</span>
-    <span class="ident">Metadata</span>,
-    <span class="doccomment">/// Apparently failed to create stdout.</span>
-    <span class="ident">Stdout</span>,
-    <span class="doccomment">/// An error occurred while checking if a path is stereo.</span>
-    <span class="ident">Streams</span>,
-    <span class="doccomment">/// Configuration error for a cached Input.</span>
-    <span class="ident">Streamcatcher</span>(<span class="ident">CatcherError</span>),
-    <span class="doccomment">/// An error occurred while processing the JSON output from `youtube-dl`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The JSON output is given.</span>
-    <span class="ident">YouTubeDlProcessing</span>(<span class="ident">Value</span>),
-    <span class="doccomment">/// An error occurred while running `youtube-dl`.</span>
-    <span class="ident">YouTubeDlRun</span>(<span class="ident">Output</span>),
-    <span class="doccomment">/// The `url` field of the `youtube-dl` JSON output was not present.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The JSON output is given.</span>
-    <span class="ident">YouTubeDlUrl</span>(<span class="ident">Value</span>),
+    <span class="doccomment">/// An error occurred within the Opus codec.
+    </span>Opus(OpusError),
+    <span class="doccomment">/// Failed to extract metadata from alternate pipe.
+    </span>Metadata,
+    <span class="doccomment">/// Apparently failed to create stdout.
+    </span>Stdout,
+    <span class="doccomment">/// An error occurred while checking if a path is stereo.
+    </span>Streams,
+    <span class="doccomment">/// Configuration error for a cached Input.
+    </span>Streamcatcher(CatcherError),
+    <span class="doccomment">/// An error occurred while processing the JSON output from `youtube-dl`.
+    ///
+    /// The JSON output is given.
+    </span>YouTubeDlProcessing(Value),
+    <span class="doccomment">/// An error occurred while running `youtube-dl`.
+    </span>YouTubeDlRun(Output),
+    <span class="doccomment">/// The `url` field of the `youtube-dl` JSON output was not present.
+    ///
+    /// The JSON output is given.
+    </span>YouTubeDlUrl(Value),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CatcherError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">CatcherError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::Streamcatcher</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;CatcherError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: CatcherError) -&gt; <span class="self">Self </span>{
+        Error::Streamcatcher(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DcaError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">DcaError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Error::Dca</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;DcaError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: DcaError) -&gt; <span class="self">Self </span>{
+        Error::Dca(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">IoError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">IoError</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::Io</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;IoError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: IoError) -&gt; Error {
+        Error::Io(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">OpusError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">OpusError</span>) -&gt; <span class="ident">Error</span> {
-        <span class="ident">Error::Opus</span>(<span class="ident">e</span>)
+<span class="kw">impl </span>From&lt;OpusError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: OpusError) -&gt; Error {
+        Error::Opus(e)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::Dca</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;opening file DCA failed&quot;</span>),
-            <span class="ident">Error::Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">Error::Json</span> {
-                <span class="ident">error</span>: <span class="kw">_</span>,
-                <span class="ident">parsed_text</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;parsing JSON failed&quot;</span>),
-            <span class="ident">Error::Opus</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">Error::Metadata</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;extracting metadata failed&quot;</span>),
-            <span class="ident">Error::Stdout</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;creating stdout failed&quot;</span>),
-            <span class="ident">Error::Streams</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;checking if path is stereo failed&quot;</span>),
-            <span class="ident">Error::Streamcatcher</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;invalid config for cached input&quot;</span>),
-            <span class="ident">Error::YouTubeDlProcessing</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;youtube-dl returned invalid JSON&quot;</span>),
-            <span class="ident">Error::YouTubeDlRun</span>(<span class="ident">o</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;youtube-dl encontered an error: {:?}&quot;</span>, <span class="ident">o</span>),
-            <span class="ident">Error::YouTubeDlUrl</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;missing youtube-dl url&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::Dca(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;opening file DCA failed&quot;</span>),
+            Error::Io(e) =&gt; e.fmt(f),
+            Error::Json {
+                error: <span class="kw">_</span>,
+                parsed_text: <span class="kw">_</span>,
+            } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;parsing JSON failed&quot;</span>),
+            Error::Opus(e) =&gt; e.fmt(f),
+            Error::Metadata =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;extracting metadata failed&quot;</span>),
+            Error::Stdout =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;creating stdout failed&quot;</span>),
+            Error::Streams =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;checking if path is stereo failed&quot;</span>),
+            Error::Streamcatcher(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;invalid config for cached input&quot;</span>),
+            Error::YouTubeDlProcessing(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;youtube-dl returned invalid JSON&quot;</span>),
+            Error::YouTubeDlRun(o) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;youtube-dl encontered an error: {:?}&quot;</span>, o),
+            Error::YouTubeDlUrl(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;missing youtube-dl url&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::Dca</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
-            <span class="ident">Error::Io</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::Json</span> {
-                <span class="ident">error</span>,
-                <span class="ident">parsed_text</span>: <span class="kw">_</span>,
-            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">error</span>),
-            <span class="ident">Error::Opus</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">Error::Metadata</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::Stdout</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::Streams</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::Streamcatcher</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
-            <span class="ident">Error::YouTubeDlProcessing</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::YouTubeDlRun</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Error::YouTubeDlUrl</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span>StdError <span class="kw">for </span>Error {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::Dca(e) =&gt; <span class="prelude-val">Some</span>(e),
+            Error::Io(e) =&gt; e.source(),
+            Error::Json {
+                error,
+                parsed_text: <span class="kw">_</span>,
+            } =&gt; <span class="prelude-val">Some</span>(error),
+            Error::Opus(e) =&gt; e.source(),
+            Error::Metadata =&gt; <span class="prelude-val">None</span>,
+            Error::Stdout =&gt; <span class="prelude-val">None</span>,
+            Error::Streams =&gt; <span class="prelude-val">None</span>,
+            Error::Streamcatcher(e) =&gt; <span class="prelude-val">Some</span>(e),
+            Error::YouTubeDlProcessing(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Error::YouTubeDlRun(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Error::YouTubeDlUrl(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="doccomment">/// An error returned from the [`dca`] method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`dca`]: crate::input::dca</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DcaError</span> {
-    <span class="doccomment">/// An error occurred while reading, or opening a file.</span>
-    <span class="ident">IoError</span>(<span class="ident">IoError</span>),
-    <span class="doccomment">/// The file opened did not have a valid DCA JSON header.</span>
-    <span class="ident">InvalidHeader</span>,
-    <span class="doccomment">/// The file&#39;s metadata block was invalid, or could not be parsed.</span>
-    <span class="ident">InvalidMetadata</span>(<span class="ident">JsonError</span>),
-    <span class="doccomment">/// The file&#39;s header reported an invalid metadata block size.</span>
-    <span class="ident">InvalidSize</span>(<span class="ident">i32</span>),
-    <span class="doccomment">/// An error was encountered while creating a new Opus decoder.</span>
-    <span class="ident">Opus</span>(<span class="ident">OpusError</span>),
+<span class="doccomment">/// An error returned from the [`dca`] method.
+///
+/// [`dca`]: crate::input::dca
+</span><span class="attribute">#[derive(Debug)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>DcaError {
+    <span class="doccomment">/// An error occurred while reading, or opening a file.
+    </span>IoError(IoError),
+    <span class="doccomment">/// The file opened did not have a valid DCA JSON header.
+    </span>InvalidHeader,
+    <span class="doccomment">/// The file&#39;s metadata block was invalid, or could not be parsed.
+    </span>InvalidMetadata(JsonError),
+    <span class="doccomment">/// The file&#39;s header reported an invalid metadata block size.
+    </span>InvalidSize(i32),
+    <span class="doccomment">/// An error was encountered while creating a new Opus decoder.
+    </span>Opus(OpusError),
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">DcaError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">DcaError::IoError</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">DcaError::InvalidHeader</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;invalid header&quot;</span>),
-            <span class="ident">DcaError::InvalidMetadata</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;invalid metadata&quot;</span>),
-            <span class="ident">DcaError::InvalidSize</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;invalid metadata block size: {}&quot;</span>, <span class="ident">e</span>),
-            <span class="ident">DcaError::Opus</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>DcaError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            DcaError::IoError(e) =&gt; e.fmt(f),
+            DcaError::InvalidHeader =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;invalid header&quot;</span>),
+            DcaError::InvalidMetadata(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;invalid metadata&quot;</span>),
+            DcaError::InvalidSize(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;invalid metadata block size: {}&quot;</span>, e),
+            DcaError::Opus(e) =&gt; e.fmt(f),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">StdError</span> <span class="kw">for</span> <span class="ident">DcaError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">DcaError::IoError</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
-            <span class="ident">DcaError::InvalidHeader</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">DcaError::InvalidMetadata</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
-            <span class="ident">DcaError::InvalidSize</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">DcaError::Opus</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">source</span>(),
+<span class="kw">impl </span>StdError <span class="kw">for </span>DcaError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            DcaError::IoError(e) =&gt; e.source(),
+            DcaError::InvalidHeader =&gt; <span class="prelude-val">None</span>,
+            DcaError::InvalidMetadata(e) =&gt; <span class="prelude-val">Some</span>(e),
+            DcaError::InvalidSize(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            DcaError::Opus(e) =&gt; e.source(),
         }
     }
 }
 
-<span class="doccomment">/// Convenience type for fallible return of [`Input`]s.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Input`]: crate::input::Input</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Convenience type for fallible return of [`Input`]s.
+///
+/// [`Input`]: crate::input::Input
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, Error&gt;;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>

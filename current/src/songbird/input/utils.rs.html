@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
-                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
+                        <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -47,47 +41,46 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Utility methods for seeking or decoding.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Utility methods for seeking or decoding.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::constants</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">audiopus</span>::{<span class="ident">coder::Decoder</span>, <span class="ident">Channels</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">OpusResult</span>, <span class="ident">SampleRate</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">time::Duration</span>};
+</span><span class="kw">use </span><span class="kw">crate</span>::constants::<span class="kw-2">*</span>;
+<span class="kw">use </span>audiopus::{coder::Decoder, Channels, <span class="prelude-ty">Result </span><span class="kw">as </span>OpusResult, SampleRate};
+<span class="kw">use </span>std::{mem, time::Duration};
 
-<span class="doccomment">/// Calculates the sample position in a FloatPCM stream from a timestamp.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timestamp_to_sample_count</span>(<span class="ident">timestamp</span>: <span class="ident">Duration</span>, <span class="ident">stereo</span>: <span class="ident">bool</span>) -&gt; <span class="ident">usize</span> {
-    ((<span class="ident">timestamp</span>.<span class="ident">as_millis</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">*</span> (<span class="ident">MONO_FRAME_SIZE</span> <span class="op">/</span> <span class="ident">FRAME_LEN_MS</span>)) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">stereo</span> <span class="kw">as</span> <span class="ident">usize</span>
+<span class="doccomment">/// Calculates the sample position in a FloatPCM stream from a timestamp.
+</span><span class="kw">pub fn </span>timestamp_to_sample_count(timestamp: Duration, stereo: bool) -&gt; usize {
+    ((timestamp.as_millis() <span class="kw">as </span>usize) * (MONO_FRAME_SIZE / FRAME_LEN_MS)) &lt;&lt; stereo <span class="kw">as </span>usize
 }
 
-<span class="doccomment">/// Calculates the time position in a FloatPCM stream from a sample index.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sample_count_to_timestamp</span>(<span class="ident">amt</span>: <span class="ident">usize</span>, <span class="ident">stereo</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Duration</span> {
-    <span class="ident">Duration::from_millis</span>((((<span class="ident">amt</span> <span class="op">*</span> <span class="ident">FRAME_LEN_MS</span>) <span class="op">/</span> <span class="ident">MONO_FRAME_SIZE</span>) <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">stereo</span> <span class="kw">as</span> <span class="ident">u64</span>)
+<span class="doccomment">/// Calculates the time position in a FloatPCM stream from a sample index.
+</span><span class="kw">pub fn </span>sample_count_to_timestamp(amt: usize, stereo: bool) -&gt; Duration {
+    Duration::from_millis((((amt * FRAME_LEN_MS) / MONO_FRAME_SIZE) <span class="kw">as </span>u64) &gt;&gt; stereo <span class="kw">as </span>u64)
 }
 
-<span class="doccomment">/// Calculates the byte position in a FloatPCM stream from a timestamp.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Each sample is sized by `mem::size_of::&lt;f32&gt;() == 4usize`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timestamp_to_byte_count</span>(<span class="ident">timestamp</span>: <span class="ident">Duration</span>, <span class="ident">stereo</span>: <span class="ident">bool</span>) -&gt; <span class="ident">usize</span> {
-    <span class="ident">timestamp_to_sample_count</span>(<span class="ident">timestamp</span>, <span class="ident">stereo</span>) <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>()
+<span class="doccomment">/// Calculates the byte position in a FloatPCM stream from a timestamp.
+///
+/// Each sample is sized by `mem::size_of::&lt;f32&gt;() == 4usize`.
+</span><span class="kw">pub fn </span>timestamp_to_byte_count(timestamp: Duration, stereo: bool) -&gt; usize {
+    timestamp_to_sample_count(timestamp, stereo) * mem::size_of::&lt;f32&gt;()
 }
 
-<span class="doccomment">/// Calculates the time position in a FloatPCM stream from a byte index.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Each sample is sized by `mem::size_of::&lt;f32&gt;() == 4usize`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_count_to_timestamp</span>(<span class="ident">amt</span>: <span class="ident">usize</span>, <span class="ident">stereo</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Duration</span> {
-    <span class="ident">sample_count_to_timestamp</span>(<span class="ident">amt</span> <span class="op">/</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(), <span class="ident">stereo</span>)
+<span class="doccomment">/// Calculates the time position in a FloatPCM stream from a byte index.
+///
+/// Each sample is sized by `mem::size_of::&lt;f32&gt;() == 4usize`.
+</span><span class="kw">pub fn </span>byte_count_to_timestamp(amt: usize, stereo: bool) -&gt; Duration {
+    sample_count_to_timestamp(amt / mem::size_of::&lt;f32&gt;(), stereo)
 }
 
-<span class="doccomment">/// Create an Opus decoder outputting at a sample rate of 48kHz.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decoder</span>(<span class="ident">stereo</span>: <span class="ident">bool</span>) -&gt; <span class="ident">OpusResult</span><span class="op">&lt;</span><span class="ident">Decoder</span><span class="op">&gt;</span> {
-    <span class="ident">Decoder::new</span>(
-        <span class="ident">SampleRate::Hz48000</span>,
-        <span class="kw">if</span> <span class="ident">stereo</span> {
-            <span class="ident">Channels::Stereo</span>
-        } <span class="kw">else</span> {
-            <span class="ident">Channels::Mono</span>
+<span class="doccomment">/// Create an Opus decoder outputting at a sample rate of 48kHz.
+</span><span class="kw">pub fn </span>decoder(stereo: bool) -&gt; OpusResult&lt;Decoder&gt; {
+    Decoder::new(
+        SampleRate::Hz48000,
+        <span class="kw">if </span>stereo {
+            Channels::Stereo
+        } <span class="kw">else </span>{
+            Channels::Mono
         },
     )
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (9067d5277 2022-07-28)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (78a891d36 2022-09-06)" ></div></body></html>
