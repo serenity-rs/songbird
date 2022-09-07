@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
                         <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -352,30 +352,30 @@
 //! generation from being slowed down past its deadline, or from affecting other
 //! asynchronous tasks your bot must handle.
 
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;internals&quot;</span>)]</span>
-<span class="kw">pub mod </span>bench_internals;
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;internals&quot;</span>)]
+</span><span class="kw">pub mod </span>bench_internals;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>connection;
 <span class="kw">mod </span>crypto;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">mod </span>decode_mode;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+</span><span class="kw">mod </span>decode_mode;
 <span class="kw">mod </span>mix_mode;
 <span class="kw">pub mod </span>retry;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tasks;
-<span class="attribute">#[cfg(test)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>test_config;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>test_config;
 
 <span class="kw">use </span>connection::error::{Error, <span class="prelude-ty">Result</span>};
 <span class="kw">pub use </span>crypto::CryptoMode;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>crypto::CryptoState;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]</span>
-<span class="kw">pub use </span>decode_mode::DecodeMode;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+</span><span class="kw">pub use </span>decode_mode::DecodeMode;
 <span class="kw">pub use </span>mix_mode::MixMode;
-<span class="attribute">#[cfg(test)]</span>
-<span class="kw">pub use </span>test_config::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">pub use </span>test_config::<span class="kw-2">*</span>;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-<span class="kw">use </span><span class="kw">crate</span>::tracks::TrackQueue;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::tracks::TrackQueue;
 <span class="kw">use crate</span>::{
     events::EventData,
     input::Input,
@@ -393,8 +393,8 @@
     task::{Context, Poll},
 };
 <span class="kw">use </span>flume::{r#async::RecvFut, SendError, Sender};
-<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-<span class="kw">use </span>std::time::Duration;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+</span><span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>tasks::message::CoreMessage;
 <span class="kw">use </span>tracing::instrument;
 
@@ -403,8 +403,8 @@
 ///
 /// When compiled with the `&quot;builtin-queue&quot;` feature, each driver includes a track queue
 /// as a convenience to prevent the additional overhead of per-guild state management.
-</span><span class="attribute">#[derive(Clone, Debug)]</span>
-<span class="kw">pub struct </span>Driver {
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Driver {
     config: Config,
     self_mute: bool,
     sender: Sender&lt;CoreMessage&gt;,
@@ -413,25 +413,25 @@
     // This is probably preferable to cloning the driver: Arc&lt;...&gt; should be nonzero
     // and if the compiler&#39;s smart we&#39;ll just codegen a pointer swap. It definitely makes
     // use of NonZero.
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-    queue: <span class="prelude-ty">Option</span>&lt;TrackQueue&gt;,
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+    </span>queue: <span class="prelude-ty">Option</span>&lt;TrackQueue&gt;,
 }
 
 <span class="kw">impl </span>Driver {
     <span class="doccomment">/// Creates a new voice driver.
     ///
     /// This will create the core voice tasks in the background.
-    </span><span class="attribute">#[inline]</span>
-    <span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>new(config: Config) -&gt; <span class="self">Self </span>{
+    </span><span class="attribute">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>new(config: Config) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>sender = <span class="self">Self</span>::start_inner(config.clone());
 
         Driver {
             config,
             self_mute: <span class="bool-val">false</span>,
             sender,
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-            queue: <span class="prelude-val">Some</span>(TrackQueue::default()),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+            </span>queue: <span class="prelude-val">Some</span>(TrackQueue::default()),
         }
     }
 
@@ -453,8 +453,8 @@
     ///
     /// This method instantly contacts the driver tasks, and its
     /// does not need to be `await`ed to start the actual connection.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: ConnectionInfo) -&gt; Connect {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: ConnectionInfo) -&gt; Connect {
         <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
 
         <span class="self">self</span>.raw_connect(info, tx);
@@ -465,8 +465,8 @@
     }
 
     <span class="doccomment">/// Connects to a voice channel using the specified server.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>raw_connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: ConnectionInfo, tx: Sender&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt;) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>raw_connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>, info: ConnectionInfo, tx: Sender&lt;<span class="prelude-ty">Result</span>&lt;()&gt;&gt;) {
         <span class="self">self</span>.send(CoreMessage::ConnectWithResult(info, tx));
     }
 
@@ -474,8 +474,8 @@
     ///
     /// This does *not* forget settings, like whether to be self-deafened or
     /// self-muted.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>leave(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>leave(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.send(CoreMessage::Disconnect);
     }
 
@@ -483,22 +483,22 @@
     ///
     /// If there is no live voice connection, then this only acts as a settings
     /// update for future connections.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>mute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mute: bool) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>mute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mute: bool) {
         <span class="self">self</span>.self_mute = mute;
         <span class="self">self</span>.send(CoreMessage::Mute(mute));
     }
 
     <span class="doccomment">/// Returns whether the driver is muted (i.e., processes audio internally
     /// but submits none).
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>is_mute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>is_mute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.self_mute
     }
 
     <span class="doccomment">/// Plays audio from an input, returning a handle for further control.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, input))]</span>
-    <span class="kw">pub fn </span>play_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: Input) -&gt; TrackHandle {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, input))]
+    </span><span class="kw">pub fn </span>play_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: Input) -&gt; TrackHandle {
         <span class="self">self</span>.play(input.into())
     }
 
@@ -506,8 +506,8 @@
     ///
     /// Unlike [`Self::play_input`], this stops all other inputs attached
     /// to the channel.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, input))]</span>
-    <span class="kw">pub fn </span>play_only_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: Input) -&gt; TrackHandle {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, input))]
+    </span><span class="kw">pub fn </span>play_only_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: Input) -&gt; TrackHandle {
         <span class="self">self</span>.play_only(input.into())
     }
 
@@ -516,8 +516,8 @@
     /// The main difference between this function and [`Self::play_input`] is
     /// that this allows for direct manipulation of the [`Track`] object
     /// before it is passed over to the voice and mixing contexts.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, track))]</span>
-    <span class="kw">pub fn </span>play(<span class="kw-2">&amp;mut </span><span class="self">self</span>, track: Track) -&gt; TrackHandle {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, track))]
+    </span><span class="kw">pub fn </span>play(<span class="kw-2">&amp;mut </span><span class="self">self</span>, track: Track) -&gt; TrackHandle {
         <span class="kw">let </span>(handle, ctx) = track.into_context();
         <span class="self">self</span>.send(CoreMessage::AddTrack(ctx));
 
@@ -529,8 +529,8 @@
     /// As in [`Self::play_only_input`], this stops all other sources attached to the
     /// channel. Like [`Self::play`], however, this allows for direct manipulation of the
     /// [`Track`] object before it is passed over to the voice and mixing contexts.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, track))]</span>
-    <span class="kw">pub fn </span>play_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>, track: Track) -&gt; TrackHandle {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, track))]
+    </span><span class="kw">pub fn </span>play_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>, track: Track) -&gt; TrackHandle {
         <span class="kw">let </span>(handle, ctx) = track.into_context();
         <span class="self">self</span>.send(CoreMessage::SetTrack(<span class="prelude-val">Some</span>(ctx)));
 
@@ -544,27 +544,27 @@
     /// Sensible values range between `Bits(512)` and `Bits(512_000)`
     /// bits per second.
     /// Alternatively, `Auto` and `Max` remain available.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>set_bitrate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bitrate: Bitrate) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>set_bitrate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bitrate: Bitrate) {
         <span class="self">self</span>.send(CoreMessage::SetBitrate(bitrate));
     }
 
     <span class="doccomment">/// Stops playing audio from all sources, if any are set.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.send(CoreMessage::SetTrack(<span class="prelude-val">None</span>));
     }
 
     <span class="doccomment">/// Sets the configuration for this driver (and parent `Call`, if applicable).
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>set_config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: Config) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>set_config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: Config) {
         <span class="self">self</span>.config = config.clone();
         <span class="self">self</span>.send(CoreMessage::SetConfig(config));
     }
 
     <span class="doccomment">/// Returns a view of this driver&#39;s configuration.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Config {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Config {
         <span class="kw-2">&amp;</span><span class="self">self</span>.config
     }
 
@@ -581,14 +581,14 @@
     ///
     /// [`TrackEvent`]: crate::events::TrackEvent
     /// [`EventContext`]: crate::events::EventContext
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, action))]</span>
-    <span class="kw">pub fn </span>add_global_event&lt;F: EventHandler + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event, action: F) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, action))]
+    </span><span class="kw">pub fn </span>add_global_event&lt;F: EventHandler + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event, action: F) {
         <span class="self">self</span>.send(CoreMessage::AddEvent(EventData::new(event, action)));
     }
 
     <span class="doccomment">/// Removes all global event handlers from an audio context.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>remove_all_global_events(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>remove_all_global_events(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.send(CoreMessage::RemoveGlobalEvents);
     }
 
@@ -603,15 +603,15 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]</span>
-<span class="kw">impl </span>Driver {
+<span class="attribute">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+</span><span class="kw">impl </span>Driver {
     <span class="doccomment">/// Returns a reference to this driver&#39;s built-in queue.
     ///
     /// Requires the `&quot;builtin-queue&quot;` feature.
     /// Queue additions should be made via [`Driver::enqueue`] and
     /// [`Driver::enqueue_input`].
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TrackQueue {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TrackQueue {
         <span class="self">self</span>.queue
             .as_ref()
             .expect(<span class="string">&quot;Queue: The only case this can fail is if a previous queue operation panicked.&quot;</span>)
@@ -685,4 +685,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>

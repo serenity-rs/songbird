@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/handle.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/handle.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
                         <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -316,8 +316,8 @@
 <span class="kw">use </span>typemap_rev::TypeMap;
 <span class="kw">use </span>uuid::Uuid;
 
-<span class="attribute">#[derive(Clone, Debug)]</span>
-<span class="doccomment">/// Handle for safe control of a [`Track`] from other threads, outside
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="doccomment">/// Handle for safe control of a [`Track`] from other threads, outside
 /// of the audio mixing and voice handling context.
 ///
 /// These are cheap to clone, using `Arc&lt;...&gt;` internally.
@@ -349,8 +349,8 @@
     <span class="doccomment">/// Creates a new handle, using the given command sink.
     ///
     /// [`Input`]: crate::input::Input
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(command_channel: Sender&lt;TrackCommand&gt;, uuid: Uuid) -&gt; <span class="self">Self </span>{
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(command_channel: Sender&lt;TrackCommand&gt;, uuid: Uuid) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>inner = Arc::new(InnerHandle {
             command_channel,
             uuid,
@@ -385,8 +385,8 @@
         <span class="self">self</span>.send(TrackCommand::Volume(volume))
     }
 
-    <span class="attribute">#[must_use]</span>
-    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.
+    <span class="attribute">#[must_use]
+    </span><span class="doccomment">/// Ready a track for playing if it is lazily initialised.
     ///
     /// If a track is already playable, the callback will instantly succeed.
     </span><span class="kw">pub fn </span>make_playable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackCallback&lt;()&gt; {
@@ -404,8 +404,8 @@
         <span class="self">self</span>.make_playable().result_async().<span class="kw">await
     </span>}
 
-    <span class="attribute">#[must_use]</span>
-    <span class="doccomment">/// Seeks along the track to the specified position.
+    <span class="attribute">#[must_use]
+    </span><span class="doccomment">/// Seeks along the track to the specified position.
     ///
     /// If the underlying [`Input`] does not support seeking,
     /// forward seeks will succeed. Backward seeks will recreate the
@@ -503,8 +503,8 @@
     }
 
     <span class="doccomment">/// Returns this handle&#39;s (and track&#39;s) unique identifier.
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Uuid {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Uuid {
         <span class="self">self</span>.inner.uuid
     }
 
@@ -515,13 +515,13 @@
     ///
     /// Driver code will never attempt to lock access to this map,
     /// preventing deadlock/stalling.
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>typemap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RwLock&lt;TypeMap&gt; {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>typemap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RwLock&lt;TypeMap&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.typemap
     }
 
-    <span class="attribute">#[inline]</span>
-    <span class="doccomment">/// Send a raw command to the [`Track`] object.
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// Send a raw command to the [`Track`] object.
     ///
     /// [`Track`]: Track
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, cmd: TrackCommand) -&gt; TrackResult&lt;()&gt; {
@@ -563,16 +563,16 @@
         }
     }
 
-    <span class="attribute">#[must_use]</span>
-    <span class="doccomment">/// Returns `true` if the operation instantly failed due to the target track being
+    <span class="attribute">#[must_use]
+    </span><span class="doccomment">/// Returns `true` if the operation instantly failed due to the target track being
     /// removed.
     </span><span class="kw">pub fn </span>is_hung_up(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.fail
     }
 }
 
-<span class="attribute">#[cfg(test)]</span>
-<span class="kw">mod </span>tests {
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use crate</span>::{
         constants::test_data::FILE_WAV_TARGET,
@@ -582,9 +582,9 @@
         Config,
     };
 
-    <span class="attribute">#[tokio::test]</span>
-    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
-    <span class="kw">async fn </span>make_playable_callback_fires() {
+    <span class="attribute">#[tokio::test]
+    #[ntest::timeout(<span class="number">10_000</span>)]
+    </span><span class="kw">async fn </span>make_playable_callback_fires() {
         <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
 
@@ -596,9 +596,9 @@
         <span class="macro">assert!</span>(callback.result_async().<span class="kw">await</span>.is_ok());
     }
 
-    <span class="attribute">#[tokio::test]</span>
-    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
-    <span class="kw">async fn </span>seek_callback_fires() {
+    <span class="attribute">#[tokio::test]
+    #[ntest::timeout(<span class="number">10_000</span>)]
+    </span><span class="kw">async fn </span>seek_callback_fires() {
         <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
 
@@ -617,4 +617,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>

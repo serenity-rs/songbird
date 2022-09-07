@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../songbird/index.html">
                         <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -555,8 +555,8 @@
 ///
 /// [`TrackEvent`]: crate::events::TrackEvent
 /// [`Driver::queue`]: crate::driver::Driver
-</span><span class="attribute">#[derive(Clone, Debug, Default)]</span>
-<span class="kw">pub struct </span>TrackQueue {
+</span><span class="attribute">#[derive(Clone, Debug, Default)]
+</span><span class="kw">pub struct </span>TrackQueue {
     <span class="comment">// NOTE: the choice of a parking lot mutex is quite deliberate
     </span>inner: Arc&lt;Mutex&lt;TrackQueueCore&gt;&gt;,
 }
@@ -564,8 +564,8 @@
 <span class="doccomment">/// Reference to a track which is known to be part of a queue.
 ///
 /// Instances *should not* be moved from one queue to another.
-</span><span class="attribute">#[derive(Debug)]</span>
-<span class="kw">pub struct </span>Queued(TrackHandle);
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Queued(TrackHandle);
 
 <span class="kw">impl </span>Deref <span class="kw">for </span>Queued {
     <span class="kw">type </span>Target = TrackHandle;
@@ -577,14 +577,14 @@
 
 <span class="kw">impl </span>Queued {
     <span class="doccomment">/// Clones the inner handle
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackHandle {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackHandle {
         <span class="self">self</span>.<span class="number">0</span>.clone()
     }
 }
 
-<span class="attribute">#[derive(Debug, Default)]</span>
-<span class="doccomment">/// Inner portion of a [`TrackQueue`].
+<span class="attribute">#[derive(Debug, Default)]
+</span><span class="doccomment">/// Inner portion of a [`TrackQueue`].
 ///
 /// This abstracts away thread-safety from the user,
 /// and offers a convenient location to store further state if required.
@@ -598,8 +598,8 @@
     remote_lock: Arc&lt;Mutex&lt;TrackQueueCore&gt;&gt;,
 }
 
-<span class="attribute">#[async_trait]</span>
-<span class="kw">impl </span>EventHandler <span class="kw">for </span>QueueHandler {
+<span class="attribute">#[async_trait]
+</span><span class="kw">impl </span>EventHandler <span class="kw">for </span>QueueHandler {
     <span class="kw">async fn </span>act(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>EventContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Event&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.remote_lock.lock();
 
@@ -642,8 +642,8 @@
     remote_lock: Arc&lt;Mutex&lt;TrackQueueCore&gt;&gt;,
 }
 
-<span class="attribute">#[async_trait]</span>
-<span class="kw">impl </span>EventHandler <span class="kw">for </span>SongPreloader {
+<span class="attribute">#[async_trait]
+</span><span class="kw">impl </span>EventHandler <span class="kw">for </span>SongPreloader {
     <span class="kw">async fn </span>act(<span class="kw-2">&amp;</span><span class="self">self</span>, _ctx: <span class="kw-2">&amp;</span>EventContext&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Event&gt; {
         <span class="kw">let </span>inner = <span class="self">self</span>.remote_lock.lock();
 
@@ -659,8 +659,8 @@
 
 <span class="kw">impl </span>TrackQueue {
     <span class="doccomment">/// Create a new, empty, track queue.
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: Arc::new(Mutex::new(TrackQueueCore {
                 tracks: VecDeque::new(),
@@ -713,8 +713,8 @@
     /// A `None` value will not ready the next track until this track ends, disabling preload.
     ///
     /// [`AuxMetadata`]: crate::input::AuxMetadata
-    </span><span class="attribute">#[inline]</span>
-    <span class="kw">pub fn </span>add_with_preload(
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>add_with_preload(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw-2">mut </span>track: Track,
         driver: <span class="kw-2">&amp;mut </span>Driver,
@@ -756,8 +756,8 @@
     }
 
     <span class="doccomment">/// Returns a handle to the currently playing track.
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;TrackHandle&gt; {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;TrackHandle&gt; {
         <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
         inner.tracks.front().map(Queued::handle)
@@ -768,22 +768,22 @@
     /// The returned entry can be readded to *this* queue via [`modify_queue`].
     ///
     /// [`modify_queue`]: TrackQueue::modify_queue
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>dequeue(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Queued&gt; {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>dequeue(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Queued&gt; {
         <span class="self">self</span>.modify_queue(|vq| vq.remove(index))
     }
 
     <span class="doccomment">/// Returns the number of tracks currently in the queue.
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
         inner.tracks.len()
     }
 
     <span class="doccomment">/// Returns whether there are no tracks currently in the queue.
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
         inner.tracks.is_empty()
@@ -848,8 +848,8 @@
     /// Use [`modify_queue`] for direct modification of the queue.
     ///
     /// [`modify_queue`]: TrackQueue::modify_queue
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>current_queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;TrackHandle&gt; {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>current_queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;TrackHandle&gt; {
         <span class="kw">let </span>inner = <span class="self">self</span>.inner.lock();
 
         inner.tracks.iter().map(Queued::handle).collect()
@@ -867,8 +867,8 @@
     }
 }
 
-<span class="attribute">#[cfg(all(test, feature = <span class="string">&quot;builtin-queue&quot;</span>))]</span>
-<span class="kw">mod </span>tests {
+<span class="attribute">#[cfg(all(test, feature = <span class="string">&quot;builtin-queue&quot;</span>))]
+</span><span class="kw">mod </span>tests {
     <span class="kw">use crate</span>::{
         driver::Driver,
         input::{File, HttpRequest},
@@ -878,9 +878,9 @@
     <span class="kw">use </span>reqwest::Client;
     <span class="kw">use </span>std::time::Duration;
 
-    <span class="attribute">#[tokio::test]</span>
-    <span class="attribute">#[ntest::timeout(<span class="number">20_000</span>)]</span>
-    <span class="kw">async fn </span>next_track_plays_on_end() {
+    <span class="attribute">#[tokio::test]
+    #[ntest::timeout(<span class="number">20_000</span>)]
+    </span><span class="kw">async fn </span>next_track_plays_on_end() {
         <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
 
@@ -916,9 +916,9 @@
         <span class="macro">assert_eq!</span>(h2a.<span class="kw">await</span>.unwrap().playing, PlayMode::Play);
     }
 
-    <span class="attribute">#[tokio::test]</span>
-    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
-    <span class="kw">async fn </span>next_track_plays_on_skip() {
+    <span class="attribute">#[tokio::test]
+    #[ntest::timeout(<span class="number">10_000</span>)]
+    </span><span class="kw">async fn </span>next_track_plays_on_skip() {
         <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
 
@@ -956,9 +956,9 @@
         <span class="macro">assert_eq!</span>(h2a.<span class="kw">await</span>.unwrap().playing, PlayMode::Play);
     }
 
-    <span class="attribute">#[tokio::test]</span>
-    <span class="attribute">#[ntest::timeout(<span class="number">10_000</span>)]</span>
-    <span class="kw">async fn </span>next_track_plays_on_err() {
+    <span class="attribute">#[tokio::test]
+    #[ntest::timeout(<span class="number">10_000</span>)]
+    </span><span class="kw">async fn </span>next_track_plays_on_err() {
         <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
 
@@ -999,4 +999,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>

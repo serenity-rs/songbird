@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/manager.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/manager.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../songbird/index.html">
                         <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -451,8 +451,8 @@
 <span id="449">449</span>
 <span id="450">450</span>
 <span id="451">451</span>
-</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">use </span><span class="kw">crate</span>::shards::SerenitySharder;
+</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::shards::SerenitySharder;
 <span class="kw">use crate</span>::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
@@ -461,15 +461,15 @@
     Config,
     ConnectionInfo,
 };
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">use </span>async_trait::async_trait;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>dashmap::DashMap;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">use </span>futures::channel::mpsc::UnboundedSender <span class="kw">as </span>Sender;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span>futures::channel::mpsc::UnboundedSender <span class="kw">as </span>Sender;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>parking_lot::RwLock <span class="kw">as </span>PRwLock;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="kw">use </span>serenity::{
+<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span>serenity::{
     client::bridge::voice::VoiceGatewayManager,
     gateway::InterMessage,
     model::{
@@ -480,13 +480,13 @@
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::sync::Mutex;
 <span class="kw">use </span>tracing::debug;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]</span>
-<span class="kw">use </span>twilight_gateway::Cluster;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]</span>
-<span class="kw">use </span>twilight_model::gateway::event::Event <span class="kw">as </span>TwilightEvent;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
+</span><span class="kw">use </span>twilight_gateway::Cluster;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
+</span><span class="kw">use </span>twilight_model::gateway::event::Event <span class="kw">as </span>TwilightEvent;
 
-<span class="attribute">#[derive(Clone, Copy, Debug)]</span>
-<span class="kw">struct </span>ClientData {
+<span class="attribute">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">struct </span>ClientData {
     shard_count: u64,
     user_id: UserId,
 }
@@ -497,8 +497,8 @@
 /// into individual calls, and forwards state updates which affect call state.
 ///
 /// [`Call`]: Call
-</span><span class="attribute">#[derive(Debug)]</span>
-<span class="kw">pub struct </span>Songbird {
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Songbird {
     client_data: OnceCell&lt;ClientData&gt;,
     calls: DashMap&lt;GuildId, Arc&lt;Mutex&lt;Call&gt;&gt;&gt;,
     sharder: Sharder,
@@ -506,25 +506,25 @@
 }
 
 <span class="kw">impl </span>Songbird {
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
-    <span class="doccomment">/// Create a new Songbird instance for serenity.
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+    </span><span class="doccomment">/// Create a new Songbird instance for serenity.
     ///
     /// This must be [registered] after creation.
     ///
     /// [registered]: crate::serenity::register_with
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>serenity() -&gt; Arc&lt;<span class="self">Self</span>&gt; {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>serenity() -&gt; Arc&lt;<span class="self">Self</span>&gt; {
         <span class="self">Self</span>::serenity_from_config(Config::default())
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
-    <span class="doccomment">/// Create a new Songbird instance for serenity, using the given configuration.
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+    </span><span class="doccomment">/// Create a new Songbird instance for serenity, using the given configuration.
     ///
     /// This must be [registered] after creation.
     ///
     /// [registered]: crate::serenity::register_with
-    </span><span class="attribute">#[must_use]</span>
-    <span class="kw">pub fn </span>serenity_from_config(config: Config) -&gt; Arc&lt;<span class="self">Self</span>&gt; {
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>serenity_from_config(config: Config) -&gt; Arc&lt;<span class="self">Self</span>&gt; {
         Arc::new(<span class="self">Self </span>{
             client_data: OnceCell::new(),
             calls: DashMap::new(),
@@ -533,8 +533,8 @@
         })
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]</span>
-    <span class="doccomment">/// Create a new Songbird instance for twilight.
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
+    </span><span class="doccomment">/// Create a new Songbird instance for twilight.
     ///
     /// Twilight handlers do not need to be registered, but
     /// users are responsible for passing in any events using
@@ -548,8 +548,8 @@
         <span class="self">Self</span>::twilight_from_config(cluster, user_id, Config::default())
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]</span>
-    <span class="doccomment">/// Create a new Songbird instance for twilight.
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
+    </span><span class="doccomment">/// Create a new Songbird instance for twilight.
     ///
     /// Twilight handlers do not need to be registered, but
     /// users are responsible for passing in any events using
@@ -601,8 +601,8 @@
     /// This will not join any calls, or cause connection state to change.
     ///
     /// [`Call`]: Call
-    </span><span class="attribute">#[inline]</span>
-    <span class="kw">pub fn </span>get_or_insert&lt;G&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G) -&gt; Arc&lt;Mutex&lt;Call&gt;&gt;
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>get_or_insert&lt;G&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G) -&gt; Arc&lt;Mutex&lt;Call&gt;&gt;
     <span class="kw">where
         </span>G: Into&lt;GuildId&gt;,
     {
@@ -649,8 +649,8 @@
         <span class="kw-2">*</span>config = <span class="prelude-val">Some</span>(new_config);
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Connects to a target by retrieving its relevant [`Call`] and
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span><span class="doccomment">/// Connects to a target by retrieving its relevant [`Call`] and
     /// connecting, or creating the handler if required.
     ///
     /// This can also switch to the given channel, if a handler already exists
@@ -672,8 +672,8 @@
     /// [`Call`]: Call
     /// [`get`]: Songbird::get
     /// [`process`]: #method.process
-    </span><span class="attribute">#[inline]</span>
-    <span class="kw">pub async fn </span>join&lt;C, G&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G, channel_id: C) -&gt; (Arc&lt;Mutex&lt;Call&gt;&gt;, JoinResult&lt;()&gt;)
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub async fn </span>join&lt;C, G&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G, channel_id: C) -&gt; (Arc&lt;Mutex&lt;Call&gt;&gt;, JoinResult&lt;()&gt;)
     <span class="kw">where
         </span>C: Into&lt;ChannelId&gt;,
         G: Into&lt;GuildId&gt;,
@@ -681,8 +681,8 @@
         <span class="self">self</span>._join(guild_id.into(), channel_id.into()).<span class="kw">await
     </span>}
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="kw">async fn </span>_join(
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span><span class="kw">async fn </span>_join(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         guild_id: GuildId,
         channel_id: ChannelId,
@@ -709,8 +709,8 @@
     /// or drivers, such as lavalink, and does not actually start or run a voice call.
     ///
     /// [`Call`]: Call
-    </span><span class="attribute">#[inline]</span>
-    <span class="kw">pub async fn </span>join_gateway&lt;C, G&gt;(
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub async fn </span>join_gateway&lt;C, G&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         guild_id: G,
         channel_id: C,
@@ -757,8 +757,8 @@
     /// [`get`]: Songbird::get
     /// [`leave`]: Call::leave
     /// [`remove`]: Songbird::remove
-    </span><span class="attribute">#[inline]</span>
-    <span class="kw">pub async fn </span>leave&lt;G: Into&lt;GuildId&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G) -&gt; JoinResult&lt;()&gt; {
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub async fn </span>leave&lt;G: Into&lt;GuildId&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G) -&gt; JoinResult&lt;()&gt; {
         <span class="self">self</span>._leave(guild_id.into()).<span class="kw">await
     </span>}
 
@@ -780,8 +780,8 @@
     /// and that leaving should be attempted again later (i.e., after reconnect).
     ///
     /// [`Call`]: Call
-    </span><span class="attribute">#[inline]</span>
-    <span class="kw">pub async fn </span>remove&lt;G: Into&lt;GuildId&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G) -&gt; JoinResult&lt;()&gt; {
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub async fn </span>remove&lt;G: Into&lt;GuildId&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G) -&gt; JoinResult&lt;()&gt; {
         <span class="self">self</span>._remove(guild_id.into()).<span class="kw">await
     </span>}
 
@@ -792,8 +792,8 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]</span>
-<span class="kw">impl </span>Songbird {
+<span class="attribute">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
+</span><span class="kw">impl </span>Songbird {
     <span class="doccomment">/// Handle events received on the cluster.
     ///
     /// When using twilight, you are required to call this with all inbound
@@ -843,9 +843,9 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]</span>
-<span class="attribute">#[async_trait]</span>
-<span class="kw">impl </span>VoiceGatewayManager <span class="kw">for </span>Songbird {
+<span class="attribute">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+#[async_trait]
+</span><span class="kw">impl </span>VoiceGatewayManager <span class="kw">for </span>Songbird {
     <span class="kw">async fn </span>initialise(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_count: u32, user_id: SerenityUser) {
         <span class="macro">debug!</span>(
             <span class="string">&quot;Initialising Songbird for Serenity: ID {:?}, {} Shards&quot;</span>,
@@ -898,9 +898,9 @@
     }
 }
 
-<span class="attribute">#[inline]</span>
-<span class="kw">fn </span>shard_id(guild_id: u64, shard_count: u64) -&gt; u64 {
+<span class="attribute">#[inline]
+</span><span class="kw">fn </span>shard_id(guild_id: u64, shard_count: u64) -&gt; u64 {
     (guild_id &gt;&gt; <span class="number">22</span>) % shard_count
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>

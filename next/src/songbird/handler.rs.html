@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/handler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/handler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../songbird/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../songbird/index.html">
                         <img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -490,8 +490,8 @@
 <span id="488">488</span>
 <span id="489">489</span>
 <span id="490">490</span>
-</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use crate</span>::{driver::Driver, error::ConnectionResult};
+</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+</span><span class="kw">use crate</span>::{driver::Driver, error::ConnectionResult};
 <span class="kw">use crate</span>::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
@@ -504,11 +504,11 @@
 <span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>tracing::instrument;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">use </span>std::ops::{Deref, DerefMut};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+</span><span class="kw">use </span>std::ops::{Deref, DerefMut};
 
-<span class="attribute">#[derive(Clone, Debug)]</span>
-<span class="kw">enum </span>Return {
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">enum </span>Return {
     <span class="comment">// Return the connection info as it is received.
     </span>Info(Sender&lt;ConnectionInfo&gt;),
 
@@ -516,8 +516,8 @@
     // second indicates that the driver successfully connected.
     // The first is needed to cancel a timeout as the driver can/should
     // have separate connection timing/retry config.
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-    Conn(Sender&lt;()&gt;, Sender&lt;ConnectionResult&lt;()&gt;&gt;),
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span>Conn(Sender&lt;()&gt;, Sender&lt;ConnectionResult&lt;()&gt;&gt;),
 }
 
 <span class="doccomment">/// The Call handler is responsible for a single voice connection, acting
@@ -527,15 +527,15 @@
 /// [`Driver`] via `Deref(Mut)`.
 ///
 /// [`Driver`]: struct@Driver
-</span><span class="attribute">#[derive(Clone, Debug)]</span>
-<span class="kw">pub struct </span>Call {
-    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]</span>
-    config: Config,
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>Call {
+    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]
+    </span>config: Config,
 
     connection: <span class="prelude-ty">Option</span>&lt;(ConnectionProgress, Return)&gt;,
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// The internal controller of the voice connection monitor thread.
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span><span class="doccomment">/// The internal controller of the voice connection monitor thread.
     </span>driver: Driver,
 
     guild_id: GuildId,
@@ -558,9 +558,9 @@
 <span class="kw">impl </span>Call {
     <span class="doccomment">/// Creates a new Call, which will send out WebSocket messages via
     /// the given shard.
-    </span><span class="attribute">#[inline]</span>
-    <span class="attribute">#[instrument]</span>
-    <span class="kw">pub fn </span>new&lt;G, U&gt;(guild_id: G, ws: Shard, user_id: U) -&gt; <span class="self">Self
+    </span><span class="attribute">#[inline]
+    #[instrument]
+    </span><span class="kw">pub fn </span>new&lt;G, U&gt;(guild_id: G, ws: Shard, user_id: U) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>G: Into&lt;GuildId&gt; + Debug,
         U: Into&lt;UserId&gt; + Debug,
@@ -569,9 +569,9 @@
     }
 
     <span class="doccomment">/// Creates a new Call, configuring the driver as specified.
-    </span><span class="attribute">#[inline]</span>
-    <span class="attribute">#[instrument]</span>
-    <span class="kw">pub fn </span>from_config&lt;G, U&gt;(guild_id: G, ws: Shard, user_id: U, config: Config) -&gt; <span class="self">Self
+    </span><span class="attribute">#[inline]
+    #[instrument]
+    </span><span class="kw">pub fn </span>from_config&lt;G, U&gt;(guild_id: G, ws: Shard, user_id: U, config: Config) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>G: Into&lt;GuildId&gt; + Debug,
         U: Into&lt;UserId&gt; + Debug,
@@ -587,9 +587,9 @@
     /// method, as the values will only be internally updated.
     ///
     /// For most use cases you do not want this.
-    </span><span class="attribute">#[inline]</span>
-    <span class="attribute">#[instrument]</span>
-    <span class="kw">pub fn </span>standalone&lt;G, U&gt;(guild_id: G, user_id: U) -&gt; <span class="self">Self
+    </span><span class="attribute">#[inline]
+    #[instrument]
+    </span><span class="kw">pub fn </span>standalone&lt;G, U&gt;(guild_id: G, user_id: U) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>G: Into&lt;GuildId&gt; + Debug,
         U: Into&lt;UserId&gt; + Debug,
@@ -598,9 +598,9 @@
     }
 
     <span class="doccomment">/// Creates a new standalone Call from the given configuration file.
-    </span><span class="attribute">#[inline]</span>
-    <span class="attribute">#[instrument]</span>
-    <span class="kw">pub fn </span>standalone_from_config&lt;G, U&gt;(guild_id: G, user_id: U, config: Config) -&gt; <span class="self">Self
+    </span><span class="attribute">#[inline]
+    #[instrument]
+    </span><span class="kw">pub fn </span>standalone_from_config&lt;G, U&gt;(guild_id: G, user_id: U, config: Config) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>G: Into&lt;GuildId&gt; + Debug,
         U: Into&lt;UserId&gt; + Debug,
@@ -610,11 +610,11 @@
 
     <span class="kw">fn </span>new_raw_cfg(guild_id: GuildId, ws: <span class="prelude-ty">Option</span>&lt;Shard&gt;, user_id: UserId, config: Config) -&gt; <span class="self">Self </span>{
         Call {
-            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]</span>
-            config,
+            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]
+            </span>config,
             connection: <span class="prelude-val">None</span>,
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-            driver: Driver::new(config),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+            </span>driver: Driver::new(config),
             guild_id,
             self_deaf: <span class="bool-val">false</span>,
             self_mute: <span class="bool-val">false</span>,
@@ -623,15 +623,15 @@
         }
     }
 
-    <span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">fn </span>do_connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">fn </span>do_connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.connection {
             <span class="prelude-val">Some</span>((ConnectionProgress::Complete(c), Return::Info(tx))) =&gt; {
                 <span class="comment">// It&#39;s okay if the receiver hung up.
                 </span>drop(tx.send(c.clone()));
             },
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-            <span class="prelude-val">Some</span>((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) =&gt; {
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+            </span><span class="prelude-val">Some</span>((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) =&gt; {
                 <span class="comment">// It&#39;s okay if the receiver hung up.
                 </span><span class="kw">let _ </span>= first_tx.send(());
 
@@ -653,8 +653,8 @@
     /// will _only_ update whether the connection is internally deafened.
     ///
     /// [`standalone`]: Call::standalone
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub async fn </span>deafen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, deaf: bool) -&gt; JoinResult&lt;()&gt; {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub async fn </span>deafen(<span class="kw-2">&amp;mut </span><span class="self">self</span>, deaf: bool) -&gt; JoinResult&lt;()&gt; {
         <span class="self">self</span>.self_deaf = deaf;
 
         <span class="self">self</span>.update().<span class="kw">await
@@ -663,8 +663,8 @@
     <span class="doccomment">/// Returns whether the current connection is self-deafened in this server.
     ///
     /// This is purely cosmetic.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>is_deaf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>is_deaf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.self_deaf
     }
 
@@ -693,8 +693,8 @@
         </span>})
     }
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="doccomment">/// Connect or switch to the given voice channel by its Id.
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span><span class="doccomment">/// Connect or switch to the given voice channel by its Id.
     ///
     /// This function acts as a future in two stages:
     /// * The first `await` sends the request over the gateway.
@@ -705,17 +705,17 @@
     /// When using [`Songbird::join`], this pattern is correctly handled for you.
     ///
     /// [`Songbird::join`]: crate::Songbird::join
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="attribute">#[inline]</span>
-    <span class="kw">pub async fn </span>join&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: C) -&gt; JoinResult&lt;Join&gt;
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    #[inline]
+    </span><span class="kw">pub async fn </span>join&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: C) -&gt; JoinResult&lt;Join&gt;
     <span class="kw">where
         </span>C: Into&lt;ChannelId&gt; + Debug,
     {
         <span class="self">self</span>._join(channel_id.into()).<span class="kw">await
     </span>}
 
-    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-    <span class="kw">async fn </span>_join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: ChannelId) -&gt; JoinResult&lt;Join&gt; {
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span><span class="kw">async fn </span>_join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: ChannelId) -&gt; JoinResult&lt;Join&gt; {
         <span class="kw">let </span>(tx, rx) = flume::unbounded();
         <span class="kw">let </span>(gw_tx, gw_rx) = flume::unbounded();
 
@@ -766,9 +766,9 @@
     /// When using [`Songbird::join_gateway`], this pattern is correctly handled for you.
     ///
     /// [`Songbird::join_gateway`]: crate::Songbird::join_gateway
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="attribute">#[inline]</span>
-    <span class="kw">pub async fn </span>join_gateway&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: C) -&gt; JoinResult&lt;JoinGateway&gt;
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    #[inline]
+    </span><span class="kw">pub async fn </span>join_gateway&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: C) -&gt; JoinResult&lt;JoinGateway&gt;
     <span class="kw">where
         </span>C: Into&lt;ChannelId&gt; + Debug,
     {
@@ -804,8 +804,8 @@
 
     <span class="doccomment">/// Returns the current voice connection details for this Call,
     /// if available.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>current_connection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ConnectionInfo&gt; {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>current_connection(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ConnectionInfo&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.connection {
             <span class="prelude-val">Some</span>((progress, <span class="kw">_</span>)) =&gt; progress.get_connection_info(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -817,8 +817,8 @@
     /// This remains set after a connection failure, to allow for reconnection
     /// as needed. This will change if moved into another voice channel by an
     /// admin, and will be unset if kicked from a voice channel.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>current_channel(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ChannelId&gt; {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>current_channel(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ChannelId&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.connection {
             <span class="prelude-val">Some</span>((progress, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(progress.channel_id()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -835,8 +835,8 @@
     /// voice channel.
     ///
     /// [`standalone`]: Call::standalone
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub async fn </span>leave(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JoinResult&lt;()&gt; {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub async fn </span>leave(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JoinResult&lt;()&gt; {
         <span class="self">self</span>.leave_local();
 
         <span class="comment">// Only send an update if we were in a voice channel.
@@ -846,8 +846,8 @@
     <span class="kw">fn </span>leave_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.connection = <span class="prelude-val">None</span>;
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-        <span class="self">self</span>.driver.leave();
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+        </span><span class="self">self</span>.driver.leave();
     }
 
     <span class="doccomment">/// Sets whether the current connection is to be muted.
@@ -859,19 +859,19 @@
     /// will _only_ update whether the connection is internally muted.
     ///
     /// [`standalone`]: Call::standalone
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub async fn </span>mute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mute: bool) -&gt; JoinResult&lt;()&gt; {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub async fn </span>mute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mute: bool) -&gt; JoinResult&lt;()&gt; {
         <span class="self">self</span>.self_mute = mute;
 
-        <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-        <span class="self">self</span>.driver.mute(mute);
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+        </span><span class="self">self</span>.driver.mute(mute);
 
         <span class="self">self</span>.update().<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Returns whether the current connection is self-muted in this server.
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">pub fn </span>is_mute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">pub fn </span>is_mute(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.self_mute
     }
 
@@ -881,8 +881,8 @@
     /// [`standalone`].
     ///
     /// [`standalone`]: Call::standalone
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, token))]</span>
-    <span class="kw">pub fn </span>update_server(<span class="kw-2">&amp;mut </span><span class="self">self</span>, endpoint: String, token: String) {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>, token))]
+    </span><span class="kw">pub fn </span>update_server(<span class="kw-2">&amp;mut </span><span class="self">self</span>, endpoint: String, token: String) {
         <span class="kw">let </span>try_conn = <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw-2">ref mut </span>progress, <span class="kw">_</span>)) = <span class="self">self</span>.connection.as_mut() {
             progress.apply_server_update(endpoint, token)
         } <span class="kw">else </span>{
@@ -900,9 +900,9 @@
     /// [`standalone`].
     ///
     /// [`standalone`]: Call::standalone
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="attribute">#[inline]</span>
-    <span class="kw">pub fn </span>update_state&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, session_id: String, channel_id: <span class="prelude-ty">Option</span>&lt;C&gt;)
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    #[inline]
+    </span><span class="kw">pub fn </span>update_state&lt;C&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, session_id: String, channel_id: <span class="prelude-ty">Option</span>&lt;C&gt;)
     <span class="kw">where
         </span>C: Into&lt;ChannelId&gt; + Debug,
     {
@@ -931,8 +931,8 @@
     /// Does nothing if initialized via [`standalone`].
     ///
     /// [`standalone`]: Call::standalone
-    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]</span>
-    <span class="kw">async fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JoinResult&lt;()&gt; {
+    </span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+    </span><span class="kw">async fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JoinResult&lt;()&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ws) = <span class="self">self</span>.ws.as_mut() {
             ws.update_voice_state(
                 <span class="self">self</span>.guild_id,
@@ -947,8 +947,8 @@
     }
 }
 
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]</span>
-<span class="kw">impl </span>Call {
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]
+</span><span class="kw">impl </span>Call {
     <span class="doccomment">/// Access this call handler&#39;s configuration.
     </span><span class="kw">pub fn </span>config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Config {
         <span class="kw-2">&amp;</span><span class="self">self</span>.config
@@ -965,8 +965,8 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">impl </span>Deref <span class="kw">for </span>Call {
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+</span><span class="kw">impl </span>Deref <span class="kw">for </span>Call {
     <span class="kw">type </span>Target = Driver;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
@@ -974,11 +974,11 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]</span>
-<span class="kw">impl </span>DerefMut <span class="kw">for </span>Call {
+<span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+</span><span class="kw">impl </span>DerefMut <span class="kw">for </span>Call {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.driver
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (e1b28cd2f 2022-08-19)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>
