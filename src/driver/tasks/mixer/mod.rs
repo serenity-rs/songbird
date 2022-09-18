@@ -130,7 +130,7 @@ impl Mixer {
 
         let symph_layout = config.mix_mode.symph_layout();
 
-        let disposer = config.disposor.clone().unwrap_or_else(disposal::run);
+        let disposer = config.disposer.clone().unwrap_or_else(disposal::run);
         let config = config.into();
 
         let sample_buffer = SampleBuffer::<f32>::new(

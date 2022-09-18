@@ -154,7 +154,7 @@ pub struct Config {
     /// Note: When using [`Songbird`] this is overwritten automatically by it's disposal thread.
     ///
     /// [`Songbird`]: crate::Songbird
-    pub disposor: Option<Sender<DisposalMessage>>,
+    pub disposer: Option<Sender<DisposalMessage>>,
 
     // Test only attributes
     #[cfg(feature = "driver")]
@@ -193,7 +193,7 @@ impl Default for Config {
             #[cfg(feature = "driver")]
             format_registry: &PROBE,
             #[cfg(feature = "driver")]
-            disposor: None,
+            disposer: None,
             #[cfg(feature = "driver")]
             #[cfg(test)]
             tick_style: TickStyle::Timed,
@@ -280,18 +280,18 @@ impl Config {
 
     /// Sets this `Config`'s channel for sending disposal messages.
     #[must_use]
-    pub fn disposor(mut self, disposor: Sender<DisposalMessage>) -> Self {
-        self.disposor = Some(disposor);
+    pub fn disposer(mut self, disposer: Sender<DisposalMessage>) -> Self {
+        self.disposer = Some(disposer);
         self
     }
 
-    /// Ensures a global disposor has been set, initializing one if not.
+    /// Ensures a global disposer has been set, initializing one if not.
     #[must_use]
-    pub(crate) fn initialise_disposor(self) -> Self {
-        if self.disposor.is_some() {
+    pub(crate) fn initialise_disposer(self) -> Self {
+        if self.disposer.is_some() {
             self
         } else {
-            self.disposor(disposal::run())
+            self.disposer(disposal::run())
         }
     }
 

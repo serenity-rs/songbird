@@ -76,7 +76,7 @@ impl Songbird {
             client_data: OnceCell::new(),
             calls: DashMap::new(),
             sharder: Sharder::Serenity(SerenitySharder::default()),
-            config: config.initialise_disposor().into(),
+            config: config.initialise_disposer().into(),
         })
     }
 
@@ -114,7 +114,7 @@ impl Songbird {
             }),
             calls: DashMap::new(),
             sharder: Sharder::TwilightCluster(cluster),
-            config: config.initialise_disposor().into(),
+            config: config.initialise_disposer().into(),
         }
     }
 
