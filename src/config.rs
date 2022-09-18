@@ -2,13 +2,15 @@
 use crate::driver::DecodeMode;
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, CryptoMode, MixMode},
+    driver::{retry::Retry, CryptoMode, MixMode, tasks::message::DisposalMessage, tasks::disposal},
     input::codecs::*,
 };
 
 #[cfg(test)]
 use crate::driver::test_config::*;
 
+#[cfg(feature = "driver")]
+use flume::Sender;
 #[cfg(feature = "driver")]
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
@@ -143,6 +145,16 @@ pub struct Config {
     ///
     /// [`PROBE`]: static@PROBE
     pub format_registry: &'static Probe,
+    #[cfg(feature = "driver")]
+    /// The Sender for a channel that will run the destructor of possibly blocking values.
+    ///
+    /// If not set, a thread will be spawned to perform this, but it is recommended to create
+    /// a long running thread instead of relying on a per-driver thread.
+    ///
+    /// Note: When using [`Songbird`] this is overwritten automatically by it's disposal thread.
+    ///
+    /// [`Songbird`]: crate::Songbird
+    pub disposor: Option<Sender<DisposalMessage>>,
 
     // Test only attributes
     #[cfg(feature = "driver")]
@@ -180,6 +192,8 @@ impl Default for Config {
             codec_registry: &CODEC_REGISTRY,
             #[cfg(feature = "driver")]
             format_registry: &PROBE,
+            #[cfg(feature = "driver")]
+            disposor: None,
             #[cfg(feature = "driver")]
             #[cfg(test)]
             tick_style: TickStyle::Timed,
@@ -262,6 +276,23 @@ impl Config {
     pub fn format_registry(mut self, format_registry: &'static Probe) -> Self {
         self.format_registry = format_registry;
         self
+    }
+
+    /// Sets this `Config`'s channel for sending disposal messages.
+    #[must_use]
+    pub fn disposor(mut self, disposor: Sender<DisposalMessage>) -> Self {
+        self.disposor = Some(disposor);
+        self
+    }
+
+    /// Ensures a global disposor has been set, initializing one if not.
+    #[must_use]
+    pub(crate) fn initialise_disposor(self) -> Self {
+        if self.disposor.is_some() {
+            self
+        } else {
+            self.disposor(disposal::run())
+        }
     }
 
     /// This is used to prevent changes which would invalidate the current session.

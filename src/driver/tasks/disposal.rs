@@ -1,6 +1,17 @@
 use super::message::*;
-use flume::Receiver;
-use tracing::instrument;
+use flume::{Receiver, Sender};
+use tracing::{instrument, trace};
+
+pub(crate) fn run() -> Sender<DisposalMessage> {
+    let (mix_tx, mix_rx) = flume::unbounded();
+    std::thread::spawn(move || {
+        trace!("Disposal thread started.");
+        runner(mix_rx);
+        trace!("Disposal thread finished.");
+    });
+
+    mix_tx
+}
 
 /// The mixer's disposal thread is also synchronous, due to tracks,
 /// inputs, etc. being based on synchronous I/O.

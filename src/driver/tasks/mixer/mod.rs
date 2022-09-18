@@ -126,14 +126,11 @@ impl Mixer {
         let tracks = Vec::with_capacity(1.max(config.preallocated_tracks));
         let track_handles = Vec::with_capacity(1.max(config.preallocated_tracks));
 
-        // Create an object disposal thread here.
-        let (disposer, disposal_rx) = flume::unbounded();
-        std::thread::spawn(move || disposal::runner(disposal_rx));
-
         let thread_pool = BlockyTaskPool::new(async_handle);
 
         let symph_layout = config.mix_mode.symph_layout();
 
+        let disposer = config.disposor.clone().unwrap_or_else(disposal::run);
         let config = config.into();
 
         let sample_buffer = SampleBuffer::<f32>::new(
