@@ -2,7 +2,7 @@
 use crate::driver::DecodeMode;
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, CryptoMode, MixMode, tasks::message::DisposalMessage, tasks::disposal},
+    driver::{retry::Retry, tasks::disposal, tasks::message::DisposalMessage, CryptoMode, MixMode},
     input::codecs::*,
 };
 
