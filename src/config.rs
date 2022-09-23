@@ -303,6 +303,13 @@ impl Config {
     }
 }
 
+#[cfg(not(feature = "driver"))]
+impl Config {
+    pub(crate) fn initialise_disposer(self) -> Self {
+        self
+    }
+}
+
 // Test only attributes
 #[cfg(all(test, feature = "driver"))]
 impl Config {
