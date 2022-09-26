@@ -2,7 +2,7 @@
 use crate::driver::DecodeMode;
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, CryptoMode, MixMode},
+    driver::{retry::Retry, tasks::disposal::DisposalThread, CryptoMode, MixMode},
     input::codecs::*,
 };
 
@@ -143,6 +143,16 @@ pub struct Config {
     ///
     /// [`PROBE`]: static@PROBE
     pub format_registry: &'static Probe,
+    #[cfg(feature = "driver")]
+    /// The Sender for a channel that will run the destructor of possibly blocking values.
+    ///
+    /// If not set, a thread will be spawned to perform this, but it is recommended to create
+    /// a long running thread instead of relying on a per-driver thread.
+    ///
+    /// Note: When using [`Songbird`] this is overwritten automatically by its disposal thread.
+    ///
+    /// [`Songbird`]: crate::Songbird
+    pub disposer: Option<DisposalThread>,
 
     // Test only attributes
     #[cfg(feature = "driver")]
@@ -180,6 +190,8 @@ impl Default for Config {
             codec_registry: &CODEC_REGISTRY,
             #[cfg(feature = "driver")]
             format_registry: &PROBE,
+            #[cfg(feature = "driver")]
+            disposer: None,
             #[cfg(feature = "driver")]
             #[cfg(test)]
             tick_style: TickStyle::Timed,
@@ -264,11 +276,35 @@ impl Config {
         self
     }
 
+    /// Sets this `Config`'s channel for sending disposal messages.
+    #[must_use]
+    pub fn disposer(mut self, disposer: DisposalThread) -> Self {
+        self.disposer = Some(disposer);
+        self
+    }
+
+    /// Ensures a global disposer has been set, initializing one if not.
+    #[must_use]
+    pub(crate) fn initialise_disposer(self) -> Self {
+        if self.disposer.is_some() {
+            self
+        } else {
+            self.disposer(DisposalThread::run())
+        }
+    }
+
     /// This is used to prevent changes which would invalidate the current session.
     pub(crate) fn make_safe(&mut self, previous: &Config, connected: bool) {
         if connected {
             self.crypto_mode = previous.crypto_mode;
         }
+    }
+}
+
+#[cfg(not(feature = "driver"))]
+impl Config {
+    pub(crate) fn initialise_disposer(self) -> Self {
+        self
     }
 }
 
