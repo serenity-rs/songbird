@@ -2,15 +2,30 @@ use super::message::*;
 use flume::{Receiver, Sender};
 use tracing::{instrument, trace};
 
-pub(crate) fn run() -> Sender<DisposalMessage> {
-    let (mix_tx, mix_rx) = flume::unbounded();
-    std::thread::spawn(move || {
-        trace!("Disposal thread started.");
-        runner(mix_rx);
-        trace!("Disposal thread finished.");
-    });
+#[derive(Debug, Clone)]
+pub struct DisposalThread(Sender<DisposalMessage>);
 
-    mix_tx
+impl Default for DisposalThread {
+    fn default() -> Self {
+        Self::run()
+    }
+}
+
+impl DisposalThread {
+    pub fn run() -> Self {
+        let (mix_tx, mix_rx) = flume::unbounded();
+        std::thread::spawn(move || {
+            trace!("Disposal thread started.");
+            runner(mix_rx);
+            trace!("Disposal thread finished.");
+        });
+
+        Self(mix_tx)
+    }
+
+    pub(super) fn dispose(&self, message: DisposalMessage) {
+        drop(self.0.send(message))
+    }
 }
 
 /// The mixer's disposal thread is also synchronous, due to tracks,
@@ -19,6 +34,6 @@ pub(crate) fn run() -> Sender<DisposalMessage> {
 /// The mixer uses this to offload heavy and expensive drop operations
 /// to prevent deadline misses.
 #[instrument(skip(mix_rx))]
-pub(crate) fn runner(mix_rx: Receiver<DisposalMessage>) {
+fn runner(mix_rx: Receiver<DisposalMessage>) {
     while mix_rx.recv().is_ok() {}
 }

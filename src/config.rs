@@ -2,15 +2,13 @@
 use crate::driver::DecodeMode;
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, tasks::disposal, tasks::message::DisposalMessage, CryptoMode, MixMode},
+    driver::{retry::Retry, tasks::disposal::DisposalThread, CryptoMode, MixMode},
     input::codecs::*,
 };
 
 #[cfg(test)]
 use crate::driver::test_config::*;
 
-#[cfg(feature = "driver")]
-use flume::Sender;
 #[cfg(feature = "driver")]
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
@@ -154,7 +152,7 @@ pub struct Config {
     /// Note: When using [`Songbird`] this is overwritten automatically by it's disposal thread.
     ///
     /// [`Songbird`]: crate::Songbird
-    pub disposer: Option<Sender<DisposalMessage>>,
+    pub disposer: Option<DisposalThread>,
 
     // Test only attributes
     #[cfg(feature = "driver")]
@@ -280,7 +278,7 @@ impl Config {
 
     /// Sets this `Config`'s channel for sending disposal messages.
     #[must_use]
-    pub fn disposer(mut self, disposer: Sender<DisposalMessage>) -> Self {
+    pub fn disposer(mut self, disposer: DisposalThread) -> Self {
         self.disposer = Some(disposer);
         self
     }
@@ -291,7 +289,7 @@ impl Config {
         if self.disposer.is_some() {
             self
         } else {
-            self.disposer(disposal::run())
+            self.disposer(DisposalThread::run())
         }
     }
 

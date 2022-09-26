@@ -11,7 +11,7 @@ use state::*;
 pub use track::*;
 
 use super::{
-    disposal,
+    disposal::DisposalThread,
     error::{Error, Result},
     message::*,
 };
@@ -65,7 +65,7 @@ pub struct Mixer {
     pub conn_active: Option<MixerConnection>,
     pub content_prep_sequence: u64,
     pub deadline: Instant,
-    pub disposer: Sender<DisposalMessage>,
+    pub disposer: DisposalThread,
     pub encoder: OpusEncoder,
     pub interconnect: Interconnect,
     pub mix_rx: Receiver<MixerMessage>,
@@ -130,7 +130,7 @@ impl Mixer {
 
         let symph_layout = config.mix_mode.symph_layout();
 
-        let disposer = config.disposer.clone().unwrap_or_else(disposal::run);
+        let disposer = config.disposer.clone().unwrap_or_default();
         let config = config.into();
 
         let sample_buffer = SampleBuffer::<f32>::new(
@@ -535,12 +535,11 @@ impl Mixer {
             if track.playing.is_done() {
                 let p_state = track.playing.clone();
                 let to_drop = self.tracks.swap_remove(i);
-                drop(
-                    self.disposer
-                        .send(DisposalMessage::Track(Box::new(to_drop))),
-                );
+                self.disposer
+                    .dispose(DisposalMessage::Track(Box::new(to_drop)));
+
                 let to_drop = self.track_handles.swap_remove(i);
-                drop(self.disposer.send(DisposalMessage::Handle(to_drop)));
+                self.disposer.dispose(DisposalMessage::Handle(to_drop));
 
                 self.fire_event(EventMessage::ChangeState(
                     i,
