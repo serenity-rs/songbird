@@ -984,10 +984,6 @@
 <span id="982">982</span>
 <span id="983">983</span>
 <span id="984">984</span>
-<span id="985">985</span>
-<span id="986">986</span>
-<span id="987">987</span>
-<span id="988">988</span>
 </pre><pre class="rust"><code><span class="kw">pub mod </span>mix_logic;
 <span class="kw">mod </span>pool;
 <span class="kw">mod </span>result;
@@ -1001,7 +997,7 @@
 <span class="kw">pub use </span>track::<span class="kw-2">*</span>;
 
 <span class="kw">use super</span>::{
-    disposal,
+    disposal::DisposalThread,
     error::{Error, <span class="prelude-ty">Result</span>},
     message::<span class="kw-2">*</span>,
 };
@@ -1055,7 +1051,7 @@
     <span class="kw">pub </span>conn_active: <span class="prelude-ty">Option</span>&lt;MixerConnection&gt;,
     <span class="kw">pub </span>content_prep_sequence: u64,
     <span class="kw">pub </span>deadline: Instant,
-    <span class="kw">pub </span>disposer: Sender&lt;DisposalMessage&gt;,
+    <span class="kw">pub </span>disposer: DisposalThread,
     <span class="kw">pub </span>encoder: OpusEncoder,
     <span class="kw">pub </span>interconnect: Interconnect,
     <span class="kw">pub </span>mix_rx: Receiver&lt;MixerMessage&gt;,
@@ -1116,14 +1112,11 @@
         <span class="kw">let </span>tracks = Vec::with_capacity(<span class="number">1</span>.max(config.preallocated_tracks));
         <span class="kw">let </span>track_handles = Vec::with_capacity(<span class="number">1</span>.max(config.preallocated_tracks));
 
-        <span class="comment">// Create an object disposal thread here.
-        </span><span class="kw">let </span>(disposer, disposal_rx) = flume::unbounded();
-        std::thread::spawn(<span class="kw">move </span>|| disposal::runner(disposal_rx));
-
         <span class="kw">let </span>thread_pool = BlockyTaskPool::new(async_handle);
 
         <span class="kw">let </span>symph_layout = config.mix_mode.symph_layout();
 
+        <span class="kw">let </span>disposer = config.disposer.clone().unwrap_or_default();
         <span class="kw">let </span>config = config.into();
 
         <span class="kw">let </span>sample_buffer = SampleBuffer::&lt;f32&gt;::new(
@@ -1528,12 +1521,11 @@
             <span class="kw">if </span>track.playing.is_done() {
                 <span class="kw">let </span>p_state = track.playing.clone();
                 <span class="kw">let </span>to_drop = <span class="self">self</span>.tracks.swap_remove(i);
-                drop(
-                    <span class="self">self</span>.disposer
-                        .send(DisposalMessage::Track(Box::new(to_drop))),
-                );
+                <span class="self">self</span>.disposer
+                    .dispose(DisposalMessage::Track(Box::new(to_drop)));
+
                 <span class="kw">let </span>to_drop = <span class="self">self</span>.track_handles.swap_remove(i);
-                drop(<span class="self">self</span>.disposer.send(DisposalMessage::Handle(to_drop)));
+                <span class="self">self</span>.disposer.dispose(DisposalMessage::Handle(to_drop));
 
                 <span class="self">self</span>.fire_event(EventMessage::ChangeState(
                     i,
@@ -1977,4 +1969,4 @@
     Mixer::new(mix_rx, async_handle, interconnect, config).run();
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (f5193a9fc 2022-09-25)" ></div></body></html>

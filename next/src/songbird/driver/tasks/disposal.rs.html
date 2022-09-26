@@ -13,9 +13,61 @@
 <span id="11">11</span>
 <span id="12">12</span>
 <span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::message::<span class="kw-2">*</span>;
-<span class="kw">use </span>flume::Receiver;
-<span class="kw">use </span>tracing::instrument;
+<span class="kw">use </span>flume::{Receiver, Sender};
+<span class="kw">use </span>tracing::{instrument, trace};
+
+<span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>DisposalThread(Sender&lt;DisposalMessage&gt;);
+
+<span class="kw">impl </span>Default <span class="kw">for </span>DisposalThread {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::run()
+    }
+}
+
+<span class="kw">impl </span>DisposalThread {
+    <span class="kw">pub fn </span>run() -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>(mix_tx, mix_rx) = flume::unbounded();
+        std::thread::spawn(<span class="kw">move </span>|| {
+            <span class="macro">trace!</span>(<span class="string">&quot;Disposal thread started.&quot;</span>);
+            runner(mix_rx);
+            <span class="macro">trace!</span>(<span class="string">&quot;Disposal thread finished.&quot;</span>);
+        });
+
+        <span class="self">Self</span>(mix_tx)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dispose(<span class="kw-2">&amp;</span><span class="self">self</span>, message: DisposalMessage) {
+        drop(<span class="self">self</span>.<span class="number">0</span>.send(message))
+    }
+}
 
 <span class="doccomment">/// The mixer&#39;s disposal thread is also synchronous, due to tracks,
 /// inputs, etc. being based on synchronous I/O.
@@ -23,8 +75,8 @@
 /// The mixer uses this to offload heavy and expensive drop operations
 /// to prevent deadline misses.
 </span><span class="attribute">#[instrument(skip(mix_rx))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>runner(mix_rx: Receiver&lt;DisposalMessage&gt;) {
+</span><span class="kw">fn </span>runner(mix_rx: Receiver&lt;DisposalMessage&gt;) {
     <span class="kw">while </span>mix_rx.recv().is_ok() {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (f5193a9fc 2022-09-25)" ></div></body></html>

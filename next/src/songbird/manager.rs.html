@@ -502,7 +502,7 @@
     client_data: OnceCell&lt;ClientData&gt;,
     calls: DashMap&lt;GuildId, Arc&lt;Mutex&lt;Call&gt;&gt;&gt;,
     sharder: Sharder,
-    config: PRwLock&lt;<span class="prelude-ty">Option</span>&lt;Config&gt;&gt;,
+    config: PRwLock&lt;Config&gt;,
 }
 
 <span class="kw">impl </span>Songbird {
@@ -529,7 +529,7 @@
             client_data: OnceCell::new(),
             calls: DashMap::new(),
             sharder: Sharder::Serenity(SerenitySharder::default()),
-            config: <span class="prelude-val">Some</span>(config).into(),
+            config: config.initialise_disposer().into(),
         })
     }
 
@@ -567,7 +567,7 @@
             }),
             calls: DashMap::new(),
             sharder: Sharder::TwilightCluster(cluster),
-            config: <span class="prelude-val">Some</span>(config).into(),
+            config: config.initialise_disposer().into(),
         }
     }
 
@@ -629,7 +629,7 @@
                         guild_id,
                         shard_handle,
                         info.user_id,
-                        <span class="self">self</span>.config.read().clone().unwrap_or_default(),
+                        <span class="self">self</span>.config.read().clone(),
                     );
 
                     Arc::new(Mutex::new(call))
@@ -646,7 +646,7 @@
     /// Requires the `&quot;driver&quot;` feature.
     </span><span class="kw">pub fn </span>set_config(<span class="kw-2">&amp;</span><span class="self">self</span>, new_config: Config) {
         <span class="kw">let </span><span class="kw-2">mut </span>config = <span class="self">self</span>.config.write();
-        <span class="kw-2">*</span>config = <span class="prelude-val">Some</span>(new_config);
+        <span class="kw-2">*</span>config = new_config;
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
@@ -903,4 +903,4 @@
     (guild_id &gt;&gt; <span class="number">22</span>) % shard_count
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (f5193a9fc 2022-09-25)" ></div></body></html>

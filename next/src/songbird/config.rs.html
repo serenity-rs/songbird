@@ -323,11 +323,47 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::driver::DecodeMode;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">use crate</span>::{
-    driver::{retry::Retry, CryptoMode, MixMode},
+    driver::{retry::Retry, tasks::disposal::DisposalThread, CryptoMode, MixMode},
     input::codecs::<span class="kw-2">*</span>,
 };
 
@@ -468,6 +504,16 @@
     ///
     /// [`PROBE`]: static@PROBE
     </span><span class="kw">pub </span>format_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Probe,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span><span class="doccomment">/// The Sender for a channel that will run the destructor of possibly blocking values.
+    ///
+    /// If not set, a thread will be spawned to perform this, but it is recommended to create
+    /// a long running thread instead of relying on a per-driver thread.
+    ///
+    /// Note: When using [`Songbird`] this is overwritten automatically by its disposal thread.
+    ///
+    /// [`Songbird`]: crate::Songbird
+    </span><span class="kw">pub </span>disposer: <span class="prelude-ty">Option</span>&lt;DisposalThread&gt;,
 
     <span class="comment">// Test only attributes
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
@@ -505,6 +551,8 @@
             </span>codec_registry: <span class="kw-2">&amp;</span>CODEC_REGISTRY,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
             </span>format_registry: <span class="kw-2">&amp;</span>PROBE,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+            </span>disposer: <span class="prelude-val">None</span>,
             <span class="attribute">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
             #[cfg(test)]
             </span>tick_style: TickStyle::Timed,
@@ -589,12 +637,36 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Sets this `Config`&#39;s channel for sending disposal messages.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub fn </span>disposer(<span class="kw-2">mut </span><span class="self">self</span>, disposer: DisposalThread) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.disposer = <span class="prelude-val">Some</span>(disposer);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Ensures a global disposer has been set, initializing one if not.
+    </span><span class="attribute">#[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialise_disposer(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span><span class="self">self</span>.disposer.is_some() {
+            <span class="self">self
+        </span>} <span class="kw">else </span>{
+            <span class="self">self</span>.disposer(DisposalThread::run())
+        }
+    }
+
     <span class="doccomment">/// This is used to prevent changes which would invalidate the current session.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>make_safe(<span class="kw-2">&amp;mut </span><span class="self">self</span>, previous: <span class="kw-2">&amp;</span>Config, connected: bool) {
         <span class="kw">if </span>connected {
             <span class="self">self</span>.crypto_mode = previous.crypto_mode;
         }
     }
+}
+
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]
+</span><span class="kw">impl </span>Config {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialise_disposer(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self
+    </span>}
 }
 
 <span class="comment">// Test only attributes
@@ -647,4 +719,4 @@
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (b44197abb 2022-09-05)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="songbird" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (f5193a9fc 2022-09-25)" ></div></body></html>
