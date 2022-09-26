@@ -49,7 +49,7 @@ pub struct Songbird {
     client_data: OnceCell<ClientData>,
     calls: DashMap<GuildId, Arc<Mutex<Call>>>,
     sharder: Sharder,
-    config: PRwLock<Option<Config>>,
+    config: PRwLock<Config>,
 }
 
 impl Songbird {
@@ -76,7 +76,7 @@ impl Songbird {
             client_data: OnceCell::new(),
             calls: DashMap::new(),
             sharder: Sharder::Serenity(SerenitySharder::default()),
-            config: Some(config).into(),
+            config: config.initialise_disposer().into(),
         })
     }
 
@@ -114,7 +114,7 @@ impl Songbird {
             }),
             calls: DashMap::new(),
             sharder: Sharder::TwilightCluster(cluster),
-            config: Some(config).into(),
+            config: config.initialise_disposer().into(),
         }
     }
 
@@ -176,7 +176,7 @@ impl Songbird {
                         guild_id,
                         shard_handle,
                         info.user_id,
-                        self.config.read().clone().unwrap_or_default(),
+                        self.config.read().clone(),
                     );
 
                     Arc::new(Mutex::new(call))
@@ -193,7 +193,7 @@ impl Songbird {
     /// Requires the `"driver"` feature.
     pub fn set_config(&self, new_config: Config) {
         let mut config = self.config.write();
-        *config = Some(new_config);
+        *config = new_config;
     }
 
     #[cfg(feature = "driver")]
