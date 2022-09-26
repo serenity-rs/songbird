@@ -149,7 +149,7 @@ pub struct Config {
     /// If not set, a thread will be spawned to perform this, but it is recommended to create
     /// a long running thread instead of relying on a per-driver thread.
     ///
-    /// Note: When using [`Songbird`] this is overwritten automatically by it's disposal thread.
+    /// Note: When using [`Songbird`] this is overwritten automatically by its disposal thread.
     ///
     /// [`Songbird`]: crate::Songbird
     pub disposer: Option<DisposalThread>,
