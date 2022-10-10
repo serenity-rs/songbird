@@ -184,7 +184,7 @@ impl Track {
         self
     }
 
-    /// Returns the current playback position.
+    /// Returns the current volume.
     pub fn volume(&self) -> f32 {
         self.volume
     }
