@@ -145,10 +145,10 @@ pub(crate) async fn _ytdl_metadata(uri: &str) -> Result<Metadata> {
 
     let o_vec = youtube_dl_output.stderr;
 
-    let end = (&o_vec)
+    let end = o_vec
         .iter()
         .position(|el| *el == 0xA)
-        .unwrap_or_else(|| o_vec.len());
+        .unwrap_or(o_vec.len());
 
     let value = serde_json::from_slice(&o_vec[..end]).map_err(|err| Error::Json {
         error: err,

@@ -163,9 +163,9 @@ impl VoiceUpdate for Shard {
         self_deaf: bool,
         self_mute: bool,
     ) -> JoinResult<()> {
-        let nz_guild_id = NonZeroU64::new(guild_id.0).ok_or(JoinError::IllegalGuild)?;
+        let _nz_guild_id = NonZeroU64::new(guild_id.0).ok_or(JoinError::IllegalGuild)?;
 
-        let nz_channel_id = match channel_id {
+        let _nz_channel_id = match channel_id {
             Some(c) => Some(NonZeroU64::new(c.0).ok_or(JoinError::IllegalChannel)?),
             None => None,
         };

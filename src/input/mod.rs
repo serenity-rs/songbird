@@ -561,7 +561,7 @@ mod tests {
         let mut i16_window = &data[..];
         let mut float_window = &out_vec[..];
 
-        while i16_window.len() != 0 {
+        while !i16_window.is_empty() {
             let before = i16_window.read_i16::<LittleEndian>().unwrap() as f32;
             let after = float_window.read_f32::<LittleEndian>().unwrap();
 
@@ -582,7 +582,7 @@ mod tests {
         let mut i16_window = &data[..];
         let mut float_window = &out_vec[..];
 
-        while i16_window.len() != 0 {
+        while !i16_window.is_empty() {
             let before = i16_window.read_i16::<LittleEndian>().unwrap() as f32;
             let after = float_window.read_f32::<LittleEndian>().unwrap();
 

@@ -444,7 +444,7 @@ impl Mixer {
 
                 let payload = rtp.payload_mut();
 
-                (&mut payload[TAG_SIZE..TAG_SIZE + SILENT_FRAME.len()])
+                payload[TAG_SIZE..TAG_SIZE + SILENT_FRAME.len()]
                     .copy_from_slice(&SILENT_FRAME[..]);
 
                 mix_len = MixType::Passthrough(SILENT_FRAME.len());
