@@ -635,8 +635,7 @@ impl Mixer {
 
                 let payload = rtp.payload_mut();
 
-                (&mut payload[TAG_SIZE..TAG_SIZE + SILENT_FRAME.len()])
-                    .copy_from_slice(&SILENT_FRAME[..]);
+                payload[TAG_SIZE..TAG_SIZE + SILENT_FRAME.len()].copy_from_slice(&SILENT_FRAME[..]);
 
                 mix_len = MixType::Passthrough(SILENT_FRAME.len());
             } else {
@@ -680,7 +679,7 @@ impl Mixer {
                     // for handing out audio data to the outside world.
                     let samples_to_copy = self.config.mix_mode.channels() * n;
 
-                    (&mut softclip_buffer[..samples_to_copy])
+                    softclip_buffer[..samples_to_copy]
                         .copy_from_slice(&self.sample_buffer.samples()[..samples_to_copy]);
                 }
 

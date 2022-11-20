@@ -24,7 +24,7 @@ impl DisposalThread {
     }
 
     pub(super) fn dispose(&self, message: DisposalMessage) {
-        drop(self.0.send(message))
+        drop(self.0.send(message));
     }
 }
 
