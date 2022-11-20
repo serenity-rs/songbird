@@ -66,9 +66,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         let token = env::var("DISCORD_TOKEN")?;
 
         let http = HttpClient::new(token.clone());
-        let user_id = http.current_user().exec().await?.model().await?.id;
+        let user_id = http.current_user().await?.model().await?.id;
 
-        let intents = Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT | Intents::GUILD_VOICE_STATES;
+        let intents =
+            Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT | Intents::GUILD_VOICE_STATES;
         let (cluster, events) = Cluster::new(token, intents).await?;
         cluster.up().await;
 
@@ -115,7 +116,6 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content("What's the channel ID you want me to join?")?
-        .exec()
         .await?;
 
     let author_id = msg.author.id;
@@ -142,7 +142,6 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content(&content)?
-        .exec()
         .await?;
 
     Ok(())
@@ -163,7 +162,6 @@ async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
         .http
         .create_message(msg.channel_id)
         .content("Left the channel")?
-        .exec()
         .await?;
 
     Ok(())
@@ -179,7 +177,6 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content("What's the URL of the audio to play?")?
-        .exec()
         .await?;
 
     let author_id = msg.author.id;
@@ -204,7 +201,6 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
             .http
             .create_message(msg.channel_id)
             .content(&content)?
-            .exec()
             .await?;
 
         if let Some(call_lock) = state.songbird.get(guild_id) {
@@ -219,7 +215,6 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
             .http
             .create_message(msg.channel_id)
             .content("Didn't find any results")?
-            .exec()
             .await?;
     }
 
@@ -262,7 +257,6 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
         .http
         .create_message(msg.channel_id)
         .content(&content)?
-        .exec()
         .await?;
 
     Ok(())
@@ -278,7 +272,6 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content("Where in the track do you want to seek to (in seconds)?")?
-        .exec()
         .await?;
 
     let author_id = msg.author.id;
@@ -304,7 +297,6 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content(&content)?
-        .exec()
         .await?;
 
     Ok(())
@@ -328,7 +320,6 @@ async fn stop(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         .http
         .create_message(msg.channel_id)
         .content("Stopped the track")?
-        .exec()
         .await?;
 
     Ok(())
@@ -344,7 +335,6 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
         .http
         .create_message(msg.channel_id)
         .content("What's the volume you want to set (0.0-10.0, 1.0 being the default)?")?
-        .exec()
         .await?;
 
     let author_id = msg.author.id;
@@ -362,7 +352,6 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
             .http
             .create_message(msg.channel_id)
             .content("Invalid volume!")?
-            .exec()
             .await?;
 
         return Ok(());
@@ -381,7 +370,6 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
         .http
         .create_message(msg.channel_id)
         .content(&content)?
-        .exec()
         .await?;
 
     Ok(())

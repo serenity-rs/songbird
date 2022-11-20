@@ -10,10 +10,10 @@ reqwest = "0.11"
 tracing = "0.1"
 tracing-subscriber = "0.2"
 tokio = { features = ["macros", "rt-multi-thread", "sync"], version = "1" }
-twilight-gateway = "0.13"
-twilight-http = "0.13"
-twilight-model = "0.13"
-twilight-standby = "0.13"
+twilight-gateway = "0.14"
+twilight-http = "0.14"
+twilight-model = "0.14"
+twilight-standby = "0.14"
 
 [dependencies.songbird]
 default-features = false
