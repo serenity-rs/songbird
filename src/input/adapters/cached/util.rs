@@ -386,7 +386,7 @@ where
     let to_write = remaining.min(interleaved_space);
     let need_spill = non_contiguous_end && to_write < remaining;
 
-    let samples_used = to_write + if need_spill { 1 } else { 0 };
+    let samples_used = to_write + usize::from(need_spill);
     let last_sample = source_pos.start + to_write;
 
     if need_spill {
@@ -430,7 +430,7 @@ fn write_resample_buffer(
     let to_write = remaining.min(interleaved_space);
     let need_spill = non_contiguous_end && to_write < remaining;
 
-    let samples_used = to_write + if need_spill { 1 } else { 0 };
+    let samples_used = to_write + usize::from(need_spill);
     let last_sample = source_pos.start + to_write;
 
     if need_spill {

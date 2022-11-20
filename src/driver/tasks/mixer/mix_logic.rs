@@ -307,7 +307,7 @@ where
     if source_mono {
         // mix this signal into *all* output channels at req'd volume.
         let source_plane = source_raw_planes[0];
-        for d_plane in (&mut *target.planes_mut().planes()).iter_mut() {
+        for d_plane in (*target.planes_mut().planes()).iter_mut() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane[source_pos..source_pos + mix_ct].iter())
@@ -331,7 +331,7 @@ where
         }
     } else {
         // stereo -> stereo: don't change volume, map input -> output channels w/ no duplication
-        for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
+        for (d_plane, s_plane) in (*target.planes_mut().planes())
             .iter_mut()
             .zip(source_raw_planes[..].iter())
         {
@@ -364,7 +364,7 @@ fn mix_resampled(
     // see `mix_symph_buffer` for explanations of stereo<->mono logic.
     if source_mono {
         let source_plane = &source[0];
-        for d_plane in (&mut *target.planes_mut().planes()).iter_mut() {
+        for d_plane in (*target.planes_mut().planes()).iter_mut() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane)
@@ -382,7 +382,7 @@ fn mix_resampled(
             }
         }
     } else {
-        for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
+        for (d_plane, s_plane) in (*target.planes_mut().planes())
             .iter_mut()
             .zip(source[..].iter())
         {
@@ -428,7 +428,7 @@ fn copy_symph_buffer<S>(
 where
     S: Sample + IntoSample<f32>,
 {
-    for (d_plane, s_plane) in (&mut *target.planes_mut().planes())
+    for (d_plane, s_plane) in (*target.planes_mut().planes())
         .iter_mut()
         .zip(source.planes().planes()[..].iter())
     {

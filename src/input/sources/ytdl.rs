@@ -60,7 +60,7 @@ impl YoutubeDl {
         let ytdl_args = ["-j", &self.url, "-f", "ba[abr>0][vcodec=none]/best"];
 
         let mut output = Command::new(self.program)
-            .args(&ytdl_args)
+            .args(ytdl_args)
             .output()
             .await
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
