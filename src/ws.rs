@@ -89,10 +89,15 @@ impl From<TungsteniteError> for Error {
 }
 
 #[inline]
+#[allow(unused_unsafe)]
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     Ok(match message {
+        // SAFETY:
+        // simd-json::serde::from_str may leave an &mut str in a non-UTF state on failure.
+        // The below is safe as we have taken ownership of the inner `String`, and don't
+        // access it as a `str`/`String` or return it if failure occurs.
         Some(Message::Text(mut payload)) =>
-            crate::json::from_str(payload.as_mut_str()).map(Some)?,
+            unsafe { crate::json::from_str(payload.as_mut_str()) }.map(Some)?,
         Some(Message::Binary(bytes)) => {
             return Err(Error::UnexpectedBinaryMessage(bytes));
         },

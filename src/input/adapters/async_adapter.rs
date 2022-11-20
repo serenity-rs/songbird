@@ -25,7 +25,7 @@ use tokio::{
 };
 
 struct AsyncAdapterSink {
-    bytes_in: Producer<u8>,
+    bytes_in: HeapProducer<u8>,
     req_rx: Receiver<AdapterRequest>,
     resp_tx: Sender<AdapterResponse>,
     stream: Box<dyn AsyncMediaSource>,
@@ -135,7 +135,7 @@ impl AsyncAdapterSink {
 /// pass along seek requests needed. This allows for passing bytes from exclusively `AsyncRead`
 /// streams (e.g., hyper HTTP sessions) to Songbird.
 pub struct AsyncAdapterStream {
-    bytes_out: Consumer<u8>,
+    bytes_out: HeapConsumer<u8>,
     can_seek: bool,
     // Note: this is Atomic just to work around the need for
     // check_messages to take &self rather than &mut.
@@ -150,7 +150,7 @@ impl AsyncAdapterStream {
     /// between the async and sync halves.
     #[must_use]
     pub fn new(stream: Box<dyn AsyncMediaSource>, buf_len: usize) -> AsyncAdapterStream {
-        let (bytes_in, bytes_out) = RingBuffer::new(buf_len).split();
+        let (bytes_in, bytes_out) = SharedRb::new(buf_len).split();
         let (resp_tx, resp_rx) = flume::unbounded();
         let (req_tx, req_rx) = flume::unbounded();
         let can_seek = stream.is_seekable();
@@ -264,7 +264,7 @@ impl Seek for AsyncAdapterStream {
             _ => unreachable!(),
         }
 
-        self.bytes_out.discard(self.bytes_out.capacity());
+        self.bytes_out.skip(self.bytes_out.capacity());
 
         let _ = self.req_tx.send(AdapterRequest::SeekCleared);
 
