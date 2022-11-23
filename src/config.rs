@@ -13,7 +13,7 @@ use crate::driver::test_config::*;
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
 use derivative::Derivative;
-use std::time::Duration;
+use std::{num::NonZeroUsize, time::Duration};
 
 /// Configuration for drivers and calls.
 #[derive(Clone, Derivative)]
@@ -55,6 +55,22 @@ pub struct Config {
     ///
     /// Defaults to 1 minute.
     pub decode_state_timeout: Duration,
+
+    #[cfg(all(feature = "driver", feature = "receive"))]
+    /// Configures the number of audio packets to buffer for each user before playout.
+    ///
+    /// A playout buffer allows songbird to
+    ///
+    /// This does not affect the arrival of raw packet events.
+    ///
+    /// Defaults to 5 packets (100ms).
+    pub playout_buffer_length: NonZeroUsize,
+
+    #[cfg(all(feature = "driver", feature = "receive"))]
+    /// Configures
+    ///
+    /// Defaults to 5 packets.
+    pub playout_spike_length: usize,
 
     #[cfg(feature = "gateway")]
     /// Configures the amount of time to wait for Discord to reply with connection information

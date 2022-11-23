@@ -6,13 +6,15 @@ mod disconnect;
 #[cfg(feature = "receive")]
 mod rtcp;
 #[cfg(feature = "receive")]
+mod rtp;
+#[cfg(feature = "receive")]
 mod speaking;
 #[cfg(feature = "receive")]
 mod voice;
 
 #[cfg(feature = "receive")]
-use discortp::{rtcp::Rtcp, rtp::Rtp};
+use bytes::Bytes;
 
 pub use self::{connect::*, disconnect::*};
 #[cfg(feature = "receive")]
-pub use self::{rtcp::*, speaking::*, voice::*};
+pub use self::{rtcp::*, rtp::*, speaking::*, voice::*};

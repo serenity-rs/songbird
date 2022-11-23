@@ -54,6 +54,11 @@ pub enum CoreEvent {
     SpeakingUpdate,
 
     #[cfg(feature = "receive")]
+    /// Fires every 20ms, containing the scheduled/reordered voice packet for each
+    /// live user.
+    VoiceTick,
+
+    #[cfg(feature = "receive")]
     /// Fires on receipt of a voice packet from another stream in the voice call.
     ///
     /// As RTP packets do not map to Discord's notion of users, SSRCs must be mapped

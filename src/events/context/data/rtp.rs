@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use crate::id::UserId;
+use discortp::rtp::RtpPacket;
 
 use super::*;
 
@@ -18,7 +16,7 @@ use super::*;
 /// to decode received packets.
 ///
 /// [`SpeakingUpdate`]: crate::events::CoreEvent::SpeakingUpdate
-pub struct VoiceTick {
+pub struct RtpData {
     /// Raw RTP packet data.
     ///
     /// Includes the SSRC (i.e., sender) of this packet.
@@ -27,16 +25,8 @@ pub struct VoiceTick {
     pub payload_offset: usize,
     /// Number of bytes at the end of the packet to discard.
     pub payload_end_pad: usize,
-
-    /// AA
-    pub user_map: HashMap<u32, UserId>,
-
-    /// AA
-    pub voice_data: HashMap<u32, VoiceData>,
 }
 
-#[allow(missing_docs)]
-pub struct VoiceData {
-    pub packet: RtpData,
-    pub decoded_voice: Option<Vec<i16>>,
+impl RtpData {
+    pub fn rtp<'a>(&'a self) -> RtpPacket<'a> {}
 }

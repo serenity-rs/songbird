@@ -14,6 +14,7 @@ use audiopus::{
     packet::Packet as OpusPacket,
     Channels,
 };
+use bytes::{Bytes, BytesMut};
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::{RtpExtensionPacket, RtpPacket},
@@ -22,13 +23,19 @@ use discortp::{
     PacketSize,
 };
 use flume::Receiver;
-use std::{collections::HashMap, convert::TryInto, sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, VecDeque},
+    convert::TryInto,
+    sync::Arc,
+    time::Duration,
+};
 use tokio::{net::UdpSocket, select, time::Instant};
 use tracing::{error, instrument, trace, warn};
 use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 #[derive(Debug)]
 struct SsrcState {
+    playout_buffer: VecDeque<Option<Bytes>>,
     silent_frame_count: u16,
     decoder: OpusDecoder,
     last_seq: u16,
@@ -86,14 +93,16 @@ enum SpeakingDelta {
 }
 
 impl SsrcState {
-    fn new(pkt: &RtpPacket<'_>, state_timeout: Duration) -> Self {
+    fn new(pkt: &RtpPacket<'_>, config: Config) -> Self {
+        let playout_capacity = config.playout_buffer_length.get() + config.playout_spike_length;
         Self {
+            playout_buffer: VecDeque::with_capacity(playout_capacity),
             silent_frame_count: 5, // We do this to make the first speech packet fire an event.
             decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
                 .expect("Failed to create new Opus decoder for source."),
             last_seq: pkt.get_sequence().into(),
             decode_size: PacketDecodeSize::TwentyMillis,
-            prune_time: Instant::now() + state_timeout,
+            prune_time: Instant::now() + config.decode_state_timeout,
             disconnected: false,
         }
     }
@@ -247,7 +256,6 @@ struct UdpRx {
     cipher: Cipher,
     decoder_map: HashMap<u32, SsrcState>,
     config: Config,
-    packet_buffer: [u8; VOICE_PACKET_MAX],
     rx: Receiver<UdpRxMessage>,
     ssrc_signalling: Arc<SsrcTracker>,
     udp_socket: UdpSocket,
@@ -257,11 +265,20 @@ impl UdpRx {
     #[instrument(skip(self))]
     async fn run(&mut self, interconnect: &mut Interconnect) {
         let mut cleanup_time = Instant::now();
+        let mut playout_time = Instant::now() + TIMESTEP_LENGTH;
+        let mut byte_dest: Option<BytesMut> = None;
 
         loop {
+            if byte_dest.is_none() {
+                byte_dest = Some(BytesMut::zeroed(VOICE_PACKET_MAX))
+            }
+
             select! {
-                Ok((len, _addr)) = self.udp_socket.recv_from(&mut self.packet_buffer[..]) => {
-                    self.process_udp_message(interconnect, len);
+                Ok((len, _addr)) = self.udp_socket.recv_from(byte_dest.as_mut().unwrap()) => {
+                    let mut pkt = byte_dest.take().unwrap();
+                    pkt.truncate(len);
+
+                    self.process_udp_message(interconnect, pkt);
                 },
                 msg = self.rx.recv_async() => {
                     match msg {
@@ -273,6 +290,10 @@ impl UdpRx {
                         },
                         Err(flume::RecvError::Disconnected) => break,
                     }
+                },
+                _ = tokio::time::sleep_until(playout_time) => {
+                    // TODO: iterate over all live SSRCs, build event, decode all.
+                    playout_time += TIMESTEP_LENGTH;
                 },
                 _ = tokio::time::sleep_until(cleanup_time) => {
                     // periodic cleanup.
@@ -312,16 +333,16 @@ impl UdpRx {
         }
     }
 
-    fn process_udp_message(&mut self, interconnect: &Interconnect, len: usize) {
+    fn process_udp_message(&mut self, interconnect: &Interconnect, pkt: BytesMut) {
         // NOTE: errors here (and in general for UDP) are not fatal to the connection.
         // Panics should be avoided due to adversarial nature of rx'd packets,
         // but correct handling should not prompt a reconnect.
         //
-        // For simplicity, we nominate the mixing context to rebuild the event
-        // context if it fails (hence, the `let _ =` statements.), as it will try to
-        // make contact every 20ms.
+        // For simplicity, if the event task fails then we nominate the mixing thread
+        // to rebuild their context etc. (hence, the `let _ =` statements.), as it will
+        // try to make contact every 20ms.
         let crypto_mode = self.config.crypto_mode;
-        let packet = &mut self.packet_buffer[..len];
+        let packet = &mut self.packet_buffer[..len]; // TODO: convert to Bytes
 
         match demux::demux_mut(packet) {
             DemuxedMut::Rtp(mut rtp) => {
@@ -344,6 +365,10 @@ impl UdpRx {
                     None
                 };
 
+                // TODO: slot packet into Bytes here.
+                // move deocde processing AWAY from here.
+                // send raw pkt to event ctx as Bytes + tag [Rtp/Rtcp].
+
                 let rtp = rtp.to_immutable();
                 let (rtp_body_start, rtp_body_tail, decrypted) = packet_data.unwrap_or_else(|| {
                     (
@@ -356,7 +381,7 @@ impl UdpRx {
                 let entry = self
                     .decoder_map
                     .entry(rtp.get_ssrc())
-                    .or_insert_with(|| SsrcState::new(&rtp, self.config.decode_state_timeout));
+                    .or_insert_with(|| SsrcState::new(&rtp, self.config));
 
                 // Only do this on RTP, rather than RTCP -- this pins decoder state liveness
                 // to *speech* rather than just presence.

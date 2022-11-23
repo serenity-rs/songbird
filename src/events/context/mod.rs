@@ -39,12 +39,16 @@ pub enum EventContext<'a> {
     SpeakingUpdate(SpeakingUpdateData),
 
     #[cfg(feature = "receive")]
+    /// Reordered and decoded audio packets, as well as known UserId<->SSRC data.
+    VoiceTick(VoiceTick),
+
+    #[cfg(feature = "receive")]
     /// Opus audio packet, received from another stream.
-    VoicePacket(VoiceData<'a>),
+    VoicePacket(RtpData),
 
     #[cfg(feature = "receive")]
     /// Telemetry/statistics packet, received from another stream.
-    RtcpPacket(RtcpData<'a>),
+    RtcpPacket(RtcpData),
 
     /// Fired whenever a client disconnects.
     ClientDisconnect(ClientDisconnect),
