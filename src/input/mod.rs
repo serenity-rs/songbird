@@ -376,6 +376,7 @@ impl Seek for Input {
                 SeekFrom::Start(self.container.input_start() as u64),
             )?;
 
+            self.pos = 0;
             self.cheap_consume(target)
         })
         .map(|_| self.pos as u64)
