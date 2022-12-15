@@ -39,10 +39,8 @@ features = ["builtin-queue"]
 [dependencies.symphonia]
 # version = "0.5"
 features = ["aac", "mp3", "isomp4", "alac"] # ...as well as any extras you need!
-# **NOTE**: For now, please use this fork in pre-releases for a key fix to
-# seeking on streamed MKV/WebM files.
-git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "songbird-fixes"
+# **NOTE**: For now, please use this repository in pre-releases.
+git = "https://github.com/pdeljanov/Symphonia"
 ```
 
 ## Dependencies

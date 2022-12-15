@@ -61,22 +61,20 @@ git = "https://github.com/serenity-rs/serenity"
 optional = true
 
 [dependencies.symphonia]
-branch = "songbird-fixes"
-git = "https://github.com/FelixMcFelix/Symphonia"
+git = "https://github.com/pdeljanov/Symphonia"
 default-features = false
 optional = true
 version = "0.5"
 
 [dependencies.symphonia-core]
-branch = "songbird-fixes"
-git = "https://github.com/FelixMcFelix/Symphonia"
+git = "https://github.com/pdeljanov/Symphonia"
 optional = true
 version = "0.5"
 
 [dev-dependencies]
 criterion = "0.4"
 ntest = "0.9"
-symphonia = { version = "0.5", features = ["aac", "isomp4", "mp3"], git = "https://github.com/FelixMcFelix/Symphonia", branch = "songbird-fixes" }
+symphonia = { version = "0.5", features = ["aac", "isomp4", "mp3"], git = "https://github.com/pdeljanov/Symphonia" }
 utils = { path = "utils" }
 tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 

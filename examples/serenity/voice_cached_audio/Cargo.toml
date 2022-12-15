@@ -20,8 +20,7 @@ branch = "next"
 [dependencies.symphonia]
 version = "0.5"
 features = ["mp3"]
-git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "songbird-fixes"
+git = "https://github.com/pdeljanov/Symphonia"
 
 [dependencies.tokio]
 version = "1.0"
