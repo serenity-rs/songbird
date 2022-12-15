@@ -963,25 +963,6 @@
 <a href="#962" id="962">962</a>
 <a href="#963" id="963">963</a>
 <a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
-<a href="#976" id="976">976</a>
-<a href="#977" id="977">977</a>
-<a href="#978" id="978">978</a>
-<a href="#979" id="979">979</a>
-<a href="#980" id="980">980</a>
-<a href="#981" id="981">981</a>
-<a href="#982" id="982">982</a>
-<a href="#983" id="983">983</a>
 </pre><pre class="rust"><code><span class="kw">pub mod </span>mix_logic;
 <span class="kw">mod </span>pool;
 <span class="kw">mod </span>result;
@@ -1584,8 +1565,6 @@
     }
 
     <span class="kw">pub fn </span>cycle(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>softclip_buffer = [<span class="number">0f32</span>; STEREO_FRAME_SIZE];
-
         <span class="comment">// symph_mix is an `AudioBuffer` (planar format), we need to convert this
         // later into an interleaved `SampleBuffer` for libopus.
         </span><span class="self">self</span>.symph_mix.clear();
@@ -1649,27 +1628,10 @@
             <span class="self">self</span>.silence_frames = <span class="number">5</span>;
 
             <span class="kw">if let </span>MixType::MixedPcm(n) = mix_len {
-                <span class="attr">#[cfg(test)]
-                </span><span class="kw">let </span>do_copy = <span class="bool-val">true</span>;
-                <span class="attr">#[cfg(not(test))]
-                </span><span class="kw">let </span>do_copy = <span class="self">self</span>.config.use_softclip;
-
-                <span class="kw">if </span>do_copy {
-                    <span class="comment">// to apply soft_clip, we need this to be in a normal f32 buffer.
-                    // unfortunately, SampleBuffer does not expose a `.samples_mut()`.
-                    // hence, an extra copy...
-                    //
-                    // also just copy in for #[cfg(test)] to simplify the below logic
-                    // for handing out audio data to the outside world.
-                    </span><span class="kw">let </span>samples_to_copy = <span class="self">self</span>.config.mix_mode.channels() * n;
-
-                    softclip_buffer[..samples_to_copy]
-                        .copy_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.sample_buffer.samples()[..samples_to_copy]);
-                }
-
                 <span class="kw">if </span><span class="self">self</span>.config.use_softclip {
                     <span class="self">self</span>.soft_clip.apply(
-                        (<span class="kw-2">&amp;mut </span>softclip_buffer[..])
+                        (<span class="kw-2">&amp;mut </span><span class="self">self</span>.sample_buffer.samples_mut()
+                            [..n * <span class="self">self</span>.config.mix_mode.channels()])
                             .try_into()
                             .expect(<span class="string">&quot;Mix buffer is known to have a valid sample count (softclip).&quot;</span>),
                     )<span class="question-mark">?</span>;
@@ -1684,8 +1646,6 @@
         <span class="comment">// Wait till the right time to send this packet:
         // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
         </span><span class="self">self</span>.march_deadline();
-
-        <span class="kw">let </span>send_buffer = <span class="self">self</span>.config.use_softclip.then(|| <span class="kw-2">&amp;</span>softclip_buffer[..]);
 
         <span class="attr">#[cfg(test)]
         </span><span class="kw">let </span>send_status = <span class="kw">if let </span><span class="prelude-val">Some</span>(OutputMode::Raw(tx)) = <span class="kw-2">&amp;</span><span class="self">self</span>.config.override_connection {
@@ -1702,7 +1662,8 @@
                     OutputMessage::Passthrough(opus_frame)
                 },
                 MixType::MixedPcm(<span class="kw">_</span>) =&gt; OutputMessage::Mixed(
-                    softclip_buffer[..<span class="self">self</span>.config.mix_mode.sample_count_in_frame()].to_vec(),
+                    <span class="self">self</span>.sample_buffer.samples()[..<span class="self">self</span>.config.mix_mode.sample_count_in_frame()]
+                        .to_vec(),
                 ),
             };
 
@@ -1710,11 +1671,11 @@
 
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
-            <span class="self">self</span>.prep_and_send_packet(send_buffer, mix_len)
+            <span class="self">self</span>.prep_and_send_packet(mix_len)
         };
 
         <span class="attr">#[cfg(not(test))]
-        </span><span class="kw">let </span>send_status = <span class="self">self</span>.prep_and_send_packet(send_buffer, mix_len);
+        </span><span class="kw">let </span>send_status = <span class="self">self</span>.prep_and_send_packet(mix_len);
 
         send_status.or_else(Error::disarm_would_block)<span class="question-mark">?</span>;
 
@@ -1735,8 +1696,9 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>prep_and_send_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[f32]&gt;, mix_len: MixType) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>send_buffer = buffer.unwrap_or_else(|| <span class="self">self</span>.sample_buffer.samples());
+    </span><span class="kw">fn </span>prep_and_send_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mix_len: MixType) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>send_buffer = <span class="self">self</span>.sample_buffer.samples();
+
         <span class="kw">let </span>conn = <span class="self">self
             </span>.conn_active
             .as_mut()
