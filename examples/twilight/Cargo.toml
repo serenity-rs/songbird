@@ -10,10 +10,10 @@ reqwest = "0.11"
 tracing = "0.1"
 tracing-subscriber = "0.2"
 tokio = { features = ["macros", "rt-multi-thread", "sync"], version = "1" }
-twilight-gateway = "0.12"
-twilight-http = "0.12"
-twilight-model = "0.12"
-twilight-standby = "0.12"
+twilight-gateway = "0.14"
+twilight-http = "0.14"
+twilight-model = "0.14"
+twilight-standby = "0.14"
 
 [dependencies.songbird]
 default-features = false
@@ -23,5 +23,4 @@ features = ["driver", "gateway", "twilight", "rustls"]
 [dependencies.symphonia]
 version = "0.5"
 features = ["aac", "mp3", "isomp4", "alac"]
-git = "https://github.com/FelixMcFelix/Symphonia"
-branch = "samplebuffer_samples_mut"
+git = "https://github.com/pdeljanov/Symphonia"

@@ -33,7 +33,7 @@ where
     config.length_hint = Some(match hint.into() {
         LengthHint::Bytes(a) => a,
         LengthHint::Time(t) => {
-            let s = t.as_secs() + if t.subsec_millis() > 0 { 1 } else { 0 };
+            let s = t.as_secs() + u64::from(t.subsec_millis() > 0);
             (s as usize) * cost_per_sec
         },
     });

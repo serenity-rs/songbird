@@ -69,7 +69,7 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
         ];
 
         let mut output = Command::new("ffprobe")
-            .args(&args)
+            .args(args)
             .output()
             .await
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
