@@ -600,8 +600,6 @@ impl Mixer {
     }
 
     pub fn cycle(&mut self) -> Result<()> {
-        let mut softclip_buffer = [0f32; STEREO_FRAME_SIZE];
-
         // symph_mix is an `AudioBuffer` (planar format), we need to convert this
         // later into an interleaved `SampleBuffer` for libopus.
         self.symph_mix.clear();
@@ -665,27 +663,10 @@ impl Mixer {
             self.silence_frames = 5;
 
             if let MixType::MixedPcm(n) = mix_len {
-                #[cfg(test)]
-                let do_copy = true;
-                #[cfg(not(test))]
-                let do_copy = self.config.use_softclip;
-
-                if do_copy {
-                    // to apply soft_clip, we need this to be in a normal f32 buffer.
-                    // unfortunately, SampleBuffer does not expose a `.samples_mut()`.
-                    // hence, an extra copy...
-                    //
-                    // also just copy in for #[cfg(test)] to simplify the below logic
-                    // for handing out audio data to the outside world.
-                    let samples_to_copy = self.config.mix_mode.channels() * n;
-
-                    softclip_buffer[..samples_to_copy]
-                        .copy_from_slice(&self.sample_buffer.samples()[..samples_to_copy]);
-                }
-
                 if self.config.use_softclip {
                     self.soft_clip.apply(
-                        (&mut softclip_buffer[..])
+                        (&mut self.sample_buffer.samples_mut()
+                            [..n * self.config.mix_mode.channels()])
                             .try_into()
                             .expect("Mix buffer is known to have a valid sample count (softclip)."),
                     )?;
@@ -700,8 +681,6 @@ impl Mixer {
         // Wait till the right time to send this packet:
         // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
         self.march_deadline();
-
-        let send_buffer = self.config.use_softclip.then(|| &softclip_buffer[..]);
 
         #[cfg(test)]
         let send_status = if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
@@ -718,7 +697,8 @@ impl Mixer {
                     OutputMessage::Passthrough(opus_frame)
                 },
                 MixType::MixedPcm(_) => OutputMessage::Mixed(
-                    softclip_buffer[..self.config.mix_mode.sample_count_in_frame()].to_vec(),
+                    self.sample_buffer.samples()[..self.config.mix_mode.sample_count_in_frame()]
+                        .to_vec(),
                 ),
             };
 
@@ -726,11 +706,11 @@ impl Mixer {
 
             Ok(())
         } else {
-            self.prep_and_send_packet(send_buffer, mix_len)
+            self.prep_and_send_packet(mix_len)
         };
 
         #[cfg(not(test))]
-        let send_status = self.prep_and_send_packet(send_buffer, mix_len);
+        let send_status = self.prep_and_send_packet(mix_len);
 
         send_status.or_else(Error::disarm_would_block)?;
 
@@ -751,8 +731,9 @@ impl Mixer {
     }
 
     #[inline]
-    fn prep_and_send_packet(&mut self, buffer: Option<&[f32]>, mix_len: MixType) -> Result<()> {
-        let send_buffer = buffer.unwrap_or_else(|| self.sample_buffer.samples());
+    fn prep_and_send_packet(&mut self, mix_len: MixType) -> Result<()> {
+        let send_buffer = self.sample_buffer.samples();
+
         let conn = self
             .conn_active
             .as_mut()
