@@ -69,7 +69,7 @@ pub enum CoreContext {
     #[cfg(feature = "receive")]
     SpeakingUpdate(InternalSpeakingUpdate),
     #[cfg(feature = "receive")]
-    VoicePacket(InternalVoicePacket),
+    RtpPacket(InternalRtpPacket),
     #[cfg(feature = "receive")]
     RtcpPacket(InternalRtcpPacket),
     ClientDisconnect(ClientDisconnect),
@@ -86,7 +86,7 @@ impl<'a> CoreContext {
             Self::SpeakingUpdate(evt) =>
                 EventContext::SpeakingUpdate(SpeakingUpdateData::from(evt)),
             #[cfg(feature = "receive")]
-            Self::VoicePacket(evt) => EventContext::VoicePacket(VoiceData::from(evt)),
+            Self::RtpPacket(evt) => EventContext::VoicePacket(RtpData::from(evt)),
             #[cfg(feature = "receive")]
             Self::RtcpPacket(evt) => EventContext::RtcpPacket(RtcpData::from(evt)),
             Self::ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),

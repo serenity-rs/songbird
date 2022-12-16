@@ -1,3 +1,5 @@
+use discortp::rtcp::RtcpPacket;
+
 use super::*;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -12,4 +14,11 @@ pub struct RtcpData {
     pub payload_offset: usize,
     /// Number of bytes at the end of the packet to discard.
     pub payload_end_pad: usize,
+}
+
+impl RtcpData {
+    pub fn rtp<'a>(&'a self) -> RtcpPacket<'a> {
+        RtcpPacket::new(&self.packet)
+            .expect("FATAL: leaked illegally small RTP packet from UDP Rx task.")
+    }
 }

@@ -35,6 +35,8 @@ pub struct VoiceTick {
     pub voice_data: HashMap<u32, VoiceData>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 #[allow(missing_docs)]
 pub struct VoiceData {
     pub packet: RtpData,

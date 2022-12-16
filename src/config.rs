@@ -67,9 +67,12 @@ pub struct Config {
     pub playout_buffer_length: NonZeroUsize,
 
     #[cfg(all(feature = "driver", feature = "receive"))]
-    /// Configures
+    /// Configures the initial amount of extra space allocated to handle packet bursts.
     ///
-    /// Defaults to 5 packets.
+    /// Each SSRC's receive buffer will start at capacity `playout_buffer_length +
+    /// playout_spike_length`, up to a maximum 64 packets.
+    ///
+    /// Defaults to 3 packets (thus capacity defaults to 8).
     pub playout_spike_length: usize,
 
     #[cfg(feature = "gateway")]
@@ -190,6 +193,10 @@ impl Default for Config {
             decode_mode: DecodeMode::Decrypt,
             #[cfg(all(feature = "driver", feature = "receive"))]
             decode_state_timeout: Duration::from_secs(60),
+            #[cfg(all(feature = "driver", feature = "receive"))]
+            playout_buffer_length: NonZeroUsize::new(5).unwrap(),
+            #[cfg(all(feature = "driver", feature = "receive"))]
+            playout_spike_length: 3,
             #[cfg(feature = "gateway")]
             gateway_timeout: Some(Duration::from_secs(10)),
             #[cfg(feature = "driver")]

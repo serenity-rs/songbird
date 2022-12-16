@@ -28,5 +28,8 @@ pub struct RtpData {
 }
 
 impl RtpData {
-    pub fn rtp<'a>(&'a self) -> RtpPacket<'a> {}
+    pub fn rtp<'a>(&'a self) -> RtpPacket<'a> {
+        RtpPacket::new(&self.packet)
+            .expect("FATAL: leaked illegally small RTP packet from UDP Rx task.")
+    }
 }
