@@ -6,7 +6,11 @@ use super::{
 use crate::{
     constants::*,
     driver::{CryptoMode, DecodeMode},
-    events::{internal_data::*, CoreContext},
+    events::{
+        context_data::{RtpData, VoiceData, VoiceTick},
+        internal_data::*,
+        CoreContext,
+    },
 };
 use audiopus::{
     coder::Decoder as OpusDecoder,
@@ -18,13 +22,12 @@ use bytes::{Bytes, BytesMut};
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::{RtpExtensionPacket, RtpPacket},
-    FromPacket,
     Packet,
     PacketSize,
 };
 use flume::Receiver;
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     convert::TryInto,
     sync::Arc,
     time::Duration,
@@ -44,14 +47,15 @@ struct StoredPacket {
 struct SsrcState {
     playout_buffer: VecDeque<Option<StoredPacket>>,
     playout_mode: PlayoutMode,
-    silent_frame_count: u16,
     decoder: OpusDecoder,
     next_seq: RtpSequence,
-    last_timestamp: RtpTimestamp,
     decode_size: PacketDecodeSize,
     prune_time: Instant,
     disconnected: bool,
+    current_timestamp: Option<RtpTimestamp>,
 }
+
+// Store `current_time'? I.e., if queue is empty then force-set to
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PacketDecodeSize {
@@ -98,13 +102,6 @@ type RtpSequence = u16;
 type RtpTimestamp = u32;
 type RtpSsrc = u32;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum SpeakingDelta {
-    Same,
-    Start,
-    Stop,
-}
-
 /// Determines whether an SSRC's packets should be decoded.
 ///
 /// Playout requires us to keep an almost constant delay, to do so we build
@@ -117,8 +114,10 @@ enum SpeakingDelta {
 /// To compute this, we use the RTP timestamp of two `seq`-adjacent packets at playout: if the next
 /// timestamp is too large, then we revert to `Fill`.
 ///
+/// Small playout bursts also require care.
+///
 /// If timestamp info is incorrect, then in the worst case we eventually need to rebuffer if the delay
-/// drains to zero. 
+/// drains to zero.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PlayoutMode {
     Fill,
@@ -138,14 +137,14 @@ impl SsrcState {
         Self {
             playout_buffer: VecDeque::with_capacity(playout_capacity),
             playout_mode: PlayoutMode::Fill,
-            silent_frame_count: 5, // We do this to make the first speech packet fire an event.
             decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
                 .expect("Failed to create new Opus decoder for source."),
             next_seq: pkt.get_sequence().into(),
-            last_timestamp: pkt.get_timestamp().0.0.wrapping_sub(MONO_FRAME_SIZE as RtpTimestamp),
             decode_size: PacketDecodeSize::TwentyMillis,
             prune_time: Instant::now() + config.decode_state_timeout,
             disconnected: false,
+
+            current_timestamp: Some(reset_timeout(pkt, config)),
         }
     }
 
@@ -158,14 +157,21 @@ impl SsrcState {
     /// Slot a received RTP packet into the correct location in the playout buffer using
     /// its sequence number, subject to maximums.
     ///
-    /// An out of bounds packet must create any remaining `None`s 
+    /// An out of bounds packet must create any remaining `None`s
     fn store_packet(&mut self, packet: StoredPacket, config: &Config) {
-        let rtp = RtpPacket::new(&packet.packet).expect("FATAL: earlier valid packet now invalid (store)");
+        let rtp = RtpPacket::new(&packet.packet)
+            .expect("FATAL: earlier valid packet now invalid (store)");
+
+        if self.current_timestamp.is_none() {
+            self.current_timestamp = Some(reset_timeout(&rtp, config));
+        }
 
         // i32 has full range of u16 in each direction.
-        let desired_index = (self.next_seq as i32) - (rtp.get_sequence().0.0 as i32);
+        let desired_index = (rtp.get_sequence().0 .0 as i32) - (self.next_seq as i32);
 
-        if desired_index >= 0 {
+        println!("Got packet: desired slot is {desired_index}");
+
+        if desired_index < 0 {
             trace!("Missed packet arrived late, discarding from playout.");
         } else if desired_index >= 64 {
             trace!("Packet arrived beyond playout max length.");
@@ -173,14 +179,13 @@ impl SsrcState {
             let index = desired_index as usize;
             while self.playout_buffer.len() <= index {
                 self.playout_buffer.push_back(None);
-            } 
+            }
             self.playout_buffer[index] = Some(packet);
         }
 
         if self.playout_buffer.len() >= config.playout_buffer_length.get() {
             self.playout_mode = PlayoutMode::Drain;
         }
-        
     }
 
     fn fetch_packet(&mut self) -> PacketLookup {
@@ -188,67 +193,71 @@ impl SsrcState {
             return PacketLookup::Filling;
         }
 
-        match self.playout_buffer.pop_front() {
+        // TODO: unset timestamp if queue is drained.
+        let out = match self.playout_buffer.pop_front() {
             Some(Some(pkt)) => {
                 let rtp = RtpPacket::new(&pkt.packet)
                     .expect("FATAL: earlier valid packet now invalid (fetch)");
 
-                let ts_diff = rtp.get_timestamp().0.0.checked_sub(self.last_timestamp); 
+                let curr_ts = self.current_timestamp.unwrap();
+                let ts_diff = curr_ts.wrapping_sub(rtp.get_timestamp().0 .0) as i32;
 
-                // TODO: adapt and fix this for weird clients like firefox web? (non-20ms packets)
-                if rtp.get_sequence().0.0 == self.next_seq && ts_diff >= Some(960) {
+                if ts_diff <= 0 {
+                    PacketLookup::Packet(pkt)
+                } else {
+                    println!("Witholding packet: ts_diff is {ts_diff}");
+                    self.playout_buffer.push_front(Some(pkt));
                     self.playout_mode = PlayoutMode::Fill;
                     PacketLookup::Filling
-                } else {
-                    PacketLookup::Packet(pkt)
                 }
             },
-            Some(None) => {
-                PacketLookup::MissedPacket
-            },
-            None => {
-                self.playout_mode = PlayoutMode::Fill;
-                PacketLookup::Filling
-            },
+            Some(None) => PacketLookup::MissedPacket,
+            None => PacketLookup::Filling,
+        };
+
+        if self.playout_buffer.is_empty() {
+            self.playout_mode = PlayoutMode::Fill;
+            self.current_timestamp = None;
         }
+
+        if let Some(ts) = self.current_timestamp.as_mut() {
+            *ts = ts.wrapping_add(MONO_FRAME_SIZE as u32);
+        }
+
+        out
     }
 
-    fn process(
-        &mut self,
-        config: &Config,
-    // ) -> Result<(SpeakingDelta, Option<Vec<i16>>, Option<Bytes>)> {
-    ) -> Result<Option<(SpeakingDelta, Vec<i16>, Option<Bytes>)>> {
+    fn process(&mut self, config: &Config) -> Result<Option<(Vec<i16>, Option<RtpData>)>> {
         // Acquire a packet from the playout buffer:
         // Update nexts, lasts...
         // different cases: null packet who we want to decode as a miss, and packet who we must ignore temporarily.
 
-        
-
-        let pkt = match self.fetch_packet() {
+        let m_pkt = self.fetch_packet();
+        // println!("fetch status this tick: {m_pkt:?}, rem is {}", self.playout_buffer.len());
+        let pkt = match m_pkt {
             // PacketLookup::Packet(StoredPacket { packet, decrypted }) if config.decode_mode == DecodeMode::Decode => todo!(),
             PacketLookup::Packet(StoredPacket { packet, decrypted }) => {
-                let rtp = RtpPacket::new(&packet).expect("FATAL: earlier valid packet now invalid (fetch)");
-                self.next_seq = rtp.get_sequence().0.0 + 1;
-                self.last_timestamp = rtp.get_timestamp().0.0;
+                let rtp = RtpPacket::new(&packet)
+                    .expect("FATAL: earlier valid packet now invalid (fetch)");
+                self.next_seq = rtp.get_sequence().0 .0 + 1;
 
                 Some((packet, decrypted))
             },
             PacketLookup::MissedPacket => {
                 self.next_seq += 1;
-                self.last_timestamp += MONO_FRAME_SIZE as RtpTimestamp;
 
                 None
             },
             PacketLookup::Filling => return Ok(None),
         };
 
-        if let Some((pkt, encrypted)) = pkt {
-            let rtp = RtpPacket::new(&pkt).unwrap();
+        if let Some((packet, decrypted)) = pkt {
+            let rtp = RtpPacket::new(&packet).unwrap();
             let extensions = rtp.get_extension() != 0;
 
             let payload = rtp.payload();
-            let pre_x = CryptoMode::payload_prefix_len();
-            let post_x = payload.len() - config.crypto_mode.payload_suffix_len();
+            let payload_offset = CryptoMode::payload_prefix_len();
+            let payload_end_pad = payload.len() - config.crypto_mode.payload_suffix_len();
 
             // We still need to compute missed packets here in case of long loss chains or similar.
             // This occurs due to the fallback in 'store_packet' (i.e., empty buffer and massive seq difference).
@@ -257,31 +266,20 @@ impl SsrcState {
             let missed_packets = new_seq.saturating_sub(self.next_seq);
 
             // TODO: maybe hand over audio and extension indices alongside packet?
-            let (audio, packet_size) = self.scan_and_decode(&payload[pre_x..post_x], extensions, missed_packets, config.decode_mode == DecodeMode::Decode)?;
+            let (audio, _packet_size) = self.scan_and_decode(
+                &payload[payload_offset..payload_end_pad],
+                extensions,
+                missed_packets,
+                config.decode_mode == DecodeMode::Decode && decrypted,
+            )?;
 
-            let delta = if packet_size == SILENT_FRAME.len() {
-                // Frame is silent.
-                let old = self.silent_frame_count;
-                self.silent_frame_count =
-                    self.silent_frame_count.saturating_add(1 + missed_packets);
-
-                if self.silent_frame_count >= 5 && old < 5 {
-                    SpeakingDelta::Stop
-                } else {
-                    SpeakingDelta::Same
-                }
-            } else {
-                // Frame has meaningful audio.
-                let out = if self.silent_frame_count >= 5 {
-                    SpeakingDelta::Start
-                } else {
-                    SpeakingDelta::Same
-                };
-                self.silent_frame_count = 0;
-                out
+            let rtp_data = RtpData {
+                packet,
+                payload_offset,
+                payload_end_pad,
             };
 
-            Ok(Some((delta, audio.unwrap_or_default(), Some(pkt))))
+            Ok(Some((audio.unwrap_or_default(), Some(rtp_data))))
         } else {
             let mut audio = vec![0; self.decode_size.len()];
             let dest_samples = (&mut audio[..])
@@ -290,11 +288,7 @@ impl SsrcState {
             let len = self.decoder.decode(None, dest_samples, false)?;
             audio.truncate(2 * len);
 
-            Ok(Some((
-                SpeakingDelta::Same,
-                audio,
-                None,
-            )))
+            Ok(Some((audio, None)))
         }
     }
 
@@ -392,10 +386,8 @@ impl UdpRx {
 
         loop {
             if byte_dest.is_none() {
-                byte_dest = Some(BytesMut::zeroed(VOICE_PACKET_MAX))
+                byte_dest = Some(BytesMut::zeroed(VOICE_PACKET_MAX));
             }
-
-            // self.decoder_map.map()
 
             select! {
                 Ok((len, _addr)) = self.udp_socket.recv_from(byte_dest.as_mut().unwrap()) => {
@@ -416,17 +408,35 @@ impl UdpRx {
                     }
                 },
                 _ = tokio::time::sleep_until(playout_time) => {
-                    // TODO: iterate over all live SSRCs, build event, decode all.
+                    let mut tick = VoiceTick {
+                        speaking: HashMap::new(),
+                        silent: HashSet::new(),
+                    };
 
                     for (ssrc, state) in &mut self.decoder_map {
                         match state.process(&self.config) {
-                            Ok(Some((delta, audio, maybe_packet))) => {todo!()},
-                            Ok(None) => {todo!()},
-                            Err(e) => {todo!()},
+                            Ok(Some((decoded_voice, packet))) => {
+                                tick.speaking.insert(*ssrc, VoiceData {
+                                    packet,
+                                    decoded_voice,
+                                });
+
+                            },
+                            Ok(None) => {
+                                if !state.disconnected {
+                                    tick.silent.insert(*ssrc);
+                                }
+                            },
+                            Err(e) => {
+                                warn!("Decode error for SSRC {ssrc}: {e:?}");
+                                tick.silent.insert(*ssrc);
+                            },
                         }
                     }
 
                     playout_time += TIMESTEP_LENGTH;
+
+                    drop(interconnect.events.send(EventMessage::FireCoreEvent(CoreContext::VoiceTick(tick))));
                 },
                 _ = tokio::time::sleep_until(cleanup_time) => {
                     // periodic cleanup.
@@ -527,51 +537,12 @@ impl UdpRx {
                 entry.store_packet(store_pkt, &self.config);
 
                 drop(interconnect.events.send(EventMessage::FireCoreEvent(
-                        CoreContext::RtpPacket(InternalRtpPacket {
+                    CoreContext::RtpPacket(InternalRtpPacket {
                         packet,
                         payload_offset: rtp_body_start,
                         payload_end_pad: rtp_body_tail,
                     }),
                 )));
-
-                // if let Ok((delta, audio)) = entry.process(
-                //     &rtp,
-                //     rtp_body_start,
-                //     rtp_body_tail,
-                //     self.config.decode_mode,
-                //     decrypted,
-                // ) {
-                //     match delta {
-                //         SpeakingDelta::Start => {
-                //             drop(interconnect.events.send(EventMessage::FireCoreEvent(
-                //                 CoreContext::SpeakingUpdate(InternalSpeakingUpdate {
-                //                     ssrc: rtp.get_ssrc(),
-                //                     speaking: true,
-                //                 }),
-                //             )));
-                //         },
-                //         SpeakingDelta::Stop => {
-                //             drop(interconnect.events.send(EventMessage::FireCoreEvent(
-                //                 CoreContext::SpeakingUpdate(InternalSpeakingUpdate {
-                //                     ssrc: rtp.get_ssrc(),
-                //                     speaking: false,
-                //                 }),
-                //             )));
-                //         },
-                //         SpeakingDelta::Same => {},
-                //     }
-
-                //     drop(interconnect.events.send(EventMessage::FireCoreEvent(
-                //         CoreContext::VoicePacket(InternalVoicePacket {
-                //             audio,
-                //             packet: rtp.from_packet(),
-                //             payload_offset: rtp_body_start,
-                //             payload_end_pad: rtp_body_tail,
-                //         }),
-                //     )));
-                // } else {
-                //     warn!("RTP decoding/processing failed.");
-                // }
             },
             DemuxedMut::Rtcp(mut rtcp) => {
                 let packet_data = if self.config.decode_mode.should_decrypt() {
@@ -639,4 +610,10 @@ pub(crate) async fn runner(
 #[inline]
 fn rtp_valid(packet: &RtpPacket<'_>) -> bool {
     packet.get_version() == RTP_VERSION && packet.get_payload_type() == RTP_PROFILE_TYPE
+}
+
+#[inline]
+fn reset_timeout(packet: &RtpPacket<'_>, config: &Config) -> RtpTimestamp {
+    let t_shift = MONO_FRAME_SIZE * config.playout_buffer_length.get();
+    (packet.get_timestamp() - (t_shift as u32)).0 .0
 }

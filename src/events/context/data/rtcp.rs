@@ -17,7 +17,8 @@ pub struct RtcpData {
 }
 
 impl RtcpData {
-    pub fn rtp<'a>(&'a self) -> RtcpPacket<'a> {
+    #[allow(missing_docs)]
+    pub fn rtcp(&'_ self) -> RtcpPacket<'_> {
         RtcpPacket::new(&self.packet)
             .expect("FATAL: leaked illegally small RTP packet from UDP Rx task.")
     }

@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
-use crate::id::UserId;
+use std::collections::{HashMap, HashSet};
 
 use super::*;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
+#[allow(missing_docs)]
 /// Opus audio packet, received from another stream (detailed in `packet`).
 /// `payload_offset` contains the true payload location within the raw packet's `payload()`,
 /// if extensions or raw packet data are required.
@@ -19,26 +18,15 @@ use super::*;
 ///
 /// [`SpeakingUpdate`]: crate::events::CoreEvent::SpeakingUpdate
 pub struct VoiceTick {
-    /// Raw RTP packet data.
-    ///
-    /// Includes the SSRC (i.e., sender) of this packet.
-    pub packet: Bytes,
-    /// Byte index into the packet body (after headers) for where the payload begins.
-    pub payload_offset: usize,
-    /// Number of bytes at the end of the packet to discard.
-    pub payload_end_pad: usize,
+    pub speaking: HashMap<u32, VoiceData>,
 
-    /// AA
-    pub user_map: HashMap<u32, UserId>,
-
-    /// AA
-    pub voice_data: HashMap<u32, VoiceData>,
+    pub silent: HashSet<u32>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 #[allow(missing_docs)]
 pub struct VoiceData {
-    pub packet: RtpData,
-    pub decoded_voice: Option<Vec<i16>>,
+    pub packet: Option<RtpData>,
+    pub decoded_voice: Vec<i16>,
 }

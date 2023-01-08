@@ -43,12 +43,6 @@ mod receive {
     use super::*;
     use bytes::Bytes;
 
-    #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-    pub struct InternalSpeakingUpdate {
-        pub ssrc: u32,
-        pub speaking: bool,
-    }
-
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub struct InternalRtpPacket {
         pub packet: Bytes,
@@ -61,15 +55,6 @@ mod receive {
         pub packet: Bytes,
         pub payload_offset: usize,
         pub payload_end_pad: usize,
-    }
-
-    impl<'a> From<&'a InternalSpeakingUpdate> for SpeakingUpdateData {
-        fn from(val: &'a InternalSpeakingUpdate) -> Self {
-            Self {
-                speaking: val.speaking,
-                ssrc: val.ssrc,
-            }
-        }
     }
 
     impl<'a> From<&'a InternalRtpPacket> for RtpData {

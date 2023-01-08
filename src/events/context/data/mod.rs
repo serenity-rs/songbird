@@ -8,8 +8,6 @@ mod rtcp;
 #[cfg(feature = "receive")]
 mod rtp;
 #[cfg(feature = "receive")]
-mod speaking;
-#[cfg(feature = "receive")]
 mod voice;
 
 #[cfg(feature = "receive")]
@@ -17,4 +15,4 @@ use bytes::Bytes;
 
 pub use self::{connect::*, disconnect::*};
 #[cfg(feature = "receive")]
-pub use self::{rtcp::*, rtp::*, speaking::*, voice::*};
+pub use self::{rtcp::*, rtp::*, voice::*};

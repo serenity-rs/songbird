@@ -64,7 +64,7 @@ pub enum CoreEvent {
     /// As RTP packets do not map to Discord's notion of users, SSRCs must be mapped
     /// back using the user IDs seen through client connection, disconnection,
     /// or speaking state update.
-    VoicePacket,
+    RtpPacket,
 
     #[cfg(feature = "receive")]
     /// Fires on receipt of an RTCP packet, containing various call stats
