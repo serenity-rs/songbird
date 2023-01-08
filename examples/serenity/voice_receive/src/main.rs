@@ -120,7 +120,7 @@ impl VoiceEventHandler for Receiver {
                     println!("No speakers");
 
                     self.inner.last_tick_was_empty.store(true, Ordering::SeqCst);
-                } else if !last_tick_was_empty {
+                } else if speaking != 0 {
                     self.inner.last_tick_was_empty.store(false, Ordering::SeqCst);
 
                     println!("Voice tick ({speaking}/{total_participants} live):");
@@ -128,28 +128,34 @@ impl VoiceEventHandler for Receiver {
                     // You can also examine tick.silent to see users who are present
                     // but haven't spoken in this tick.
                     for (ssrc, data) in &tick.speaking {
-                        let voice_len = data.decoded_voice.len();
-                        let audio_str = format!(
-                            "first samples from {}: {:?}",
-                            voice_len,
-                            &data.decoded_voice[..voice_len.min(5)]
-                        );
-
                         let user_id_str = if let Some(id) = self.inner.known_ssrcs.get(ssrc) {
                             format!("{:?}", *id)
                         } else {
                             "?".into()
                         };
 
-                        if let Some(packet) = &data.packet {
-                            let rtp = packet.rtp();
-                            println!(
-                                "\t{ssrc}/{user_id_str}: packet seq {} ts {} -- {audio_str}",
-                                rtp.get_sequence().0,
-                                rtp.get_timestamp().0
+                        // This field should *always* exist under DecodeMode::Decode.
+                        // The `else` allows you to see how the other modes are affected.
+                        if let Some(decoded_voice) = data.decoded_voice.as_ref() {
+                            let voice_len = decoded_voice.len();
+                            let audio_str = format!(
+                                "first samples from {}: {:?}",
+                                voice_len,
+                                &decoded_voice[..voice_len.min(5)]
                             );
+
+                            if let Some(packet) = &data.packet {
+                                let rtp = packet.rtp();
+                                println!(
+                                    "\t{ssrc}/{user_id_str}: packet seq {} ts {} -- {audio_str}",
+                                    rtp.get_sequence().0,
+                                    rtp.get_timestamp().0
+                                );
+                            } else {
+                                println!("\t{ssrc}/{user_id_str}: Missed packet -- {audio_str}");
+                            }
                         } else {
-                            println!("\t{ssrc}/{user_id_str}: Missed packet -- {audio_str}");
+                            println!("\t{ssrc}/{user_id_str}: Decode disabled.");
                         }
                     }
                 }
@@ -208,7 +214,9 @@ async fn main() {
     // Here, we need to configure Songbird to decode all incoming voice packets.
     // If you want, you can do this on a per-call basis---here, we need it to
     // read the audio data that other people are sending us!
-    let songbird_config = Config::default().decode_mode(DecodeMode::Decode);
+    let songbird_config = Config::default()
+        // .decode_mode(DecodeMode::Decode);
+        .decode_mode(DecodeMode::Pass);
 
     let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
@@ -254,7 +262,6 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         let evt_receiver = Receiver::new();
 
         handler.add_global_event(CoreEvent::SpeakingStateUpdate.into(), evt_receiver.clone());
-        handler.add_global_event(CoreEvent::SpeakingUpdate.into(), evt_receiver.clone());
         handler.add_global_event(CoreEvent::RtpPacket.into(), evt_receiver.clone());
         handler.add_global_event(CoreEvent::RtcpPacket.into(), evt_receiver.clone());
         handler.add_global_event(CoreEvent::ClientDisconnect.into(), evt_receiver.clone());

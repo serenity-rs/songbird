@@ -35,10 +35,11 @@ pub struct Config {
     #[cfg(all(feature = "driver", feature = "receive"))]
     /// Configures whether decoding and decryption occur for all received packets.
     ///
-    /// If voice receiving voice packets, generally you should choose [`DecodeMode::Decode`].
-    /// [`DecodeMode::Decrypt`] is intended for users running their own selective decoding,
-    /// who rely upon [user speaking events], or who need to inspect Opus packets.
-    /// If you're certain you will never need any RT(C)P events, then consider [`DecodeMode::Pass`].
+    /// If receiving and using voice packets, generally you should choose [`DecodeMode::Decode`].
+    /// [`DecodeMode::Decrypt`] is intended for users running their own selective decoding or
+    /// who need to inspect Opus packets. [User speaking state] can still be seen using [`DecodeMode::Pass`].
+    /// If you're certain you will never need any RT(C)P events, then consider building without
+    /// the `"receive"` feature for extra performance.
     ///
     /// Defaults to [`DecodeMode::Decrypt`]. This is due to per-packet decoding costs,
     /// which most users will not want to pay, but allowing speaking events which are commonly used.
@@ -46,7 +47,7 @@ pub struct Config {
     /// [`DecodeMode::Decode`]: DecodeMode::Decode
     /// [`DecodeMode::Decrypt`]: DecodeMode::Decrypt
     /// [`DecodeMode::Pass`]: DecodeMode::Pass
-    /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
+    /// [User speaking state]: crate::events::CoreEvent::VoiceTick
     pub decode_mode: DecodeMode,
 
     #[cfg(all(feature = "driver", feature = "receive"))]
@@ -59,7 +60,8 @@ pub struct Config {
     #[cfg(all(feature = "driver", feature = "receive"))]
     /// Configures the number of audio packets to buffer for each user before playout.
     ///
-    /// A playout buffer allows songbird to
+    /// A playout buffer allows Songbird to smooth out jitter in audio packet arrivals,
+    /// as well as to correct for reordering of packets by the network.
     ///
     /// This does not affect the arrival of raw packet events.
     ///
@@ -247,6 +249,14 @@ impl Config {
     #[must_use]
     pub fn decode_state_timeout(mut self, decode_state_timeout: Duration) -> Self {
         self.decode_state_timeout = decode_state_timeout;
+        self
+    }
+
+    #[cfg(feature = "receive")]
+    /// Sets this `Config`'s received packet decoder cleanup timer.
+    #[must_use]
+    pub fn playout_buffer_length(mut self, playout_buffer_length: NonZeroUsize) -> Self {
+        self.playout_buffer_length = playout_buffer_length;
         self
     }
 

@@ -17,7 +17,10 @@ pub struct RtcpData {
 }
 
 impl RtcpData {
-    #[allow(missing_docs)]
+    /// Create a zero-copy view of the inner RTCP packet.
+    ///
+    /// This allows easy access to packet header fields, taking them from the underlying
+    /// `Bytes` as needed while handling endianness etc.
     pub fn rtcp(&'_ self) -> RtcpPacket<'_> {
         RtcpPacket::new(&self.packet)
             .expect("FATAL: leaked illegally small RTP packet from UDP Rx task.")

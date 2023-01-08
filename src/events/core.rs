@@ -9,14 +9,11 @@
 /// when a client leaves the session ([`ClientDisconnect`]).
 ///
 /// When the `"receive"` feature is enabled, songbird can also handle voice packets
-#[cfg_attr(feature = "receive", doc = "([`VoicePacket`](Self::VoicePacket)),")]
-#[cfg_attr(not(feature = "receive"), doc = "(`VoicePacket`),")]
-/// detect speech starting/stopping
-#[cfg_attr(
-    feature = "receive",
-    doc = "([`SpeakingUpdate`](Self::SpeakingUpdate)),"
-)]
-#[cfg_attr(not(feature = "receive"), doc = "(`SpeakingUpdate`),")]
+#[cfg_attr(feature = "receive", doc = "([`RtpPacket`](Self::RtpPacket)),")]
+#[cfg_attr(not(feature = "receive"), doc = "(`RtpPacket`),")]
+/// decode and track speaking users
+#[cfg_attr(feature = "receive", doc = "([`VoiceTick`](Self::VoiceTick)),")]
+#[cfg_attr(not(feature = "receive"), doc = "(`VoiceTick`),")]
 /// and handle telemetry data
 #[cfg_attr(feature = "receive", doc = "([`RtcpPacket`](Self::RtcpPacket)).")]
 #[cfg_attr(not(feature = "receive"), doc = "(`RtcpPacket`).")]
@@ -49,13 +46,8 @@ pub enum CoreEvent {
     SpeakingStateUpdate,
 
     #[cfg(feature = "receive")]
-    /// Fires when a source starts speaking, or stops speaking
-    /// (*i.e.*, 5 consecutive silent frames).
-    SpeakingUpdate,
-
-    #[cfg(feature = "receive")]
-    /// Fires every 20ms, containing the scheduled/reordered voice packet for each
-    /// live user.
+    /// Fires every 20ms, containing the scheduled voice packet and decoded audio
+    /// data for each live user.
     VoiceTick,
 
     #[cfg(feature = "receive")]

@@ -169,8 +169,6 @@ impl SsrcState {
         // i32 has full range of u16 in each direction.
         let desired_index = (rtp.get_sequence().0 .0 as i32) - (self.next_seq as i32);
 
-        println!("Got packet: desired slot is {desired_index}");
-
         if desired_index < 0 {
             trace!("Missed packet arrived late, discarding from playout.");
         } else if desired_index >= 64 {
@@ -205,7 +203,7 @@ impl SsrcState {
                 if ts_diff <= 0 {
                     PacketLookup::Packet(pkt)
                 } else {
-                    println!("Witholding packet: ts_diff is {ts_diff}");
+                    trace!("Witholding packet: ts_diff is {ts_diff}");
                     self.playout_buffer.push_front(Some(pkt));
                     self.playout_mode = PlayoutMode::Fill;
                     PacketLookup::Filling
@@ -227,15 +225,12 @@ impl SsrcState {
         out
     }
 
-    fn process(&mut self, config: &Config) -> Result<Option<(Vec<i16>, Option<RtpData>)>> {
+    fn process(&mut self, config: &Config) -> Result<Option<VoiceData>> {
         // Acquire a packet from the playout buffer:
         // Update nexts, lasts...
         // different cases: null packet who we want to decode as a miss, and packet who we must ignore temporarily.
-
         let m_pkt = self.fetch_packet();
-        // println!("fetch status this tick: {m_pkt:?}, rem is {}", self.playout_buffer.len());
         let pkt = match m_pkt {
-            // PacketLookup::Packet(StoredPacket { packet, decrypted }) if config.decode_mode == DecodeMode::Decode => todo!(),
             PacketLookup::Packet(StoredPacket { packet, decrypted }) => {
                 let rtp = RtpPacket::new(&packet)
                     .expect("FATAL: earlier valid packet now invalid (fetch)");
@@ -250,6 +245,13 @@ impl SsrcState {
             },
             PacketLookup::Filling => return Ok(None),
         };
+
+        let mut out = VoiceData {
+            packet: None,
+            decoded_voice: None,
+        };
+
+        let should_decode = config.decode_mode == DecodeMode::Decode;
 
         if let Some((packet, decrypted)) = pkt {
             let rtp = RtpPacket::new(&packet).unwrap();
@@ -270,7 +272,7 @@ impl SsrcState {
                 &payload[payload_offset..payload_end_pad],
                 extensions,
                 missed_packets,
-                config.decode_mode == DecodeMode::Decode && decrypted,
+                should_decode && decrypted,
             )?;
 
             let rtp_data = RtpData {
@@ -279,8 +281,9 @@ impl SsrcState {
                 payload_end_pad,
             };
 
-            Ok(Some((audio.unwrap_or_default(), Some(rtp_data))))
-        } else {
+            out.packet = Some(rtp_data);
+            out.decoded_voice = audio;
+        } else if should_decode {
             let mut audio = vec![0; self.decode_size.len()];
             let dest_samples = (&mut audio[..])
                 .try_into()
@@ -288,8 +291,10 @@ impl SsrcState {
             let len = self.decoder.decode(None, dest_samples, false)?;
             audio.truncate(2 * len);
 
-            Ok(Some((audio, None)))
+            out.decoded_voice = Some(audio);
         }
+
+        Ok(Some(out))
     }
 
     fn scan_and_decode(
@@ -415,12 +420,8 @@ impl UdpRx {
 
                     for (ssrc, state) in &mut self.decoder_map {
                         match state.process(&self.config) {
-                            Ok(Some((decoded_voice, packet))) => {
-                                tick.speaking.insert(*ssrc, VoiceData {
-                                    packet,
-                                    decoded_voice,
-                                });
-
+                            Ok(Some(data)) => {
+                                tick.speaking.insert(*ssrc, data);
                             },
                             Ok(None) => {
                                 if !state.disconnected {
