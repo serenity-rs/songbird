@@ -13,7 +13,9 @@ use crate::driver::test_config::*;
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
 use derivative::Derivative;
-use std::{num::NonZeroUsize, time::Duration};
+#[cfg(feature = "receive")]
+use std::num::NonZeroUsize;
+use std::time::Duration;
 
 /// Configuration for drivers and calls.
 #[derive(Clone, Derivative)]
@@ -253,10 +255,18 @@ impl Config {
     }
 
     #[cfg(feature = "receive")]
-    /// Sets this `Config`'s received packet decoder cleanup timer.
+    /// Sets this `Config`'s playout buffer length, in packets.
     #[must_use]
     pub fn playout_buffer_length(mut self, playout_buffer_length: NonZeroUsize) -> Self {
         self.playout_buffer_length = playout_buffer_length;
+        self
+    }
+
+    #[cfg(feature = "receive")]
+    /// Sets this `Config`'s additional pre-allocated space to handle bursty audio packets.
+    #[must_use]
+    pub fn playout_spike_length(mut self, playout_spike_length: usize) -> Self {
+        self.playout_spike_length = playout_spike_length;
         self
     }
 
