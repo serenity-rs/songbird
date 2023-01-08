@@ -33,7 +33,7 @@ pub enum EventContext<'a> {
     SpeakingStateUpdate(Speaking),
 
     #[cfg(feature = "receive")]
-    /// Reordered and decoded audio packets, as well as known UserId<->SSRC data.
+    /// Reordered and decoded audio packets, received every 20ms.
     VoiceTick(VoiceTick),
 
     #[cfg(feature = "receive")]
