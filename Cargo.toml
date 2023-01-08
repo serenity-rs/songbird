@@ -85,7 +85,6 @@ tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 # Core features
 default = [
     "driver",
-    "receive",
     "gateway",
     "rustls",
     "serenity",
