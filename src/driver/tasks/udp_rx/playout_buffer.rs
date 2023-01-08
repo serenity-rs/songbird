@@ -49,15 +49,12 @@ pub struct PlayoutBuffer {
 }
 
 impl PlayoutBuffer {
-    pub fn new(pkt: &RtpPacket<'_>, config: &Config) -> Self {
-        //TODO: remove pkt param?
-        let playout_capacity = config.playout_buffer_length.get() + config.playout_spike_length;
-
+    pub fn new(capacity: usize, next_seq: RtpSequence) -> Self {
         Self {
-            playout_buffer: VecDeque::with_capacity(playout_capacity),
+            playout_buffer: VecDeque::with_capacity(capacity),
             playout_mode: PlayoutMode::Fill,
-            next_seq: pkt.get_sequence().0,
-            current_timestamp: Some(reset_timeout(pkt, config)),
+            next_seq,
+            current_timestamp: None,
         }
     }
 
@@ -73,8 +70,10 @@ impl PlayoutBuffer {
             self.current_timestamp = Some(reset_timeout(&rtp, config));
         }
 
-        // i32 has full range of u16 in each direction.
-        let desired_index = (rtp.get_sequence().0 .0 as i32) - (self.next_seq.0 as i32);
+        // compute index by taking wrapping difference between both seq numbers.
+        // If the difference is *too big*, or in the past [also 'too big, in a way],
+        // ignore the packet
+        let desired_index = (rtp.get_sequence().0 - self.next_seq).0 as i16;
 
         if desired_index < 0 {
             trace!("Missed packet arrived late, discarding from playout.");
@@ -98,7 +97,6 @@ impl PlayoutBuffer {
             return PacketLookup::Filling;
         }
 
-        // TODO: unset timestamp if queue is drained.
         let out = match self.playout_buffer.pop_front() {
             Some(Some(pkt)) => {
                 let rtp = RtpPacket::new(&pkt.packet)

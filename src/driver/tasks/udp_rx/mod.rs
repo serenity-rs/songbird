@@ -166,10 +166,6 @@ impl UdpRx {
                     None
                 };
 
-                // TODO: slot packet into Bytes here.
-                // move deocde processing AWAY from here.
-                // send raw pkt to event ctx as Bytes + tag [Rtp/Rtcp].
-
                 let rtp = rtp.to_immutable();
                 let (rtp_body_start, rtp_body_tail, decrypted) = packet_data.unwrap_or_else(|| {
                     (

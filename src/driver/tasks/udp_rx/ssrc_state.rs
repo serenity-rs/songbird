@@ -35,8 +35,10 @@ pub struct SsrcState {
 
 impl SsrcState {
     pub fn new(pkt: &RtpPacket<'_>, config: &Config) -> Self {
+        let playout_capacity = config.playout_buffer_length.get() + config.playout_spike_length;
+
         Self {
-            playout_buffer: PlayoutBuffer::new(pkt, config),
+            playout_buffer: PlayoutBuffer::new(playout_capacity, pkt.get_sequence().0),
             decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
                 .expect("Failed to create new Opus decoder for source."),
             decode_size: PacketDecodeSize::TwentyMillis,

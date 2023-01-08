@@ -121,7 +121,9 @@ impl VoiceEventHandler for Receiver {
 
                     self.inner.last_tick_was_empty.store(true, Ordering::SeqCst);
                 } else if speaking != 0 {
-                    self.inner.last_tick_was_empty.store(false, Ordering::SeqCst);
+                    self.inner
+                        .last_tick_was_empty
+                        .store(false, Ordering::SeqCst);
 
                     println!("Voice tick ({speaking}/{total_participants} live):");
 
