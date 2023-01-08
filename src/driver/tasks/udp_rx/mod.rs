@@ -77,7 +77,7 @@ impl UdpRx {
                     };
 
                     for (ssrc, state) in &mut self.decoder_map {
-                        match state.process(&self.config) {
+                        match state.get_voice_tick(&self.config) {
                             Ok(Some(data)) => {
                                 tick.speaking.insert(*ssrc, data);
                             },

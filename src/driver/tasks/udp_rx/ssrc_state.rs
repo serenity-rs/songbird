@@ -57,7 +57,7 @@ impl SsrcState {
         }
     }
 
-    pub fn process(&mut self, config: &Config) -> Result<Option<VoiceData>> {
+    pub fn get_voice_tick(&mut self, config: &Config) -> Result<Option<VoiceData>> {
         // Acquire a packet from the playout buffer:
         // Update nexts, lasts...
         // different cases: null packet who we want to decode as a miss, and packet who we must ignore temporarily.
