@@ -159,7 +159,7 @@ impl Connection {
                 .map_err(|_| Error::IllegalIp)?;
 
             let address = IpAddr::from_str(address_str).map_err(|e| {
-                println!("{:?}", e);
+                println!("{e:?}");
                 Error::IllegalIp
             })?;
 
@@ -335,8 +335,7 @@ fn generate_url(endpoint: &mut String) -> Result<Url> {
         endpoint.truncate(len - 3);
     }
 
-    Url::parse(&format!("wss://{}/?v={}", endpoint, VOICE_GATEWAY_VERSION))
-        .or(Err(Error::EndpointUrl))
+    Url::parse(&format!("wss://{endpoint}/?v={VOICE_GATEWAY_VERSION}")).or(Err(Error::EndpointUrl))
 }
 
 #[inline]

@@ -234,7 +234,7 @@ impl Read for AsyncAdapterStream {
                     std::thread::yield_now();
                 },
                 a => {
-                    println!("Misc err {:?}", a);
+                    println!("Misc err {a:?}");
                     return a;
                 },
             }

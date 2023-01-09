@@ -109,8 +109,8 @@ impl fmt::Display for Error {
             Self::IllegalIp => write!(f, "IP discovery/NAT punching response had bad IP value"),
             Self::Io(e) => e.fmt(f),
             Self::Json(e) => e.fmt(f),
-            Self::InterconnectFailure(e) => write!(f, "failed to contact other task ({:?})", e),
-            Self::Ws(e) => write!(f, "websocket issue ({:?}).", e),
+            Self::InterconnectFailure(e) => write!(f, "failed to contact other task ({e:?})"),
+            Self::Ws(e) => write!(f, "websocket issue ({e:?})."),
             Self::TimedOut => write!(f, "connection attempt timed out"),
         }
     }

@@ -66,7 +66,7 @@ impl HttpRequest {
 
         match (offset, self.content_length) {
             (Some(offset), None) => {
-                resp = resp.header(RANGE, format!("bytes={}-", offset));
+                resp = resp.header(RANGE, format!("bytes={offset}-"));
             },
             (offset, Some(max)) => {
                 resp = resp.header(

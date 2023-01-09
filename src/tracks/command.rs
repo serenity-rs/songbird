@@ -46,12 +46,12 @@ impl Debug for TrackCommand {
                 Self::Play => "Play".to_string(),
                 Self::Pause => "Pause".to_string(),
                 Self::Stop => "Stop".to_string(),
-                Self::Volume(vol) => format!("Volume({})", vol),
+                Self::Volume(vol) => format!("Volume({vol})"),
                 Self::Seek(s) => format!("Seek({:?})", s.time),
-                Self::AddEvent(evt) => format!("AddEvent({:?})", evt),
+                Self::AddEvent(evt) => format!("AddEvent({evt:?})"),
                 Self::Do(_f) => "Do([function])".to_string(),
-                Self::Request(tx) => format!("Request({:?})", tx),
-                Self::Loop(loops) => format!("Loop({:?})", loops),
+                Self::Request(tx) => format!("Request({tx:?})"),
+                Self::Loop(loops) => format!("Loop({loops:?})"),
                 Self::MakePlayable(_) => "MakePlayable".to_string(),
             }
         )

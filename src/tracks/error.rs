@@ -37,7 +37,7 @@ impl Display for ControlError {
                 write!(f, "given event listener can't be fired on a track")
             },
             ControlError::Play(p) => {
-                write!(f, "i/o request on track failed: {}", p)
+                write!(f, "i/o request on track failed: {p}")
             },
             ControlError::Dropped => write!(f, "request was replaced by another of same type"),
         }
