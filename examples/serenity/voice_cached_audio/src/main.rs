@@ -233,11 +233,9 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
-    let (handler_lock, success_reader) = manager.join(guild_id, connect_to).await;
+    if let Ok(handler_lock) = manager.join(guild_id, connect_to).await {
+        let call_lock_for_evt = Arc::downgrade(&handler_lock);
 
-    let call_lock_for_evt = Arc::downgrade(&handler_lock);
-
-    if let Ok(_reader) = success_reader {
         let mut handler = handler_lock.lock().await;
         check_msg(
             msg.channel_id

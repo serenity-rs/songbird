@@ -131,10 +131,8 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     let channel_id =
         NonZeroU64::new(channel_id).ok_or("Joined voice channel must have nonzero ID.")?;
 
-    let (_handle, success) = state.songbird.join(guild_id, channel_id).await;
-
-    let content = match success {
-        Ok(()) => format!("Joined <#{}>!", channel_id),
+    let content = match state.songbird.join(guild_id, channel_id).await {
+        Ok(_handle) => format!("Joined <#{}>!", channel_id),
         Err(e) => format!("Failed to join <#{}>! Why: {:?}", channel_id, e),
     };
 

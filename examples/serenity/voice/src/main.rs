@@ -161,11 +161,11 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
-    let (handler_lock, _success) = manager.join(guild_id, connect_to).await;
-
-    // Attach an event handler to see notifications of all track errors.
-    let mut handler = handler_lock.lock().await;
-    handler.add_global_event(TrackEvent::Error.into(), TrackErrorNotifier);
+    if let Ok(handler_lock) = manager.join(guild_id, connect_to).await {
+        // Attach an event handler to see notifications of all track errors.
+        let mut handler = handler_lock.lock().await;
+        handler.add_global_event(TrackEvent::Error.into(), TrackErrorNotifier);
+    }
 
     Ok(())
 }

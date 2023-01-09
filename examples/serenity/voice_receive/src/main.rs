@@ -253,9 +253,7 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
-    let (handler_lock, conn_result) = manager.join(guild_id, connect_to).await;
-
-    if let Ok(_) = conn_result {
+    if let Ok(handler_lock) = manager.join(guild_id, connect_to).await {
         // NOTE: this skips listening for the actual connection result.
         let mut handler = handler_lock.lock().await;
 
