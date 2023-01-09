@@ -38,13 +38,13 @@ simd-json = { features = ["serde_impl"], optional = true, version = "0.7.0" }
 socket2 = { optional = true, version = "0.4" }
 streamcatcher = { optional = true, version = "1" }
 tokio = { default-features = false, optional = true, version = "1.0" }
-tokio-tungstenite = { optional = true, version = "0.17" }
+tokio-tungstenite = { optional = true, version = "0.18" }
 tokio-util = { features = ["io"], optional = true, version = "0.7" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
 twilight-gateway = { default-features = false, optional = true, version = "0.14.0" }
 twilight-model = { default-features = false, optional = true, version = "0.14.0" }
-typemap_rev = { optional = true, version = "0.2" }
+typemap_rev = { optional = true, version = "0.3" }
 url = { optional = true, version = "2" }
 uuid = { features = ["v4"], optional = true, version = "1" }
 xsalsa20poly1305 = { features = ["std"], optional = true, version = "0.9" }
