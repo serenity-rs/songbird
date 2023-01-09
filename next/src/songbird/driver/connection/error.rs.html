@@ -251,8 +251,8 @@
             <span class="self">Self</span>::IllegalIp =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
             <span class="self">Self</span>::Io(e) =&gt; e.fmt(f),
             <span class="self">Self</span>::Json(e) =&gt; e.fmt(f),
-            <span class="self">Self</span>::InterconnectFailure(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;failed to contact other task ({:?})&quot;</span>, e),
-            <span class="self">Self</span>::Ws(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;websocket issue ({:?}).&quot;</span>, e),
+            <span class="self">Self</span>::InterconnectFailure(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;failed to contact other task ({e:?})&quot;</span>),
+            <span class="self">Self</span>::Ws(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;websocket issue ({e:?}).&quot;</span>),
             <span class="self">Self</span>::TimedOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;connection attempt timed out&quot;</span>),
         }
     }

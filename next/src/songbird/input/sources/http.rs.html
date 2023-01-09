@@ -359,7 +359,7 @@
 
         <span class="kw">match </span>(offset, <span class="self">self</span>.content_length) {
             (<span class="prelude-val">Some</span>(offset), <span class="prelude-val">None</span>) =&gt; {
-                resp = resp.header(RANGE, <span class="macro">format!</span>(<span class="string">&quot;bytes={}-&quot;</span>, offset));
+                resp = resp.header(RANGE, <span class="macro">format!</span>(<span class="string">&quot;bytes={offset}-&quot;</span>));
             },
             (offset, <span class="prelude-val">Some</span>(max)) =&gt; {
                 resp = resp.header(

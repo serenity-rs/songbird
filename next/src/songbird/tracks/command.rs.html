@@ -112,12 +112,12 @@
                 <span class="self">Self</span>::Play =&gt; <span class="string">&quot;Play&quot;</span>.to_string(),
                 <span class="self">Self</span>::Pause =&gt; <span class="string">&quot;Pause&quot;</span>.to_string(),
                 <span class="self">Self</span>::Stop =&gt; <span class="string">&quot;Stop&quot;</span>.to_string(),
-                <span class="self">Self</span>::Volume(vol) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Volume({})&quot;</span>, vol),
+                <span class="self">Self</span>::Volume(vol) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Volume({vol})&quot;</span>),
                 <span class="self">Self</span>::Seek(s) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Seek({:?})&quot;</span>, s.time),
-                <span class="self">Self</span>::AddEvent(evt) =&gt; <span class="macro">format!</span>(<span class="string">&quot;AddEvent({:?})&quot;</span>, evt),
+                <span class="self">Self</span>::AddEvent(evt) =&gt; <span class="macro">format!</span>(<span class="string">&quot;AddEvent({evt:?})&quot;</span>),
                 <span class="self">Self</span>::Do(_f) =&gt; <span class="string">&quot;Do([function])&quot;</span>.to_string(),
-                <span class="self">Self</span>::Request(tx) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Request({:?})&quot;</span>, tx),
-                <span class="self">Self</span>::Loop(loops) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Loop({:?})&quot;</span>, loops),
+                <span class="self">Self</span>::Request(tx) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Request({tx:?})&quot;</span>),
+                <span class="self">Self</span>::Loop(loops) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Loop({loops:?})&quot;</span>),
                 <span class="self">Self</span>::MakePlayable(<span class="kw">_</span>) =&gt; <span class="string">&quot;MakePlayable&quot;</span>.to_string(),
             }
         )

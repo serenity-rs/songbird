@@ -148,7 +148,7 @@
                 <span class="macro">write!</span>(f, <span class="string">&quot;given event listener can&#39;t be fired on a track&quot;</span>)
             },
             ControlError::Play(p) =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;i/o request on track failed: {}&quot;</span>, p)
+                <span class="macro">write!</span>(f, <span class="string">&quot;i/o request on track failed: {p}&quot;</span>)
             },
             ControlError::Dropped =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;request was replaced by another of same type&quot;</span>),
         }

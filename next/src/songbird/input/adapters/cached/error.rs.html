@@ -173,10 +173,10 @@
 <span class="kw">impl </span>Display <span class="kw">for </span>Error {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; FmtResult {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Create(c) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create audio stream: {}&quot;</span>, c)),
+            <span class="self">Self</span>::Create(c) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create audio stream: {c}&quot;</span>)),
             <span class="self">Self</span>::CreatePanicked =&gt; f.write_str(<span class="string">&quot;sync thread panicked while creating stream&quot;</span>),
             <span class="self">Self</span>::Streamcatcher(s) =&gt;
-                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;illegal streamcatcher config: {}&quot;</span>, s)),
+                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;illegal streamcatcher config: {s}&quot;</span>)),
             <span class="self">Self</span>::StreamNotAtStart =&gt;
                 f.write_str(<span class="string">&quot;stream cannot have been pre-read/parsed, missing headers&quot;</span>),
         }
@@ -233,9 +233,9 @@
 <span class="kw">impl </span>Display <span class="kw">for </span>CodecCacheError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; FmtResult {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Create(c) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create audio stream: {}&quot;</span>, c)),
-            <span class="self">Self</span>::Parse(p) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to parse audio format: {}&quot;</span>, p)),
-            <span class="self">Self</span>::Opus(o) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create Opus encoder: {}&quot;</span>, o)),
+            <span class="self">Self</span>::Create(c) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create audio stream: {c}&quot;</span>)),
+            <span class="self">Self</span>::Parse(p) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to parse audio format: {p}&quot;</span>)),
+            <span class="self">Self</span>::Opus(o) =&gt; f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;failed to create Opus encoder: {o}&quot;</span>)),
             <span class="self">Self</span>::MetadataEncoding(m) =&gt; f.write_fmt(<span class="macro">format_args!</span>(
                 <span class="string">&quot;failed to convert track metadata to JSON: {}&quot;</span>,
                 m
@@ -245,7 +245,7 @@
             <span class="self">Self</span>::UnknownChannelCount =&gt;
                 f.write_str(<span class="string">&quot;audio stream&#39;s channel count could not be determined&quot;</span>),
             <span class="self">Self</span>::Streamcatcher(s) =&gt;
-                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;illegal streamcatcher config: {}&quot;</span>, s)),
+                f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;illegal streamcatcher config: {s}&quot;</span>)),
             <span class="self">Self</span>::StreamNotAtStart =&gt;
                 f.write_str(<span class="string">&quot;stream cannot have been pre-read/parsed, missing headers&quot;</span>),
         }
