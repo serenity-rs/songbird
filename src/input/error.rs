@@ -25,7 +25,7 @@ impl Display for AudioStreamError {
         f.write_str("failed to create audio: ")?;
         match self {
             Self::RetryIn(t) => f.write_fmt(format_args!("retry in {:.2}s", t.as_secs_f32())),
-            Self::Fail(why) => f.write_fmt(format_args!("{}", why)),
+            Self::Fail(why) => f.write_fmt(format_args!("{why}")),
             Self::Unsupported => f.write_str("operation was not supported"),
         }
     }
@@ -150,8 +150,7 @@ impl Display for AuxMetadataError {
         f.write_str("failed to get aux_metadata: ")?;
         match self {
             Self::NoCompose => f.write_str("the input has no Compose object"),
-            Self::Retrieve(e) =>
-                f.write_fmt(format_args!("aux_metadata error from Compose: {}", e)),
+            Self::Retrieve(e) => f.write_fmt(format_args!("aux_metadata error from Compose: {e}")),
         }
     }
 }
