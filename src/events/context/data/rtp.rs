@@ -1,14 +1,16 @@
-use discortp::rtcp::RtcpPacket;
+use discortp::rtp::RtpPacket;
 
 use super::*;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
-/// Telemetry/statistics packet, received from another stream (detailed in `packet`).
+/// Opus audio packet, received from another stream (detailed in `packet`).
 /// `payload_offset` contains the true payload location within the raw packet's `payload()`,
-/// to allow manual decoding of `Rtcp` packet bodies.
-pub struct RtcpData {
-    /// Raw RTCP packet data.
+/// if extensions or raw packet data are required.
+pub struct RtpData {
+    /// Raw RTP packet data.
+    ///
+    /// Includes the SSRC (i.e., sender) of this packet.
     pub packet: Bytes,
     /// Byte index into the packet body (after headers) for where the payload begins.
     pub payload_offset: usize,
@@ -16,13 +18,13 @@ pub struct RtcpData {
     pub payload_end_pad: usize,
 }
 
-impl RtcpData {
-    /// Create a zero-copy view of the inner RTCP packet.
+impl RtpData {
+    /// Create a zero-copy view of the inner RTP packet.
     ///
     /// This allows easy access to packet header fields, taking them from the underlying
     /// `Bytes` as needed while handling endianness etc.
-    pub fn rtcp(&'_ self) -> RtcpPacket<'_> {
-        RtcpPacket::new(&self.packet)
+    pub fn rtp(&'_ self) -> RtpPacket<'_> {
+        RtpPacket::new(&self.packet)
             .expect("FATAL: leaked illegally small RTP packet from UDP Rx task.")
     }
 }

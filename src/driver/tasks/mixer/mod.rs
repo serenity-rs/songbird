@@ -657,6 +657,8 @@ impl Mixer {
                     None => {},
                 }
 
+                self.advance_rtp_timestamp();
+
                 return Ok(());
             }
         } else {
@@ -806,6 +808,18 @@ impl Mixer {
                 (Blame: VOICE_PACKET_MAX?)",
         );
         rtp.set_sequence(rtp.get_sequence() + 1);
+        rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
+    }
+
+    #[inline]
+    // Even if we don't send a packet, we *do* need to keep advancing the timestamp
+    // to make it easier for a receiver to reorder packets and compute jitter measures
+    // wrt. our clock difference vs. theirs.
+    fn advance_rtp_timestamp(&mut self) {
+        let mut rtp = MutableRtpPacket::new(&mut self.packet[..]).expect(
+            "FATAL: Too few bytes in self.packet for RTP header.\
+                (Blame: VOICE_PACKET_MAX?)",
+        );
         rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
     }
 
