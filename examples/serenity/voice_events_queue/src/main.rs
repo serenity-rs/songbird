@@ -174,9 +174,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
-    let (handle_lock, success) = manager.join(guild_id, connect_to).await;
-
-    if let Ok(_channel) = success {
+    if let Ok(handle_lock) = manager.join(guild_id, connect_to).await {
         check_msg(
             msg.channel_id
                 .say(&ctx.http, &format!("Joined {}", connect_to.mention()))
