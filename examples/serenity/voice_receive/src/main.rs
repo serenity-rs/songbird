@@ -6,7 +6,15 @@
 //! git = "https://github.com/serenity-rs/serenity.git"
 //! features = ["client", "standard_framework", "voice"]
 //! ```
-use std::env;
+use std::{
+    env,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+};
+
+use dashmap::DashMap;
 
 use serenity::{
     async_trait,
@@ -26,7 +34,11 @@ use serenity::{
 
 use songbird::{
     driver::DecodeMode,
-    model::payload::{ClientDisconnect, Speaking},
+    model::{
+        id::UserId,
+        payload::{ClientDisconnect, Speaking},
+    },
+    packet::Packet,
     Config,
     CoreEvent,
     Event,
@@ -44,13 +56,26 @@ impl EventHandler for Handler {
     }
 }
 
-struct Receiver;
+#[derive(Clone)]
+struct Receiver {
+    inner: Arc<InnerReceiver>,
+}
+
+struct InnerReceiver {
+    last_tick_was_empty: AtomicBool,
+    known_ssrcs: DashMap<u32, UserId>,
+}
 
 impl Receiver {
     pub fn new() -> Self {
         // You can manage state here, such as a buffer of audio packet bytes so
         // you can later store them in intervals.
-        Self {}
+        Self {
+            inner: Arc::new(InnerReceiver {
+                last_tick_was_empty: AtomicBool::default(),
+                known_ssrcs: DashMap::new(),
+            }),
+        }
     }
 }
 
@@ -81,34 +106,73 @@ impl VoiceEventHandler for Receiver {
                     "Speaking state update: user {:?} has SSRC {:?}, using {:?}",
                     user_id, ssrc, speaking,
                 );
+
+                if let Some(user) = user_id {
+                    self.inner.known_ssrcs.insert(*ssrc, *user);
+                }
             },
-            Ctx::SpeakingUpdate(data) => {
-                // You can implement logic here which reacts to a user starting
-                // or stopping speaking, and to map their SSRC to User ID.
-                println!(
-                    "Source {} has {} speaking.",
-                    data.ssrc,
-                    if data.speaking { "started" } else { "stopped" },
-                );
+            Ctx::VoiceTick(tick) => {
+                let speaking = tick.speaking.len();
+                let total_participants = speaking + tick.silent.len();
+                let last_tick_was_empty = self.inner.last_tick_was_empty.load(Ordering::SeqCst);
+
+                if speaking == 0 && !last_tick_was_empty {
+                    println!("No speakers");
+
+                    self.inner.last_tick_was_empty.store(true, Ordering::SeqCst);
+                } else if speaking != 0 {
+                    self.inner
+                        .last_tick_was_empty
+                        .store(false, Ordering::SeqCst);
+
+                    println!("Voice tick ({speaking}/{total_participants} live):");
+
+                    // You can also examine tick.silent to see users who are present
+                    // but haven't spoken in this tick.
+                    for (ssrc, data) in &tick.speaking {
+                        let user_id_str = if let Some(id) = self.inner.known_ssrcs.get(ssrc) {
+                            format!("{:?}", *id)
+                        } else {
+                            "?".into()
+                        };
+
+                        // This field should *always* exist under DecodeMode::Decode.
+                        // The `else` allows you to see how the other modes are affected.
+                        if let Some(decoded_voice) = data.decoded_voice.as_ref() {
+                            let voice_len = decoded_voice.len();
+                            let audio_str = format!(
+                                "first samples from {}: {:?}",
+                                voice_len,
+                                &decoded_voice[..voice_len.min(5)]
+                            );
+
+                            if let Some(packet) = &data.packet {
+                                let rtp = packet.rtp();
+                                println!(
+                                    "\t{ssrc}/{user_id_str}: packet seq {} ts {} -- {audio_str}",
+                                    rtp.get_sequence().0,
+                                    rtp.get_timestamp().0
+                                );
+                            } else {
+                                println!("\t{ssrc}/{user_id_str}: Missed packet -- {audio_str}");
+                            }
+                        } else {
+                            println!("\t{ssrc}/{user_id_str}: Decode disabled.");
+                        }
+                    }
+                }
             },
-            Ctx::VoicePacket(data) => {
+            Ctx::RtpPacket(packet) => {
                 // An event which fires for every received audio packet,
                 // containing the decoded data.
-                if let Some(audio) = data.audio {
-                    println!(
-                        "Audio packet's first 5 samples: {:?}",
-                        audio.get(..5.min(audio.len()))
-                    );
-                    println!(
-                        "Audio packet sequence {:05} has {:04} bytes (decompressed from {}), SSRC {}",
-                        data.packet.sequence.0,
-                        audio.len() * std::mem::size_of::<i16>(),
-                        data.packet.payload.len(),
-                        data.packet.ssrc,
-                    );
-                } else {
-                    println!("RTP packet, but no audio. Driver may not be configured to decode.");
-                }
+                let rtp = packet.rtp();
+                println!(
+                    "Received voice packet from SSRC {}, sequence {}, timestamp {} -- {}B long",
+                    rtp.get_ssrc(),
+                    rtp.get_sequence().0,
+                    rtp.get_timestamp().0,
+                    rtp.payload().len()
+                );
             },
             Ctx::RtcpPacket(data) => {
                 // An event which fires for every received rtcp packet,
@@ -195,15 +259,13 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         // NOTE: this skips listening for the actual connection result.
         let mut handler = handler_lock.lock().await;
 
-        handler.add_global_event(CoreEvent::SpeakingStateUpdate.into(), Receiver::new());
+        let evt_receiver = Receiver::new();
 
-        handler.add_global_event(CoreEvent::SpeakingUpdate.into(), Receiver::new());
-
-        handler.add_global_event(CoreEvent::VoicePacket.into(), Receiver::new());
-
-        handler.add_global_event(CoreEvent::RtcpPacket.into(), Receiver::new());
-
-        handler.add_global_event(CoreEvent::ClientDisconnect.into(), Receiver::new());
+        handler.add_global_event(CoreEvent::SpeakingStateUpdate.into(), evt_receiver.clone());
+        handler.add_global_event(CoreEvent::RtpPacket.into(), evt_receiver.clone());
+        handler.add_global_event(CoreEvent::RtcpPacket.into(), evt_receiver.clone());
+        handler.add_global_event(CoreEvent::ClientDisconnect.into(), evt_receiver.clone());
+        handler.add_global_event(CoreEvent::VoiceTick.into(), evt_receiver);
 
         check_msg(
             msg.channel_id

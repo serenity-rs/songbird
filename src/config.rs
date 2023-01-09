@@ -13,6 +13,8 @@ use crate::driver::test_config::*;
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
 use derivative::Derivative;
+#[cfg(feature = "receive")]
+use std::num::NonZeroUsize;
 use std::time::Duration;
 
 /// Configuration for drivers and calls.
@@ -35,10 +37,11 @@ pub struct Config {
     #[cfg(all(feature = "driver", feature = "receive"))]
     /// Configures whether decoding and decryption occur for all received packets.
     ///
-    /// If voice receiving voice packets, generally you should choose [`DecodeMode::Decode`].
-    /// [`DecodeMode::Decrypt`] is intended for users running their own selective decoding,
-    /// who rely upon [user speaking events], or who need to inspect Opus packets.
-    /// If you're certain you will never need any RT(C)P events, then consider [`DecodeMode::Pass`].
+    /// If receiving and using voice packets, generally you should choose [`DecodeMode::Decode`].
+    /// [`DecodeMode::Decrypt`] is intended for users running their own selective decoding or
+    /// who need to inspect Opus packets. [User speaking state] can still be seen using [`DecodeMode::Pass`].
+    /// If you're certain you will never need any RT(C)P events, then consider building without
+    /// the `"receive"` feature for extra performance.
     ///
     /// Defaults to [`DecodeMode::Decrypt`]. This is due to per-packet decoding costs,
     /// which most users will not want to pay, but allowing speaking events which are commonly used.
@@ -46,7 +49,7 @@ pub struct Config {
     /// [`DecodeMode::Decode`]: DecodeMode::Decode
     /// [`DecodeMode::Decrypt`]: DecodeMode::Decrypt
     /// [`DecodeMode::Pass`]: DecodeMode::Pass
-    /// [user speaking events]: crate::events::CoreEvent::SpeakingUpdate
+    /// [User speaking state]: crate::events::CoreEvent::VoiceTick
     pub decode_mode: DecodeMode,
 
     #[cfg(all(feature = "driver", feature = "receive"))]
@@ -55,6 +58,26 @@ pub struct Config {
     ///
     /// Defaults to 1 minute.
     pub decode_state_timeout: Duration,
+
+    #[cfg(all(feature = "driver", feature = "receive"))]
+    /// Configures the number of audio packets to buffer for each user before playout.
+    ///
+    /// A playout buffer allows Songbird to smooth out jitter in audio packet arrivals,
+    /// as well as to correct for reordering of packets by the network.
+    ///
+    /// This does not affect the arrival of raw packet events.
+    ///
+    /// Defaults to 5 packets (100ms).
+    pub playout_buffer_length: NonZeroUsize,
+
+    #[cfg(all(feature = "driver", feature = "receive"))]
+    /// Configures the initial amount of extra space allocated to handle packet bursts.
+    ///
+    /// Each SSRC's receive buffer will start at capacity `playout_buffer_length +
+    /// playout_spike_length`, up to a maximum 64 packets.
+    ///
+    /// Defaults to 3 packets (thus capacity defaults to 8).
+    pub playout_spike_length: usize,
 
     #[cfg(feature = "gateway")]
     /// Configures the amount of time to wait for Discord to reply with connection information
@@ -174,6 +197,10 @@ impl Default for Config {
             decode_mode: DecodeMode::Decrypt,
             #[cfg(all(feature = "driver", feature = "receive"))]
             decode_state_timeout: Duration::from_secs(60),
+            #[cfg(all(feature = "driver", feature = "receive"))]
+            playout_buffer_length: NonZeroUsize::new(5).unwrap(),
+            #[cfg(all(feature = "driver", feature = "receive"))]
+            playout_spike_length: 3,
             #[cfg(feature = "gateway")]
             gateway_timeout: Some(Duration::from_secs(10)),
             #[cfg(feature = "driver")]
@@ -224,6 +251,22 @@ impl Config {
     #[must_use]
     pub fn decode_state_timeout(mut self, decode_state_timeout: Duration) -> Self {
         self.decode_state_timeout = decode_state_timeout;
+        self
+    }
+
+    #[cfg(feature = "receive")]
+    /// Sets this `Config`'s playout buffer length, in packets.
+    #[must_use]
+    pub fn playout_buffer_length(mut self, playout_buffer_length: NonZeroUsize) -> Self {
+        self.playout_buffer_length = playout_buffer_length;
+        self
+    }
+
+    #[cfg(feature = "receive")]
+    /// Sets this `Config`'s additional pre-allocated space to handle bursty audio packets.
+    #[must_use]
+    pub fn playout_spike_length(mut self, playout_spike_length: usize) -> Self {
+        self.playout_spike_length = playout_spike_length;
         self
     }
 

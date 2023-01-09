@@ -33,18 +33,16 @@ pub enum EventContext<'a> {
     SpeakingStateUpdate(Speaking),
 
     #[cfg(feature = "receive")]
-    /// Speaking state transition, describing whether a given source has started/stopped
-    /// transmitting. This fires in response to a silent burst, or the first packet
-    /// breaking such a burst.
-    SpeakingUpdate(SpeakingUpdateData),
+    /// Reordered and decoded audio packets, received every 20ms.
+    VoiceTick(VoiceTick),
 
     #[cfg(feature = "receive")]
     /// Opus audio packet, received from another stream.
-    VoicePacket(VoiceData<'a>),
+    RtpPacket(RtpData),
 
     #[cfg(feature = "receive")]
     /// Telemetry/statistics packet, received from another stream.
-    RtcpPacket(RtcpData<'a>),
+    RtcpPacket(RtcpData),
 
     /// Fired whenever a client disconnects.
     ClientDisconnect(ClientDisconnect),
@@ -63,9 +61,9 @@ pub enum EventContext<'a> {
 pub enum CoreContext {
     SpeakingStateUpdate(Speaking),
     #[cfg(feature = "receive")]
-    SpeakingUpdate(InternalSpeakingUpdate),
+    VoiceTick(VoiceTick),
     #[cfg(feature = "receive")]
-    VoicePacket(InternalVoicePacket),
+    RtpPacket(InternalRtpPacket),
     #[cfg(feature = "receive")]
     RtcpPacket(InternalRtcpPacket),
     ClientDisconnect(ClientDisconnect),
@@ -79,10 +77,9 @@ impl<'a> CoreContext {
         match self {
             Self::SpeakingStateUpdate(evt) => EventContext::SpeakingStateUpdate(*evt),
             #[cfg(feature = "receive")]
-            Self::SpeakingUpdate(evt) =>
-                EventContext::SpeakingUpdate(SpeakingUpdateData::from(evt)),
+            Self::VoiceTick(evt) => EventContext::VoiceTick(evt.clone()),
             #[cfg(feature = "receive")]
-            Self::VoicePacket(evt) => EventContext::VoicePacket(VoiceData::from(evt)),
+            Self::RtpPacket(evt) => EventContext::RtpPacket(RtpData::from(evt)),
             #[cfg(feature = "receive")]
             Self::RtcpPacket(evt) => EventContext::RtcpPacket(RtcpData::from(evt)),
             Self::ClientDisconnect(evt) => EventContext::ClientDisconnect(*evt),
@@ -102,9 +99,9 @@ impl EventContext<'_> {
         match self {
             Self::SpeakingStateUpdate(_) => Some(CoreEvent::SpeakingStateUpdate),
             #[cfg(feature = "receive")]
-            Self::SpeakingUpdate(_) => Some(CoreEvent::SpeakingUpdate),
+            Self::VoiceTick(_) => Some(CoreEvent::VoiceTick),
             #[cfg(feature = "receive")]
-            Self::VoicePacket(_) => Some(CoreEvent::VoicePacket),
+            Self::RtpPacket(_) => Some(CoreEvent::RtpPacket),
             #[cfg(feature = "receive")]
             Self::RtcpPacket(_) => Some(CoreEvent::RtcpPacket),
             Self::ClientDisconnect(_) => Some(CoreEvent::ClientDisconnect),

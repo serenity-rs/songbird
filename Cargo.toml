@@ -17,6 +17,7 @@ version = "0.3.0"
 async-trait = { optional = true, version = "0.1" }
 audiopus = { optional = true, version = "0.3.0-rc.0" }
 byteorder = { optional = true, version = "1" }
+bytes = { optional = true, version = "1" }
 dashmap = { optional = true, version = "5" }
 derivative = "2"
 discortp = { default-features = false, features = ["discord", "pnet", "rtp"], optional = true, version = "0.5" }
@@ -147,7 +148,7 @@ twilight = ["dep:twilight-gateway","dep:twilight-model"]
 
 # Behaviour altering features.
 builtin-queue = []
-receive = ["discortp?/demux", "discortp?/rtcp"]
+receive = ["dep:bytes", "discortp?/demux", "discortp?/rtcp"]
 
 # Used for docgen/testing/benchmarking.
 full-doc = ["default", "twilight", "builtin-queue", "receive"]
