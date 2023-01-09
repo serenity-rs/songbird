@@ -216,11 +216,13 @@ impl Songbird {
     ///
     /// Twilight users should read the caveats mentioned in [`process`].
     ///
+    /// NOTE: an `Err(..)` value will still create a [`Call`] accessible via [`get`].
+    ///
     /// [`Call`]: Call
     /// [`get`]: Songbird::get
     /// [`process`]: #method.process
     #[inline]
-    pub async fn join<C, G>(&self, guild_id: G, channel_id: C) -> (Arc<Mutex<Call>>, JoinResult<()>)
+    pub async fn join<C, G>(&self, guild_id: G, channel_id: C) -> JoinResult<Arc<Mutex<Call>>>
     where
         C: Into<ChannelId>,
         G: Into<GuildId>,
@@ -233,7 +235,7 @@ impl Songbird {
         &self,
         guild_id: GuildId,
         channel_id: ChannelId,
-    ) -> (Arc<Mutex<Call>>, JoinResult<()>) {
+    ) -> JoinResult<Arc<Mutex<Call>>> {
         let call = self.get_or_insert(guild_id);
 
         let stage_1 = {
@@ -241,12 +243,10 @@ impl Songbird {
             handler.join(channel_id).await
         };
 
-        let result = match stage_1 {
-            Ok(chan) => chan.await,
+        match stage_1 {
+            Ok(chan) => chan.await.map(|_| call),
             Err(e) => Err(e),
-        };
-
-        (call, result)
+        }
     }
 
     /// Partially connects to a target by retrieving its relevant [`Call`] and
@@ -255,13 +255,16 @@ impl Songbird {
     /// This method returns the handle and the connection info needed for other libraries
     /// or drivers, such as lavalink, and does not actually start or run a voice call.
     ///
+    /// NOTE: an `Err(..)` value will still create a [`Call`] accessible via [`get`].
+    ///
     /// [`Call`]: Call
+    /// [`get`]: Songbird::get
     #[inline]
     pub async fn join_gateway<C, G>(
         &self,
         guild_id: G,
         channel_id: C,
-    ) -> (Arc<Mutex<Call>>, JoinResult<ConnectionInfo>)
+    ) -> JoinResult<(ConnectionInfo, Arc<Mutex<Call>>)>
     where
         C: Into<ChannelId>,
         G: Into<GuildId>,
@@ -273,7 +276,7 @@ impl Songbird {
         &self,
         guild_id: GuildId,
         channel_id: ChannelId,
-    ) -> (Arc<Mutex<Call>>, JoinResult<ConnectionInfo>) {
+    ) -> JoinResult<(ConnectionInfo, Arc<Mutex<Call>>)> {
         let call = self.get_or_insert(guild_id);
 
         let stage_1 = {
@@ -281,12 +284,13 @@ impl Songbird {
             handler.join_gateway(channel_id).await
         };
 
-        let result = match stage_1 {
-            Ok(chan) => chan.await.map_err(|_| JoinError::Dropped),
+        match stage_1 {
+            Ok(chan) => chan
+                .await
+                .map_err(|_| JoinError::Dropped)
+                .map(|info| (info, call)),
             Err(e) => Err(e),
-        };
-
-        (call, result)
+        }
     }
 
     /// Retrieves the [handler][`Call`] for the given target and leaves the

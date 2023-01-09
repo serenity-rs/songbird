@@ -91,8 +91,7 @@ impl Display for CodecCacheError {
             Self::Parse(p) => f.write_fmt(format_args!("failed to parse audio format: {p}")),
             Self::Opus(o) => f.write_fmt(format_args!("failed to create Opus encoder: {o}")),
             Self::MetadataEncoding(m) => f.write_fmt(format_args!(
-                "failed to convert track metadata to JSON: {}",
-                m
+                "failed to convert track metadata to JSON: {m}"
             )),
             Self::MetadataTooLarge => f.write_str("track metadata was too large, >= 32kiB"),
             Self::CreatePanicked => f.write_str("sync thread panicked while creating stream"),
