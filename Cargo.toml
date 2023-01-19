@@ -37,6 +37,8 @@ serde_json = "1"
 simd-json = { features = ["serde_impl"], optional = true, version = "0.7.0" }
 socket2 = { optional = true, version = "0.4" }
 streamcatcher = { optional = true, version = "1" }
+symphonia = { default_features = false, optional = true, version = "0.5.2" }
+symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tokio-tungstenite = { optional = true, version = "0.18" }
 tokio-util = { features = ["io"], optional = true, version = "0.7" }
@@ -59,21 +61,10 @@ optional = true
 version = "0.11"
 optional = true
 
-[dependencies.symphonia]
-git = "https://github.com/pdeljanov/Symphonia"
-default-features = false
-optional = true
-version = "0.5"
-
-[dependencies.symphonia-core]
-git = "https://github.com/pdeljanov/Symphonia"
-optional = true
-version = "0.5"
-
 [dev-dependencies]
 criterion = "0.4"
 ntest = "0.9"
-symphonia = { version = "0.5", features = ["aac", "isomp4", "mp3"], git = "https://github.com/pdeljanov/Symphonia" }
+symphonia = { version = "0.5.2", features = ["aac", "isomp4", "mp3"] }
 utils = { path = "utils" }
 tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 
