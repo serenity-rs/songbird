@@ -5,6 +5,7 @@ authors = ["my name <my@email.address>"]
 edition = "2021"
 
 [dependencies]
+symphonia = { features = ["mp3"], version = "0.5.2" }
 tracing = "0.1"
 tracing-subscriber = "0.2"
 tracing-futures = "0.2"
@@ -16,11 +17,6 @@ path = "../../../"
 features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"]
 git = "https://github.com/serenity-rs/serenity"
 branch = "next"
-
-[dependencies.symphonia]
-version = "0.5"
-features = ["mp3"]
-git = "https://github.com/pdeljanov/Symphonia"
 
 [dependencies.tokio]
 version = "1.0"

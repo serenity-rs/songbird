@@ -39,8 +39,6 @@ features = ["builtin-queue"]
 [dependencies.symphonia]
 # version = "0.5"
 features = ["aac", "mp3", "isomp4", "alac"] # ...as well as any extras you need!
-# **NOTE**: For now, please use this repository in pre-releases.
-git = "https://github.com/pdeljanov/Symphonia"
 ```
 
 ## Dependencies
