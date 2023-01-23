@@ -37,7 +37,7 @@ features = ["builtin-queue"]
 # To get additional codecs, you *must* add Symphonia yourself.
 # This includes the default formats (MKV/WebM, Ogg, Wave) and codecs (FLAC, PCM, Vorbis)...
 [dependencies.symphonia]
-# version = "0.5"
+version = "0.5.2"
 features = ["aac", "mp3", "isomp4", "alac"] # ...as well as any extras you need!
 ```
 
