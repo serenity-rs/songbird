@@ -12,7 +12,7 @@ use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
-use std::error::Error;
+use std::{error::Error, io::ErrorKind};
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
 
@@ -63,7 +63,13 @@ impl YoutubeDl {
             .args(ytdl_args)
             .output()
             .await
-            .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
+            .map_err(|e| {
+                AudioStreamError::Fail(if e.kind() == ErrorKind::NotFound {
+                    format!("could not find executable '{}' on path", self.program).into()
+                } else {
+                    Box::new(e)
+                })
+            })?;
 
         // NOTE: must be mut for simd-json.
         #[allow(clippy::unnecessary_mut_passed)]
@@ -156,5 +162,13 @@ mod tests {
     #[ntest::timeout(20_000)]
     async fn ytdl_backward_seek_correct() {
         backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(20_000)]
+    async fn fake_exe_errors() {
+        let mut ytdl = YoutubeDl::new_ytdl_like("yt-dlq", Client::new(), YTDL_TARGET.into());
+
+        assert!(ytdl.aux_metadata().await.is_err());
     }
 }
