@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-version = "0.3.0"
+version = "0.3.1"
 
 [dependencies]
 derivative = "2"
