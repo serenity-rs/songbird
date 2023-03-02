@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.1] — 2023-03-02
+
+This patch release applies some minor fixes, while correcting documentation errors and adjusting some organisaation in the repository.
+
+Thanks to the following for their contributions:
+
+- [@btoschek]
+- [@FelixMcFelix]
+- [@JamesDSource]
+- [@tazz4843]
+
+### Added
+
+- [repo] Repo: Update issue templates ([@FelixMcFelix]) [c:eedab8f]
+
+### Fixed
+
+- [docs] Chore: Fix README.md CI badge (#161) ([@FelixMcFelix]) [c:d6c82f5]
+- [input] Input: Fix read position after seek restart (#154) ([@JamesDSource]) [c:39a6f69]
+- [docs] Docs: Fix wrong docstring for Track::volume (#152) ([@btoschek]) [c:a2f55b7]
+- [docs] Events: Fix typo in docs for VoiceData (#142) ([@tazz4843]) [c:dc53087]
+
 ## [0.3.0] — 2022-07-22 — **Chaffinch**
 
 Abundant and ever-curious, chaffinches are a vibrant and welcome visitor in these spring and summer months.
@@ -16,7 +38,7 @@ Thanks to the following for their contributions:
 - [@wlcx]
 
 ### Upgrade Pathway
-* Tokio v0.2 support has been removed in parity with other Discord -- users must now migrate to v1.x.x.
+* Tokio v0.2 support has been removed in parity with other Discord libraries -- users must now migrate to v1.x.x.
 * Deprecated events (`ClientConnect`, `DriverConnectFailed`, `DriverReconnectFailed` and `SsrcKnown`) have been removed.
  * `ClientConnect` must now be detected using VoiceStateUpdate messages from your main gateway library of choice.
  * The remainder should be replaced with `DriverDisconnect`, and `DriverConnect`/`DriverReconnect`
@@ -398,6 +420,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.3.1]: https://github.com/serenity-rs/songbird/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/serenity-rs/songbird/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/serenity-rs/songbird/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/serenity-rs/songbird/compare/v0.2.0...v0.2.1
@@ -416,6 +439,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@acdenisSK]: https://github.com/acdenisSK
 [@Arcterus]: https://github.com/Arcterus
 [@asg051]: https://github.com/asg051
+[@btoschek]: https://github.com/btoschek
 [@clarity0]: https://github.com/clarity0
 [@DasEtwas]: https://github.com/DasEtwas
 [@DoumanAsh]: https://github.com/DoumanAsh
@@ -429,6 +453,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@hiratara]: https://github.com/hiratara
 [@indiv0]: https://github.com/indiv0
 [@james7132]: https://github.com/james7132
+[@JamesDSource]: https://github.com/JamesDSource
 [@JellyWX]: https://github.com/JellyWX
 [@jtscuba]: https://github.com/jtscuba
 [@Lakelezz]: https://github.com/Lakelezz
@@ -450,6 +475,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@s0lst1ce]: https://github.com/s0lst1ce
 [@Sreyas-Sreelal]: https://github.com/Sreyas-Sreelal
 [@tarcieri]: https://github.com/tarcieri
+[@tazz4843]: https://github.com/tazz4843
 [@tktcorporation]: https://github.com/tktcorporation
 [@vaporox]: https://github.com/vaporox
 [@vilgotf]: https://github.com/vilgotf
@@ -457,6 +483,11 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@wlcx]: https://github.com/wlcx
 
 <!-- COMMITS -->
+[c:eedab8f]: https://github.com/serenity-rs/songbird/commit/eedab8f69d1c17125971e290ee8a50fc1adcdffc
+[c:d6c82f5]: https://github.com/serenity-rs/songbird/commit/d6c82f52a6ea876d15a9196de1a7f8a12432407b
+[c:39a6f69]: https://github.com/serenity-rs/songbird/commit/39a6f69f2324b89d17d7200905a9737d057c0d7e
+[c:a2f55b7]: https://github.com/serenity-rs/songbird/commit/a2f55b7a35539c00e3a75edfb01d1777e8b19741
+[c:dc53087]: https://github.com/serenity-rs/songbird/commit/dc530874462d5d929ecdf087d74a1301fc863981
 [c:bacf681]: https://github.com/serenity-rs/songbird/commit/bacf68146555db018e59e8276d2617c69a9beaa0
 [c:b4ce845]: https://github.com/serenity-rs/songbird/commit/b4ce84546b8e98d696d5b1b37f05c096486cd313
 [c:8dedf3b]: https://github.com/serenity-rs/songbird/commit/8dedf3bf011640edf0834c8e931b8e5ca5b406aa
