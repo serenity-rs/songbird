@@ -79,7 +79,7 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [audiopus]: https://github.com/lakelezz/audiopus
 [according to the installation instructions on the main repo]: https://github.com/yt-dlp/yt-dlp#installation
 
-[build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/CI?style=flat-square
+[build badge]: https://img.shields.io/github/actions/workflow/status/serenity-rs/songbird/ci.yml?branch=current&style=flat-square
 [build]: https://github.com/serenity-rs/songbird/actions
 
 [docs-badge]: https://img.shields.io/badge/docs-current-4d76ae.svg?style=flat-square
