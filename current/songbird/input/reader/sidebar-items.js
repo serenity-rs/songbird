@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Reader","Usable data/byte sources for an audio stream."]],"trait":[["MediaSource","`MediaSource` is a composite trait of [`std::io::Read`] and [`std::io::Seek`]. A source must implement this trait to be used by [`MediaSourceStream`]."]]};
+window.SIDEBAR_ITEMS = {"enum":["Reader"],"trait":["MediaSource"]};

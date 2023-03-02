@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["DcaError","An error returned from the `dca` method."],["Error","An error returned when creating a new `Input`."]],"type":[["Result","Convenience type for fallible return of `Input`s."]]};
+window.SIDEBAR_ITEMS = {"enum":["DcaError","Error"],"type":["Result"]};
