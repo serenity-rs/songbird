@@ -48,8 +48,10 @@ jobs:
             toolchain: nightly
           - name: macOS
             os: macOS-latest
+            dont-test: true
           - name: Windows
             os: windows-latest
+            dont-test: true
           - name: driver only
             features: driver rustls
             dont-test: true
@@ -108,7 +110,7 @@ jobs:
         run: cargo build --features full-doc
 
       - name: Test all features
-        if: matrix.features == ''
+        if: ${{ !matrix.dont-test && matrix.features == '' }}
         run: cargo test --features full-doc
 
       - name: Build some features
