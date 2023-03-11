@@ -323,6 +323,7 @@ enum AdapterResponse {
     ReadOccurred,
 }
 
+#[derive(Copy, Clone)]
 enum Operation {
     Read { block: bool },
     Seek,
@@ -330,14 +331,14 @@ enum Operation {
 }
 
 impl Operation {
-    fn will_block(&self) -> bool {
+    fn will_block(self) -> bool {
         match self {
-            Self::Read { block } => *block,
+            Self::Read { block } => block,
             _ => true,
         }
     }
 
-    fn expected_msg(&self, msg: &AdapterResponse) -> bool {
+    fn expected_msg(self, msg: &AdapterResponse) -> bool {
         match self {
             Self::Read { .. } => matches!(
                 msg,
