@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Strategy","Logic used to determine how long to wait between retry attempts."]],"struct":[["ExponentialBackoff","Exponential backoff waiting strategy."],["Retry","Configuration to be used for retrying driver connection attempts."]]};
+window.SIDEBAR_ITEMS = {"enum":["Strategy"],"struct":["ExponentialBackoff","Retry"]};

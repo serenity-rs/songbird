@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ChannelId","ID of a Discord voice/text channel."],["GuildId","ID of a Discord guild (colloquially, “server”)."],["UserId","ID of a Discord user."]]};
+window.SIDEBAR_ITEMS = {"struct":["ChannelId","GuildId","UserId"]};
