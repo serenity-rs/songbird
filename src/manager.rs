@@ -185,6 +185,16 @@ impl Songbird {
         })
     }
 
+    /// Creates an iterator for all [`Call`]s currently managed.
+    pub fn iter(&self) -> Iter<'_> {
+        Iter {
+            inner: self
+                .calls
+                .iter()
+                .map(|x| (*x.key(), Arc::clone(&x.value()))),
+        }
+    }
+
     /// Sets a shared configuration for all drivers created from this
     /// manager.
     ///
@@ -446,6 +456,40 @@ impl VoiceGatewayManager for Songbird {
             let mut handler = call.lock().await;
             handler.update_state(voice_state.session_id.clone(), voice_state.channel_id);
         }
+    }
+}
+
+type DashMapIter<'a> = dashmap::iter::Iter<'a, GuildId, Arc<Mutex<Call>>>;
+
+/// An iterator over all [`Call`]s currently stored in the manager instance.
+pub struct Iter<'a> {
+    inner: std::iter::Map<
+        DashMapIter<'a>,
+        fn(<DashMapIter<'a> as Iterator>::Item) -> (GuildId, Arc<Mutex<Call>>),
+    >,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = (GuildId, Arc<Mutex<Call>>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+
+    fn count(self) -> usize {
+        self.inner.count()
+    }
+
+    fn fold<B, F>(self, init: B, f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
+    {
+        self.inner.fold(init, f)
     }
 }
 
