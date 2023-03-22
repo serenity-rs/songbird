@@ -57,7 +57,13 @@ impl YoutubeDl {
     }
 
     async fn query(&mut self) -> Result<Output, AudioStreamError> {
-        let ytdl_args = ["-j", &self.url, "-f", "ba[abr>0][vcodec=none]/best"];
+        let ytdl_args = [
+            "-j",
+            &self.url,
+            "-f",
+            "ba[abr>0][vcodec=none]/best",
+            "--no-playlist",
+        ];
 
         let mut output = Command::new(self.program)
             .args(ytdl_args)
@@ -144,12 +150,20 @@ mod tests {
     use reqwest::Client;
 
     use super::*;
-    use crate::{constants::test_data::YTDL_TARGET, input::input_tests::*};
+    use crate::constants::test_data::*;
+    use crate::input::input_tests::*;
 
     #[tokio::test]
     #[ntest::timeout(20_000)]
     async fn ytdl_track_plays() {
         track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(20_000)]
+    async fn ytdl_page_with_playlist_plays() {
+        track_plays_passthrough(|| YoutubeDl::new(Client::new(), YTDL_PLAYLIST_TARGET.into()))
+            .await;
     }
 
     #[tokio::test]
