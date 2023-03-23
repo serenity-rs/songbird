@@ -188,10 +188,7 @@ impl Songbird {
     /// Creates an iterator for all [`Call`]s currently managed.
     pub fn iter(&self) -> Iter<'_> {
         Iter {
-            inner: self
-                .calls
-                .iter()
-                .map(|x| (*x.key(), Arc::clone(&x.value()))),
+            inner: self.calls.iter().map(|x| (*x.key(), Arc::clone(x.value()))),
         }
     }
 
@@ -460,13 +457,14 @@ impl VoiceGatewayManager for Songbird {
 }
 
 type DashMapIter<'a> = dashmap::iter::Iter<'a, GuildId, Arc<Mutex<Call>>>;
+type InnerIter<'a> = std::iter::Map<
+    DashMapIter<'a>,
+    fn(<DashMapIter<'a> as Iterator>::Item) -> (GuildId, Arc<Mutex<Call>>),
+>;
 
 /// An iterator over all [`Call`]s currently stored in the manager instance.
 pub struct Iter<'a> {
-    inner: std::iter::Map<
-        DashMapIter<'a>,
-        fn(<DashMapIter<'a> as Iterator>::Item) -> (GuildId, Arc<Mutex<Call>>),
-    >,
+    inner: InnerIter<'a>,
 }
 
 impl<'a> Iterator for Iter<'a> {
