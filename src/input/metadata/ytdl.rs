@@ -3,7 +3,7 @@ use crate::constants::SAMPLE_RATE_RAW;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::Duration};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Output {
     pub artist: Option<String>,
     pub album: Option<String>,
