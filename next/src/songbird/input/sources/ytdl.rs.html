@@ -172,6 +172,20 @@
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
 <a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::input::{
     metadata::ytdl::Output,
     AudioStream,
@@ -231,7 +245,13 @@
     }
 
     <span class="kw">async fn </span>query(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Output, AudioStreamError&gt; {
-        <span class="kw">let </span>ytdl_args = [<span class="string">&quot;-j&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.url, <span class="string">&quot;-f&quot;</span>, <span class="string">&quot;ba[abr&gt;0][vcodec=none]/best&quot;</span>];
+        <span class="kw">let </span>ytdl_args = [
+            <span class="string">&quot;-j&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.url,
+            <span class="string">&quot;-f&quot;</span>,
+            <span class="string">&quot;ba[abr&gt;0][vcodec=none]/best&quot;</span>,
+            <span class="string">&quot;--no-playlist&quot;</span>,
+        ];
 
         <span class="kw">let </span><span class="kw-2">mut </span>output = Command::new(<span class="self">self</span>.program)
             .args(ytdl_args)
@@ -318,12 +338,20 @@
     <span class="kw">use </span>reqwest::Client;
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use crate</span>::{constants::test_data::YTDL_TARGET, input::input_tests::<span class="kw-2">*</span>};
+    <span class="kw">use </span><span class="kw">crate</span>::constants::test_data::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::input::input_tests::<span class="kw-2">*</span>;
 
     <span class="attr">#[tokio::test]
     #[ntest::timeout(<span class="number">20_000</span>)]
     </span><span class="kw">async fn </span>ytdl_track_plays() {
         track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).<span class="kw">await</span>;
+    }
+
+    <span class="attr">#[tokio::test]
+    #[ntest::timeout(<span class="number">20_000</span>)]
+    </span><span class="kw">async fn </span>ytdl_page_with_playlist_plays() {
+        track_plays_passthrough(|| YoutubeDl::new(Client::new(), YTDL_PLAYLIST_TARGET.into()))
+            .<span class="kw">await</span>;
     }
 
     <span class="attr">#[tokio::test]

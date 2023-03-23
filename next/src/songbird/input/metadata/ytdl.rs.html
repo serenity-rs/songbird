@@ -58,7 +58,7 @@
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::{collections::HashMap, time::Duration};
 
-<span class="attr">#[derive(Deserialize, Serialize)]
+<span class="attr">#[derive(Deserialize, Serialize, Debug)]
 </span><span class="kw">pub struct </span>Output {
     <span class="kw">pub </span>artist: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="kw">pub </span>album: <span class="prelude-ty">Option</span>&lt;String&gt;,

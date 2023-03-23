@@ -118,6 +118,13 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Constants affecting driver function and API handling.
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
@@ -206,6 +213,13 @@
     ///
     /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
     </span><span class="kw">pub const </span>YTDL_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://cloudkicker.bandcamp.com/track/94-days&quot;</span>;
+
+    <span class="doccomment">/// URL for a source that has both a playlist and a music video,
+    /// which YTDL should extract.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    </span><span class="kw">pub const </span>YTDL_PLAYLIST_TARGET: <span class="kw-2">&amp;</span>str =
+        <span class="string">&quot;https://www.youtube.com/watch?v=hAl_mSCEe5w&amp;list=RDhAl_mSCEe5w&amp;start_radio=1&quot;</span>;
 
     <span class="doccomment">/// URL for a source which can be read via an Http Request.
     ///
