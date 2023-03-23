@@ -60,7 +60,7 @@ pub async fn track_plays_base<T, F>(
 
     // post-conditions:
     // 1) track produces a packet.
-    // 2) that packet is passthrough.
+    // 2) that packet is passthrough/mixed when we expect them to.
     let pkt = t_handle.recv_async().await;
     let pkt = pkt.raw().unwrap();
 

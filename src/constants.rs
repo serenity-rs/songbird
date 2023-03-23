@@ -87,6 +87,13 @@ pub mod test_data {
     /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
     pub const YTDL_TARGET: &str = "https://cloudkicker.bandcamp.com/track/94-days";
 
+    /// URL for a source that has both a playlist and a music video,
+    /// which YTDL should extract.
+    ///
+    /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by/3.0/
+    pub const YTDL_PLAYLIST_TARGET: &str =
+        "https://www.youtube.com/watch?v=hAl_mSCEe5w&list=RDhAl_mSCEe5w&start_radio=1";
+
     /// URL for a source which can be read via an Http Request.
     ///
     /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
