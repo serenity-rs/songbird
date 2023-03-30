@@ -17,6 +17,7 @@ mod crypto;
 mod decode_mode;
 mod mix_mode;
 pub mod retry;
+mod scheduler;
 pub(crate) mod tasks;
 #[cfg(test)]
 pub(crate) mod test_config;
