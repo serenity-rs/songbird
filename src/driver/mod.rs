@@ -31,6 +31,8 @@ pub use mix_mode::MixMode;
 pub use test_config::*;
 
 #[cfg(feature = "builtin-queue")]
+use crate::tracks;
+#[cfg(feature = "builtin-queue")]
 use crate::tracks::TrackQueue;
 use crate::{
     events::EventData,

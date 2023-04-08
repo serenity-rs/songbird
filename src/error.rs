@@ -11,7 +11,7 @@ pub use simd_json::Error as JsonError;
 #[cfg(feature = "gateway")]
 use std::{error::Error, fmt};
 #[cfg(feature = "twilight")]
-use twilight_gateway::{cluster::ClusterCommandError, shard::CommandError};
+use twilight_gateway::error::SendError;
 
 #[cfg(feature = "gateway")]
 #[derive(Debug)]
@@ -50,11 +50,8 @@ pub enum JoinError {
     /// Serenity-specific WebSocket send error.
     Serenity(TrySendError<InterMessage>),
     #[cfg(feature = "twilight")]
-    /// Twilight-specific WebSocket send error returned when using a shard cluster.
-    TwilightCluster(ClusterCommandError),
-    #[cfg(feature = "twilight")]
-    /// Twilight-specific WebSocket send error when explicitly using a single shard.
-    TwilightShard(CommandError),
+    /// Twilight-specific WebSocket send error when a message fails to send over websocket.
+    Twilight(SendError),
 }
 
 #[cfg(feature = "gateway")]
@@ -96,9 +93,7 @@ impl fmt::Display for JoinError {
             #[cfg(feature = "serenity")]
             JoinError::Serenity(e) => e.fmt(f),
             #[cfg(feature = "twilight")]
-            JoinError::TwilightCluster(e) => e.fmt(f),
-            #[cfg(feature = "twilight")]
-            JoinError::TwilightShard(e) => e.fmt(f),
+            JoinError::Twilight(e) => e.fmt(f),
         }
     }
 }
@@ -116,9 +111,7 @@ impl Error for JoinError {
             #[cfg(feature = "serenity")]
             JoinError::Serenity(e) => e.source(),
             #[cfg(feature = "twilight")]
-            JoinError::TwilightCluster(e) => e.source(),
-            #[cfg(feature = "twilight")]
-            JoinError::TwilightShard(e) => e.source(),
+            JoinError::Twilight(e) => e.source(),
         }
     }
 }
@@ -131,16 +124,9 @@ impl From<TrySendError<InterMessage>> for JoinError {
 }
 
 #[cfg(all(feature = "twilight", feature = "gateway"))]
-impl From<CommandError> for JoinError {
-    fn from(e: CommandError) -> Self {
-        JoinError::TwilightShard(e)
-    }
-}
-
-#[cfg(all(feature = "twilight", feature = "gateway"))]
-impl From<ClusterCommandError> for JoinError {
-    fn from(e: ClusterCommandError) -> Self {
-        JoinError::TwilightCluster(e)
+impl From<SendError> for JoinError {
+    fn from(e: SendError) -> Self {
+        JoinError::Twilight(e)
     }
 }
 
