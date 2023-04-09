@@ -15,7 +15,7 @@ use serenity::client::bridge::gateway::ShardRunnerMessage;
 #[cfg(feature = "serenity")]
 use std::result::Result as StdResult;
 use std::sync::Arc;
-#[cfg(feature = "serenity")]
+#[cfg(all(feature = "serenity", feature = "gateway"))]
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error};
 #[cfg(feature = "twilight")]
