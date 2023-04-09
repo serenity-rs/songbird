@@ -17,7 +17,7 @@ use once_cell::sync::OnceCell;
 use parking_lot::RwLock as PRwLock;
 #[cfg(feature = "serenity")]
 use serenity::{
-    client::bridge::{voice::VoiceGatewayManager, gateway::ShardRunnerMessage},
+    client::bridge::{gateway::ShardRunnerMessage, voice::VoiceGatewayManager},
     model::{
         id::{GuildId as SerenityGuild, UserId as SerenityUser},
         voice::VoiceState,
