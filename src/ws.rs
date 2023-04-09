@@ -14,7 +14,7 @@ use tokio_tungstenite::{
     MaybeTlsStream,
     WebSocketStream,
 };
-use tracing::instrument;
+use tracing::{debug, instrument};
 use url::Url;
 
 pub struct WsStream(WebSocketStream<MaybeTlsStream<TcpStream>>);
@@ -97,7 +97,16 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
         // The below is safe as we have taken ownership of the inner `String`, and don't
         // access it as a `str`/`String` or return it if failure occurs.
         Some(Message::Text(mut payload)) =>
-            unsafe { crate::json::from_str(payload.as_mut_str()) }.map(Some)?,
+            match unsafe { crate::json::from_str(payload.as_mut_str()) } {
+                Ok(event) => Some(event),
+                Err(why) => {
+                    debug!(
+                        "Could not deserialize websocket event, payload: {}, error: {}",
+                        payload, why
+                    );
+                    None
+                },
+            },
         Some(Message::Binary(bytes)) => {
             return Err(Error::UnexpectedBinaryMessage(bytes));
         },
