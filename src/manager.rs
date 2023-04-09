@@ -17,8 +17,7 @@ use once_cell::sync::OnceCell;
 use parking_lot::RwLock as PRwLock;
 #[cfg(feature = "serenity")]
 use serenity::{
-    client::bridge::voice::VoiceGatewayManager,
-    gateway::InterMessage,
+    client::bridge::{voice::VoiceGatewayManager, gateway::ShardRunnerMessage},
     model::{
         id::{GuildId as SerenityGuild, UserId as SerenityUser},
         voice::VoiceState,
@@ -413,7 +412,7 @@ impl VoiceGatewayManager for Songbird {
         debug!("Songbird ({:?}) Initialised!", user_id);
     }
 
-    async fn register_shard(&self, shard_id: u32, sender: Sender<InterMessage>) {
+    async fn register_shard(&self, shard_id: u32, sender: Sender<ShardRunnerMessage>) {
         debug!(
             "Registering Serenity shard handle {} with Songbird",
             shard_id
