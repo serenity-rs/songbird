@@ -136,6 +136,7 @@ native = [
     "twilight-gateway?/native",
 ]
 twilight = ["dep:twilight-gateway","dep:twilight-model"]
+serenity = ["dep:tokio-tungstenite", "dep:serenity"]
 
 # Behaviour altering features.
 builtin-queue = []
