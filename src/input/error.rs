@@ -113,7 +113,7 @@ impl StdError for Error {
 
 /// An error returned from the [`dca`] method.
 ///
-/// [`dca`]: crate::input::dca
+/// [`dca`]: crate::input::dca()
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum DcaError {
