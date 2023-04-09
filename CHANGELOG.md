@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.2] - 2023-04-09
+
+This patch release fixes a WS disconnection that would occur when receiving a
+new opcode, which was happening due to Discord sending such an opcode upon
+connecting to a voice channel.
+
+Thanks to the following for their contributions:
+
+- [@Erk-]
+- [@FelixMcFelix]
+
+### Fixed
+
+- [gateway] Songbird would fail if it could not deserialize ws payload ([@Erk-]) [c:752cae7]
+- [docs] Fix compilation due to ambiguous reference ([@FelixMcFelix]) [c:e5d3feb]
+
 ## [0.3.1] — 2023-03-02
 
 This patch release applies some minor fixes, while correcting documentation errors and adjusting some organisaation in the repository.
@@ -420,6 +436,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.3.2]: https://github.com/serenity-rs/songbird/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/serenity-rs/songbird/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/serenity-rs/songbird/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/serenity-rs/songbird/compare/v0.2.1...v0.2.2
@@ -483,6 +500,8 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@wlcx]: https://github.com/wlcx
 
 <!-- COMMITS -->
+[c:e5d3feb]: https://github.com/serenity-rs/songbird/commit/e5d3febb7bfbc6b4b98af3dbf312c23528307544
+[c:752cae7]: https://github.com/serenity-rs/songbird/commit/752cae7a09b25f69ffac110ca3ce4c841d1ec99b
 [c:eedab8f]: https://github.com/serenity-rs/songbird/commit/eedab8f69d1c17125971e290ee8a50fc1adcdffc
 [c:d6c82f5]: https://github.com/serenity-rs/songbird/commit/d6c82f52a6ea876d15a9196de1a7f8a12432407b
 [c:39a6f69]: https://github.com/serenity-rs/songbird/commit/39a6f69f2324b89d17d7200905a9737d057c0d7e
