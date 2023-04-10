@@ -187,7 +187,9 @@ impl VoiceUpdate for Shard {
             Shard::Twilight(map, shard_id) => {
                 let channel_id = channel_id.map(|c| c.0).map(From::from);
                 let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
-                let sender = map.get(*shard_id).ok_or(crate::error::JoinError::NoSender)?;
+                let sender = map
+                    .get(*shard_id)
+                    .ok_or(crate::error::JoinError::NoSender)?;
                 sender.command(&cmd)?;
                 Ok(())
             },
