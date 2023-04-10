@@ -86,10 +86,6 @@ impl AuxNetwork {
                 }
                 ws_msg = self.ws_client.recv_json_no_timeout(), if !self.dont_send => {
                     ws_error = match ws_msg {
-                        Err(WsError::Json(e)) => {
-                            debug!("Unexpected JSON {:?}.", e);
-                            false
-                        },
                         Err(e) => {
                             should_reconnect = ws_error_is_not_final(&e);
                             ws_reason = Some((&e).into());

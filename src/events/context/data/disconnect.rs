@@ -91,7 +91,6 @@ impl From<&ConnectionError> for DisconnectReason {
             CryptoModeInvalid
             | CryptoModeUnavailable
             | EndpointUrl
-            | ExpectedHandshake
             | IllegalDiscoveryResponse
             | IllegalIp
             | Json(_) => Self::ProtocolViolation,

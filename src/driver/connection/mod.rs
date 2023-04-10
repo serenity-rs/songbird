@@ -12,7 +12,7 @@ use crate::{
         Event as GatewayEvent,
         ProtocolData,
     },
-    ws::{self, ReceiverExt, SenderExt, WsStream, Error as WsError},
+    ws::{self, ReceiverExt, SenderExt, WsStream},
     ConnectionInfo,
 };
 use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
@@ -77,14 +77,9 @@ impl Connection {
             .await?;
 
         loop {
-            let value = match client.recv_json().await {
-                Ok(Some(value)) => value,
-                Ok(None) => continue,
-                Err(WsError::Json(json_err)) => {
-                    debug!("Failed to deserialize ws message: {}", json_err);
-                    continue;
-                }
-                Err(other) => Err(other)?,
+            let value = match client.recv_json().await? {
+                Some(value) => value,
+                None => continue,
             };
 
             match value {
@@ -102,8 +97,6 @@ impl Connection {
                 },
                 other => {
                     debug!("Expected ready/hello; got: {:?}", other);
-
-                    return Err(Error::ExpectedHandshake);
                 },
             }
         }
@@ -285,8 +278,6 @@ impl Connection {
                 },
                 other => {
                     debug!("Expected resumed/hello; got: {:?}", other);
-
-                    return Err(Error::ExpectedHandshake);
                 },
             }
         }
