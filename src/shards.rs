@@ -9,17 +9,48 @@ use derivative::Derivative;
 use futures::channel::mpsc::{TrySendError, UnboundedSender as Sender};
 #[cfg(feature = "serenity")]
 use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock};
+#[cfg(feature = "serenity")]
 use serde_json::json;
 #[cfg(feature = "serenity")]
 use serenity::gateway::InterMessage;
 #[cfg(feature = "serenity")]
 use std::result::Result as StdResult;
 use std::sync::Arc;
+#[cfg(feature = "serenity")]
 use tracing::{debug, error};
 #[cfg(feature = "twilight")]
-use twilight_gateway::{Cluster, Shard as TwilightShard};
+use twilight_gateway::MessageSender;
 #[cfg(feature = "twilight")]
 use twilight_model::gateway::payload::outgoing::update_voice_state::UpdateVoiceState as TwilightVoiceState;
+
+/// Map containing [`MessageSender`]s for Twilight.
+///
+/// [`MessageSender`]: twilight_gateway::MessageSender
+#[cfg(feature = "twilight")]
+#[derive(Debug)]
+pub struct TwilightMap {
+    map: std::collections::HashMap<u64, MessageSender>,
+}
+
+#[cfg(feature = "twilight")]
+impl TwilightMap {
+    /// Construct a map of shards and command senders to those shards.
+    ///
+    /// For correctness all shards should be in the map.
+    pub fn new(map: std::collections::HashMap<u64, MessageSender>) -> Self {
+        TwilightMap { map }
+    }
+
+    /// Get the message sender for `shard_id`.
+    pub fn get(&self, shard_id: u64) -> Option<&MessageSender> {
+        self.map.get(&shard_id)
+    }
+
+    /// Get the total number of shards in the map.
+    pub fn shard_count(&self) -> u64 {
+        self.map.len() as u64
+    }
+}
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -30,11 +61,8 @@ pub enum Sharder {
     /// Serenity-specific wrapper for sharder state initialised by the library.
     Serenity(SerenitySharder),
     #[cfg(feature = "twilight")]
-    /// Twilight-specific wrapper for sharder state initialised by the user.
-    TwilightCluster(Arc<Cluster>),
-    #[cfg(feature = "twilight")]
-    /// Twilight-specific wrapper for a single shard initialised by the user.
-    TwilightShard(Arc<TwilightShard>),
+    /// Twilight-specific wrapper for a map of command senders.
+    Twilight(Arc<TwilightMap>),
     /// A generic shard handle source.
     Generic(#[derivative(Debug = "ignore")] Arc<dyn GenericSharder + Send + Sync>),
 }
@@ -59,9 +87,7 @@ impl Sharder {
                 s.get_or_insert_shard_handle(shard_id as u32),
             )),
             #[cfg(feature = "twilight")]
-            Sharder::TwilightCluster(t) => Some(Shard::TwilightCluster(t.clone(), shard_id)),
-            #[cfg(feature = "twilight")]
-            Sharder::TwilightShard(t) => Some(Shard::TwilightShard(t.clone())),
+            Sharder::Twilight(t) => Some(Shard::Twilight(t.clone(), shard_id)),
             Sharder::Generic(src) => src.get_shard(shard_id).map(Shard::Generic),
         }
     }
@@ -126,11 +152,8 @@ pub enum Shard {
     /// Handle to one of serenity's shard runners.
     Serenity(Arc<SerenityShardHandle>),
     #[cfg(feature = "twilight")]
-    /// Handle to a twilight shard spawned from a cluster.
-    TwilightCluster(Arc<Cluster>, u64),
-    #[cfg(feature = "twilight")]
-    /// Handle to a twilight shard spawned from a cluster.
-    TwilightShard(Arc<TwilightShard>),
+    /// Handle to a map of twilight command senders.
+    Twilight(Arc<TwilightMap>, u64),
     /// Handle to a generic shard instance.
     Generic(#[derivative(Debug = "ignore")] Arc<dyn VoiceUpdate + Send + Sync>),
 }
@@ -161,17 +184,13 @@ impl VoiceUpdate for Shard {
                 Ok(())
             },
             #[cfg(feature = "twilight")]
-            Shard::TwilightCluster(handle, shard_id) => {
+            Shard::Twilight(map, shard_id) => {
                 let channel_id = channel_id.map(|c| c.0).map(From::from);
                 let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
-                handle.command(*shard_id, &cmd).await?;
-                Ok(())
-            },
-            #[cfg(feature = "twilight")]
-            Shard::TwilightShard(handle) => {
-                let channel_id = channel_id.map(|c| c.0).map(From::from);
-                let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
-                handle.command(&cmd).await?;
+                let sender = map
+                    .get(*shard_id)
+                    .ok_or(crate::error::JoinError::NoSender)?;
+                sender.command(&cmd)?;
                 Ok(())
             },
             Shard::Generic(g) =>

@@ -23,12 +23,18 @@
 use futures::StreamExt;
 use songbird::{
     input::{Compose, YoutubeDl},
+    shards::TwilightMap,
     tracks::{PlayMode, TrackHandle},
     Songbird,
 };
 use std::{collections::HashMap, env, error::Error, future::Future, num::NonZeroU64, sync::Arc};
 use tokio::sync::RwLock;
-use twilight_gateway::{Cluster, Event, Intents};
+use twilight_gateway::{
+    stream::{self, ShardEventStream},
+    Event,
+    Intents,
+    Shard,
+};
 use twilight_http::Client as HttpClient;
 use twilight_model::{
     channel::Message,
@@ -62,21 +68,32 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let (mut events, state) = {
+    let (mut shards, state) = {
         let token = env::var("DISCORD_TOKEN")?;
 
         let http = HttpClient::new(token.clone());
         let user_id = http.current_user().await?.model().await?.id;
 
         let intents =
-            Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT | Intents::GUILD_VOICE_STATES;
-        let (cluster, events) = Cluster::new(token, intents).await?;
-        cluster.up().await;
+            Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES | Intents::MESSAGE_CONTENT;
+        let config = twilight_gateway::Config::new(token.clone(), intents);
 
-        let songbird = Songbird::twilight(Arc::new(cluster), user_id);
+        let shards: Vec<Shard> =
+            stream::create_recommended(&http, config, |_, builder| builder.build())
+                .await?
+                .collect();
+
+        let senders = TwilightMap::new(
+            shards
+                .iter()
+                .map(|s| (s.id().number(), s.sender()))
+                .collect(),
+        );
+
+        let songbird = Songbird::twilight(Arc::new(senders), user_id);
 
         (
-            events,
+            shards,
             Arc::new(StateRef {
                 http,
                 trackdata: Default::default(),
@@ -86,7 +103,22 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         )
     };
 
-    while let Some((_, event)) = events.next().await {
+    let mut stream = ShardEventStream::new(shards.iter_mut());
+    loop {
+        let event = match stream.next().await {
+            Some((_, Ok(event))) => event,
+            Some((_, Err(source))) => {
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
+
+                continue;
+            },
+            None => break,
+        };
+
         state.standby.process(&event);
         state.songbird.process(&event).await;
 
