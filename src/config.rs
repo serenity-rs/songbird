@@ -2,7 +2,7 @@
 use crate::driver::DecodeMode;
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, tasks::disposal::DisposalThread, CryptoMode, MixMode},
+    driver::{DEFAULT_SCHEDULER, retry::Retry, tasks::disposal::DisposalThread, CryptoMode, MixMode, Scheduler},
     input::codecs::*,
 };
 
@@ -166,6 +166,7 @@ pub struct Config {
     ///
     /// [`PROBE`]: static@PROBE
     pub format_registry: &'static Probe,
+
     #[cfg(feature = "driver")]
     /// The Sender for a channel that will run the destructor of possibly blocking values.
     ///
@@ -176,6 +177,12 @@ pub struct Config {
     ///
     /// [`Songbird`]: crate::Songbird
     pub disposer: Option<DisposalThread>,
+
+    #[cfg(feature = "driver")]
+    /// The scheduler is responsible for mapping idle and active [`Call`]s to threads.
+    ///
+    /// Defaults to [`DEFAULT_SCHEDULER`].
+    pub scheduler: Scheduler,
 
     // Test only attributes
     #[cfg(feature = "driver")]
@@ -219,6 +226,8 @@ impl Default for Config {
             format_registry: &PROBE,
             #[cfg(feature = "driver")]
             disposer: None,
+            #[cfg(feature = "driver")]
+            scheduler: DEFAULT_SCHEDULER.clone(),
             #[cfg(feature = "driver")]
             #[cfg(test)]
             tick_style: TickStyle::Timed,

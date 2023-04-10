@@ -70,7 +70,7 @@ pub struct Mixer {
     pub interconnect: Interconnect,
     pub mix_rx: Receiver<MixerMessage>,
     pub muted: bool,
-    pub packet: [u8; VOICE_PACKET_MAX],
+    // pub packet: [u8; VOICE_PACKET_MAX],
     pub prevent_events: bool,
     pub silence_frames: u8,
     pub skip_sleep: bool,

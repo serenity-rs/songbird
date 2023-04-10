@@ -52,12 +52,13 @@ fn start_internals(core: Sender<CoreMessage>, config: Config) -> Interconnect {
     });
 
     let ic = interconnect.clone();
-    let handle = Handle::current();
-    std::thread::spawn(move || {
-        trace!("Mixer started.");
-        mixer::runner(ic, mix_rx, handle, config);
-        trace!("Mixer finished.");
-    });
+    // let handle = Handle::current();
+    // std::thread::spawn(move || {
+    //     trace!("Mixer started.");
+    //     mixer::runner(ic, mix_rx, handle, config);
+    //     trace!("Mixer finished.");
+    // });
+    config.scheduler.new_mixer(&config, ic, mix_rx);
 
     interconnect
 }

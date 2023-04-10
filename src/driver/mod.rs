@@ -28,6 +28,7 @@ pub(crate) use crypto::CryptoState;
 #[cfg(feature = "receive")]
 pub use decode_mode::DecodeMode;
 pub use mix_mode::MixMode;
+pub use scheduler::{DEFAULT_SCHEDULER, Scheduler};
 #[cfg(test)]
 pub use test_config::*;
 

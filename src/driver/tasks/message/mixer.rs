@@ -39,6 +39,12 @@ pub enum MixerMessage {
     Poison,
 }
 
+impl MixerMessage {
+    pub fn is_mixer_now_live(&self) -> bool {
+        matches!(self, Self::AddTrack(_) | Self::SetTrack(Some(_)))
+    }
+}
+
 pub enum MixerInputResultMessage {
     CreateErr(Arc<AudioStreamError>),
     ParseErr(Arc<SymphoniaError>),
