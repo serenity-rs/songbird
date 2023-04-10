@@ -11,10 +11,10 @@ symphonia = { features = ["aac", "mp3", "isomp4", "alac"], version = "0.5.2" }
 tracing = "0.1"
 tracing-subscriber = "0.2"
 tokio = { features = ["macros", "rt-multi-thread", "sync"], version = "1" }
-twilight-gateway = "0.14"
-twilight-http = "0.14"
-twilight-model = "0.14"
-twilight-standby = "0.14"
+twilight-gateway = "0.15"
+twilight-http = "0.15"
+twilight-model = "0.15"
+twilight-standby = "0.15"
 
 [dependencies.songbird]
 default-features = false

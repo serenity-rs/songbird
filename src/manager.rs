@@ -26,9 +26,8 @@ use serenity::{
 };
 use std::sync::Arc;
 use tokio::sync::Mutex;
+#[cfg(feature = "serenity")]
 use tracing::debug;
-#[cfg(feature = "twilight")]
-use twilight_gateway::Cluster;
 #[cfg(feature = "twilight")]
 use twilight_model::gateway::event::Event as TwilightEvent;
 
@@ -88,7 +87,7 @@ impl Songbird {
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    pub fn twilight<U>(cluster: Arc<Cluster>, user_id: U) -> Self
+    pub fn twilight<U>(cluster: Arc<crate::shards::TwilightMap>, user_id: U) -> Self
     where
         U: Into<UserId>,
     {
@@ -103,17 +102,21 @@ impl Songbird {
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    pub fn twilight_from_config<U>(cluster: Arc<Cluster>, user_id: U, config: Config) -> Self
+    pub fn twilight_from_config<U>(
+        sender_map: Arc<crate::shards::TwilightMap>,
+        user_id: U,
+        config: Config,
+    ) -> Self
     where
         U: Into<UserId>,
     {
         Self {
             client_data: OnceCell::with_value(ClientData {
-                shard_count: cluster.config().shard_scheme().total(),
+                shard_count: sender_map.shard_count(),
                 user_id: user_id.into(),
             }),
             calls: DashMap::new(),
-            sharder: Sharder::TwilightCluster(cluster),
+            sharder: Sharder::Twilight(sender_map),
             config: config.initialise_disposer().into(),
         }
     }
@@ -370,8 +373,8 @@ impl Songbird {
     pub async fn process(&self, event: &TwilightEvent) {
         match event {
             TwilightEvent::VoiceServerUpdate(v) => {
-                let id = GuildId::from(v.guild_id);
-                let call = self.get(id);
+                let guild_id = GuildId::from(v.guild_id);
+                let call = self.get(guild_id);
 
                 if let Some(call) = call {
                     let mut handler = call.lock().await;
