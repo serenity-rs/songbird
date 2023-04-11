@@ -27,8 +27,6 @@ pub enum Error {
     CryptoModeUnavailable,
     /// An indicator that an endpoint URL was invalid.
     EndpointUrl,
-    /// Discord hello/ready handshake was violated.
-    ExpectedHandshake,
     /// Discord failed to correctly respond to IP discovery.
     IllegalDiscoveryResponse,
     /// Could not parse Discord's view of our IP.
@@ -103,7 +101,6 @@ impl fmt::Display for Error {
             Self::CryptoModeInvalid => write!(f, "server changed negotiated encryption mode"),
             Self::CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode"),
             Self::EndpointUrl => write!(f, "endpoint URL received from gateway was invalid"),
-            Self::ExpectedHandshake => write!(f, "voice initialisation protocol was violated"),
             Self::IllegalDiscoveryResponse =>
                 write!(f, "IP discovery/NAT punching response was invalid"),
             Self::IllegalIp => write!(f, "IP discovery/NAT punching response had bad IP value"),
@@ -124,7 +121,6 @@ impl StdError for Error {
             | Error::CryptoModeInvalid
             | Error::CryptoModeUnavailable
             | Error::EndpointUrl
-            | Error::ExpectedHandshake
             | Error::IllegalDiscoveryResponse
             | Error::IllegalIp
             | Error::InterconnectFailure(_)
