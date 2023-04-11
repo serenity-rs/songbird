@@ -97,8 +97,6 @@ impl Connection {
                 },
                 other => {
                     debug!("Expected ready/hello; got: {:?}", other);
-
-                    return Err(Error::ExpectedHandshake);
                 },
             }
         }
@@ -280,8 +278,6 @@ impl Connection {
                 },
                 other => {
                     debug!("Expected resumed/hello; got: {:?}", other);
-
-                    return Err(Error::ExpectedHandshake);
                 },
             }
         }

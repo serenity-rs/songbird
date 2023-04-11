@@ -114,16 +114,12 @@ impl SenderExt for WsStream {
 #[inline]
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     Ok(match message {
-        Some(Message::Text(payload)) => match serde_json::from_str(&payload) {
-            Ok(event) => Some(event),
-            Err(why) => {
-                debug!(
-                    "Could not deserialize websocket event, payload: {}, error: {}",
-                    payload, why
-                );
-                None
-            },
-        },
+        Some(Message::Text(payload)) => serde_json::from_str(&payload)
+            .map_err(|e| {
+                debug!("Unexpected JSON {payload:?}.");
+                e
+            })
+            .ok(),
         Some(Message::Binary(bytes)) => {
             return Err(Error::UnexpectedBinaryMessage(bytes));
         },
