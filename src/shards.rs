@@ -11,7 +11,7 @@ use futures::channel::mpsc::{TrySendError, UnboundedSender as Sender};
 use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock};
 use serde_json::json;
 #[cfg(feature = "serenity")]
-use serenity::client::bridge::gateway::ShardRunnerMessage;
+use serenity::gateway::ShardRunnerMessage;
 #[cfg(feature = "serenity")]
 use std::result::Result as StdResult;
 use std::sync::Arc;
@@ -256,10 +256,13 @@ impl SerenityShardHandle {
         debug!("Removed shard handle send channel.");
     }
 
-    fn send(&self, message: ShardRunnerMessage) -> StdResult<(), TrySendError<ShardRunnerMessage>> {
+    fn send(
+        &self,
+        message: ShardRunnerMessage,
+    ) -> StdResult<(), Box<TrySendError<ShardRunnerMessage>>> {
         let sender_lock = self.sender.read();
         if let Some(sender) = &*sender_lock {
-            sender.unbounded_send(message)
+            sender.unbounded_send(message).map_err(Box::new)
         } else {
             debug!("Serenity shard temporarily disconnected: buffering message...");
             let mut messages_lock = self.queue.lock();

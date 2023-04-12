@@ -5,7 +5,7 @@ use futures::channel::mpsc::TrySendError;
 #[cfg(not(feature = "simd-json"))]
 pub use serde_json::Error as JsonError;
 #[cfg(feature = "serenity")]
-use serenity::client::bridge::gateway::ShardRunnerMessage;
+use serenity::gateway::ShardRunnerMessage;
 #[cfg(feature = "simd-json")]
 pub use simd_json::Error as JsonError;
 #[cfg(feature = "gateway")]
@@ -48,7 +48,7 @@ pub enum JoinError {
     Driver(ConnectionError),
     #[cfg(feature = "serenity")]
     /// Serenity-specific WebSocket send error.
-    Serenity(TrySendError<ShardRunnerMessage>),
+    Serenity(Box<TrySendError<ShardRunnerMessage>>),
     #[cfg(feature = "twilight")]
     /// Twilight-specific WebSocket send error returned when using a shard cluster.
     TwilightCluster(ClusterCommandError),
@@ -124,8 +124,8 @@ impl Error for JoinError {
 }
 
 #[cfg(all(feature = "serenity", feature = "gateway"))]
-impl From<TrySendError<ShardRunnerMessage>> for JoinError {
-    fn from(e: TrySendError<ShardRunnerMessage>) -> Self {
+impl From<Box<TrySendError<ShardRunnerMessage>>> for JoinError {
+    fn from(e: Box<TrySendError<ShardRunnerMessage>>) -> Self {
         JoinError::Serenity(e)
     }
 }
