@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ConnectionError","ControlError","JoinError","PlayError"],"struct":["JsonError"],"type":["ConnectionResult","JoinResult","TrackResult"]};
+window.SIDEBAR_ITEMS = {"enum":["ConnectionError","JoinError"],"struct":["JsonError"],"type":["ConnectionResult","JoinResult"]};
