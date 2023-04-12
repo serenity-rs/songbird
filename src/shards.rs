@@ -12,7 +12,7 @@ use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock
 #[cfg(feature = "serenity")]
 use serde_json::json;
 #[cfg(feature = "serenity")]
-use serenity::gateway::InterMessage;
+use serenity::gateway::ShardRunnerMessage;
 #[cfg(feature = "serenity")]
 use std::result::Result as StdResult;
 use std::sync::Arc;
@@ -96,7 +96,7 @@ impl Sharder {
 #[cfg(feature = "serenity")]
 impl Sharder {
     #[allow(unreachable_patterns)]
-    pub(crate) fn register_shard_handle(&self, shard_id: u32, sender: Sender<InterMessage>) {
+    pub(crate) fn register_shard_handle(&self, shard_id: u32, sender: Sender<ShardRunnerMessage>) {
         if let Sharder::Serenity(s) = self {
             s.register_shard_handle(shard_id, sender);
         } else {
@@ -128,7 +128,7 @@ impl SerenitySharder {
         self.0.entry(shard_id).or_default().clone()
     }
 
-    fn register_shard_handle(&self, shard_id: u32, sender: Sender<InterMessage>) {
+    fn register_shard_handle(&self, shard_id: u32, sender: Sender<ShardRunnerMessage>) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 
@@ -180,7 +180,7 @@ impl VoiceUpdate for Shard {
                     }
                 });
 
-                handle.send(InterMessage::json(map.to_string()))?;
+                handle.send(ShardRunnerMessage::Message(map.to_string().into()))?;
                 Ok(())
             },
             #[cfg(feature = "twilight")]
@@ -228,13 +228,13 @@ pub trait VoiceUpdate {
 /// a reconnect/rebalance is ongoing.
 #[derive(Debug, Default)]
 pub struct SerenityShardHandle {
-    sender: PRwLock<Option<Sender<InterMessage>>>,
-    queue: PMutex<Vec<InterMessage>>,
+    sender: PRwLock<Option<Sender<ShardRunnerMessage>>>,
+    queue: PMutex<Vec<ShardRunnerMessage>>,
 }
 
 #[cfg(feature = "serenity")]
 impl SerenityShardHandle {
-    fn register(&self, sender: Sender<InterMessage>) {
+    fn register(&self, sender: Sender<ShardRunnerMessage>) {
         debug!("Adding shard handle send channel...");
 
         let mut sender_lock = self.sender.write();
@@ -275,10 +275,13 @@ impl SerenityShardHandle {
         debug!("Removed shard handle send channel.");
     }
 
-    fn send(&self, message: InterMessage) -> StdResult<(), TrySendError<InterMessage>> {
+    fn send(
+        &self,
+        message: ShardRunnerMessage,
+    ) -> StdResult<(), Box<TrySendError<ShardRunnerMessage>>> {
         let sender_lock = self.sender.read();
         if let Some(sender) = &*sender_lock {
-            sender.unbounded_send(message)
+            sender.unbounded_send(message).map_err(Box::new)
         } else {
             debug!("Serenity shard temporarily disconnected: buffering message...");
             let mut messages_lock = self.queue.lock();
