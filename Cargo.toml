@@ -34,8 +34,8 @@ rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
 serde-aux = { optional = true, version = "4"}
 serde_json = "1"
-simd-json = { features = ["serde_impl"], optional = true, version = "0.7.0" }
-socket2 = { optional = true, version = "0.4" }
+simd-json = { features = ["serde_impl"], optional = true, version = "0.8.0" }
+socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
 symphonia = { default_features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
