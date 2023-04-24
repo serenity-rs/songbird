@@ -35,7 +35,6 @@ jobs:
           - Windows
           - driver only
           - gateway only
-          - legacy tokio
         include:
           - name: beta
             toolchain: beta
