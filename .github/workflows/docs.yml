@@ -10,32 +10,27 @@ jobs:
   docs:
     name: Publish docs
     runs-on: ubuntu-latest
+    permissions:
+      # peaceiris/actions-gh-pages requires write permission
+      # as it pushes a new commit to the gh-pages branch
+      contents: write
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
 
       - name: Install toolchain
-        id: tc
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          profile: minimal
-          override: true
+
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libopus-dev
-
-      - name: Setup cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target/debug
-          key: ${{ runner.os }}-gh-pages-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
 
       - name: Build docs
         env:
