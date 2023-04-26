@@ -6,28 +6,24 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@v3
-    - name: Install toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-        components: rustfmt, clippy
-        override: true
-    - name: Rustfmt
-      run: cargo +nightly fmt --all -- --check
-    - name: Clippy
-      uses: actions-rs/clippy-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        args: --features full-doc
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: rustfmt,clippy
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
+      - name: Rustfmt
+        run: cargo +nightly fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --features full-doc
 
   test:
     name: Test
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -39,8 +35,6 @@ jobs:
           - Windows
           - driver only
           - gateway only
-          - legacy tokio
-
         include:
           - name: beta
             toolchain: beta
@@ -56,47 +50,29 @@ jobs:
           - name: gateway only
             features: serenity-rustls
             dont-test: true
-
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
-
       - name: Install toolchain
-        id: tc
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain || 'stable' }}
-          profile: minimal
-          override: true
-
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
       - name: Install dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libopus-dev
-
-      - name: Setup cache
-        if: runner.os != 'macOS'
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-test-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
-
       - name: Build all features
         if: matrix.features == ''
         run: cargo build --features full-doc
-
       - name: Test all features
         if: matrix.features == ''
         run: cargo test --features full-doc
-
       - name: Build some features
         if: matrix.features
         run: cargo build --no-default-features --features "${{ matrix.features }}"
-
       - name: Test some features
         if: ${{ !matrix.dont-test && matrix.features }}
         run: cargo test --no-default-features --features "${{ matrix.features }}"
@@ -104,32 +80,19 @@ jobs:
   doc:
     name: Build docs
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
-
       - name: Install toolchain
-        id: tc
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          profile: minimal
-          override: true
-
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libopus-dev
-
-      - name: Setup cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-docs-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
-
       - name: Build docs
         env:
           RUSTDOCFLAGS: -D broken_intra_doc_links
@@ -139,45 +102,34 @@ jobs:
   examples:
     name: Examples
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
-
       - name: Install toolchain
-        id: tc
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          profile: minimal
-          override: true
-
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: examples
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libopus-dev
 
-      - name: Setup cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            examples/target
-          key: ${{ runner.os }}-examples-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.toml') }}
-
-      - name: 'Build serenity/voice'
+      - name: Build serenity/voice
         working-directory: examples
         run: cargo build -p voice
-      - name: 'Build serenity/voice_events_queue'
+      - name: Build serenity/voice_events_queue
         working-directory: examples
         run: cargo build -p voice_events_queue
-      - name: 'Build serenity/voice_receive'
+      - name: Build serenity/voice_receive
         working-directory: examples
         run: cargo build -p voice_receive
-      - name: 'Build serenity/voice_storage'
+      - name: Build serenity/voice_storage
         working-directory: examples
         run: cargo build -p voice_storage
-      - name: 'Build twilight'
+      - name: Build twilight
         working-directory: examples
         run: cargo build -p twilight
