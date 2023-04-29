@@ -1,18 +1,33 @@
 use std::{
+    collections::HashMap,
     num::NonZeroUsize,
-    sync::{atomic::AtomicU64, Arc},
-    time::Instant, collections::HashMap,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+    time::{Duration, Instant},
 };
 
-use flume::{Receiver, Sender};
-use nohash_hasher::{IntMap, IsEnabled, BuildNoHashHasher};
+use discortp::rtp::{MutableRtpPacket, RtpPacket};
+use flume::{Receiver, Sender, TryRecvError};
+use nohash_hasher::{BuildNoHashHasher, IntMap, IsEnabled};
 use once_cell::sync::Lazy;
 use rand::random;
 use tokio::runtime::Handle;
 
-use crate::{Config, constants::TIMESTEP_LENGTH};
+use crate::{
+    constants::*,
+    driver::tasks::{error::Error as DriverError, message::WsMessage},
+    Config,
+};
 
-use super::tasks::{message::{Interconnect, MixerMessage}, mixer::Mixer};
+use super::tasks::{
+    message::{EventMessage, Interconnect, MixerMessage},
+    mixer::Mixer,
+};
+
+#[cfg(test)]
+use crate::driver::test_config::{OutputMessage, OutputMode, TickStyle};
 
 /// The default shared scheduler instance.
 ///
@@ -25,7 +40,7 @@ pub static DEFAULT_SCHEDULER: Lazy<Scheduler> = Lazy::new(Scheduler::default);
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) struct TaskId(usize);
 
-impl IsEnabled for TaskId { }
+impl IsEnabled for TaskId {}
 
 impl TaskId {
     fn incr(&mut self) -> Self {
@@ -38,9 +53,24 @@ impl TaskId {
 /// Strategies for mapping live mixer tasks to individual threads.
 ///
 /// Defaults to `MaxPerThread(16)`.
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum ScheduleMode {
     MaxPerThread(NonZeroUsize),
+}
+
+impl ScheduleMode {
+    fn prealloc_size(&self) -> usize {
+        match self {
+            Self::MaxPerThread(n) => n.get(),
+        }
+    }
+
+    fn task_limit(&self) -> usize {
+        match self {
+            Self::MaxPerThread(n) => n.get(),
+        }
+    }
 }
 
 const DEFAULT_MIXERS_PER_THREAD: NonZeroUsize = match NonZeroUsize::new(16) {
@@ -60,6 +90,21 @@ struct StatBlock {
     live: AtomicU64,
 }
 
+#[derive(Debug, Default)]
+struct LiveStatBlock {
+    live: AtomicU64,
+    last_ns: AtomicU64,
+}
+
+impl LiveStatBlock {
+    fn has_room(&self, strategy: &ScheduleMode) -> bool {
+        let curr_tasks = self.live.load(Ordering::Relaxed);
+        match strategy {
+            ScheduleMode::MaxPerThread(n) => curr_tasks < n.get() as u64,
+        }
+    }
+}
+
 struct Core {
     mode: ScheduleMode,
     tasks: IntMap<TaskId, ParkedMixer>,
@@ -68,6 +113,8 @@ struct Core {
     rx: Receiver<SchedulerMessage>,
     tx: Sender<SchedulerMessage>,
     next_id: TaskId,
+    workers: Vec<LiveMixers>,
+    to_cull: Vec<TaskId>,
 }
 
 impl Core {
@@ -85,6 +132,8 @@ impl Core {
             rx,
             tx: tx.clone(),
             next_id: TaskId(0),
+            workers: Vec::with_capacity(16),
+            to_cull: vec![],
         };
 
         (out, tx)
@@ -100,55 +149,92 @@ impl Core {
             tokio::select! {
                 _ = interval.tick() => {
                     // notify all evt threads.
-                    // send any keepalive packets?
-                    for task in self.tasks.values() {
-                        // the existing "do_events_keepalives" (or w/e) fn covers this.
-                        // TODO: integrate with error handling logic.
-                        task.mixer.interconnect.tick();
+
+                    // todo: store keepalive sends in another data structure so
+                    // we don't check every task every 20ms.
+                    let now = Instant::now();
+
+                    for (id, task) in self.tasks.iter_mut() {
+                        if task.tick_and_keepalive(now).is_err() {
+                            self.to_cull.push(*id);
+                        }
+
+                        #[cfg(test)]
+                        task.mixer.test_signal_empty_tick();
                     }
                 },
                 msg = self.rx.recv_async() => match msg {
                     Ok(SchedulerMessage::NewMixer(rx, ic, cfg)) => {
-                        let remote_tx = self.tx.clone();
-
                         let mixer = ParkedMixer::new(rx, ic, cfg);
                         let id = self.next_id.incr();
 
                         mixer.spawn_forwarder(self.tx.clone(), id);
                         self.tasks.insert(id, mixer);
                     },
+                    Ok(SchedulerMessage::Demote(id, task)) => {
+                        println!("CALL {id:?} was demoted!");
+                        task.spawn_forwarder(self.tx.clone(), id);
+                        task.mixer.send_gateway_not_speaking();
+                        self.tasks.insert(id, task);
+                    },
                     Ok(SchedulerMessage::Do(id, mix_msg)) => {
                         let now_live = mix_msg.is_mixer_now_live();
-                        // TODO: call mixer's normal reaction.
+                        let task = self.tasks.get_mut(&id).unwrap();
 
-                        // hand the msg to the mixer, do the thing.
-                        
-
-                        if now_live {
-                            let task = self.tasks.remove(&id).unwrap();
-                            let elapsed = task.park_time.elapsed();
-                            // TODO: promote thread.
-                            // TODO: bump up rtp_timestamp according to elapsed time.
+                        match task.handle_message(mix_msg) {
+                            Ok(false) if now_live => {
+                                // Promote this task to a live mixer thread.
+                                let task = self.tasks.remove(&id).unwrap();
+                                let worker = self.fetch_worker();
+                                if task.send_gateway_speaking().is_ok() {
+                                    // TODO: put this task on a valid worker, kill old worker.
+                                    worker.stats.live.fetch_add(1, Ordering::Relaxed);
+                                    worker.tx.send((id, task))
+                                        .expect("Worker thread unexpectedly died!");
+                                    self.stats.live.fetch_add(1, Ordering::Relaxed);
+                                }
+                            },
+                            Ok(false) => {},
+                            Ok(true) | Err(_) => self.to_cull.push(id),
                         }
-
-                        todo!()
                     },
                     Ok(SchedulerMessage::Kill) | Err(_) => {
                         break;
                     },
                 },
             }
+
+            for id in self.to_cull.drain(..) {
+                self.tasks.remove(&id);
+            }
         }
     }
 
-    fn spawn(self) {
-        tokio::spawn(self.run());
+    fn fetch_worker(&mut self) -> &LiveMixers {
+        // look through all workers.
+        // if none found w/ space, add new.
+        let idx = self
+            .workers
+            .iter()
+            .position(|w| w.stats.has_room(&self.mode))
+            .unwrap_or_else(|| {
+                self.workers
+                    .push(LiveMixers::new(self.mode.clone(), self.tx.clone()));
+                self.workers.len() - 1
+            });
+
+        &self.workers[idx]
+    }
+
+    fn spawn(mut self) {
+        tokio::spawn(async move { self.run().await });
     }
 }
 
 pub(crate) enum SchedulerMessage {
     NewMixer(Receiver<MixerMessage>, Interconnect, Config),
     Do(TaskId, MixerMessage),
+    Demote(TaskId, ParkedMixer),
     Kill,
 }
 
@@ -176,7 +262,8 @@ impl Scheduler {
     }
 
     pub(crate) fn new_mixer(&self, config: &Config, ic: Interconnect, rx: Receiver<MixerMessage>) {
-        self.tx.send(SchedulerMessage::NewMixer(rx, ic, config.clone()))
+        self.tx
+            .send(SchedulerMessage::NewMixer(rx, ic, config.clone()))
             .unwrap();
     }
 }
@@ -189,19 +276,17 @@ impl Default for Scheduler {
 
 pub struct ParkedMixer {
     mixer: Box<Mixer>,
+    ssrc: u32,
     rtp_sequence: u16,
     rtp_timestamp: u32,
     park_time: Instant,
 }
 
 impl ParkedMixer {
-    pub fn new(
-        mix_rx: Receiver<MixerMessage>,
-        interconnect: Interconnect,
-        config: Config,
-    ) -> Self {
+    pub fn new(mix_rx: Receiver<MixerMessage>, interconnect: Interconnect, config: Config) -> Self {
         Self {
             mixer: Box::new(Mixer::new(mix_rx, Handle::current(), interconnect, config)),
+            ssrc: 0,
             rtp_sequence: random::<u16>(),
             rtp_timestamp: random::<u32>(),
             park_time: Instant::now(),
@@ -214,14 +299,362 @@ impl ParkedMixer {
             while let Ok(msg) = remote_rx.recv() {
                 let exit = msg.is_mixer_now_live();
                 tx.send_async(SchedulerMessage::Do(id, msg)).await;
-                if exit { break; }
+                if exit {
+                    break;
+                }
             }
+        });
+    }
+
+    /// Returns whether the mixer should exit and be cleaned up.
+    fn handle_message(&mut self, msg: MixerMessage) -> Result<bool, ()> {
+        match msg {
+            MixerMessage::SetConn(conn, ssrc) => {
+                // Overridden because
+                self.ssrc = ssrc;
+                self.rtp_sequence = random::<u16>();
+                self.rtp_timestamp = random::<u32>();
+                self.mixer.conn_active = Some(conn);
+                self.mixer.update_keepalive(ssrc);
+
+                Ok(false)
+            },
+            MixerMessage::Ws(ws) => {
+                // Overridden so that we don't mistakenly tell Discord we're speaking.
+                self.mixer.ws = ws;
+
+                Ok(false)
+            },
+            msg => {
+                let (events_failure, conn_failure, should_exit) =
+                    self.mixer.handle_message(msg, &mut []);
+
+                self.mixer
+                    .do_rebuilds(events_failure, conn_failure)
+                    .map_err(|_| ())
+                    .map(|_| should_exit)
+            },
+        }
+    }
+
+    fn tick_and_keepalive(&mut self, now: Instant) -> Result<(), ()> {
+        let mut events_failure = self.mixer.fire_event(EventMessage::Tick).is_err();
+
+        let ka_err = self
+            .mixer
+            .check_and_send_keepalive(Some(now))
+            .or_else(DriverError::disarm_would_block);
+
+        let conn_failure = if let Err(e) = ka_err {
+            events_failure |= e.should_trigger_interconnect_rebuild();
+            e.should_trigger_connect()
+        } else {
+            false
+        };
+
+        self.mixer
+            .do_rebuilds(events_failure, conn_failure)
+            .map_err(|_| ())
+    }
+
+    fn send_gateway_speaking(&self) -> Result<(), ()> {
+        if let Err(e) = self.mixer.send_gateway_speaking() {
+            self.mixer
+                .do_rebuilds(
+                    e.should_trigger_interconnect_rebuild(),
+                    e.should_trigger_connect(),
+                )
+                .map_err(|_| ())
+        } else {
+            Ok(())
+        }
+    }
+
+    fn send_gateway_not_speaking(&self) {
+        self.mixer.send_gateway_not_speaking()
+    }
+}
+
+const PACKETS_PER_BLOCK: usize = 16;
+
+pub struct LiveMixersCore {
+    packets: Vec<Box<[u8]>>,
+    packet_lens: Vec<usize>,
+    tasks: Vec<Box<Mixer>>,
+    ids: Vec<TaskId>,
+    mode: ScheduleMode,
+    stats: Arc<LiveStatBlock>,
+    rx: Receiver<(TaskId, ParkedMixer)>,
+    tx: Sender<SchedulerMessage>,
+}
+
+impl LiveMixersCore {
+    fn new(
+        mode: ScheduleMode,
+        stats: Arc<LiveStatBlock>,
+        rx: Receiver<(TaskId, ParkedMixer)>,
+        tx: Sender<SchedulerMessage>,
+    ) -> Self {
+        let to_prealloc = mode.prealloc_size();
+
+        // TODO: benchmark 2048-byte size slices (wrt lookup/indexing cost.)
+        // TODO: allow for different packet block-alloc sizes
+        let packets = vec![packet_block(PACKETS_PER_BLOCK)];
+
+        Self {
+            packets,
+            packet_lens: Vec::with_capacity(to_prealloc),
+            tasks: Vec::with_capacity(to_prealloc),
+            ids: Vec::with_capacity(to_prealloc),
+            mode,
+            stats,
+            rx,
+            tx,
+        }
+    }
+
+    fn run(&mut self) {
+        let mut deadline = Instant::now();
+        let mut start_of_work = None;
+
+        loop {
+            // Check for new tasks.
+            if self.handle_scheduler_msgs(deadline).is_err() {
+                break;
+            }
+
+            // TODO: forgot the per-call handle_message
+
+            //
+            //self.mixer
+            // .do_rebuilds(events_failure, conn_failure)
+            // .map_err(|_| ())
+            // .map(|_| should_exit)
+
+            // Move any idle calls back to the global pool.
+            self.demote_mixers();
+
+            for ((packet, packet_len), mixer) in self
+                .packets
+                .iter_mut()
+                .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
+                .zip(self.packet_lens.iter_mut())
+                .zip(self.tasks.iter_mut())
+            {
+                if let Ok(written_sz) = mixer.mix_and_build_packet(packet) {
+                    *packet_len = written_sz;
+                } else {
+                    // BAD BAD BAD
+                    // TODO: integrate like normal runner.
+                }
+            }
+
+            // TODO dealloc blocks every... 1 min?
+
+            let end_of_work = Instant::now();
+
+            if let Some(start_of_work) = start_of_work {
+                let work: Duration = end_of_work - start_of_work;
+                self.stats
+                    .last_ns
+                    .store(work.as_nanos() as u64, Ordering::Relaxed);
+            }
+
+            // TODO: integrate test methods to skip sleep here.
+            // Wait till the right time to send this packet:
+            // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
+            std::thread::sleep(deadline.saturating_duration_since(end_of_work));
+            deadline += TIMESTEP_LENGTH;
+
+            // Send all.
+            start_of_work = Some(Instant::now());
+            for ((packet, packet_len), mixer) in self
+                .packets
+                .iter_mut()
+                .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
+                .zip(self.packet_lens.iter())
+                .zip(self.tasks.iter())
+            {
+                if *packet_len > 0 {
+                    mixer.send_packet(&packet[..*packet_len]);
+                }
+                advance_rtp_counters(packet);
+            }
+
+            for mixer in self.tasks.iter_mut() {
+                mixer.audio_commands_events();
+                mixer.check_and_send_keepalive(start_of_work);
+            }
+        }
+    }
+
+    fn handle_scheduler_msgs(&mut self, deadline: Instant) -> Result<(), ()> {
+        loop {
+            match self.rx.try_recv() {
+                Ok((id, task)) => {
+                    println!("CALL {id:?} was promoted!");
+                    let idx = self.ids.len();
+
+                    let elapsed = task.park_time - (deadline - TIMESTEP_LENGTH);
+
+                    let samples_f64 = elapsed.as_secs_f64() * (SAMPLE_RATE_RAW as f64);
+                    let mod_samples = (samples_f64 as u64) as u32;
+                    let rtp_timestamp = task.rtp_timestamp.wrapping_add(mod_samples);
+
+                    self.ids.push(id);
+                    self.tasks.push(task.mixer);
+                    self.packet_lens.push(0);
+
+                    let block_size = self.mode.prealloc_size();
+                    let block = idx / block_size;
+                    let inner_idx = idx % block_size;
+
+                    while self.packets.len() <= block {
+                        self.packets.push(packet_block(PACKETS_PER_BLOCK));
+                    }
+                    let packet = &mut self.packets[block][inner_idx * VOICE_PACKET_MAX..]
+                        [..VOICE_PACKET_MAX];
+
+                    let mut rtp = MutableRtpPacket::new(packet).expect(
+                        "FATAL: Too few bytes in self.packet for RTP header.\
+                            (Blame: VOICE_PACKET_MAX?)",
+                    );
+                    rtp.set_ssrc(task.ssrc);
+                    rtp.set_timestamp(rtp_timestamp.into());
+                    rtp.set_sequence(task.rtp_sequence.into());
+                },
+                Err(TryRecvError::Empty) => break,
+                Err(TryRecvError::Disconnected) => return Err(()),
+            }
+        }
+
+        Ok(())
+    }
+
+    fn demote_mixers(&mut self) {
+        // TO DEMOTE:
+        // swap-remove on all relevant stores.
+        // simulate swap-remove on buffer contents:
+        //  move important packet header fields from end into i
+        let mut i = 0;
+        while i < self.tasks.len() {
+            #[cfg(test)]
+            let force_conn = self.tasks[i].config.override_connection.is_some();
+            #[cfg(not(test))]
+            let force_conn = false;
+
+            // FIXME: need to ensure that 'stop speakings' are sent at the right time.
+            if (self.tasks[i].tracks.is_empty() && self.tasks[i].silence_frames == 0)
+                || !(self.tasks[i].conn_active.is_some() || force_conn)
+            {
+                let id = self.ids.swap_remove(i);
+                let _len = self.packet_lens.swap_remove(i);
+                let mixer = self.tasks.swap_remove(i);
+
+                let block_size = self.mode.prealloc_size();
+                let block = i / block_size;
+                let inner_idx = i % block_size;
+
+                // TODO: consider replacing this with a memcpy (10B).
+                //  issue -- tricky to get &muts over both packet bodies
+                let end = self.tasks.len() - 1;
+                let replacement = (end > i).then(|| {
+                    let end_block = end / block_size;
+                    let end_inner = end % block_size;
+
+                    let end_packet = &mut self.packets[end_block][end_inner * VOICE_PACKET_MAX..]
+                        [..VOICE_PACKET_MAX];
+
+                    let rtp = RtpPacket::new(end_packet).expect(
+                        "FATAL: Too few bytes in self.packet for RTP header.\
+                            (Blame: VOICE_PACKET_MAX?)",
+                    );
+
+                    (rtp.get_sequence(), rtp.get_timestamp(), rtp.get_ssrc())
+                });
+
+                let packet =
+                    &mut self.packets[block][inner_idx * VOICE_PACKET_MAX..][..VOICE_PACKET_MAX];
+                let mut rtp = MutableRtpPacket::new(packet).expect(
+                    "FATAL: Too few bytes in self.packet for RTP header.\
+                        (Blame: VOICE_PACKET_MAX?)",
+                );
+                let ssrc = rtp.get_ssrc();
+                let rtp_timestamp = rtp.get_timestamp().into();
+                let rtp_sequence = rtp.get_sequence().into();
+
+                if let Some((seq, ts, ssrc)) = replacement {
+                    rtp.set_sequence(seq);
+                    rtp.set_timestamp(ts);
+                    rtp.set_ssrc(ssrc);
+                }
+
+                let park_time = Instant::now();
+
+                let _ = self.tx.send(SchedulerMessage::Demote(
+                    id,
+                    ParkedMixer {
+                        mixer,
+                        ssrc,
+                        rtp_sequence,
+                        rtp_timestamp,
+                        park_time,
+                    },
+                ));
+
+                self.stats.live.fetch_sub(1, Ordering::Relaxed);
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    fn spawn(mut self) {
+        std::thread::spawn(move || {
+            self.run();
         });
     }
 }
 
+#[inline]
+fn packet_block(n_packets: usize) -> Box<[u8]> {
+    let mut packets = vec![0u8; VOICE_PACKET_MAX * n_packets].into_boxed_slice();
+
+    for packet in packets.chunks_exact_mut(VOICE_PACKET_MAX) {
+        let mut rtp = MutableRtpPacket::new(packet).expect(
+            "FATAL: Too few bytes in self.packet for RTP header.\
+                (Blame: VOICE_PACKET_MAX?)",
+        );
+        rtp.set_version(RTP_VERSION);
+        rtp.set_payload_type(RTP_PROFILE_TYPE);
+    }
+
+    packets
+}
+
+#[inline]
+fn advance_rtp_counters(packet: &mut [u8]) {
+    let mut rtp = MutableRtpPacket::new(packet).expect(
+        "FATAL: Too few bytes in self.packet for RTP header.\
+            (Blame: VOICE_PACKET_MAX?)",
+    );
+    rtp.set_sequence(rtp.get_sequence() + 1);
+    rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
+}
+
 pub struct LiveMixers {
-    packets: Vec<Vec<u8>>,
-    tasks: Vec<Mixer>,
-    mode: ScheduleMode,
+    stats: Arc<LiveStatBlock>,
+    tx: Sender<(TaskId, ParkedMixer)>,
+}
+
+impl LiveMixers {
+    pub(crate) fn new(mode: ScheduleMode, sched_tx: Sender<SchedulerMessage>) -> Self {
+        let stats = Arc::new(LiveStatBlock::default());
+        let (live_tx, live_rx) = flume::unbounded();
+
+        let core = LiveMixersCore::new(mode, stats.clone(), live_rx, sched_tx);
+        core.spawn();
+
+        Self { stats, tx: live_tx }
+    }
 }
