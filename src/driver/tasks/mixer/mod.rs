@@ -178,96 +178,8 @@ impl Mixer {
         }
     }
 
-    fn run(&mut self, packet: &mut [u8]) {
-        let mut events_failure = false;
-        let mut conn_failure = false;
-
-        #[cfg(test)]
-        let ignore_check = self.config.override_connection.is_some();
-        #[cfg(not(test))]
-        let ignore_check = false;
-
-        'runner: loop {
-            if self.conn_active.is_some() || ignore_check {
-                loop {
-                    match self.mix_rx.try_recv() {
-                        Ok(m) => {
-                            let (events, conn, should_exit) = self.handle_message(m, packet);
-                            events_failure |= events;
-                            conn_failure |= conn;
-
-                            if should_exit {
-                                break 'runner;
-                            }
-                        },
-
-                        Err(TryRecvError::Disconnected) => {
-                            break 'runner;
-                        },
-
-                        Err(TryRecvError::Empty) => {
-                            break;
-                        },
-                    };
-                }
-
-                // The above action may have invalidated the connection; need to re-check!
-                // Also, if we're in a test mode we should unconditionally run packet mixing code.
-                if self.conn_active.is_some() || ignore_check {
-                    if let Err(e) = self
-                        .cycle(packet)
-                        .and_then(|_| self.audio_commands_events())
-                        .and_then(|_| {
-                            self.check_and_send_keepalive(None)
-                                .or_else(Error::disarm_would_block)
-                        })
-                    {
-                        events_failure |= e.should_trigger_interconnect_rebuild();
-                        conn_failure |= e.should_trigger_connect();
-
-                        debug!("Mixer thread cycle: {:?}", e);
-                    }
-                }
-            } else {
-                match self.mix_rx.recv() {
-                    Ok(m) => {
-                        let (events, conn, should_exit) = self.handle_message(m, packet);
-                        events_failure |= events;
-                        conn_failure |= conn;
-
-                        if should_exit {
-                            break 'runner;
-                        }
-                    },
-                    Err(_) => {
-                        break 'runner;
-                    },
-                }
-            }
-
-            // event failure? rebuild interconnect.
-            // ws or udp failure? full connect
-            // (soft reconnect is covered by the ws task.)
-            //
-            // in both cases, send failure is fatal,
-            // but will only occur on disconnect.
-            // expecting this is fairly noisy, so exit silently.
-            if events_failure {
-                events_failure = false;
-
-                if self.rebuild_interconnect().is_err() {
-                    break;
-                }
-            }
-
-            if conn_failure {
-                conn_failure = false;
-
-                if self.full_reconnect_gateway().is_err() {
-                    break;
-                }
-            }
-        }
+    fn set_bitrate(&mut self, bitrate: Bitrate) -> Result<()> {
+        self.encoder.set_bitrate(bitrate).map_err(Into::into)
     }
 
     pub(crate) fn do_rebuilds(
@@ -275,6 +187,12 @@ impl Mixer {
         event_failure: bool,
         conn_failure: bool,
     ) -> StdResult<(), SendError<CoreMessage>> {
+        // event failure? rebuild interconnect.
+        // ws or udp failure? full connect
+        // (soft reconnect is covered by the ws task.)
+        //
+        // in both cases, send failure is fatal,
+        // but will only occur on disconnect.
         if event_failure {
             self.rebuild_interconnect()?;
         }
@@ -633,7 +551,6 @@ impl Mixer {
         }
     }
 
-    // FIXME: remove sleep, remove send, return length of packet written into buf.
     #[inline]
     pub fn mix_and_build_packet(&mut self, packet: &mut [u8]) -> Result<usize> {
         // symph_mix is an `AudioBuffer` (planar format), we need to convert this
@@ -728,209 +645,6 @@ impl Mixer {
         out
     }
 
-    // FIXME: remove sleep, remove send, return length of packet written into buf.
-    pub fn cycle(&mut self, packet: &mut [u8]) -> Result<()> {
-        // symph_mix is an `AudioBuffer` (planar format), we need to convert this
-        // later into an interleaved `SampleBuffer` for libopus.
-        self.symph_mix.clear();
-        self.symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
-        self.resample_scratch.clear();
-
-        // Walk over all the audio files, combining into one audio frame according
-        // to volume, play state, etc.
-        let mut mix_len = {
-            let out = self.mix_tracks(packet);
-
-            self.sample_buffer.copy_interleaved_typed(&self.symph_mix);
-
-            out
-        };
-
-        if self.muted {
-            mix_len = MixType::MixedPcm(0);
-        }
-
-        // Explicit "Silence" frame handling: if there is no mixed data, we must send
-        // ~5 frames of silence (unless another good audio frame appears) before we
-        // stop sending RTP frames.
-        if mix_len == MixType::MixedPcm(0) {
-            if self.silence_frames > 0 {
-                self.silence_frames -= 1;
-                let mut rtp = MutableRtpPacket::new(packet).expect(
-                    "FATAL: Too few bytes in self.packet for RTP header.\
-                        (Blame: VOICE_PACKET_MAX?)",
-                );
-
-                let payload = rtp.payload_mut();
-
-                payload[TAG_SIZE..TAG_SIZE + SILENT_FRAME.len()].copy_from_slice(&SILENT_FRAME[..]);
-
-                mix_len = MixType::Passthrough(SILENT_FRAME.len());
-            } else {
-                // Per official guidelines, send 5x silence BEFORE we stop speaking.
-                if let Some(ws) = &self.ws {
-                    // NOTE: this explicit `drop` should prevent a catastrophic thread pileup.
-                    // A full reconnect might cause an inner closed connection.
-                    // It's safer to leave the central task to clean this up and
-                    // pass the mixer a new channel.
-                    drop(ws.send(WsMessage::Speaking(false)));
-                }
-
-                self.march_deadline();
-
-                #[cfg(test)]
-                match &self.config.override_connection {
-                    Some(OutputMode::Raw(tx)) =>
-                        drop(tx.send(crate::driver::test_config::TickMessage::NoEl)),
-                    Some(OutputMode::Rtp(tx)) =>
-                        drop(tx.send(crate::driver::test_config::TickMessage::NoEl)),
-                    None => {},
-                }
-
-                self.advance_rtp_timestamp(packet);
-
-                return Ok(0);
-            }
-        } else {
-            self.silence_frames = 5;
-
-            if let MixType::MixedPcm(n) = mix_len {
-                if self.config.use_softclip {
-                    self.soft_clip.apply(
-                        (&mut self.sample_buffer.samples_mut()
-                            [..n * self.config.mix_mode.channels()])
-                            .try_into()
-                            .expect("Mix buffer is known to have a valid sample count (softclip)."),
-                    )?;
-                }
-            }
-        }
-
-        if let Some(ws) = &self.ws {
-            ws.send(WsMessage::Speaking(true))?;
-        }
-
-        // Wait till the right time to send this packet:
-        // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
-        self.march_deadline();
-
-        #[cfg(test)]
-        let send_status = if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
-            let msg = match mix_len {
-                MixType::Passthrough(len) if len == SILENT_FRAME.len() => OutputMessage::Silent,
-                MixType::Passthrough(len) => {
-                    let rtp = RtpPacket::new(&packet).expect(
-                        "FATAL: Too few bytes in self.packet for RTP header.\
-                            (Blame: VOICE_PACKET_MAX?)",
-                    );
-                    let payload = rtp.payload();
-                    let opus_frame = (&payload[TAG_SIZE..][..len]).to_vec();
-
-                    OutputMessage::Passthrough(opus_frame)
-                },
-                MixType::MixedPcm(_) => OutputMessage::Mixed(
-                    self.sample_buffer.samples()[..self.config.mix_mode.sample_count_in_frame()]
-                        .to_vec(),
-                ),
-            };
-
-            drop(tx.send(msg.into()));
-
-            Ok(())
-        } else {
-            self.prep_and_send_packet(mix_len, packet)
-        };
-
-        #[cfg(not(test))]
-        let send_status = self.prep_and_send_packet(mix_len, packet);
-
-        send_status.or_else(Error::disarm_would_block)?;
-
-        self.advance_rtp_counters(packet);
-
-        // Zero out all planes of the mix buffer if any audio was written.
-        if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
-            for plane in self.symph_mix.planes_mut().planes() {
-                plane.fill(0.0);
-            }
-        }
-
-        Ok(())
-    }
-
-    fn set_bitrate(&mut self, bitrate: Bitrate) -> Result<()> {
-        self.encoder.set_bitrate(bitrate).map_err(Into::into)
-    }
-
-    #[inline]
-    fn prep_and_send_packet(&mut self, mix_len: MixType, packet: &mut [u8]) -> Result<()> {
-        let send_buffer = self.sample_buffer.samples();
-
-        let conn = self
-            .conn_active
-            .as_mut()
-            .expect("Shouldn't be mixing packets without access to a cipher + UDP dest.");
-
-        let index = {
-            let mut rtp = MutableRtpPacket::new(packet).expect(
-                "FATAL: Too few bytes in self.packet for RTP header.\
-                    (Blame: VOICE_PACKET_MAX?)",
-            );
-
-            let payload = rtp.payload_mut();
-            let crypto_mode = conn.crypto_state.kind();
-
-            // If passthrough, Opus payload in place already.
-            // Else encode into buffer with space for AEAD encryption headers.
-            let payload_len = match mix_len {
-                MixType::Passthrough(opus_len) => opus_len,
-                MixType::MixedPcm(_samples) => {
-                    let total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
-                    self.encoder.encode_float(
-                        &send_buffer[..self.config.mix_mode.sample_count_in_frame()],
-                        &mut payload[TAG_SIZE..total_payload_space],
-                    )?
-                },
-            };
-
-            let final_payload_size = conn
-                .crypto_state
-                .write_packet_nonce(&mut rtp, TAG_SIZE + payload_len);
-
-            // Packet encryption ignored in test modes.
-            #[cfg(not(test))]
-            let encrypt = true;
-            #[cfg(test)]
-            let encrypt = self.config.override_connection.is_none();
-
-            if encrypt {
-                conn.crypto_state.kind().encrypt_in_place(
-                    &mut rtp,
-                    &conn.cipher,
-                    final_payload_size,
-                )?;
-            }
-
-            RtpPacket::minimum_packet_size() + final_payload_size
-        };
-
-        #[cfg(test)]
-        if let Some(OutputMode::Rtp(tx)) = &self.config.override_connection {
-            // Test mode: send unencrypted (compressed) packets to local receiver.
-            drop(tx.send(packet[..index].to_vec().into()));
-        } else {
-            conn.udp_tx.send(&packet[..index])?;
-        }
-
-        #[cfg(not(test))]
-        {
-            // Normal operation: send encrypted payload to UDP Tx task.
-            conn.udp_tx.send(&packet[..index])?;
-        }
-
-        Ok(())
-    }
-
     #[inline]
     fn prep_packet(&mut self, mix_len: MixType, packet: &mut [u8]) -> Result<usize> {
         let send_buffer = self.sample_buffer.samples();
@@ -1023,28 +737,6 @@ impl Mixer {
         }
 
         Ok(())
-    }
-
-    #[inline]
-    fn advance_rtp_counters(&mut self, packet: &mut [u8]) {
-        let mut rtp = MutableRtpPacket::new(packet).expect(
-            "FATAL: Too few bytes in self.packet for RTP header.\
-                (Blame: VOICE_PACKET_MAX?)",
-        );
-        rtp.set_sequence(rtp.get_sequence() + 1);
-        rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
-    }
-
-    #[inline]
-    // Even if we don't send a packet, we *do* need to keep advancing the timestamp
-    // to make it easier for a receiver to reorder packets and compute jitter measures
-    // wrt. our clock difference vs. theirs.
-    fn advance_rtp_timestamp(&mut self, packet: &mut [u8]) {
-        let mut rtp = MutableRtpPacket::new(packet).expect(
-            "FATAL: Too few bytes in self.packet for RTP header.\
-                (Blame: VOICE_PACKET_MAX?)",
-        );
-        rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
     }
 
     #[inline]
@@ -1206,19 +898,4 @@ impl Mixer {
 
         MixType::MixedPcm(len)
     }
-}
-
-/// The mixing thread is a synchronous context due to its compute-bound nature.
-///
-/// We pass in an async handle for the benefit of some Input classes (e.g., restartables)
-/// who need to run their restart code elsewhere and return blank data until such time.
-#[instrument(skip(interconnect, mix_rx, async_handle))]
-pub(crate) fn runner(
-    interconnect: Interconnect,
-    mix_rx: Receiver<MixerMessage>,
-    async_handle: Handle,
-    config: Config,
-) {
-    let mut packet = [0u8; VOICE_PACKET_MAX];
-    Mixer::new(mix_rx, async_handle, interconnect, config).run(&mut packet);
 }
