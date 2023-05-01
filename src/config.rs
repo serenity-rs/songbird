@@ -188,9 +188,12 @@ pub struct Config {
     pub disposer: Option<DisposalThread>,
 
     #[cfg(feature = "driver")]
-    /// The scheduler is responsible for mapping idle and active [`Call`]s to threads.
+    /// The scheduler is responsible for mapping idle and active [`Driver`] instances
+    /// to threads.
     ///
     /// Defaults to [`DEFAULT_SCHEDULER`].
+    ///
+    /// [`Driver`]: crate::Driver
     pub scheduler: Scheduler,
 
     // Test only attributes

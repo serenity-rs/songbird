@@ -2,7 +2,6 @@ use crate::input::{AudioStream, AudioStreamError, Compose, Input};
 use std::{error::Error, ffi::OsStr, path::Path};
 use symphonia_core::{io::MediaSource, probe::Hint};
 
-
 /// A lazily instantiated local file.
 #[derive(Clone, Debug)]
 pub struct File<P: AsRef<Path>> {
