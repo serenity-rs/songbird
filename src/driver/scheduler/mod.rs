@@ -33,13 +33,19 @@ use crate::driver::test_config::{OutputMessage, OutputMode, TickStyle};
 /// [`Config::default`]: crate::Config::default
 pub static DEFAULT_SCHEDULER: Lazy<Scheduler> = Lazy::new(Scheduler::default);
 
+#[allow(missing_docs)]
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(crate) struct TaskId(usize);
+pub struct TaskId(usize);
 
 impl IsEnabled for TaskId {}
 
+#[allow(missing_docs)]
 impl TaskId {
-    fn incr(&mut self) -> Self {
+    pub fn new() -> Self {
+        TaskId(0)
+    }
+
+    pub fn incr(&mut self) -> Self {
         let out = *self;
         self.0 = self.0.wrapping_add(1);
         out
@@ -81,14 +87,16 @@ impl Default for ScheduleMode {
     }
 }
 
+#[allow(missing_docs)]
 #[derive(Debug, Default)]
-pub(crate) struct StatBlock {
+pub struct StatBlock {
     total: AtomicU64,
     live: AtomicU64,
 }
 
+#[allow(missing_docs)]
 #[derive(Debug, Default)]
-pub(crate) struct LiveStatBlock {
+pub struct LiveStatBlock {
     live: AtomicU64,
     last_ns: AtomicU64,
 }
@@ -126,7 +134,7 @@ impl Core {
             stats,
             rx,
             tx: tx.clone(),
-            next_id: TaskId(0),
+            next_id: TaskId::new(),
             workers: Vec::with_capacity(16),
             to_cull: vec![],
         };
@@ -231,7 +239,8 @@ impl Core {
     }
 }
 
-pub(crate) enum SchedulerMessage {
+#[allow(missing_docs)]
+pub enum SchedulerMessage {
     NewMixer(Receiver<MixerMessage>, Interconnect, Config),
     Do(TaskId, MixerMessage),
     Demote(TaskId, ParkedMixer),
@@ -285,6 +294,7 @@ impl Default for Scheduler {
     }
 }
 
+#[allow(missing_docs)]
 pub struct ParkedMixer {
     mixer: Box<Mixer>,
     ssrc: u32,
@@ -293,6 +303,7 @@ pub struct ParkedMixer {
     park_time: Instant,
 }
 
+#[allow(missing_docs)]
 impl ParkedMixer {
     pub fn new(mix_rx: Receiver<MixerMessage>, interconnect: Interconnect, config: Config) -> Self {
         Self {
@@ -389,6 +400,7 @@ impl ParkedMixer {
 
 const PACKETS_PER_BLOCK: usize = 16;
 
+#[allow(missing_docs)]
 pub struct LiveMixersCore {
     packets: Vec<Box<[u8]>>,
     packet_lens: Vec<usize>,
@@ -404,13 +416,11 @@ pub struct LiveMixersCore {
     global_stats: Arc<StatBlock>,
     rx: Receiver<(TaskId, ParkedMixer)>,
     tx: Sender<SchedulerMessage>,
-
-    #[cfg(feature = "internals")]
-    pub skip_sleep: bool,
 }
 
+#[allow(missing_docs)]
 impl LiveMixersCore {
-    fn new(
+    pub fn new(
         mode: ScheduleMode,
         global_stats: Arc<StatBlock>,
         stats: Arc<LiveStatBlock>,
@@ -438,9 +448,6 @@ impl LiveMixersCore {
             global_stats,
             rx,
             tx,
-
-            #[cfg(feature = "internals")]
-            skip_sleep: false,
         }
     }
 
@@ -558,7 +565,7 @@ impl LiveMixersCore {
 
     #[cfg(not(test))]
     #[inline(always)]
-    #[allow(clippy::inline_always)] // Justified, this is a very very hot path
+    #[allow(clippy::inline_always)]
     fn _march_deadline(&mut self) {
         std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
         self.deadline += TIMESTEP_LENGTH;
@@ -567,7 +574,7 @@ impl LiveMixersCore {
     #[inline]
     fn march_deadline(&mut self) {
         #[cfg(feature = "internals")]
-        if self.skip_sleep {
+        {
             return;
         }
 
@@ -697,8 +704,24 @@ impl LiveMixersCore {
         rtp.set_sequence(task.rtp_sequence.into());
     }
 
+    #[cfg(feature = "internals")]
     #[inline]
-    fn remove_task(&mut self, i: usize) -> Option<(TaskId, ParkedMixer)> {
+    pub fn add_task_direct(&mut self, task: Mixer, id: TaskId) {
+        self.add_task(
+            ParkedMixer {
+                mixer: Box::new(task),
+                ssrc: 0,
+                rtp_sequence: 0,
+                rtp_timestamp: 0,
+                park_time: Instant::now(),
+            },
+            id,
+            Instant::now(),
+        );
+    }
+
+    #[inline]
+    pub fn remove_task(&mut self, i: usize) -> Option<(TaskId, ParkedMixer)> {
         // TO REMOVE:
         // swap-remove on all relevant stores.
         // simulate swap-remove on buffer contents:
@@ -795,13 +818,15 @@ fn advance_rtp_counters(packet: &mut [u8]) {
     rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
 }
 
+#[allow(missing_docs)]
 pub struct LiveMixers {
     stats: Arc<LiveStatBlock>,
     tx: Sender<(TaskId, ParkedMixer)>,
 }
 
+#[allow(missing_docs)]
 impl LiveMixers {
-    pub(crate) fn new(
+    pub fn new(
         mode: ScheduleMode,
         sched_tx: Sender<SchedulerMessage>,
         global_stats: Arc<StatBlock>,

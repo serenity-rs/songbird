@@ -74,8 +74,6 @@ pub struct Mixer {
     // pub packet: [u8; VOICE_PACKET_MAX],
     pub prevent_events: bool,
     pub silence_frames: u8,
-    #[cfg(feature = "internals")]
-    pub skip_sleep: bool,
     pub soft_clip: SoftClip,
     thread_pool: BlockyTaskPool,
     pub ws: Option<Sender<WsMessage>>,
@@ -162,8 +160,6 @@ impl Mixer {
             muted: false,
             prevent_events: false,
             silence_frames: 0,
-            #[cfg(feature = "internals")]
-            skip_sleep: false,
             soft_clip,
             thread_pool,
             ws: None,
