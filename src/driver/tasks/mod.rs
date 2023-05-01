@@ -23,7 +23,7 @@ use crate::{
 };
 use flume::{Receiver, Sender};
 use message::*;
-use tokio::{runtime::Handle, spawn, time::sleep as tsleep};
+use tokio::{spawn, time::sleep as tsleep};
 use tracing::{debug, instrument, trace};
 
 pub(crate) fn start(config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMessage>) {

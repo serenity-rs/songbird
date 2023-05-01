@@ -15,6 +15,8 @@ use crate::{
 
 #[cfg(test)]
 use crate::driver::test_config::*;
+#[cfg(all(test, feature = "driver"))]
+use crate::driver::ScheduleMode;
 
 #[cfg(feature = "driver")]
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
@@ -342,6 +344,13 @@ impl Config {
         self
     }
 
+    /// Sets this `Config`'s channel for sending disposal messages.
+    #[must_use]
+    pub fn scheduler(mut self, scheduler: Scheduler) -> Self {
+        self.scheduler = scheduler;
+        self
+    }
+
     /// Ensures a global disposer has been set, initializing one if not.
     #[must_use]
     pub(crate) fn initialise_disposer(self) -> Self {
@@ -399,6 +408,8 @@ impl Config {
 
         let config = Config::default()
             .tick_style(TickStyle::UntimedWithExecLimit(tick_rx))
+            // give each test its own thread in the scheduler for simplicity.
+            .scheduler(Scheduler::new(ScheduleMode::MaxPerThread(1.try_into().unwrap())))
             .override_connection(Some(conn));
 
         let handle = DriverTestHandle { rx, tx: tick_tx };

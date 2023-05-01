@@ -15,11 +15,7 @@ use once_cell::sync::Lazy;
 use rand::random;
 use tokio::runtime::Handle;
 
-use crate::{
-    constants::*,
-    driver::tasks::{error::Error as DriverError, message::WsMessage},
-    Config,
-};
+use crate::{constants::*, driver::tasks::error::Error as DriverError, Config};
 
 use super::tasks::{
     message::{EventMessage, Interconnect, MixerMessage},
@@ -56,6 +52,7 @@ impl TaskId {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum ScheduleMode {
+    /// Allows at most `n` tasks to run per thread.
     MaxPerThread(NonZeroUsize),
 }
 
@@ -157,8 +154,8 @@ impl Core {
                             self.to_cull.push(*id);
                         }
 
-                        #[cfg(test)]
-                        task.mixer.test_signal_empty_tick();
+                        // #[cfg(test)]
+                        // task.mixer.test_signal_empty_tick();
                     }
                 },
                 msg = self.rx.recv_async() => match msg {
@@ -399,11 +396,17 @@ pub struct LiveMixersCore {
     ids: Vec<TaskId>,
     to_cull: Vec<bool>,
 
+    deadline: Instant,
+    start_of_work: Option<Instant>,
+
     mode: ScheduleMode,
     stats: Arc<LiveStatBlock>,
     global_stats: Arc<StatBlock>,
     rx: Receiver<(TaskId, ParkedMixer)>,
     tx: Sender<SchedulerMessage>,
+
+    #[cfg(feature = "internals")]
+    pub skip_sleep: bool,
 }
 
 impl LiveMixersCore {
@@ -426,91 +429,153 @@ impl LiveMixersCore {
             tasks: Vec::with_capacity(to_prealloc),
             ids: Vec::with_capacity(to_prealloc),
             to_cull: Vec::with_capacity(to_prealloc),
+
+            deadline: Instant::now(),
+            start_of_work: None,
+
             mode,
             stats,
             global_stats,
             rx,
             tx,
-        }
-    }
 
-    fn run(&mut self) {
-        let mut deadline = Instant::now();
-        let mut start_of_work = None;
-
-        loop {
-            // Check for new tasks.
-            if self.handle_scheduler_msgs(deadline).is_err() {
-                break;
-            }
-
-            // Receive commands for each task.
-            self.handle_task_msgs();
-
-            // Move any idle calls back to the global pool.
-            self.demote_and_remove_mixers();
-
-            for ((packet, packet_len), mixer) in self
-                .packets
-                .iter_mut()
-                .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
-                .zip(self.packet_lens.iter_mut())
-                .zip(self.tasks.iter_mut())
-            {
-                match mixer.mix_and_build_packet(packet) {
-                    Ok(written_sz) => *packet_len = written_sz,
-                    Err(e) => {
-                        *packet_len = 0;
-                        // TODO: let culling happen here too (?)
-                        _ = mixer.do_rebuilds(
-                            e.should_trigger_interconnect_rebuild(),
-                            e.should_trigger_connect(),
-                        );
-                    },
-                }
-            }
-
-            // TODO dealloc blocks every... 1 min?
-
-            let end_of_work = Instant::now();
-
-            if let Some(start_of_work) = start_of_work {
-                let work: Duration = end_of_work - start_of_work;
-                self.stats
-                    .last_ns
-                    .store(work.as_nanos() as u64, Ordering::Relaxed);
-            }
-
-            // TODO: integrate test methods to skip sleep here.
-            // Wait till the right time to send this packet:
-            // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
-            std::thread::sleep(deadline.saturating_duration_since(end_of_work));
-            deadline += TIMESTEP_LENGTH;
-
-            // Send all.
-            start_of_work = Some(Instant::now());
-            for ((packet, packet_len), mixer) in self
-                .packets
-                .iter_mut()
-                .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
-                .zip(self.packet_lens.iter())
-                .zip(self.tasks.iter())
-            {
-                if *packet_len > 0 {
-                    mixer.send_packet(&packet[..*packet_len]);
-                }
-                advance_rtp_counters(packet);
-            }
-
-            for mixer in self.tasks.iter_mut() {
-                mixer.audio_commands_events();
-                mixer.check_and_send_keepalive(start_of_work);
-            }
+            #[cfg(feature = "internals")]
+            skip_sleep: false,
         }
     }
 
     #[inline]
-    fn handle_scheduler_msgs(&mut self, next_deadline: Instant) -> Result<(), ()> {
+    fn run(&mut self) {
+        while self.run_once() {}
+    }
+
+    #[inline]
+    pub fn run_once(&mut self) -> bool {
+        // Check for new tasks.
+        if self.handle_scheduler_msgs().is_err() {
+            return false;
+        }
+
+        // Receive commands for each task.
+        self.handle_task_msgs();
+
+        // Move any idle calls back to the global pool.
+        self.demote_and_remove_mixers();
+
+        for ((packet, packet_len), mixer) in self
+            .packets
+            .iter_mut()
+            .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
+            .zip(self.packet_lens.iter_mut())
+            .zip(self.tasks.iter_mut())
+        {
+            match mixer.mix_and_build_packet(packet) {
+                Ok(written_sz) => *packet_len = written_sz,
+                Err(e) => {
+                    *packet_len = 0;
+                    // TODO: let culling happen here too (?)
+                    _ = mixer.do_rebuilds(
+                        e.should_trigger_interconnect_rebuild(),
+                        e.should_trigger_connect(),
+                    );
+                },
+            }
+        }
+
+        // TODO dealloc blocks every... 1 min?
+
+        let end_of_work = Instant::now();
+
+        if let Some(start_of_work) = self.start_of_work {
+            let work: Duration = end_of_work - start_of_work;
+            self.stats
+                .last_ns
+                .store(work.as_nanos() as u64, Ordering::Relaxed);
+        }
+
+        // Wait till the right time to send this packet:
+        // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
+        self.march_deadline();
+
+        // Send all.
+        self.start_of_work = Some(Instant::now());
+        for ((packet, packet_len), mixer) in self
+            .packets
+            .iter_mut()
+            .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
+            .zip(self.packet_lens.iter())
+            .zip(self.tasks.iter())
+        {
+            if *packet_len > 0 {
+                mixer.send_packet(&packet[..*packet_len]);
+            }
+            #[cfg(test)]
+            if *packet_len == 0 {
+                mixer.test_signal_empty_tick();
+            }
+            advance_rtp_counters(packet);
+        }
+
+        for mixer in self.tasks.iter_mut() {
+            mixer.audio_commands_events();
+            mixer.check_and_send_keepalive(self.start_of_work);
+        }
+
+        true
+    }
+
+    #[cfg(test)]
+    fn _march_deadline(&mut self) {
+        // For testing, assume all will have same tick style.
+        // Only count 'remaining loops' on one of the nodes.
+        let mixer = self.tasks.get_mut(0).map(|m| {
+            let style = m.config.tick_style.clone();
+            (m, style)
+        });
+
+        match mixer {
+            None | Some((_, TickStyle::Timed)) => {
+                std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
+                self.deadline += TIMESTEP_LENGTH;
+            },
+            Some((m, TickStyle::UntimedWithExecLimit(rx))) => {
+                if m.remaining_loops.is_none() {
+                    if let Ok(new_val) = rx.recv() {
+                        m.remaining_loops = Some(new_val.wrapping_sub(1));
+                    }
+                }
+
+                if let Some(cnt) = m.remaining_loops.as_mut() {
+                    if *cnt == 0 {
+                        m.remaining_loops = None;
+                    } else {
+                        *cnt = cnt.wrapping_sub(1);
+                    }
+                }
+            },
+        }
+    }
+
+    #[cfg(not(test))]
+    #[inline(always)]
+    #[allow(clippy::inline_always)] // Justified, this is a very very hot path
+    fn _march_deadline(&mut self) {
+        std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
+        self.deadline += TIMESTEP_LENGTH;
+    }
+
+    #[inline]
+    fn march_deadline(&mut self) {
+        #[cfg(feature = "internals")]
+        if self.skip_sleep {
+            return;
+        }
+
+        self._march_deadline();
+    }
+
+    #[inline]
+    fn handle_scheduler_msgs(&mut self) -> Result<(), ()> {
         let mut activation_time = None;
         loop {
             match self.rx.try_recv() {
@@ -519,7 +584,7 @@ impl LiveMixersCore {
                     self.add_task(
                         task,
                         id,
-                        *activation_time.get_or_insert_with(|| (next_deadline - TIMESTEP_LENGTH)),
+                        *activation_time.get_or_insert_with(|| (self.deadline - TIMESTEP_LENGTH)),
                     );
                 },
                 Err(TryRecvError::Empty) => break,

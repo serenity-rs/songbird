@@ -52,7 +52,7 @@ use symphonia_core::{
     units::Time,
 };
 use tokio::runtime::Handle;
-use tracing::{debug, error, instrument, warn};
+use tracing::error;
 use xsalsa20poly1305::TAG_SIZE;
 
 #[cfg(test)]
@@ -74,6 +74,7 @@ pub struct Mixer {
     // pub packet: [u8; VOICE_PACKET_MAX],
     pub prevent_events: bool,
     pub silence_frames: u8,
+    #[cfg(feature = "internals")]
     pub skip_sleep: bool,
     pub soft_clip: SoftClip,
     thread_pool: BlockyTaskPool,
@@ -90,7 +91,10 @@ pub struct Mixer {
     resample_scratch: AudioBuffer<f32>,
 
     #[cfg(test)]
-    remaining_loops: Option<u64>,
+    pub remaining_loops: Option<u64>,
+
+    #[cfg(test)]
+    raw_msg: Option<OutputMessage>,
 }
 
 fn new_encoder(bitrate: Bitrate, mix_mode: MixMode) -> Result<OpusEncoder> {
@@ -158,6 +162,7 @@ impl Mixer {
             muted: false,
             prevent_events: false,
             silence_frames: 0,
+            #[cfg(feature = "internals")]
             skip_sleep: false,
             soft_clip,
             thread_pool,
@@ -175,6 +180,8 @@ impl Mixer {
 
             #[cfg(test)]
             remaining_loops: None,
+            #[cfg(test)]
+            raw_msg: None,
         }
     }
 
@@ -522,23 +529,6 @@ impl Mixer {
         }
     }
 
-    #[cfg(not(test))]
-    #[inline(always)]
-    #[allow(clippy::inline_always)] // Justified, this is a very very hot path
-    fn _march_deadline(&mut self) {
-        std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
-        self.deadline += TIMESTEP_LENGTH;
-    }
-
-    #[inline]
-    fn march_deadline(&mut self) {
-        if self.skip_sleep {
-            return;
-        }
-
-        self._march_deadline();
-    }
-
     #[cfg(test)]
     #[inline]
     pub(crate) fn test_signal_empty_tick(&self) {
@@ -608,11 +598,9 @@ impl Mixer {
             }
         }
 
-        let out = self.prep_packet(mix_len, packet);
-
         // For the benefit of test cases, send the raw un-RTP'd data.
         #[cfg(test)]
-        if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
+        let out = if let Some(OutputMode::Raw(_)) = &self.config.override_connection {
             // This case has been handled before buffer clearing above.
             let msg = match mix_len {
                 MixType::Passthrough(len) if len == SILENT_FRAME.len() => OutputMessage::Silent,
@@ -632,8 +620,15 @@ impl Mixer {
                 ),
             };
 
-            drop(tx.send(msg.into()));
-        }
+            self.raw_msg = Some(msg);
+
+            Ok(1)
+        } else {
+            self.prep_packet(mix_len, packet)
+        };
+
+        #[cfg(not(test))]
+        let out = self.prep_packet(mix_len, packet);
 
         // Zero out all planes of the mix buffer if any audio was written.
         if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
@@ -701,6 +696,7 @@ impl Mixer {
         #[cfg(test)]
         let send_status = if let Some(OutputMode::Raw(tx)) = &self.config.override_connection {
             // This case has been handled before buffer clearing in `mix_and_build_packet`.
+            drop(tx.send(self.raw_msg.clone().unwrap().into()));
 
             Ok(())
         } else {
