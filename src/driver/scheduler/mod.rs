@@ -158,6 +158,7 @@ impl Core {
                     let now = Instant::now();
 
                     for (id, task) in self.tasks.iter_mut() {
+                        // NOTE: this is a non-blocking send so safe from async context.
                         if task.tick_and_keepalive(now).is_err() {
                             self.to_cull.push(*id);
                         }
@@ -642,14 +643,24 @@ impl LiveMixersCore {
         }
     }
 
+    #[cfg(feature = "internals")]
     #[inline]
-    fn demote_and_remove_mixers(&mut self) {
+    pub fn mark_for_cull(&mut self, idx: usize) {
+        self.to_cull[idx] = true;
+    }
+
+    #[inline]
+    pub fn demote_and_remove_mixers(&mut self) {
         let mut i = 0;
         while i < self.tasks.len() {
             #[cfg(test)]
             let force_conn = self.tasks[i].config.override_connection.is_some();
             #[cfg(not(test))]
             let force_conn = false;
+
+            // Benchmarking suggests that these asserts remove some bounds checks for us.
+            assert!(i < self.tasks.len());
+            assert!(i < self.to_cull.len());
 
             if self.to_cull[i]
                 || (self.tasks[i].tracks.is_empty() && self.tasks[i].silence_frames == 0)
@@ -667,8 +678,12 @@ impl LiveMixersCore {
                 i += 1;
             }
         }
+    }
 
-        // TODO: test whether asserts speed this up.
+    #[inline]
+    fn get_memory_indices(&self, idx: usize) -> (usize, usize) {
+        let block_size = PACKETS_PER_BLOCK;
+        (idx / block_size, (idx % block_size) * VOICE_PACKET_MAX)
     }
 
     #[inline]
@@ -686,14 +701,12 @@ impl LiveMixersCore {
         self.packet_lens.push(0);
         self.to_cull.push(false);
 
-        let block_size = self.mode.prealloc_size();
-        let block = idx / block_size;
-        let inner_idx = idx % block_size;
+        let (block, inner_idx) = self.get_memory_indices(idx);
 
         while self.packets.len() <= block {
             self.packets.push(packet_block(PACKETS_PER_BLOCK));
         }
-        let packet = &mut self.packets[block][inner_idx * VOICE_PACKET_MAX..][..VOICE_PACKET_MAX];
+        let packet = &mut self.packets[block][inner_idx..][..VOICE_PACKET_MAX];
 
         let mut rtp = MutableRtpPacket::new(packet).expect(
             "FATAL: Too few bytes in self.packet for RTP header.\
@@ -721,41 +734,36 @@ impl LiveMixersCore {
     }
 
     #[inline]
-    pub fn remove_task(&mut self, i: usize) -> Option<(TaskId, ParkedMixer)> {
+    pub fn remove_task(&mut self, idx: usize) -> Option<(TaskId, ParkedMixer)> {
+        // TODO: add test for this because it's quite subtle.
+
         // TO REMOVE:
         // swap-remove on all relevant stores.
         // simulate swap-remove on buffer contents:
         //  move important packet header fields from end into i
         let end = self.tasks.len() - 1;
 
-        let id = self.ids.swap_remove(i);
-        let _len = self.packet_lens.swap_remove(i);
-        let mixer = self.tasks.swap_remove(i);
-        let alive = !self.to_cull.swap_remove(i);
+        let id = self.ids.swap_remove(idx);
+        let _len = self.packet_lens.swap_remove(idx);
+        let mixer = self.tasks.swap_remove(idx);
+        let alive = !self.to_cull.swap_remove(idx);
 
-        let block_size = self.mode.prealloc_size();
-        let block = i / block_size;
-        let inner_idx = i % block_size;
+        let (block, inner_idx) = self.get_memory_indices(idx);
 
         // TODO: consider replacing this with a memcpy (10B).
-        //  issue -- tricky to get &muts over both packet bodies
-        let replacement = (end > i).then(|| {
-            let end_block = end / block_size;
-            let end_inner = end % block_size;
-
-            let end_packet =
-                &mut self.packets[end_block][end_inner * VOICE_PACKET_MAX..][..VOICE_PACKET_MAX];
-
-            let rtp = RtpPacket::new(end_packet).expect(
-                "FATAL: Too few bytes in self.packet for RTP header.\
-                    (Blame: VOICE_PACKET_MAX?)",
-            );
-
-            (rtp.get_sequence(), rtp.get_timestamp(), rtp.get_ssrc())
+        //  issue -- tricky to get &muts over both packet bodies safely
+        let replacement = (end > idx).then(|| {
+            let (end_block, end_inner) = self.get_memory_indices(end);
+            // unsafe {self.packets[end_block].as_ptr().add(end_inner)}
+            unsafe {
+                core::ptr::NonNull::new_unchecked(
+                    self.packets[end_block].as_mut_ptr().add(end_inner),
+                )
+            }
         });
 
-        let packet = &mut self.packets[block][inner_idx * VOICE_PACKET_MAX..][..VOICE_PACKET_MAX];
-        let mut rtp = MutableRtpPacket::new(packet).expect(
+        let packet = &mut self.packets[block][inner_idx..];
+        let rtp = RtpPacket::new(packet).expect(
             "FATAL: Too few bytes in self.packet for RTP header.\
                 (Blame: VOICE_PACKET_MAX?)",
         );
@@ -763,10 +771,10 @@ impl LiveMixersCore {
         let rtp_timestamp = rtp.get_timestamp().into();
         let rtp_sequence = rtp.get_sequence().into();
 
-        if let Some((seq, ts, ssrc)) = replacement {
-            rtp.set_sequence(seq);
-            rtp.set_timestamp(ts);
-            rtp.set_ssrc(ssrc);
+        if let Some(src_ptr) = replacement {
+            // Copy the whole packet header since we know it'll be 4B aligned.
+            // 'Just necessary fields' is 2B aligned.
+            unsafe { std::ptr::copy_nonoverlapping(src_ptr.as_ptr(), packet.as_mut_ptr(), 12) }
         }
 
         alive.then(move || {

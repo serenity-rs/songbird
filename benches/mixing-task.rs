@@ -459,6 +459,45 @@ fn task_culling(c: &mut Criterion) {
             BatchSize::SmallInput,
         )
     });
+
+    c.bench_function("Live Mixer Thread Culling (Practical)", |b| {
+        b.iter_batched_ref(
+            || {
+                black_box(MockScheduler::from_mixers(
+                    None,
+                    (0..N_MIXERS)
+                        .map(|_| mixer_opus(rt.handle().clone()))
+                        .collect(),
+                ))
+            },
+            |input| {
+                black_box({
+                    input.0.core.mark_for_cull(0);
+                    input.0.core.mark_for_cull(1);
+                    input.0.core.mark_for_cull(4);
+                    input.0.core.demote_and_remove_mixers();
+                });
+            },
+            BatchSize::SmallInput,
+        )
+    });
+
+    c.bench_function("Live Mixer Thread Culling (Practical, NoDel)", |b| {
+        b.iter_batched_ref(
+            || {
+                black_box(MockScheduler::from_mixers(
+                    None,
+                    (0..N_MIXERS)
+                        .map(|_| mixer_opus(rt.handle().clone()))
+                        .collect(),
+                ))
+            },
+            |input| {
+                black_box(input.0.core.demote_and_remove_mixers());
+            },
+            BatchSize::SmallInput,
+        )
+    });
 }
 
 criterion_group!(individual, no_passthrough, passthrough);
