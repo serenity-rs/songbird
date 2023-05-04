@@ -147,6 +147,9 @@ receive = ["dep:bytes", "discortp?/demux", "discortp?/rtcp"]
 full-doc = ["default", "twilight", "builtin-queue", "receive"]
 internals = []
 
+[lib]
+bench = false
+
 [[bench]]
 name = "base-mixing"
 path = "benches/base-mixing.rs"

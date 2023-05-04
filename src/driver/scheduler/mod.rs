@@ -23,7 +23,7 @@ use super::tasks::{
 };
 
 #[cfg(test)]
-use crate::driver::test_config::{OutputMessage, OutputMode, TickStyle};
+use crate::driver::test_config::TickStyle;
 
 /// The default shared scheduler instance.
 ///
