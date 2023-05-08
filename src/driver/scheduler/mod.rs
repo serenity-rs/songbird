@@ -748,20 +748,21 @@ impl LiveMixersCore {
 
         let (block, inner_idx) = self.get_memory_indices(idx);
 
-        // TODO: consider replacing this with a memcpy (10B).
-        //  issue -- tricky to get &muts over both packet bodies safely
-        let replacement = (end > idx).then(|| {
+        let (removed, replacement) = if end > idx {
             let (end_block, end_inner) = self.get_memory_indices(end);
-            // unsafe {self.packets[end_block].as_ptr().add(end_inner)}
-            unsafe {
-                core::ptr::NonNull::new_unchecked(
-                    self.packets[end_block].as_mut_ptr().add(end_inner),
-                )
-            }
-        });
+            let (rest, target_block) = self.packets.split_at_mut(end_block);
+            let (last_block, end_pkt) = target_block[0].split_at_mut(end_inner);
 
-        let packet = &mut self.packets[block][inner_idx..];
-        let rtp = RtpPacket::new(packet).expect(
+            if end_block == block {
+                (&mut last_block[inner_idx..], Some(end_pkt))
+            } else {
+                (&mut rest[block][inner_idx..], Some(end_pkt))
+            }
+        } else {
+            (&mut self.packets[block][inner_idx..], None)
+        };
+
+        let rtp = RtpPacket::new(&removed).expect(
             "FATAL: Too few bytes in self.packet for RTP header.\
                 (Blame: VOICE_PACKET_MAX?)",
         );
@@ -769,10 +770,10 @@ impl LiveMixersCore {
         let rtp_timestamp = rtp.get_timestamp().into();
         let rtp_sequence = rtp.get_sequence().into();
 
-        if let Some(src_ptr) = replacement {
+        if let Some(replacement) = replacement {
             // Copy the whole packet header since we know it'll be 4B aligned.
             // 'Just necessary fields' is 2B aligned.
-            unsafe { std::ptr::copy_nonoverlapping(src_ptr.as_ptr(), packet.as_mut_ptr(), 12) }
+            (&mut removed[..12]).copy_from_slice(&replacement[..12])
         }
 
         alive.then(move || {
