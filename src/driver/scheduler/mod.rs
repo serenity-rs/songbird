@@ -868,7 +868,6 @@ mod test {
     }
 
     #[tokio::test]
-    // #[ntest::timeout(10_000)]
     async fn deletion_moves_pkt_header() {
         let (mut sched, _listeners) = MockScheduler::from_mixers(
             None,
@@ -889,7 +888,6 @@ mod test {
     }
 
     #[tokio::test]
-    // #[ntest::timeout(10_000)]
     async fn deletion_moves_pkt_header_multiblock() {
         let n_pkts = PACKETS_PER_BLOCK + 8;
         let (mut sched, _listeners) = MockScheduler::from_mixers(
