@@ -65,10 +65,10 @@ git = "https://github.com/serenity-rs/serenity"
 optional = true
 
 [dev-dependencies]
+byteorder = "1"
 criterion = "0.4"
 ntest = "0.9"
 symphonia = { version = "0.5.2", features = ["aac", "isomp4", "mp3"] }
-utils = { path = "utils" }
 tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 
 [features]
@@ -145,7 +145,7 @@ receive = ["dep:bytes", "discortp?/demux", "discortp?/rtcp"]
 
 # Used for docgen/testing/benchmarking.
 full-doc = ["default", "twilight", "builtin-queue", "receive"]
-internals = []
+internals = ["dep:byteorder"]
 
 [lib]
 bench = false

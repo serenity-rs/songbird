@@ -21,6 +21,8 @@ mod scheduler;
 pub(crate) mod tasks;
 #[cfg(test)]
 pub(crate) mod test_config;
+#[cfg(any(test, feature = "internals"))]
+mod test_impls;
 
 use connection::error::{Error, Result};
 pub use crypto::CryptoMode;
@@ -31,6 +33,8 @@ pub use mix_mode::MixMode;
 pub use scheduler::{ScheduleMode, Scheduler, DEFAULT_SCHEDULER};
 #[cfg(test)]
 pub use test_config::*;
+#[cfg(any(test, feature = "internals"))]
+pub use test_impls::*;
 
 #[cfg(feature = "builtin-queue")]
 use crate::tracks::TrackQueue;

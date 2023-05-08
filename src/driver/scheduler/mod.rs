@@ -717,15 +717,15 @@ impl LiveMixersCore {
         rtp.set_sequence(task.rtp_sequence.into());
     }
 
-    #[cfg(feature = "internals")]
+    #[cfg(any(test, feature = "internals"))]
     #[inline]
     pub fn add_task_direct(&mut self, task: Mixer, id: TaskId) {
         self.add_task(
             ParkedMixer {
                 mixer: Box::new(task),
-                ssrc: 0,
-                rtp_sequence: 0,
-                rtp_timestamp: 0,
+                ssrc: id.0 as u32,
+                rtp_sequence: id.0 as u16,
+                rtp_timestamp: id.0 as u32,
                 park_time: Instant::now(),
             },
             id,
@@ -735,8 +735,6 @@ impl LiveMixersCore {
 
     #[inline]
     pub fn remove_task(&mut self, idx: usize) -> Option<(TaskId, ParkedMixer)> {
-        // TODO: add test for this because it's quite subtle.
-
         // TO REMOVE:
         // swap-remove on all relevant stores.
         // simulate swap-remove on buffer contents:
@@ -846,5 +844,69 @@ impl LiveMixers {
         core.spawn();
 
         Self { stats, tx: live_tx }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::driver::test_impls::*;
+    use tokio::runtime::Handle;
+
+    fn rtp_has_index(pkt: &[u8], sentinel_val: u16) {
+        let rtp = RtpPacket::new(pkt).unwrap();
+
+        assert_eq!(rtp.get_version(), RTP_VERSION);
+        assert_eq!(rtp.get_padding(), 0);
+        assert_eq!(rtp.get_extension(), 0);
+        assert_eq!(rtp.get_csrc_count(), 0);
+        assert_eq!(rtp.get_marker(), 0);
+        assert_eq!(rtp.get_payload_type(), RTP_PROFILE_TYPE);
+        assert_eq!(rtp.get_sequence(), sentinel_val.into());
+        assert_eq!(rtp.get_timestamp(), (sentinel_val as u32).into());
+        assert_eq!(rtp.get_ssrc(), sentinel_val as u32);
+    }
+
+    #[tokio::test]
+    // #[ntest::timeout(10_000)]
+    async fn deletion_moves_pkt_header() {
+        let (mut sched, _listeners) = MockScheduler::from_mixers(
+            None,
+            (0..PACKETS_PER_BLOCK)
+                .map(|_| Mixer::test_with_float(1, Handle::current(), false))
+                .collect(),
+        );
+
+        let last_idx = (PACKETS_PER_BLOCK - 1) as u16;
+
+        // Remove head.
+        sched.core.remove_task(0);
+        rtp_has_index(&sched.core.packets[0], last_idx);
+
+        // Remove head.
+        sched.core.remove_task(5);
+        rtp_has_index(&sched.core.packets[0][5 * VOICE_PACKET_MAX..], last_idx - 1);
+    }
+
+    #[tokio::test]
+    // #[ntest::timeout(10_000)]
+    async fn deletion_moves_pkt_header_multiblock() {
+        let n_pkts = PACKETS_PER_BLOCK + 8;
+        let (mut sched, _listeners) = MockScheduler::from_mixers(
+            None,
+            (0..n_pkts)
+                .map(|_| Mixer::test_with_float(1, Handle::current(), false))
+                .collect(),
+        );
+
+        let last_idx = (n_pkts - 1) as u16;
+
+        // Remove head (read from block 1 into block 0).
+        sched.core.remove_task(0);
+        rtp_has_index(&sched.core.packets[0], last_idx);
+
+        // Remove later (read from block 1 into block 1).
+        sched.core.remove_task(17);
+        rtp_has_index(&sched.core.packets[1][VOICE_PACKET_MAX..], last_idx - 1);
     }
 }
