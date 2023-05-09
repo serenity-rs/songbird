@@ -395,11 +395,12 @@ impl ParkedMixer {
     }
 
     fn send_gateway_not_speaking(&self) {
-        self.mixer.send_gateway_not_speaking()
+        self.mixer.send_gateway_not_speaking();
     }
 }
 
 const PACKETS_PER_BLOCK: usize = 16;
+const MEMORY_CULL_TIMER: Duration = Duration::from_secs(10);
 
 #[allow(missing_docs)]
 pub struct LiveMixersCore {
@@ -417,6 +418,8 @@ pub struct LiveMixersCore {
     global_stats: Arc<StatBlock>,
     rx: Receiver<(TaskId, ParkedMixer)>,
     tx: Sender<SchedulerMessage>,
+
+    excess_buffer_cull_time: Option<Instant>,
 }
 
 #[allow(missing_docs)]
@@ -430,8 +433,6 @@ impl LiveMixersCore {
     ) -> Self {
         let to_prealloc = mode.prealloc_size();
 
-        // TODO: benchmark 2048-byte size slices (wrt lookup/indexing cost.)
-        // TODO: allow for different packet block-alloc sizes
         let packets = vec![packet_block(PACKETS_PER_BLOCK)];
 
         Self {
@@ -449,6 +450,8 @@ impl LiveMixersCore {
             global_stats,
             rx,
             tx,
+
+            excess_buffer_cull_time: None,
         }
     }
 
@@ -490,8 +493,6 @@ impl LiveMixersCore {
             }
         }
 
-        // TODO dealloc blocks every... 1 min?
-
         let end_of_work = Instant::now();
 
         if let Some(start_of_work) = self.start_of_work {
@@ -500,6 +501,8 @@ impl LiveMixersCore {
                 .last_ns
                 .store(work.as_nanos() as u64, Ordering::Relaxed);
         }
+
+        self.timed_remove_excess_blocks(end_of_work);
 
         // Wait till the right time to send this packet:
         // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
@@ -681,7 +684,42 @@ impl LiveMixersCore {
     }
 
     #[inline]
+    fn needed_blocks(&self) -> usize {
+        let div = self.ids.len() / PACKETS_PER_BLOCK;
+        let rem = self.ids.len() % PACKETS_PER_BLOCK;
+        (rem != 0) as usize + div
+    }
+
+    #[inline]
+    fn has_excess_blocks(&self) -> bool {
+        self.packets.len() > self.needed_blocks()
+    }
+
+    #[inline]
+    fn remove_excess_blocks(&mut self) {
+        self.packets.truncate(self.needed_blocks())
+    }
+
+    #[inline]
+    fn timed_remove_excess_blocks(&mut self, now: Instant) {
+        // Try to offload excess packet buffers.
+        if self.has_excess_blocks() {
+            if let Some(mark_time) = self.excess_buffer_cull_time {
+                if now.duration_since(mark_time) >= MEMORY_CULL_TIMER {
+                    self.remove_excess_blocks();
+                    self.excess_buffer_cull_time = None;
+                }
+            } else {
+                self.excess_buffer_cull_time = Some(now);
+            }
+        } else {
+            self.excess_buffer_cull_time = None;
+        }
+    }
+
+    #[inline]
     fn get_memory_indices(&self, idx: usize) -> (usize, usize) {
+        // TODO: make block size of largest cap correctly (no overalloc?)
         let block_size = PACKETS_PER_BLOCK;
         (idx / block_size, (idx % block_size) * VOICE_PACKET_MAX)
     }
@@ -762,7 +800,7 @@ impl LiveMixersCore {
             (&mut self.packets[block][inner_idx..], None)
         };
 
-        let rtp = RtpPacket::new(&removed).expect(
+        let rtp = RtpPacket::new(removed).expect(
             "FATAL: Too few bytes in self.packet for RTP header.\
                 (Blame: VOICE_PACKET_MAX?)",
         );
@@ -773,7 +811,8 @@ impl LiveMixersCore {
         if let Some(replacement) = replacement {
             // Copy the whole packet header since we know it'll be 4B aligned.
             // 'Just necessary fields' is 2B aligned.
-            (&mut removed[..12]).copy_from_slice(&replacement[..12])
+            const COPY_LEN: usize = RtpPacket::minimum_packet_size();
+            removed[..COPY_LEN].copy_from_slice(&replacement[..COPY_LEN]);
         }
 
         alive.then(move || {
@@ -907,5 +946,35 @@ mod test {
         // Remove later (read from block 1 into block 1).
         sched.core.remove_task(17);
         rtp_has_index(&sched.core.packets[1][VOICE_PACKET_MAX..], last_idx - 1);
+    }
+
+    #[tokio::test]
+    async fn packet_blocks_are_cleaned_up() {
+        // Allocate 2 blocks.
+        let n_pkts = PACKETS_PER_BLOCK + 1;
+        let (mut sched, _listeners) = MockScheduler::from_mixers(
+            None,
+            (0..n_pkts)
+                .map(|_| Mixer::test_with_float(1, Handle::current(), false))
+                .collect(),
+        );
+
+        // Assert no cleanup at start.
+        assert!(sched.core.run_once());
+        assert_eq!(sched.core.needed_blocks(), 2);
+        assert!(sched.core.excess_buffer_cull_time.is_none());
+
+        // Remove only entry in last block. Cleanup should be sched'd.
+        sched.core.remove_task(n_pkts - 1);
+        assert!(sched.core.run_once());
+        assert!(sched.core.has_excess_blocks());
+        assert!(sched.core.excess_buffer_cull_time.is_some());
+
+        tokio::time::sleep(Duration::from_secs(2) + MEMORY_CULL_TIMER).await;
+
+        // Cleanup should be unsched'd.
+        assert!(sched.core.run_once());
+        // assert!(sched.core.excess_buffer_cull_time.is_none());
+        assert!(!sched.core.has_excess_blocks());
     }
 }
