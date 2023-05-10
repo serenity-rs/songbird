@@ -13,7 +13,10 @@ use flume::{Receiver, Sender, TryRecvError};
 use nohash_hasher::{BuildNoHashHasher, IntMap, IsEnabled};
 use once_cell::sync::Lazy;
 use rand::random;
-use tokio::runtime::Handle;
+use tokio::{
+    runtime::Handle,
+    time::{Instant as TokInstant, Interval},
+};
 
 use crate::{constants::*, driver::tasks::error::Error as DriverError, Config};
 
@@ -24,6 +27,8 @@ use super::tasks::{
 
 #[cfg(test)]
 use crate::driver::test_config::TickStyle;
+
+const THREAD_CULL_TIMER: Duration = Duration::from_secs(60);
 
 /// The default shared scheduler instance.
 ///
@@ -148,75 +153,105 @@ impl Core {
         // spawn any NewMixers into tasks which handle easy changes
         // and translate play events etc into a request to be made 'live'.
         // also signal evt context of each thread every 20ms.
-        loop {
-            tokio::select! {
-                _ = interval.tick() => {
-                    // notify all evt threads.
-
-                    // todo: store keepalive sends in another data structure so
-                    // we don't check every task every 20ms.
-                    let now = Instant::now();
-
-                    for (id, task) in self.tasks.iter_mut() {
-                        // NOTE: this is a non-blocking send so safe from async context.
-                        if task.tick_and_keepalive(now).is_err() {
-                            self.to_cull.push(*id);
-                        }
-
-                        // #[cfg(test)]
-                        // task.mixer.test_signal_empty_tick();
-                    }
-                },
-                msg = self.rx.recv_async() => match msg {
-                    Ok(SchedulerMessage::NewMixer(rx, ic, cfg)) => {
-                        let mixer = ParkedMixer::new(rx, ic, cfg);
-                        let id = self.next_id.incr();
-
-                        mixer.spawn_forwarder(self.tx.clone(), id);
-                        self.tasks.insert(id, mixer);
-                        self.stats.total.fetch_add(1, Ordering::Relaxed);
-                    },
-                    Ok(SchedulerMessage::Demote(id, task)) => {
-                        println!("CALL {id:?} was demoted!");
-                        task.mixer.send_gateway_not_speaking();
-
-                        task.spawn_forwarder(self.tx.clone(), id);
-                        self.tasks.insert(id, task);
-                    },
-                    Ok(SchedulerMessage::Do(id, mix_msg)) => {
-                        let now_live = mix_msg.is_mixer_now_live();
-                        let task = self.tasks.get_mut(&id).unwrap();
-
-                        match task.handle_message(mix_msg) {
-                            Ok(false) if now_live => {
-                                // Promote this task to a live mixer thread.
-                                let mut task = self.tasks.remove(&id).unwrap();
-                                let worker = self.fetch_worker();
-                                if task.send_gateway_speaking().is_ok() {
-                                    // TODO: put this task on a valid worker, kill old worker.
-                                    worker.stats.live.fetch_add(1, Ordering::Relaxed);
-                                    worker.tx.send((id, task))
-                                        .expect("Worker thread unexpectedly died!");
-                                    self.stats.live.fetch_add(1, Ordering::Relaxed);
-                                }
-                            },
-                            Ok(false) => {},
-                            Ok(true) | Err(_) => self.to_cull.push(id),
-                        }
-                    },
-                    Ok(SchedulerMessage::Kill) | Err(_) => {
-                        break;
-                    },
-                },
-            }
-
-            for id in self.to_cull.drain(..) {
-                self.tasks.remove(&id);
-            }
-        }
+        while self.run_once(&mut interval).await {}
     }
 
-    fn fetch_worker(&mut self) -> &LiveMixers {
+    async fn run_once(&mut self, interval: &mut Interval) -> bool {
+        tokio::select! {
+            _ = interval.tick() => {
+                // notify all evt threads.
+
+                // todo: store keepalive sends in another data structure so
+                // we don't check every task every 20ms.
+                let now = TokInstant::now();
+
+                for (id, task) in self.tasks.iter_mut() {
+                    // NOTE: this is a non-blocking send so safe from async context.
+                    if task.tick_and_keepalive(now.into()).is_err() {
+                        self.to_cull.push(*id);
+                    }
+
+                    // #[cfg(test)]
+                    // task.mixer.test_signal_empty_tick();
+                }
+
+                for worker in &mut self.workers {
+                    if worker.stats.live.load(Ordering::Relaxed) == 0 {
+                        if worker.known_empty_since.is_none() {
+                            worker.known_empty_since = Some(now);
+                        }
+                    }
+                }
+
+                let mut i = 0;
+                while i < self.workers.len() {
+                    if self.workers[i].stats.live.load(Ordering::Relaxed) == 0 {
+                        if let Some(then) = self.workers[i].known_empty_since {
+                            if now.duration_since(then) >= THREAD_CULL_TIMER {
+                                self.workers.swap_remove(i);
+                                continue;
+                            }
+                        } else {
+                            self.workers[i].known_empty_since = Some(now);
+                        }
+                    } else {
+                        self.workers[i].known_empty_since = None;
+                    }
+
+                    i += 1;
+                }
+            },
+            msg = self.rx.recv_async() => match msg {
+                Ok(SchedulerMessage::NewMixer(rx, ic, cfg)) => {
+                    let mixer = ParkedMixer::new(rx, ic, cfg);
+                    let id = self.next_id.incr();
+
+                    mixer.spawn_forwarder(self.tx.clone(), id);
+                    self.tasks.insert(id, mixer);
+                    self.stats.total.fetch_add(1, Ordering::Relaxed);
+                },
+                Ok(SchedulerMessage::Demote(id, task)) => {
+                    task.mixer.send_gateway_not_speaking();
+
+                    task.spawn_forwarder(self.tx.clone(), id);
+                    self.tasks.insert(id, task);
+                },
+                Ok(SchedulerMessage::Do(id, mix_msg)) => {
+                    let now_live = mix_msg.is_mixer_now_live();
+                    let task = self.tasks.get_mut(&id).unwrap();
+
+                    match task.handle_message(mix_msg) {
+                        Ok(false) if now_live => {
+                            // Promote this task to a live mixer thread.
+                            let mut task = self.tasks.remove(&id).unwrap();
+                            let worker = self.fetch_worker();
+                            if task.send_gateway_speaking().is_ok() {
+                                // TODO: put this task on a valid worker, kill old worker.
+                                worker.known_empty_since = None;
+                                worker.stats.live.fetch_add(1, Ordering::Relaxed);
+                                worker.tx.send((id, task))
+                                    .expect("Worker thread unexpectedly died!");
+                                self.stats.live.fetch_add(1, Ordering::Relaxed);
+                            }
+                        },
+                        Ok(false) => {},
+                        Ok(true) | Err(_) => self.to_cull.push(id),
+                    }
+                },
+                Ok(SchedulerMessage::Kill) | Err(_) => {
+                    return false;
+                },
+            },
+        }
+
+        for id in self.to_cull.drain(..) {
+            self.tasks.remove(&id);
+        }
+
+        true
+    }
+
+    fn fetch_worker(&mut self) -> &mut LiveMixers {
         // look through all workers.
         // if none found w/ space, add new.
         let idx = self
@@ -232,7 +267,7 @@ impl Core {
                 self.workers.len() - 1
             });
 
-        &self.workers[idx]
+        &mut self.workers[idx]
     }
 
     fn spawn(mut self) {
@@ -476,6 +511,7 @@ impl LiveMixersCore {
         for ((packet, packet_len), mixer) in self
             .packets
             .iter_mut()
+            // TODO: here and above -- benchmark this vs explicit indexing
             .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
             .zip(self.packet_lens.iter_mut())
             .zip(self.tasks.iter_mut())
@@ -591,7 +627,6 @@ impl LiveMixersCore {
         loop {
             match self.rx.try_recv() {
                 Ok((id, task)) => {
-                    println!("CALL {id:?} was promoted!");
                     self.add_task(
                         task,
                         id,
@@ -868,6 +903,7 @@ fn advance_rtp_counters(packet: &mut [u8]) {
 pub struct LiveMixers {
     stats: Arc<LiveStatBlock>,
     tx: Sender<(TaskId, ParkedMixer)>,
+    known_empty_since: Option<TokInstant>,
 }
 
 #[allow(missing_docs)]
@@ -883,7 +919,11 @@ impl LiveMixers {
         let core = LiveMixersCore::new(mode, global_stats, stats.clone(), live_rx, sched_tx);
         core.spawn();
 
-        Self { stats, tx: live_tx }
+        Self {
+            stats,
+            tx: live_tx,
+            known_empty_since: None,
+        }
     }
 }
 
@@ -976,5 +1016,14 @@ mod test {
         assert!(sched.core.run_once());
         // assert!(sched.core.excess_buffer_cull_time.is_none());
         assert!(!sched.core.has_excess_blocks());
+    }
+
+    // big central scheduler.
+    #[tokio::test]
+    async fn excess_threads_are_cleaned_up() {
+        // let (core, tx) = Core::new(ScheduleMode::MaxPerThread(1.try_into().unwrap()));
+
+        // let a = Mixer::test_with_float(1, Handle::current(), false);
+        // tx.send(SchedulerMessage::NewMixer((), (), ()))
     }
 }
