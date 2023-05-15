@@ -191,10 +191,10 @@ pub struct Config {
     /// The scheduler is responsible for mapping idle and active [`Driver`] instances
     /// to threads.
     ///
-    /// Defaults to [`DEFAULT_SCHEDULER`].
+    /// If set to None, then songbird will initialise the [`DEFAULT_SCHEDULER`].
     ///
     /// [`Driver`]: crate::Driver
-    pub scheduler: Scheduler,
+    pub scheduler: Option<Scheduler>,
 
     // Test only attributes
     #[cfg(feature = "driver")]
@@ -239,7 +239,7 @@ impl Default for Config {
             #[cfg(feature = "driver")]
             disposer: None,
             #[cfg(feature = "driver")]
-            scheduler: DEFAULT_SCHEDULER.clone(),
+            scheduler: None,
             #[cfg(feature = "driver")]
             #[cfg(test)]
             tick_style: TickStyle::Timed,
@@ -347,11 +347,20 @@ impl Config {
         self
     }
 
-    /// Sets this `Config`'s channel for sending disposal messages.
+    /// Sets this `Config`'s mixer scheduler.
     #[must_use]
     pub fn scheduler(mut self, scheduler: Scheduler) -> Self {
-        self.scheduler = scheduler;
+        self.scheduler = Some(scheduler);
         self
+    }
+
+    /// Returns a lightweight reference to the audio scheduler this `Config` will use.
+    #[must_use]
+    pub fn get_scheduler(&self) -> Scheduler {
+        self.scheduler
+            .as_ref()
+            .unwrap_or(&*DEFAULT_SCHEDULER)
+            .clone()
     }
 
     /// Ensures a global disposer has been set, initializing one if not.

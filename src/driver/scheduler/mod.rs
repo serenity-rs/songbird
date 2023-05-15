@@ -97,6 +97,7 @@ impl Default for ScheduleMode {
 pub struct StatBlock {
     total: AtomicU64,
     live: AtomicU64,
+    threads: AtomicU64,
 }
 
 #[allow(missing_docs)]
@@ -163,7 +164,6 @@ impl Core {
             biased;
             msg = self.rx.recv_async() => match msg {
                 Ok(SchedulerMessage::NewMixer(rx, ic, cfg)) => {
-                    println!("Mi");
                     let mixer = ParkedMixer::new(rx, ic, cfg);
                     let id = self.next_id.incr();
 
@@ -172,15 +172,12 @@ impl Core {
                     self.stats.total.fetch_add(1, Ordering::Relaxed);
                 },
                 Ok(SchedulerMessage::Demote(id, task)) => {
-                    println!("Dem");
                     task.mixer.send_gateway_not_speaking();
 
                     task.spawn_forwarder(self.tx.clone(), id);
                     self.tasks.insert(id, task);
-                    println!("Demotion complete.")
                 },
                 Ok(SchedulerMessage::Do(id, mix_msg)) => {
-                    println!("Do");
                     let now_live = mix_msg.is_mixer_now_live();
                     let task = self.tasks.get_mut(&id).unwrap();
 
@@ -191,13 +188,11 @@ impl Core {
                     }
                 },
                 Ok(SchedulerMessage::Kill) | Err(_) => {
-                    println!("Dead?");
                     return false;
                 },
             },
             _ = interval.tick() => {
                 // notify all evt threads.
-                println!("Tick!");
 
                 // todo: store keepalive sends in another data structure so
                 // we don't check every task every 20ms.
@@ -223,7 +218,6 @@ impl Core {
 
                 let mut i = 0;
                 while i < self.workers.len() {
-                    println!("Test {i}");
                     if self.workers[i].stats.live.load(Ordering::Relaxed) == 0 {
                         if let Some(then) = self.workers[i].known_empty_since {
                             if now.duration_since(then) >= self.cull_timer {
@@ -278,6 +272,7 @@ impl Core {
                     self.tx.clone(),
                     self.stats.clone(),
                 ));
+                self.stats.threads.fetch_add(1, Ordering::Relaxed);
                 self.workers.len() - 1
             });
 
@@ -335,6 +330,11 @@ impl Scheduler {
     /// audio.
     pub fn live_tasks(&self) -> u64 {
         self.stats.live.load(Ordering::Relaxed)
+    }
+
+    /// Returns the total number of threads spawned to process live audio sessions.
+    pub fn worker_threads(&self) -> u64 {
+        self.stats.threads.load(Ordering::Relaxed)
     }
 }
 
@@ -507,6 +507,7 @@ impl LiveMixersCore {
     #[inline]
     fn run(&mut self) {
         while self.run_once() {}
+        self.global_stats.threads.fetch_sub(1, Ordering::Relaxed);
     }
 
     #[inline]
@@ -944,7 +945,12 @@ impl LiveMixers {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::driver::test_impls::*;
+    use crate::{
+        constants::test_data::FILE_WEBM_TARGET,
+        driver::{test_impls::*, OutputMode},
+        input::File,
+        Driver,
+    };
     use tokio::runtime::Handle;
 
     fn rtp_has_index(pkt: &[u8], sentinel_val: u16) {
@@ -1034,6 +1040,47 @@ mod test {
 
     // big central scheduler.
     #[tokio::test]
+    async fn inactive_mixers_dont_need_threads() {
+        let sched = Scheduler::new(ScheduleMode::default());
+        let cfg = Config::default().scheduler(sched.clone());
+
+        let _drivers: Vec<Driver> = (0..1024).map(|_| Driver::new(cfg.clone())).collect();
+        tokio::time::sleep(Duration::from_secs(1)).await;
+
+        assert_eq!(sched.total_tasks(), 1024);
+        assert_eq!(sched.live_tasks(), 0);
+        assert_eq!(sched.worker_threads(), 0);
+    }
+
+    #[tokio::test]
+    async fn active_mixers_spawn_threads() {
+        let sched = Scheduler::new(ScheduleMode::default());
+        let (pkt_tx, pkt_rx) = flume::unbounded();
+        let cfg = Config::default()
+            .scheduler(sched.clone())
+            .override_connection(Some(OutputMode::Rtp(pkt_tx)));
+
+        let n_tasks = 1024;
+
+        let _drivers: Vec<Driver> = (0..n_tasks)
+            .map(|_| {
+                let mut driver = Driver::new(cfg.clone());
+                let file = File::new(FILE_WEBM_TARGET);
+                driver.play_input(file.into());
+                driver
+            })
+            .collect();
+        tokio::time::sleep(Duration::from_secs(10)).await;
+
+        assert_eq!(sched.total_tasks(), n_tasks);
+        assert_eq!(sched.live_tasks(), n_tasks);
+        assert_eq!(
+            sched.worker_threads(),
+            n_tasks / (DEFAULT_MIXERS_PER_THREAD.get() as u64)
+        );
+    }
+
+    #[tokio::test]
     async fn excess_threads_are_cleaned_up() {
         let mode = ScheduleMode::MaxPerThread(1.try_into().unwrap());
         let (mut core, tx) = Core::new(mode.clone());
@@ -1042,8 +1089,6 @@ mod test {
         core.cull_timer = TEST_TIMER;
 
         let mut next_id = TaskId::new();
-
-        println!("a");
         let mut handles = vec![];
         for i in 0..2 {
             let worker = LiveMixers::new(mode.clone(), tx.clone(), core.stats.clone());
@@ -1077,5 +1122,7 @@ mod test {
         while core.workers.len() != 1 {
             assert!(core.run_once(&mut timer).await);
         }
+
+        assert_eq!(core.stats.threads.load(Ordering::Relaxed), 0);
     }
 }
