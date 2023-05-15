@@ -8,6 +8,7 @@ use crate::{
         RawAdapter,
     },
     test_utils,
+    tracks::LoopState,
 };
 use flume::{Receiver, Sender};
 use std::{io::Cursor, net::UdpSocket, sync::Arc};
@@ -102,6 +103,25 @@ impl Mixer {
         }
 
         out
+    }
+
+    pub fn test_with_float_unending(handle: Handle, softclip: bool) -> (DummyMixer, TrackHandle) {
+        let mut out = Self::mock(handle, softclip);
+
+        let floats = test_utils::make_sine(10 * STEREO_FRAME_SIZE, true);
+
+        let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
+        let promoted = match input {
+            Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+            _ => panic!("Failed to create a guaranteed source."),
+        };
+        let mut track = Track::from(Input::Live(promoted.unwrap(), None));
+        track.loops = LoopState::Infinite;
+
+        let (handle, ctx) = track.into_context();
+        _ = out.0.add_track(ctx);
+
+        (out, handle)
     }
 
     pub fn test_with_float_drop(num_tracks: usize, handle: Handle) -> DummyMixer {

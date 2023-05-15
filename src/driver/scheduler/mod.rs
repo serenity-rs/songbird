@@ -115,6 +115,7 @@ impl LiveStatBlock {
 
 struct Core {
     mode: ScheduleMode,
+    cull_timer: Duration,
     tasks: IntMap<TaskId, ParkedMixer>,
     // track taskids which are live to prevent their realloc? unlikely w u64 but still
     stats: Arc<StatBlock>,
@@ -135,6 +136,7 @@ impl Core {
         // TODO: include heap of keepalive sending times?
         let out = Self {
             mode,
+            cull_timer: THREAD_CULL_TIMER,
             tasks,
             stats,
             rx,
@@ -149,17 +151,53 @@ impl Core {
 
     async fn run(&mut self) {
         let mut interval = tokio::time::interval(TIMESTEP_LENGTH);
-        // await timer events for all parked mixers
-        // spawn any NewMixers into tasks which handle easy changes
-        // and translate play events etc into a request to be made 'live'.
-        // also signal evt context of each thread every 20ms.
         while self.run_once(&mut interval).await {}
     }
 
+    // await timer events for all parked mixers
+    // spawn any NewMixers into tasks which handle easy changes
+    // and translate play events etc into a request to be made 'live'.
+    // also signal evt context of each thread every 20ms.
     async fn run_once(&mut self, interval: &mut Interval) -> bool {
         tokio::select! {
+            biased;
+            msg = self.rx.recv_async() => match msg {
+                Ok(SchedulerMessage::NewMixer(rx, ic, cfg)) => {
+                    println!("Mi");
+                    let mixer = ParkedMixer::new(rx, ic, cfg);
+                    let id = self.next_id.incr();
+
+                    mixer.spawn_forwarder(self.tx.clone(), id);
+                    self.tasks.insert(id, mixer);
+                    self.stats.total.fetch_add(1, Ordering::Relaxed);
+                },
+                Ok(SchedulerMessage::Demote(id, task)) => {
+                    println!("Dem");
+                    task.mixer.send_gateway_not_speaking();
+
+                    task.spawn_forwarder(self.tx.clone(), id);
+                    self.tasks.insert(id, task);
+                    println!("Demotion complete.")
+                },
+                Ok(SchedulerMessage::Do(id, mix_msg)) => {
+                    println!("Do");
+                    let now_live = mix_msg.is_mixer_now_live();
+                    let task = self.tasks.get_mut(&id).unwrap();
+
+                    match task.handle_message(mix_msg) {
+                        Ok(false) if now_live => self.schedule_mixer(id),
+                        Ok(false) => {},
+                        Ok(true) | Err(_) => self.to_cull.push(id),
+                    }
+                },
+                Ok(SchedulerMessage::Kill) | Err(_) => {
+                    println!("Dead?");
+                    return false;
+                },
+            },
             _ = interval.tick() => {
                 // notify all evt threads.
+                println!("Tick!");
 
                 // todo: store keepalive sends in another data structure so
                 // we don't check every task every 20ms.
@@ -185,9 +223,10 @@ impl Core {
 
                 let mut i = 0;
                 while i < self.workers.len() {
+                    println!("Test {i}");
                     if self.workers[i].stats.live.load(Ordering::Relaxed) == 0 {
                         if let Some(then) = self.workers[i].known_empty_since {
-                            if now.duration_since(then) >= THREAD_CULL_TIMER {
+                            if now.duration_since(then) >= self.cull_timer {
                                 self.workers.swap_remove(i);
                                 continue;
                             }
@@ -201,47 +240,6 @@ impl Core {
                     i += 1;
                 }
             },
-            msg = self.rx.recv_async() => match msg {
-                Ok(SchedulerMessage::NewMixer(rx, ic, cfg)) => {
-                    let mixer = ParkedMixer::new(rx, ic, cfg);
-                    let id = self.next_id.incr();
-
-                    mixer.spawn_forwarder(self.tx.clone(), id);
-                    self.tasks.insert(id, mixer);
-                    self.stats.total.fetch_add(1, Ordering::Relaxed);
-                },
-                Ok(SchedulerMessage::Demote(id, task)) => {
-                    task.mixer.send_gateway_not_speaking();
-
-                    task.spawn_forwarder(self.tx.clone(), id);
-                    self.tasks.insert(id, task);
-                },
-                Ok(SchedulerMessage::Do(id, mix_msg)) => {
-                    let now_live = mix_msg.is_mixer_now_live();
-                    let task = self.tasks.get_mut(&id).unwrap();
-
-                    match task.handle_message(mix_msg) {
-                        Ok(false) if now_live => {
-                            // Promote this task to a live mixer thread.
-                            let mut task = self.tasks.remove(&id).unwrap();
-                            let worker = self.fetch_worker();
-                            if task.send_gateway_speaking().is_ok() {
-                                // TODO: put this task on a valid worker, kill old worker.
-                                worker.known_empty_since = None;
-                                worker.stats.live.fetch_add(1, Ordering::Relaxed);
-                                worker.tx.send((id, task))
-                                    .expect("Worker thread unexpectedly died!");
-                                self.stats.live.fetch_add(1, Ordering::Relaxed);
-                            }
-                        },
-                        Ok(false) => {},
-                        Ok(true) | Err(_) => self.to_cull.push(id),
-                    }
-                },
-                Ok(SchedulerMessage::Kill) | Err(_) => {
-                    return false;
-                },
-            },
         }
 
         for id in self.to_cull.drain(..) {
@@ -249,6 +247,22 @@ impl Core {
         }
 
         true
+    }
+
+    // Promote a task to a live mixer thread.
+    fn schedule_mixer(&mut self, id: TaskId) {
+        let mut task = self.tasks.remove(&id).unwrap();
+        let worker = self.fetch_worker();
+        if task.send_gateway_speaking().is_ok() {
+            // TODO: put this task on a valid worker, kill old worker.
+            worker.known_empty_since = None;
+            worker.stats.live.fetch_add(1, Ordering::Relaxed);
+            worker
+                .tx
+                .send((id, task))
+                .expect("Worker thread unexpectedly died!");
+            self.stats.live.fetch_add(1, Ordering::Relaxed);
+        }
     }
 
     fn fetch_worker(&mut self) -> &mut LiveMixers {
@@ -354,7 +368,7 @@ impl ParkedMixer {
     fn spawn_forwarder(&self, tx: Sender<SchedulerMessage>, id: TaskId) {
         let remote_rx = self.mixer.mix_rx.clone();
         tokio::spawn(async move {
-            while let Ok(msg) = remote_rx.recv() {
+            while let Ok(msg) = remote_rx.recv_async().await {
                 let exit = msg.is_mixer_now_live();
                 tx.send_async(SchedulerMessage::Do(id, msg)).await;
                 if exit {
@@ -704,14 +718,14 @@ impl LiveMixersCore {
                 || (self.tasks[i].tracks.is_empty() && self.tasks[i].silence_frames == 0)
                 || !(self.tasks[i].conn_active.is_some() || force_conn)
             {
+                self.stats.live.fetch_sub(1, Ordering::Relaxed);
+                self.global_stats.live.fetch_sub(1, Ordering::Relaxed);
+
                 if let Some((id, parked)) = self.remove_task(i) {
                     let _ = self.tx.send(SchedulerMessage::Demote(id, parked));
                 } else {
                     self.global_stats.total.fetch_sub(1, Ordering::Relaxed);
                 }
-
-                self.stats.live.fetch_sub(1, Ordering::Relaxed);
-                self.global_stats.live.fetch_sub(1, Ordering::Relaxed);
             } else {
                 i += 1;
             }
@@ -1014,16 +1028,54 @@ mod test {
 
         // Cleanup should be unsched'd.
         assert!(sched.core.run_once());
-        // assert!(sched.core.excess_buffer_cull_time.is_none());
+        assert!(sched.core.excess_buffer_cull_time.is_none());
         assert!(!sched.core.has_excess_blocks());
     }
 
     // big central scheduler.
     #[tokio::test]
     async fn excess_threads_are_cleaned_up() {
-        // let (core, tx) = Core::new(ScheduleMode::MaxPerThread(1.try_into().unwrap()));
+        let mode = ScheduleMode::MaxPerThread(1.try_into().unwrap());
+        let (mut core, tx) = Core::new(mode.clone());
 
-        // let a = Mixer::test_with_float(1, Handle::current(), false);
-        // tx.send(SchedulerMessage::NewMixer((), (), ()))
+        const TEST_TIMER: Duration = Duration::from_millis(500);
+        core.cull_timer = TEST_TIMER;
+
+        let mut next_id = TaskId::new();
+
+        println!("a");
+        let mut handles = vec![];
+        for i in 0..2 {
+            let worker = LiveMixers::new(mode.clone(), tx.clone(), core.stats.clone());
+            let ((mixer, listeners), track_handle) =
+                Mixer::test_with_float_unending(Handle::current(), false);
+
+            let send_mixer = ParkedMixer {
+                mixer: Box::new(mixer),
+                ssrc: i,
+                rtp_sequence: i as u16,
+                rtp_timestamp: i,
+                park_time: TokInstant::now().into(),
+            };
+            worker.stats.live.fetch_add(1, Ordering::Relaxed);
+            core.stats.live.fetch_add(1, Ordering::Relaxed);
+            worker.tx.send((next_id.incr(), send_mixer)).unwrap();
+            handles.push((track_handle, listeners));
+            core.workers.push(worker);
+        }
+
+        let mut timer = tokio::time::interval(TIMESTEP_LENGTH);
+        assert!(core.run_once(&mut timer).await);
+
+        // Stop one of the handles, allow it to exit, and then run core again.
+        handles[1].0.stop().unwrap();
+        while core.workers[1].known_empty_since.is_none() {
+            assert!(core.run_once(&mut timer).await);
+        }
+
+        tokio::time::sleep(TEST_TIMER + Duration::from_secs(1)).await;
+        while core.workers.len() != 1 {
+            assert!(core.run_once(&mut timer).await);
+        }
     }
 }
