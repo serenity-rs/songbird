@@ -66,8 +66,8 @@ impl ParkedMixer {
         tokio::spawn(async move {
             while let Ok(msg) = remote_rx.recv_async().await {
                 let exit = msg.is_mixer_now_live();
-                tx.send_async(SchedulerMessage::Do(id, msg)).await;
-                if exit {
+                let dead = tx.send_async(SchedulerMessage::Do(id, msg)).await.is_err();
+                if exit || dead {
                     break;
                 }
             }

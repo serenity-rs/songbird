@@ -30,6 +30,7 @@ pub struct LiveMixersCore {
     deadline: Instant,
     start_of_work: Option<Instant>,
 
+    // TODO: unused until proposed change to packet_block is tested.
     mode: ScheduleMode,
     stats: Arc<LiveStatBlock>,
     global_stats: Arc<StatBlock>,

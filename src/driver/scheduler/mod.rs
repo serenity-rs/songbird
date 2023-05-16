@@ -73,12 +73,8 @@ struct InnerScheduler {
     stats: Arc<StatBlock>,
 }
 
-// tricky part of the loop -- how do we let reconns barrel through as fast as possible?
-// -- not hard, it's sent along the existing core -> mixer channel
-
 impl Scheduler {
-    /// Create a new mixer scheduler from the allocation strategy
-    /// `mode`.
+    /// Create a new mixer scheduler from the allocation strategy `mode`.
     pub fn new(mode: ScheduleMode) -> Self {
         let (core, tx) = Idle::new(mode);
 
@@ -116,7 +112,7 @@ impl Scheduler {
 
 impl Drop for InnerScheduler {
     fn drop(&mut self) {
-        self.tx.send(SchedulerMessage::Kill);
+        _ = self.tx.send(SchedulerMessage::Kill);
     }
 }
 
