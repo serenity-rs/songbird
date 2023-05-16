@@ -34,7 +34,7 @@ impl TaskId {
         out
     }
 
-    #[cfg(test)]
+    #[cfg(any(test, feature = "internals"))]
     pub fn get(&self) -> usize {
         self.0
     }

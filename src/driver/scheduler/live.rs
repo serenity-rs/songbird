@@ -512,6 +512,7 @@ impl LiveMixers {
     }
 }
 
+#[allow(missing_docs)]
 impl LiveMixers {
     #[inline]
     pub fn try_mark_empty(&mut self, now: TokInstant) -> Option<TokInstant> {

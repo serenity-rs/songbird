@@ -13,6 +13,7 @@ pub struct StatBlock {
     threads: AtomicU64,
 }
 
+#[allow(missing_docs)]
 impl StatBlock {
     #[inline]
     pub fn total_mixers(&self) -> u64 {
@@ -73,6 +74,7 @@ pub struct LiveStatBlock {
     last_ns: AtomicU64,
 }
 
+#[allow(missing_docs)]
 impl LiveStatBlock {
     #[inline]
     pub fn live_mixers(&self) -> u64 {
