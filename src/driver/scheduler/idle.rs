@@ -10,6 +10,8 @@ use super::*;
 
 const THREAD_CULL_TIMER: Duration = Duration::from_secs(60);
 
+/// An async task responsible for maintaining UDP keepalives and event state for inactive
+/// `Mixer` tasks.
 pub(crate) struct Idle {
     mode: ScheduleMode,
     cull_timer: Duration,
@@ -19,7 +21,7 @@ pub(crate) struct Idle {
     rx: Receiver<SchedulerMessage>,
     tx: Sender<SchedulerMessage>,
     next_id: TaskId,
-    workers: Vec<LiveMixers>,
+    workers: Vec<Worker>,
     to_cull: Vec<TaskId>,
 }
 
@@ -46,15 +48,22 @@ impl Idle {
         (out, tx)
     }
 
+    /// Run the inner task until all external `Scheduler` handles are dropped.
     async fn run(&mut self) {
         let mut interval = tokio::time::interval(TIMESTEP_LENGTH);
         while self.run_once(&mut interval).await {}
     }
 
-    // await timer events for all parked mixers
-    // spawn any NewMixers into tasks which handle easy changes
-    // and translate play events etc into a request to be made 'live'.
-    // also signal evt context of each thread every 20ms.
+    /// Run one 'tick' of idle thread maintenance.
+    ///
+    /// This is a priority system over 2 main tasks:
+    ///  1) handle scheduling/upgrade/action requests for mixers
+    ///  2) [every 20ms]tick the main timer for each task, send keepalive if
+    ///     needed, reclaim & cull workers.
+    ///
+    /// Idle mixers spawn an async task each to forward their `MixerMessage`s
+    /// on to this task to be handled by 1). These tasks self-terminate if a
+    /// message would make a mixer `now_live`.
     async fn run_once(&mut self, interval: &mut Interval) -> bool {
         tokio::select! {
             biased;
@@ -88,9 +97,7 @@ impl Idle {
                 },
             },
             _ = interval.tick() => {
-                // notify all evt threads.
-
-                // todo: store keepalive sends in another data structure so
+                // TODO: store keepalive sends in another data structure so
                 // we don't check every task every 20ms.
                 let now = TokInstant::now();
 
@@ -122,12 +129,12 @@ impl Idle {
         true
     }
 
-    // Promote a task to a live mixer thread.
+    /// Promote a task to a live mixer thread.
     fn schedule_mixer(&mut self, id: TaskId) {
         let mut task = self.tasks.remove(&id).unwrap();
         let worker = self.fetch_worker();
         if task.send_gateway_speaking().is_ok() {
-            // TODO: put this task on a valid worker, kill old worker.
+            // TODO: put this task on a valid worker, if this fails -- kill old worker.
             worker
                 .schedule_mixer(id, task)
                 .expect("Worker thread unexpectedly died!");
@@ -135,15 +142,16 @@ impl Idle {
         }
     }
 
-    fn fetch_worker(&mut self) -> &mut LiveMixers {
+    /// Fetch the first `Worker` that has room for a new task, creating one if needed.
+    fn fetch_worker(&mut self) -> &mut Worker {
         // look through all workers.
         // if none found w/ space, add new.
         let idx = self
             .workers
             .iter()
-            .position(LiveMixers::has_room)
+            .position(Worker::has_room)
             .unwrap_or_else(|| {
-                self.workers.push(LiveMixers::new(
+                self.workers.push(Worker::new(
                     self.mode.clone(),
                     self.tx.clone(),
                     self.stats.clone(),
@@ -223,7 +231,7 @@ mod test {
         let mut next_id = TaskId::new();
         let mut handles = vec![];
         for i in 0..2 {
-            let mut worker = LiveMixers::new(mode.clone(), tx.clone(), core.stats.clone());
+            let mut worker = Worker::new(mode.clone(), tx.clone(), core.stats.clone());
             let ((mixer, listeners), track_handle) =
                 Mixer::test_with_float_unending(Handle::current(), false);
 

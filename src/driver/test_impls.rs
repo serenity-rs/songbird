@@ -171,7 +171,7 @@ impl Mixer {
 }
 
 pub struct MockScheduler {
-    pub core: LiveMixersCore,
+    pub core: Live,
     pub stats: Arc<StatBlock>,
     pub local: Arc<LiveStatBlock>,
     pub rx: Receiver<SchedulerMessage>,
@@ -187,7 +187,7 @@ impl MockScheduler {
         let (task_tx, task_rx) = flume::unbounded();
         let (sched_tx, sched_rx) = flume::unbounded();
 
-        let core = LiveMixersCore::new(
+        let core = Live::new(
             mode.unwrap_or_default(),
             stats.clone(),
             local.clone(),

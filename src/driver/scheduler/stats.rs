@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use std::{
     sync::atomic::{AtomicU64, Ordering},
     time::Duration,
@@ -5,7 +6,7 @@ use std::{
 
 use super::ScheduleMode;
 
-#[allow(missing_docs)]
+/// Statistics shared by an entire `Scheduler`.
 #[derive(Debug, Default)]
 pub struct StatBlock {
     total: AtomicU64,
@@ -13,7 +14,6 @@ pub struct StatBlock {
     threads: AtomicU64,
 }
 
-#[allow(missing_docs)]
 impl StatBlock {
     #[inline]
     pub fn total_mixers(&self) -> u64 {
@@ -67,14 +67,13 @@ impl StatBlock {
     }
 }
 
-#[allow(missing_docs)]
+/// Statistics for an individual worker.
 #[derive(Debug, Default)]
 pub struct LiveStatBlock {
     live: AtomicU64,
     last_ns: AtomicU64,
 }
 
-#[allow(missing_docs)]
 impl LiveStatBlock {
     #[inline]
     pub fn live_mixers(&self) -> u64 {
@@ -104,6 +103,9 @@ impl LiveStatBlock {
 
     #[inline]
     pub fn has_room(&self, strategy: &ScheduleMode) -> bool {
-        self.live_mixers() < (strategy.task_limit() as u64)
+        strategy
+            .task_limit()
+            .map(|limit| self.live_mixers() < limit as u64)
+            .unwrap_or(true)
     }
 }

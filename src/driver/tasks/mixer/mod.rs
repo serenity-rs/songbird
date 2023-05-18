@@ -56,7 +56,7 @@ use tracing::error;
 use xsalsa20poly1305::TAG_SIZE;
 
 #[cfg(test)]
-use crate::driver::test_config::{OutputMessage, OutputMode, TickStyle};
+use crate::driver::test_config::{OutputMessage, OutputMode};
 #[cfg(test)]
 use discortp::Packet as _;
 
@@ -498,31 +498,6 @@ impl Mixer {
         self.fire_event(EventMessage::Tick)?;
 
         Ok(())
-    }
-
-    #[cfg(test)]
-    fn _march_deadline(&mut self) {
-        match &self.config.tick_style {
-            TickStyle::Timed => {
-                std::thread::sleep(self.deadline.saturating_duration_since(Instant::now()));
-                self.deadline += TIMESTEP_LENGTH;
-            },
-            TickStyle::UntimedWithExecLimit(rx) => {
-                if self.remaining_loops.is_none() {
-                    if let Ok(new_val) = rx.recv() {
-                        self.remaining_loops = Some(new_val.wrapping_sub(1));
-                    }
-                }
-
-                if let Some(cnt) = self.remaining_loops.as_mut() {
-                    if *cnt == 0 {
-                        self.remaining_loops = None;
-                    } else {
-                        *cnt = cnt.wrapping_sub(1);
-                    }
-                }
-            },
-        }
     }
 
     #[cfg(test)]

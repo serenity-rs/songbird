@@ -7,9 +7,7 @@ use discortp::rtp::{MutableRtpPacket, RtpPacket};
 use flume::{Receiver, Sender, TryRecvError};
 use tokio::time::Instant as TokInstant;
 
-use crate::constants::*;
-
-use crate::driver::tasks::mixer::Mixer;
+use crate::{constants::*, driver::tasks::mixer::Mixer};
 
 #[cfg(test)]
 use crate::driver::test_config::TickStyle;
@@ -20,7 +18,7 @@ const PACKETS_PER_BLOCK: usize = 16;
 const MEMORY_CULL_TIMER: Duration = Duration::from_secs(10);
 
 #[allow(missing_docs)]
-pub struct LiveMixersCore {
+pub struct Live {
     packets: Vec<Box<[u8]>>,
     packet_lens: Vec<usize>,
     tasks: Vec<Box<Mixer>>,
@@ -30,7 +28,6 @@ pub struct LiveMixersCore {
     deadline: Instant,
     start_of_work: Option<Instant>,
 
-    // TODO: unused until proposed change to packet_block is tested.
     mode: ScheduleMode,
     stats: Arc<LiveStatBlock>,
     global_stats: Arc<StatBlock>,
@@ -41,7 +38,7 @@ pub struct LiveMixersCore {
 }
 
 #[allow(missing_docs)]
-impl LiveMixersCore {
+impl Live {
     pub fn new(
         mode: ScheduleMode,
         global_stats: Arc<StatBlock>,
@@ -51,7 +48,12 @@ impl LiveMixersCore {
     ) -> Self {
         let to_prealloc = mode.prealloc_size();
 
-        let packets = vec![packet_block(PACKETS_PER_BLOCK)];
+        let block_size = mode
+            .task_limit()
+            .unwrap_or(PACKETS_PER_BLOCK)
+            .min(PACKETS_PER_BLOCK);
+
+        let packets = vec![packet_block(block_size)];
 
         Self {
             packets,
@@ -334,10 +336,15 @@ impl LiveMixersCore {
     }
 
     #[inline]
-    fn get_memory_indices(&self, idx: usize) -> (usize, usize) {
-        // TODO: make block size of largest cap correctly (no overalloc?)
+    fn get_memory_indices_unscaled(&self, idx: usize) -> (usize, usize) {
         let block_size = PACKETS_PER_BLOCK;
-        (idx / block_size, (idx % block_size) * VOICE_PACKET_MAX)
+        (idx / block_size, idx % block_size)
+    }
+
+    #[inline]
+    fn get_memory_indices(&self, idx: usize) -> (usize, usize) {
+        let (block, inner_unscaled) = self.get_memory_indices_unscaled(idx);
+        (block, inner_unscaled * VOICE_PACKET_MAX)
     }
 
     #[inline]
@@ -358,7 +365,7 @@ impl LiveMixersCore {
         let (block, inner_idx) = self.get_memory_indices(idx);
 
         while self.packets.len() <= block {
-            self.packets.push(packet_block(PACKETS_PER_BLOCK));
+            self.add_packet_block();
         }
         let packet = &mut self.packets[block][inner_idx..][..VOICE_PACKET_MAX];
 
@@ -369,6 +376,21 @@ impl LiveMixersCore {
         rtp.set_ssrc(task.ssrc);
         rtp.set_timestamp(rtp_timestamp.into());
         rtp.set_sequence(task.rtp_sequence.into());
+    }
+
+    #[inline]
+    fn add_packet_block(&mut self) {
+        let n_packets = if let Some(limit) = self.mode.task_limit() {
+            let (block, inner) = self.get_memory_indices_unscaled(limit);
+            if self.packets.len() < block || inner == 0 {
+                PACKETS_PER_BLOCK
+            } else {
+                inner
+            }
+        } else {
+            PACKETS_PER_BLOCK
+        };
+        self.packets.push(packet_block(n_packets));
     }
 
     #[cfg(any(test, feature = "internals"))]
@@ -482,7 +504,7 @@ fn advance_rtp_counters(packet: &mut [u8]) {
 }
 
 #[allow(missing_docs)]
-pub struct LiveMixers {
+pub struct Worker {
     stats: Arc<LiveStatBlock>,
     mode: ScheduleMode,
     tx: Sender<(TaskId, ParkedMixer)>,
@@ -490,7 +512,7 @@ pub struct LiveMixers {
 }
 
 #[allow(missing_docs)]
-impl LiveMixers {
+impl Worker {
     pub fn new(
         mode: ScheduleMode,
         sched_tx: Sender<SchedulerMessage>,
@@ -499,8 +521,7 @@ impl LiveMixers {
         let stats = Arc::new(LiveStatBlock::default());
         let (live_tx, live_rx) = flume::unbounded();
 
-        let core =
-            LiveMixersCore::new(mode.clone(), global_stats, stats.clone(), live_rx, sched_tx);
+        let core = Live::new(mode.clone(), global_stats, stats.clone(), live_rx, sched_tx);
         core.spawn();
 
         Self {
@@ -513,7 +534,7 @@ impl LiveMixers {
 }
 
 #[allow(missing_docs)]
-impl LiveMixers {
+impl Worker {
     #[inline]
     pub fn try_mark_empty(&mut self, now: TokInstant) -> Option<TokInstant> {
         if self.stats.live_mixers() == 0 {
@@ -567,6 +588,42 @@ mod test {
         assert_eq!(rtp.get_sequence(), sentinel_val.into());
         assert_eq!(rtp.get_timestamp(), (sentinel_val as u32).into());
         assert_eq!(rtp.get_ssrc(), sentinel_val as u32);
+    }
+
+    #[tokio::test]
+    async fn block_alloc_is_partial_small() {
+        let n_mixers = 1;
+        let (sched, _listeners) = MockScheduler::from_mixers(
+            Some(ScheduleMode::MaxPerThread(n_mixers.try_into().unwrap())),
+            (0..n_mixers)
+                .map(|_| Mixer::test_with_float(1, Handle::current(), false))
+                .collect(),
+        );
+
+        assert_eq!(sched.core.packets.len(), 1);
+        assert_eq!(sched.core.packets[0].len(), VOICE_PACKET_MAX);
+    }
+
+    #[tokio::test]
+    async fn block_alloc_is_partial_large() {
+        let n_mixers = 33;
+        let (sched, _listeners) = MockScheduler::from_mixers(
+            Some(ScheduleMode::MaxPerThread(n_mixers.try_into().unwrap())),
+            (0..n_mixers)
+                .map(|_| Mixer::test_with_float(1, Handle::current(), false))
+                .collect(),
+        );
+
+        assert_eq!(sched.core.packets.len(), 3);
+        assert_eq!(
+            sched.core.packets[0].len(),
+            PACKETS_PER_BLOCK * VOICE_PACKET_MAX
+        );
+        assert_eq!(
+            sched.core.packets[1].len(),
+            PACKETS_PER_BLOCK * VOICE_PACKET_MAX
+        );
+        assert_eq!(sched.core.packets[2].len(), VOICE_PACKET_MAX);
     }
 
     #[tokio::test]

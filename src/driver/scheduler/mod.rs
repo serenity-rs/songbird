@@ -25,41 +25,6 @@ pub use task::*;
 /// [`Config::default`]: crate::Config::default
 pub static DEFAULT_SCHEDULER: Lazy<Scheduler> = Lazy::new(Scheduler::default);
 
-/// Strategies for mapping live mixer tasks to individual threads.
-///
-/// Defaults to `MaxPerThread(16)`.
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub enum ScheduleMode {
-    /// Allows at most `n` tasks to run per thread.
-    MaxPerThread(NonZeroUsize),
-}
-
-impl ScheduleMode {
-    fn prealloc_size(&self) -> usize {
-        match self {
-            Self::MaxPerThread(n) => n.get(),
-        }
-    }
-
-    fn task_limit(&self) -> usize {
-        match self {
-            Self::MaxPerThread(n) => n.get(),
-        }
-    }
-}
-
-const DEFAULT_MIXERS_PER_THREAD: NonZeroUsize = match NonZeroUsize::new(16) {
-    Some(v) => v,
-    None => [][0],
-};
-
-impl Default for ScheduleMode {
-    fn default() -> Self {
-        Self::MaxPerThread(DEFAULT_MIXERS_PER_THREAD)
-    }
-}
-
 /// A reference to a shared group of threads used for running idle and active
 /// audio threads.
 #[derive(Clone, Debug)]
@@ -67,6 +32,10 @@ pub struct Scheduler {
     inner: Arc<InnerScheduler>,
 }
 
+/// Inner contents of a [`Scheduler`] instance.
+///
+/// This is an `Arc` around `Arc`'d contents so that we can make use of the
+/// drop check on `Scheduler` to cleanup resources.
 #[derive(Clone, Debug)]
 struct InnerScheduler {
     tx: Sender<SchedulerMessage>,
@@ -122,10 +91,53 @@ impl Default for Scheduler {
     }
 }
 
-#[allow(missing_docs)]
+/// Strategies for mapping live mixer tasks to individual threads.
+///
+/// Defaults to `MaxPerThread(16)`.
+#[derive(Clone, Debug)]
+#[non_exhaustive]
+pub enum ScheduleMode {
+    /// Allows at most `n` tasks to run per thread.
+    MaxPerThread(NonZeroUsize),
+}
+
+impl ScheduleMode {
+    /// Returns the number of `Mixer`s that a scheduler should preallocate
+    /// resources for.
+    fn prealloc_size(&self) -> usize {
+        match self {
+            Self::MaxPerThread(n) => n.get(),
+        }
+    }
+
+    /// Returns the maximum number of concurrent mixers that a scheduler is
+    /// allowed to place on a single thread.
+    fn task_limit(&self) -> Option<usize> {
+        match self {
+            Self::MaxPerThread(n) => Some(n.get()),
+        }
+    }
+}
+
+const DEFAULT_MIXERS_PER_THREAD: NonZeroUsize = match NonZeroUsize::new(16) {
+    Some(v) => v,
+    None => [][0],
+};
+
+impl Default for ScheduleMode {
+    fn default() -> Self {
+        Self::MaxPerThread(DEFAULT_MIXERS_PER_THREAD)
+    }
+}
+
+/// Control messages for a scheduler.
 pub enum SchedulerMessage {
+    /// Build a new `Mixer` as part of the initialisation of a `Driver`.
     NewMixer(Receiver<MixerMessage>, Interconnect, Config),
+    /// Forward a command for
     Do(TaskId, MixerMessage),
+    /// Return a `Mixer` from a worker back to the idle pool.
     Demote(TaskId, ParkedMixer),
+    /// Cleanup once all `Scheduler` handles are dropped.
     Kill,
 }
