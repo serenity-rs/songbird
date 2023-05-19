@@ -17,6 +17,7 @@ use super::*;
 /// The send-half of a worker thread, with bookkeeping mechanisms to help
 /// the idle task schedule incoming tasks.
 pub struct Worker {
+    id: WorkerId,
     stats: Arc<LiveStatBlock>,
     mode: ScheduleMode,
     tx: Sender<(TaskId, ParkedMixer)>,
@@ -26,6 +27,7 @@ pub struct Worker {
 #[allow(missing_docs)]
 impl Worker {
     pub fn new(
+        id: WorkerId,
         mode: ScheduleMode,
         sched_tx: Sender<SchedulerMessage>,
         global_stats: Arc<StatBlock>,
@@ -33,10 +35,18 @@ impl Worker {
         let stats = Arc::new(LiveStatBlock::default());
         let (live_tx, live_rx) = flume::unbounded();
 
-        let core = Live::new(mode.clone(), global_stats, stats.clone(), live_rx, sched_tx);
+        let core = Live::new(
+            id,
+            mode.clone(),
+            global_stats,
+            stats.clone(),
+            live_rx,
+            sched_tx,
+        );
         core.spawn();
 
         Self {
+            id,
             stats,
             mode,
             tx: live_tx,
@@ -73,8 +83,8 @@ impl Worker {
     /// Return whether this thread has enough room (task count, spare cycles)
     /// for the given task.
     #[inline]
-    pub fn has_room(&self, task: &ParkedMixer) -> bool {
-        self.stats.has_room(&self.mode, task)
+    pub fn can_schedule(&self, task: &ParkedMixer, avoid: Option<WorkerId>) -> bool {
+        avoid.map_or(true, |id| !self.has_id(id)) && self.stats.has_room(&self.mode, task)
     }
 
     #[inline]
@@ -88,6 +98,10 @@ impl Worker {
         self.mark_busy();
         self.stats.add_mixer();
         self.tx.send((id, task)).map_err(|_| ())
+    }
+
+    pub fn has_id(&self, id: WorkerId) -> bool {
+        self.id == id
     }
 }
 
@@ -106,6 +120,7 @@ pub struct Live {
     deadline: Instant,
     start_of_work: Option<Instant>,
 
+    id: WorkerId,
     mode: ScheduleMode,
     stats: Arc<LiveStatBlock>,
     global_stats: Arc<StatBlock>,
@@ -118,6 +133,7 @@ pub struct Live {
 #[allow(missing_docs)]
 impl Live {
     pub fn new(
+        id: WorkerId,
         mode: ScheduleMode,
         global_stats: Arc<StatBlock>,
         stats: Arc<LiveStatBlock>,
@@ -143,6 +159,7 @@ impl Live {
             deadline: Instant::now(),
             start_of_work: None,
 
+            id,
             mode,
             stats,
             global_stats,

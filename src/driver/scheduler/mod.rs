@@ -149,6 +149,8 @@ pub enum SchedulerMessage {
     Do(TaskId, MixerMessage),
     /// Return a `Mixer` from a worker back to the idle pool.
     Demote(TaskId, ParkedMixer),
+    /// Move an expensive `Mixer` to another thread in the worker pool.
+    Overspill(WorkerId, TaskId, ParkedMixer),
     /// Request a copy of all per-worker statistics.
     GetStats(Sender<Vec<Arc<LiveStatBlock>>>),
     /// Cleanup once all `Scheduler` handles are dropped.

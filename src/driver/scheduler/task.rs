@@ -16,16 +16,27 @@ use crate::{
 
 use super::SchedulerMessage;
 
-/// Typesafe counter used to identify individual mixer instances.
+/// Typesafe counter used to identify individual mixer/worker instances.
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct TaskId(u64);
-
-impl IsEnabled for TaskId {}
+pub struct ResId<T>(u64, std::marker::PhantomData<T>);
+#[allow(missing_docs)]
+pub type TaskId = ResId<TaskMarker>;
+#[allow(missing_docs)]
+pub type WorkerId = ResId<WorkerMarker>;
 
 #[allow(missing_docs)]
-impl TaskId {
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct TaskMarker;
+#[allow(missing_docs)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct WorkerMarker;
+
+impl<T> IsEnabled for ResId<T> {}
+
+#[allow(missing_docs)]
+impl<T: Copy> ResId<T> {
     pub fn new() -> Self {
-        TaskId(0)
+        ResId(0, Default::default())
     }
 
     pub fn incr(&mut self) -> Self {

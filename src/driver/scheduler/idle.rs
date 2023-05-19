@@ -21,6 +21,7 @@ pub(crate) struct Idle {
     rx: Receiver<SchedulerMessage>,
     tx: Sender<SchedulerMessage>,
     next_id: TaskId,
+    next_worker_id: WorkerId,
     workers: Vec<Worker>,
     to_cull: Vec<TaskId>,
 }
@@ -41,6 +42,7 @@ impl Idle {
             rx,
             tx: tx.clone(),
             next_id: TaskId::new(),
+            next_worker_id: WorkerId::new(),
             workers: Vec::with_capacity(16),
             to_cull: vec![],
         };
@@ -87,10 +89,16 @@ impl Idle {
                     let task = self.tasks.get_mut(&id).unwrap();
 
                     match task.handle_message(mix_msg) {
-                        Ok(false) if now_live => self.schedule_mixer(id),
+                        Ok(false) if now_live => {
+                            let task = self.tasks.remove(&id).unwrap();
+                            self.schedule_mixer(task, id, None);
+                        },
                         Ok(false) => {},
                         Ok(true) | Err(_) => self.to_cull.push(id),
                     }
+                },
+                Ok(SchedulerMessage::Overspill(worker_id, id, task)) => {
+                    self.schedule_mixer(task, id, Some(worker_id));
                 },
                 Ok(SchedulerMessage::GetStats(tx)) => {
                     _ = tx.send(self.workers.iter().map(Worker::stats).collect());
@@ -133,9 +141,8 @@ impl Idle {
     }
 
     /// Promote a task to a live mixer thread.
-    fn schedule_mixer(&mut self, id: TaskId) {
-        let mut task = self.tasks.remove(&id).unwrap();
-        let worker = self.fetch_worker(&task);
+    fn schedule_mixer(&mut self, mut task: ParkedMixer, id: TaskId, avoid: Option<WorkerId>) {
+        let worker = self.fetch_worker(&task, avoid);
         if task.send_gateway_speaking().is_ok() {
             // TODO: put this task on a valid worker, if this fails -- kill old worker.
             worker
@@ -146,15 +153,18 @@ impl Idle {
     }
 
     /// Fetch the first `Worker` that has room for a new task, creating one if needed.
-    fn fetch_worker(&mut self, task: &ParkedMixer) -> &mut Worker {
+    ///
+    /// If an inbound task has spilled from another thread, then do not reschedule it there.
+    fn fetch_worker(&mut self, task: &ParkedMixer, avoid: Option<WorkerId>) -> &mut Worker {
         // look through all workers.
         // if none found w/ space, add new.
         let idx = self
             .workers
             .iter()
-            .position(|w| w.has_room(task))
+            .position(|w| w.can_schedule(task, avoid))
             .unwrap_or_else(|| {
                 self.workers.push(Worker::new(
+                    self.next_worker_id.incr(),
                     self.mode.clone(),
                     self.tx.clone(),
                     self.stats.clone(),
@@ -232,9 +242,15 @@ mod test {
         core.cull_timer = TEST_TIMER;
 
         let mut next_id = TaskId::new();
+        let mut thread_id = WorkerId::new();
         let mut handles = vec![];
         for i in 0..2 {
-            let mut worker = Worker::new(mode.clone(), tx.clone(), core.stats.clone());
+            let mut worker = Worker::new(
+                thread_id.incr(),
+                mode.clone(),
+                tx.clone(),
+                core.stats.clone(),
+            );
             let ((mixer, listeners), track_handle) =
                 Mixer::test_with_float_unending(Handle::current(), false);
 

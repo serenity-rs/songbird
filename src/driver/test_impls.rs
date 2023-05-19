@@ -188,6 +188,7 @@ impl MockScheduler {
         let (sched_tx, sched_rx) = flume::unbounded();
 
         let core = Live::new(
+            WorkerId::new(),
             mode.unwrap_or_default(),
             stats.clone(),
             local.clone(),
