@@ -96,9 +96,10 @@ impl LiveStatBlock {
     }
 
     #[inline]
-    pub(crate) fn store_compute_cost(&self, work: Duration) {
-        self.last_ns
-            .store(work.as_nanos() as u64, Ordering::Relaxed);
+    pub(crate) fn store_compute_cost(&self, work: Duration) -> u64 {
+        let cost = work.as_nanos() as u64;
+        self.last_ns.store(cost, Ordering::Relaxed);
+        cost
     }
 
     /// Returns the number of nanoseconds required to process all worker threads'

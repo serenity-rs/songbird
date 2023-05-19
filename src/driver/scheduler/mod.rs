@@ -18,7 +18,7 @@ pub use stats::*;
 pub use task::*;
 
 /// A soft maximum of 90% of the 20ms budget to account for variance in execution time.
-const RESCHEDULE_THRESHOLD: u64 = ((TIMESTEP_LENGTH.subsec_nanos() as u64) * 10) / 9;
+const RESCHEDULE_THRESHOLD: u64 = ((TIMESTEP_LENGTH.subsec_nanos() as u64) * 9) / 10;
 
 /// The default shared scheduler instance.
 ///

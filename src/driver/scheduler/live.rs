@@ -190,13 +190,18 @@ impl Live {
         // Move any idle calls back to the global pool.
         self.demote_and_remove_mixers();
 
-        for ((packet, packet_len), mixer) in self
+        // Take a clock measure before and after each packet.
+        let mut pre_pkt_time = Instant::now();
+        let mut worst_task = (0, Duration::default());
+
+        for (i, ((packet, packet_len), mixer)) in self
             .packets
             .iter_mut()
             // TODO: here and above -- benchmark this vs explicit indexing
             .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
             .zip(self.packet_lens.iter_mut())
             .zip(self.tasks.iter_mut())
+            .enumerate()
         {
             match mixer.mix_and_build_packet(packet) {
                 Ok(written_sz) => *packet_len = written_sz,
@@ -209,12 +214,22 @@ impl Live {
                     );
                 },
             }
+            let post_pkt_time = Instant::now();
+            let cost = post_pkt_time.duration_since(pre_pkt_time);
+            if cost > worst_task.1 {
+                worst_task = (i, cost);
+            }
+            pre_pkt_time = post_pkt_time;
         }
 
         let end_of_work = Instant::now();
 
         if let Some(start_of_work) = self.start_of_work {
-            self.stats.store_compute_cost(end_of_work - start_of_work);
+            let ns_cost = self.stats.store_compute_cost(end_of_work - start_of_work);
+
+            if ns_cost >= RESCHEDULE_THRESHOLD && self.ids.len() > 1 {
+                self.offload_mixer(worst_task.0, worst_task.1);
+            }
         }
 
         self.timed_remove_excess_blocks(end_of_work);
@@ -400,6 +415,22 @@ impl Live {
             } else {
                 i += 1;
             }
+        }
+    }
+
+    /// Return a given mixer to the main scheduler if this worker is overloaded.
+    #[inline]
+    pub fn offload_mixer(&mut self, idx: usize, cost: Duration) {
+        self.stats.remove_mixer();
+
+        if let Some((id, mut parked)) = self.remove_task(idx) {
+            self.global_stats.move_mixer_to_idle();
+            parked.last_cost = Some(cost);
+            let _ = self
+                .tx
+                .send(SchedulerMessage::Overspill(self.id, id, parked));
+        } else {
+            self.global_stats.remove_live_mixer();
         }
     }
 
