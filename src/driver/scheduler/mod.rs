@@ -3,7 +3,7 @@ use std::{num::NonZeroUsize, sync::Arc};
 use flume::{Receiver, Sender};
 use once_cell::sync::Lazy;
 
-use crate::Config;
+use crate::{constants::TIMESTEP_LENGTH, Config};
 
 use super::tasks::message::{Interconnect, MixerMessage};
 
@@ -16,6 +16,9 @@ use idle::*;
 pub use live::*;
 pub use stats::*;
 pub use task::*;
+
+/// A soft maximum of 90% of the 20ms budget to account for variance in execution time.
+const RESCHEDULE_THRESHOLD: u64 = ((TIMESTEP_LENGTH.subsec_nanos() as u64) * 10) / 9;
 
 /// The default shared scheduler instance.
 ///
@@ -76,6 +79,14 @@ impl Scheduler {
     /// Returns the total number of threads spawned to process live audio sessions.
     pub fn worker_threads(&self) -> u64 {
         self.inner.stats.worker_threads()
+    }
+
+    /// Request a list of handles to statistics for currently live workers.
+    pub fn worker_thread_stats(&self) -> Result<Vec<Arc<LiveStatBlock>>, ()> {
+        let (tx, rx) = flume::bounded(1);
+        _ = self.inner.tx.send(SchedulerMessage::GetStats(tx));
+
+        rx.recv().map_err(|_| ())
     }
 }
 
@@ -138,6 +149,8 @@ pub enum SchedulerMessage {
     Do(TaskId, MixerMessage),
     /// Return a `Mixer` from a worker back to the idle pool.
     Demote(TaskId, ParkedMixer),
+    /// Request a copy of all per-worker statistics.
+    GetStats(Sender<Vec<Arc<LiveStatBlock>>>),
     /// Cleanup once all `Scheduler` handles are dropped.
     Kill,
 }

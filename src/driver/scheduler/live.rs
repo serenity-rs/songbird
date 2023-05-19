@@ -14,10 +14,88 @@ use crate::driver::test_config::TickStyle;
 
 use super::*;
 
+/// The send-half of a worker thread, with bookkeeping mechanisms to help
+/// the idle task schedule incoming tasks.
+pub struct Worker {
+    stats: Arc<LiveStatBlock>,
+    mode: ScheduleMode,
+    tx: Sender<(TaskId, ParkedMixer)>,
+    known_empty_since: Option<TokInstant>,
+}
+
+#[allow(missing_docs)]
+impl Worker {
+    pub fn new(
+        mode: ScheduleMode,
+        sched_tx: Sender<SchedulerMessage>,
+        global_stats: Arc<StatBlock>,
+    ) -> Self {
+        let stats = Arc::new(LiveStatBlock::default());
+        let (live_tx, live_rx) = flume::unbounded();
+
+        let core = Live::new(mode.clone(), global_stats, stats.clone(), live_rx, sched_tx);
+        core.spawn();
+
+        Self {
+            stats,
+            mode,
+            tx: live_tx,
+            known_empty_since: None,
+        }
+    }
+
+    /// Mark the worker thread as idle from the present time if it reports no tasks.
+    ///
+    /// This time information is used for thread culling.
+    #[inline]
+    pub fn try_mark_empty(&mut self, now: TokInstant) -> Option<TokInstant> {
+        if self.stats.live_mixers() == 0 {
+            self.known_empty_since.get_or_insert(now);
+        } else {
+            self.mark_busy();
+        }
+
+        self.known_empty_since
+    }
+
+    /// Unset the thread culling time on this worker.
+    #[inline]
+    pub fn mark_busy(&mut self) {
+        self.known_empty_since = None;
+    }
+
+    #[cfg(test)]
+    #[inline]
+    pub fn is_busy(&mut self) -> bool {
+        self.known_empty_since.is_none()
+    }
+
+    /// Return whether this thread has enough room (task count, spare cycles)
+    /// for the given task.
+    #[inline]
+    pub fn has_room(&self, task: &ParkedMixer) -> bool {
+        self.stats.has_room(&self.mode, task)
+    }
+
+    #[inline]
+    pub fn stats(&self) -> Arc<LiveStatBlock> {
+        self.stats.clone()
+    }
+
+    /// Increment this worker's statistics and hand off a task for execution.
+    #[inline]
+    pub fn schedule_mixer(&mut self, id: TaskId, task: ParkedMixer) -> Result<(), ()> {
+        self.mark_busy();
+        self.stats.add_mixer();
+        self.tx.send((id, task)).map_err(|_| ())
+    }
+}
+
 const PACKETS_PER_BLOCK: usize = 16;
 const MEMORY_CULL_TIMER: Duration = Duration::from_secs(10);
 
-#[allow(missing_docs)]
+/// A synchronous thread responsible for mixing, encoding, encrypting, and
+/// sending the audio output of many `Mixer`s.
 pub struct Live {
     packets: Vec<Box<[u8]>>,
     packet_lens: Vec<usize>,
@@ -81,6 +159,7 @@ impl Live {
         self.global_stats.remove_worker();
     }
 
+    /// Returns whether the loop should exit (i.e., culled by main `Scheduler`).
     #[inline]
     pub fn run_once(&mut self) -> bool {
         // Check for new tasks.
@@ -224,6 +303,7 @@ impl Live {
         Ok(())
     }
 
+    /// Handle messages from each tasks's `Driver`, marking dead tasks for removal.
     #[inline]
     fn handle_task_msgs(&mut self) {
         for (i, (packet, mixer)) in self
@@ -270,6 +350,11 @@ impl Live {
         self.to_cull[idx] = true;
     }
 
+    /// Check and demote for any tasks without live audio sources who have sent all
+    /// necessary silent frames (or remove dead tasks).
+    ///
+    /// This must occur *after* handling per-track events to prevent erroneously
+    /// descheduling tasks.
     #[inline]
     pub fn demote_and_remove_mixers(&mut self) {
         let mut i = 0;
@@ -318,9 +403,13 @@ impl Live {
         self.packets.truncate(self.needed_blocks())
     }
 
+    /// Try to offload excess packet buffers.
+    ///
+    /// If there is currently overallocation, then store the first time at which
+    /// this was seenb. If this condition persists past `MEMORY_CULL_TIMER`, remove
+    /// unnecessary blocks.
     #[inline]
     fn timed_remove_excess_blocks(&mut self, now: Instant) {
-        // Try to offload excess packet buffers.
         if self.has_excess_blocks() {
             if let Some(mark_time) = self.excess_buffer_cull_time {
                 if now.duration_since(mark_time) >= MEMORY_CULL_TIMER {
@@ -335,12 +424,16 @@ impl Live {
         }
     }
 
+    /// Returns the block index into `self.packets` and the packet number in
+    /// the block for a given worker's index.
     #[inline]
     fn get_memory_indices_unscaled(&self, idx: usize) -> (usize, usize) {
         let block_size = PACKETS_PER_BLOCK;
         (idx / block_size, idx % block_size)
     }
 
+    /// Returns the block index into `self.packets` and the byte offset into
+    /// a packet block for a given worker's index.
     #[inline]
     fn get_memory_indices(&self, idx: usize) -> (usize, usize) {
         let (block, inner_unscaled) = self.get_memory_indices_unscaled(idx);
@@ -378,6 +471,11 @@ impl Live {
         rtp.set_sequence(task.rtp_sequence.into());
     }
 
+    /// Allocate and store a new packet block.
+    ///
+    /// This will be full-size (`PACKETS_PER_BLOCK`) unless this block
+    /// is a) the last required for the task limit and b) this limit
+    /// is not aligned to `PACKETS_PER_BLOCK`.
     #[inline]
     fn add_packet_block(&mut self) {
         let n_packets = if let Some(limit) = self.mode.task_limit() {
@@ -404,12 +502,18 @@ impl Live {
                 rtp_sequence: id_0 as u16,
                 rtp_timestamp: id_0 as u32,
                 park_time: Instant::now(),
+                last_cost: None,
             },
             id,
             Instant::now(),
         );
     }
 
+    /// Remove a `Mixer`, returning it to the idle scheduler.
+    ///
+    /// This operates by `swap_remove`ing each element of a Mixer's state, including
+    /// on RTP packet headers. This is achieved by setting up a memcpy between
+    /// buffer segments.
     #[inline]
     pub fn remove_task(&mut self, idx: usize) -> Option<(TaskId, ParkedMixer)> {
         // TO REMOVE:
@@ -465,11 +569,13 @@ impl Live {
                     rtp_sequence,
                     rtp_timestamp,
                     park_time,
+                    last_cost: None,
                 },
             )
         })
     }
 
+    /// Spawn a new sync thread to manage `Mixer`s.
     fn spawn(mut self) {
         std::thread::spawn(move || {
             self.run();
@@ -477,6 +583,7 @@ impl Live {
     }
 }
 
+/// Initialises a packet block of the required size, prefilling any constant RTP data.
 #[inline]
 fn packet_block(n_packets: usize) -> Box<[u8]> {
     let mut packets = vec![0u8; VOICE_PACKET_MAX * n_packets].into_boxed_slice();
@@ -501,73 +608,6 @@ fn advance_rtp_counters(packet: &mut [u8]) {
     );
     rtp.set_sequence(rtp.get_sequence() + 1);
     rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
-}
-
-#[allow(missing_docs)]
-pub struct Worker {
-    stats: Arc<LiveStatBlock>,
-    mode: ScheduleMode,
-    tx: Sender<(TaskId, ParkedMixer)>,
-    known_empty_since: Option<TokInstant>,
-}
-
-#[allow(missing_docs)]
-impl Worker {
-    pub fn new(
-        mode: ScheduleMode,
-        sched_tx: Sender<SchedulerMessage>,
-        global_stats: Arc<StatBlock>,
-    ) -> Self {
-        let stats = Arc::new(LiveStatBlock::default());
-        let (live_tx, live_rx) = flume::unbounded();
-
-        let core = Live::new(mode.clone(), global_stats, stats.clone(), live_rx, sched_tx);
-        core.spawn();
-
-        Self {
-            stats,
-            mode,
-            tx: live_tx,
-            known_empty_since: None,
-        }
-    }
-}
-
-#[allow(missing_docs)]
-impl Worker {
-    #[inline]
-    pub fn try_mark_empty(&mut self, now: TokInstant) -> Option<TokInstant> {
-        if self.stats.live_mixers() == 0 {
-            self.known_empty_since.get_or_insert(now);
-        } else {
-            self.mark_busy();
-        }
-
-        self.known_empty_since
-    }
-
-    #[inline]
-    pub fn mark_busy(&mut self) {
-        self.known_empty_since = None;
-    }
-
-    #[cfg(test)]
-    #[inline]
-    pub fn is_busy(&mut self) -> bool {
-        self.known_empty_since == None
-    }
-
-    #[inline]
-    pub fn has_room(&self) -> bool {
-        self.stats.has_room(&self.mode)
-    }
-
-    #[inline]
-    pub fn schedule_mixer(&mut self, id: TaskId, task: ParkedMixer) -> Result<(), ()> {
-        self.mark_busy();
-        self.stats.add_mixer();
-        self.tx.send((id, task)).map_err(|_| ())
-    }
 }
 
 #[cfg(test)]

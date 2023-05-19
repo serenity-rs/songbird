@@ -92,6 +92,9 @@ impl Idle {
                         Ok(true) | Err(_) => self.to_cull.push(id),
                     }
                 },
+                Ok(SchedulerMessage::GetStats(tx)) => {
+                    _ = tx.send(self.workers.iter().map(Worker::stats).collect());
+                },
                 Ok(SchedulerMessage::Kill) | Err(_) => {
                     return false;
                 },
@@ -132,7 +135,7 @@ impl Idle {
     /// Promote a task to a live mixer thread.
     fn schedule_mixer(&mut self, id: TaskId) {
         let mut task = self.tasks.remove(&id).unwrap();
-        let worker = self.fetch_worker();
+        let worker = self.fetch_worker(&task);
         if task.send_gateway_speaking().is_ok() {
             // TODO: put this task on a valid worker, if this fails -- kill old worker.
             worker
@@ -143,13 +146,13 @@ impl Idle {
     }
 
     /// Fetch the first `Worker` that has room for a new task, creating one if needed.
-    fn fetch_worker(&mut self) -> &mut Worker {
+    fn fetch_worker(&mut self, task: &ParkedMixer) -> &mut Worker {
         // look through all workers.
         // if none found w/ space, add new.
         let idx = self
             .workers
             .iter()
-            .position(Worker::has_room)
+            .position(|w| w.has_room(task))
             .unwrap_or_else(|| {
                 self.workers.push(Worker::new(
                     self.mode.clone(),
@@ -241,6 +244,7 @@ mod test {
                 rtp_sequence: i as u16,
                 rtp_timestamp: i,
                 park_time: TokInstant::now().into(),
+                last_cost: None,
             };
             core.stats.add_idle_mixer();
             core.stats.move_mixer_to_live();
