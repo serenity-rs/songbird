@@ -1,6 +1,6 @@
-use std::{num::NonZeroUsize, sync::Arc};
+use std::{error::Error as StdError, fmt::Display, num::NonZeroUsize, sync::Arc};
 
-use flume::{Receiver, Sender};
+use flume::{Receiver, RecvError, Sender};
 use once_cell::sync::Lazy;
 
 use crate::{constants::TIMESTEP_LENGTH, Config};
@@ -47,6 +47,7 @@ struct InnerScheduler {
 
 impl Scheduler {
     /// Create a new mixer scheduler from the allocation strategy `mode`.
+    #[must_use]
     pub fn new(mode: ScheduleMode) -> Self {
         let (core, tx) = Idle::new(mode);
 
@@ -66,27 +67,38 @@ impl Scheduler {
     }
 
     /// Returns the total number of calls (idle and active) scheduled.
+    #[must_use]
     pub fn total_tasks(&self) -> u64 {
         self.inner.stats.total_mixers()
     }
 
     /// Returns the total number of *active* calls scheduled and processing
     /// audio.
+    #[must_use]
     pub fn live_tasks(&self) -> u64 {
         self.inner.stats.live_mixers()
     }
 
     /// Returns the total number of threads spawned to process live audio sessions.
+    #[must_use]
     pub fn worker_threads(&self) -> u64 {
         self.inner.stats.worker_threads()
     }
 
     /// Request a list of handles to statistics for currently live workers.
-    pub fn worker_thread_stats(&self) -> Result<Vec<Arc<LiveStatBlock>>, ()> {
+    pub async fn worker_thread_stats(&self) -> Result<Vec<Arc<LiveStatBlock>>, Error> {
         let (tx, rx) = flume::bounded(1);
         _ = self.inner.tx.send(SchedulerMessage::GetStats(tx));
 
-        rx.recv().map_err(|_| ())
+        rx.recv_async().await.map_err(Error::from)
+    }
+
+    /// Request a list of handles to statistics for currently live workers with a blocking call.
+    pub fn worker_thread_stats_blocking(&self) -> Result<Vec<Arc<LiveStatBlock>>, Error> {
+        let (tx, rx) = flume::bounded(1);
+        _ = self.inner.tx.send(SchedulerMessage::GetStats(tx));
+
+        rx.recv().map_err(Error::from)
     }
 }
 
@@ -98,7 +110,7 @@ impl Drop for InnerScheduler {
 
 impl Default for Scheduler {
     fn default() -> Self {
-        Scheduler::new(Default::default())
+        Scheduler::new(ScheduleMode::default())
     }
 }
 
@@ -123,6 +135,9 @@ impl ScheduleMode {
 
     /// Returns the maximum number of concurrent mixers that a scheduler is
     /// allowed to place on a single thread.
+    ///
+    /// Future scheduling modes may choose to limit *only* on execution cost.
+    #[allow(clippy::unnecessary_wraps)]
     fn task_limit(&self) -> Option<usize> {
         match self {
             Self::MaxPerThread(n) => Some(n.get()),
@@ -155,4 +170,34 @@ pub enum SchedulerMessage {
     GetStats(Sender<Vec<Arc<LiveStatBlock>>>),
     /// Cleanup once all `Scheduler` handles are dropped.
     Kill,
+}
+
+/// Errors encountered when communicating with the internals of a [`Scheduler`].
+///
+/// [`Scheduler`]: crate::driver::Scheduler
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum Error {
+    /// The scheduler exited or crashed while awating the request.
+    Disconnected,
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Disconnected => f.write_str("the scheduler terminated mid-request"),
+        }
+    }
+}
+
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        None
+    }
+}
+
+impl From<RecvError> for Error {
+    fn from(_: RecvError) -> Self {
+        Self::Disconnected
+    }
 }

@@ -34,7 +34,7 @@ pub(crate) fn start(config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
     });
 }
 
-fn start_internals(core: Sender<CoreMessage>, config: Config) -> Interconnect {
+fn start_internals(core: Sender<CoreMessage>, config: &Config) -> Interconnect {
     let (evt_tx, evt_rx) = flume::unbounded();
     let (mix_tx, mix_rx) = flume::unbounded();
 
@@ -52,7 +52,7 @@ fn start_internals(core: Sender<CoreMessage>, config: Config) -> Interconnect {
     });
 
     let ic = interconnect.clone();
-    config.get_scheduler().new_mixer(&config, ic, mix_rx);
+    config.get_scheduler().new_mixer(config, ic, mix_rx);
 
     interconnect
 }
@@ -61,7 +61,7 @@ fn start_internals(core: Sender<CoreMessage>, config: Config) -> Interconnect {
 async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMessage>) {
     let mut next_config: Option<Config> = None;
     let mut connection: Option<Connection> = None;
-    let mut interconnect = start_internals(tx, config.clone());
+    let mut interconnect = start_internals(tx, &config);
     let mut retrying = None;
     let mut attempt_idx = 0;
 

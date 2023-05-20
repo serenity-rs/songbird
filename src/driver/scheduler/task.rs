@@ -1,4 +1,7 @@
-use std::time::{Duration, Instant};
+use std::{
+    marker::PhantomData,
+    time::{Duration, Instant},
+};
 
 use flume::{Receiver, Sender};
 use nohash_hasher::IsEnabled;
@@ -18,7 +21,7 @@ use super::SchedulerMessage;
 
 /// Typesafe counter used to identify individual mixer/worker instances.
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct ResId<T>(u64, std::marker::PhantomData<T>);
+pub struct ResId<T>(u64, PhantomData<T>);
 #[allow(missing_docs)]
 pub type TaskId = ResId<TaskMarker>;
 #[allow(missing_docs)]
@@ -36,7 +39,7 @@ impl<T> IsEnabled for ResId<T> {}
 #[allow(missing_docs)]
 impl<T: Copy> ResId<T> {
     pub fn new() -> Self {
-        ResId(0, Default::default())
+        ResId(0, PhantomData)
     }
 
     pub fn incr(&mut self) -> Self {
@@ -140,7 +143,7 @@ impl ParkedMixer {
     /// Handle periodic events attached to this `Mixer`, including timer state
     /// on the event thread and UDP keepalives needed to prevent session termination.
     ///
-    /// As we init our UDP sockets as non-blocking via Tokio -> into_std, it is
+    /// As we init our UDP sockets as non-blocking via Tokio -> `into_std`, it is
     /// safe to call UDP packet sends like this.
     pub fn tick_and_keepalive(&mut self, now: Instant) -> Result<(), ()> {
         // TODO: should we include an atomic which signals whether the event

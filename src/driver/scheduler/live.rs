@@ -228,6 +228,8 @@ impl Live {
             let ns_cost = self.stats.store_compute_cost(end_of_work - start_of_work);
 
             if ns_cost >= RESCHEDULE_THRESHOLD && self.ids.len() > 1 {
+                // TODO: optionally prevent this happening in tests.
+                // One or two are broken on GH runners.
                 self.offload_mixer(worst_task.0, worst_task.1);
             }
         }
@@ -257,7 +259,7 @@ impl Live {
             advance_rtp_counters(packet);
         }
 
-        for mixer in self.tasks.iter_mut() {
+        for mixer in &mut self.tasks {
             mixer.audio_commands_events();
             mixer.check_and_send_keepalive(self.start_of_work);
         }
@@ -324,7 +326,11 @@ impl Live {
                     self.add_task(
                         task,
                         id,
-                        *activation_time.get_or_insert_with(|| (self.deadline - TIMESTEP_LENGTH)),
+                        *activation_time.get_or_insert_with(|| {
+                            self.deadline
+                                .checked_sub(TIMESTEP_LENGTH)
+                                .unwrap_or(self.deadline)
+                        }),
                     );
                 },
                 Err(TryRecvError::Empty) => break,
@@ -448,7 +454,7 @@ impl Live {
 
     #[inline]
     fn remove_excess_blocks(&mut self) {
-        self.packets.truncate(self.needed_blocks())
+        self.packets.truncate(self.needed_blocks());
     }
 
     /// Try to offload excess packet buffers.
@@ -472,22 +478,6 @@ impl Live {
         }
     }
 
-    /// Returns the block index into `self.packets` and the packet number in
-    /// the block for a given worker's index.
-    #[inline]
-    fn get_memory_indices_unscaled(&self, idx: usize) -> (usize, usize) {
-        let block_size = PACKETS_PER_BLOCK;
-        (idx / block_size, idx % block_size)
-    }
-
-    /// Returns the block index into `self.packets` and the byte offset into
-    /// a packet block for a given worker's index.
-    #[inline]
-    fn get_memory_indices(&self, idx: usize) -> (usize, usize) {
-        let (block, inner_unscaled) = self.get_memory_indices_unscaled(idx);
-        (block, inner_unscaled * VOICE_PACKET_MAX)
-    }
-
     #[inline]
     fn add_task(&mut self, task: ParkedMixer, id: TaskId, activation_time: Instant) {
         let idx = self.ids.len();
@@ -503,7 +493,7 @@ impl Live {
         self.packet_lens.push(0);
         self.to_cull.push(false);
 
-        let (block, inner_idx) = self.get_memory_indices(idx);
+        let (block, inner_idx) = get_memory_indices(idx);
 
         while self.packets.len() <= block {
             self.add_packet_block();
@@ -527,7 +517,7 @@ impl Live {
     #[inline]
     fn add_packet_block(&mut self) {
         let n_packets = if let Some(limit) = self.mode.task_limit() {
-            let (block, inner) = self.get_memory_indices_unscaled(limit);
+            let (block, inner) = get_memory_indices_unscaled(limit);
             if self.packets.len() < block || inner == 0 {
                 PACKETS_PER_BLOCK
             } else {
@@ -575,10 +565,10 @@ impl Live {
         let mixer = self.tasks.swap_remove(idx);
         let alive = !self.to_cull.swap_remove(idx);
 
-        let (block, inner_idx) = self.get_memory_indices(idx);
+        let (block, inner_idx) = get_memory_indices(idx);
 
         let (removed, replacement) = if end > idx {
-            let (end_block, end_inner) = self.get_memory_indices(end);
+            let (end_block, end_inner) = get_memory_indices(end);
             let (rest, target_block) = self.packets.split_at_mut(end_block);
             let (last_block, end_pkt) = target_block[0].split_at_mut(end_inner);
 
@@ -646,6 +636,22 @@ fn packet_block(n_packets: usize) -> Box<[u8]> {
     }
 
     packets
+}
+
+/// Returns the block index into `self.packets` and the packet number in
+/// the block for a given worker's index.
+#[inline]
+fn get_memory_indices_unscaled(idx: usize) -> (usize, usize) {
+    let block_size = PACKETS_PER_BLOCK;
+    (idx / block_size, idx % block_size)
+}
+
+/// Returns the block index into `self.packets` and the byte offset into
+/// a packet block for a given worker's index.
+#[inline]
+fn get_memory_indices(idx: usize) -> (usize, usize) {
+    let (block, inner_unscaled) = get_memory_indices_unscaled(idx);
+    (block, inner_unscaled * VOICE_PACKET_MAX)
 }
 
 #[inline]

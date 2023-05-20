@@ -30,7 +30,13 @@ pub(crate) use crypto::CryptoState;
 #[cfg(feature = "receive")]
 pub use decode_mode::DecodeMode;
 pub use mix_mode::MixMode;
-pub use scheduler::{LiveStatBlock, ScheduleMode, Scheduler, DEFAULT_SCHEDULER};
+pub use scheduler::{
+    Error as SchedulerError,
+    LiveStatBlock,
+    ScheduleMode,
+    Scheduler,
+    DEFAULT_SCHEDULER,
+};
 #[cfg(test)]
 pub use test_config::*;
 #[cfg(any(test, feature = "internals"))]

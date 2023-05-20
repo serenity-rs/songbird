@@ -30,7 +30,7 @@ impl Idle {
     pub fn new(mode: ScheduleMode) -> (Self, Sender<SchedulerMessage>) {
         let (tx, rx) = flume::unbounded();
 
-        let stats = Default::default();
+        let stats = Arc::default();
         let tasks = HashMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
 
         // TODO: include heap of keepalive sending times?
@@ -112,7 +112,7 @@ impl Idle {
                 // we don't check every task every 20ms.
                 let now = TokInstant::now();
 
-                for (id, task) in self.tasks.iter_mut() {
+                for (id, task) in &mut self.tasks {
                     // NOTE: this is a non-blocking send so safe from async context.
                     if task.tick_and_keepalive(now.into()).is_err() {
                         self.to_cull.push(*id);
