@@ -148,6 +148,7 @@ impl ParkedMixer {
     pub fn tick_and_keepalive(&mut self, now: Instant) -> Result<(), ()> {
         // TODO: should we include an atomic which signals whether the event
         //  thread *cares*, so we can prevent wakeups?
+        //  Can we do the same for live tracks?
         let mut events_failure = self.mixer.fire_event(EventMessage::Tick).is_err();
 
         let ka_err = self

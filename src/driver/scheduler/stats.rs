@@ -36,8 +36,8 @@ impl StatBlock {
     }
 
     #[inline]
-    pub fn remove_idle_mixer(&self) {
-        self.total.fetch_sub(1, Ordering::Relaxed);
+    pub fn remove_idle_mixers(&self, n: u64) {
+        self.total.fetch_sub(n, Ordering::Relaxed);
     }
 
     #[inline]
@@ -47,13 +47,23 @@ impl StatBlock {
 
     #[inline]
     pub fn move_mixer_to_idle(&self) {
-        self.live.fetch_sub(1, Ordering::Relaxed);
+        self.move_mixers_to_idle(1);
+    }
+
+    #[inline]
+    pub fn move_mixers_to_idle(&self, n: u64) {
+        self.live.fetch_sub(n, Ordering::Relaxed);
     }
 
     #[inline]
     pub fn remove_live_mixer(&self) {
-        self.move_mixer_to_idle();
-        self.remove_idle_mixer();
+        self.remove_live_mixers(1);
+    }
+
+    #[inline]
+    pub fn remove_live_mixers(&self, n: u64) {
+        self.move_mixers_to_idle(n);
+        self.remove_idle_mixers(n);
     }
 
     #[inline]

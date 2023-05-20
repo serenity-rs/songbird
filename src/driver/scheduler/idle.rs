@@ -142,22 +142,47 @@ impl Idle {
 
     /// Promote a task to a live mixer thread.
     fn schedule_mixer(&mut self, mut task: ParkedMixer, id: TaskId, avoid: Option<WorkerId>) {
-        let worker = self.fetch_worker(&task, avoid);
         if task.send_gateway_speaking().is_ok() {
-            // TODO: put this task on a valid worker, if this fails -- kill old worker.
-            worker
-                .schedule_mixer(id, task)
-                .expect("Worker thread unexpectedly died!");
-            self.stats.move_mixer_to_live();
+            // If a worker ever completely fails, then we need to remove it here
+            // `fetch_worker` will either find another, or generate us a new one if
+            // none exist.
+
+            // We need to track ownership of the task coming back via SendError using this
+            // Option.
+            let mut loop_task = Some(task);
+            loop {
+                let task = loop_task.take().unwrap();
+                let (worker, idx) = self.fetch_worker(&task, avoid);
+                match worker.schedule_mixer(id, task) {
+                    Ok(_) => {
+                        self.stats.move_mixer_to_live();
+                        break;
+                    },
+                    Err(e) => {
+                        loop_task = Some(e.0 .1);
+                        let worker = self.workers.swap_remove(idx);
+
+                        // NOTE: we have incremented worker's live counter for this mixer in
+                        // `schedule_mixer`.
+                        // The only time this branch is ever hit is if a worker crashed, so we
+                        // need to replicate some of their cleanup.
+                        self.stats
+                            .remove_live_mixers(worker.stats().live_mixers().saturating_sub(1));
+                        self.stats.remove_worker();
+                    },
+                }
+            }
         }
     }
 
     /// Fetch the first `Worker` that has room for a new task, creating one if needed.
     ///
     /// If an inbound task has spilled from another thread, then do not reschedule it there.
-    fn fetch_worker(&mut self, task: &ParkedMixer, avoid: Option<WorkerId>) -> &mut Worker {
-        // look through all workers.
-        // if none found w/ space, add new.
+    fn fetch_worker(
+        &mut self,
+        task: &ParkedMixer,
+        avoid: Option<WorkerId>,
+    ) -> (&mut Worker, usize) {
         let idx = self
             .workers
             .iter()
@@ -173,7 +198,7 @@ impl Idle {
                 self.workers.len() - 1
             });
 
-        &mut self.workers[idx]
+        (&mut self.workers[idx], idx)
     }
 
     pub fn spawn(mut self) {

@@ -4,10 +4,13 @@ use std::{
 };
 
 use discortp::rtp::{MutableRtpPacket, RtpPacket};
-use flume::{Receiver, Sender, TryRecvError};
+use flume::{Receiver, SendError, Sender, TryRecvError};
 use tokio::time::Instant as TokInstant;
 
-use crate::{constants::*, driver::tasks::mixer::Mixer};
+use crate::{
+    constants::*,
+    driver::tasks::{error::Error as DriverError, mixer::Mixer},
+};
 
 #[cfg(test)]
 use crate::driver::test_config::TickStyle;
@@ -95,10 +98,14 @@ impl Worker {
 
     /// Increment this worker's statistics and hand off a task for execution.
     #[inline]
-    pub fn schedule_mixer(&mut self, id: TaskId, task: ParkedMixer) -> Result<(), ()> {
+    pub fn schedule_mixer(
+        &mut self,
+        id: TaskId,
+        task: ParkedMixer,
+    ) -> Result<(), SendError<(TaskId, ParkedMixer)>> {
         self.mark_busy();
         self.stats.add_mixer();
-        self.tx.send((id, task)).map_err(|_| ())
+        self.tx.send((id, task))
     }
 
     pub fn has_id(&self, id: WorkerId) -> bool {
@@ -211,13 +218,9 @@ impl Live {
         {
             match mixer.mix_and_build_packet(packet) {
                 Ok(written_sz) => *packet_len = written_sz,
-                Err(e) => {
+                e => {
                     *packet_len = 0;
-                    // TODO: let culling happen here too (?)
-                    _ = mixer.do_rebuilds(
-                        e.should_trigger_interconnect_rebuild(),
-                        e.should_trigger_connect(),
-                    );
+                    rebuild_if_err(mixer, e, &mut self.to_cull, i);
                 },
             }
             let post_pkt_time = Instant::now();
@@ -228,7 +231,7 @@ impl Live {
             pre_pkt_time = post_pkt_time;
         }
 
-        let end_of_work = Instant::now();
+        let end_of_work = pre_pkt_time;
 
         if let Some(start_of_work) = self.start_of_work {
             let ns_cost = self.stats.store_compute_cost(end_of_work - start_of_work);
@@ -249,15 +252,17 @@ impl Live {
 
         // Send all.
         self.start_of_work = Some(Instant::now());
-        for ((packet, packet_len), mixer) in self
+        for (i, ((packet, packet_len), mixer)) in self
             .packets
             .iter_mut()
             .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
             .zip(self.packet_lens.iter())
-            .zip(self.tasks.iter())
+            .zip(self.tasks.iter_mut())
+            .enumerate()
         {
             if *packet_len > 0 {
-                mixer.send_packet(&packet[..*packet_len]);
+                let res = mixer.send_packet(&packet[..*packet_len]);
+                rebuild_if_err(mixer, res, &mut self.to_cull, i);
             }
             #[cfg(test)]
             if *packet_len == 0 {
@@ -266,9 +271,11 @@ impl Live {
             advance_rtp_counters(packet);
         }
 
-        for mixer in &mut self.tasks {
-            mixer.audio_commands_events();
-            mixer.check_and_send_keepalive(self.start_of_work);
+        for (i, mixer) in self.tasks.iter_mut().enumerate() {
+            let res = mixer
+                .audio_commands_events()
+                .and_then(|_| mixer.check_and_send_keepalive(self.start_of_work));
+            rebuild_if_err(mixer, res, &mut self.to_cull, i);
         }
 
         true
@@ -561,10 +568,6 @@ impl Live {
     /// buffer segments.
     #[inline]
     pub fn remove_task(&mut self, idx: usize) -> Option<(TaskId, ParkedMixer)> {
-        // TO REMOVE:
-        // swap-remove on all relevant stores.
-        // simulate swap-remove on buffer contents:
-        //  move important packet header fields from end into i
         let end = self.tasks.len() - 1;
 
         let id = self.ids.swap_remove(idx);
@@ -669,6 +672,25 @@ fn advance_rtp_counters(packet: &mut [u8]) {
     );
     rtp.set_sequence(rtp.get_sequence() + 1);
     rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE as u32);
+}
+
+/// Structured slightly confusingly: we only want to even access `cull_markers`
+/// in the event of error.
+#[inline]
+fn rebuild_if_err<T>(
+    mixer: &mut Box<Mixer>,
+    res: Result<T, DriverError>,
+    cull_markers: &mut [bool],
+    idx: usize,
+) {
+    if let Err(e) = res {
+        cull_markers[idx] |= mixer
+            .do_rebuilds(
+                e.should_trigger_interconnect_rebuild(),
+                e.should_trigger_connect(),
+            )
+            .is_err();
+    }
 }
 
 #[cfg(test)]
