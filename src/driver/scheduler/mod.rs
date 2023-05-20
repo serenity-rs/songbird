@@ -3,15 +3,17 @@ use std::{error::Error as StdError, fmt::Display, num::NonZeroUsize, sync::Arc};
 use flume::{Receiver, RecvError, Sender};
 use once_cell::sync::Lazy;
 
-use crate::{constants::TIMESTEP_LENGTH, Config};
+use crate::{constants::TIMESTEP_LENGTH, Config as DriverConfig};
 
 use super::tasks::message::{Interconnect, MixerMessage};
 
+mod config;
 mod idle;
 mod live;
 mod stats;
 mod task;
 
+pub use config::*;
 use idle::*;
 pub use live::*;
 pub use stats::*;
@@ -20,12 +22,18 @@ pub use task::*;
 /// A soft maximum of 90% of the 20ms budget to account for variance in execution time.
 const RESCHEDULE_THRESHOLD: u64 = ((TIMESTEP_LENGTH.subsec_nanos() as u64) * 9) / 10;
 
+const DEFAULT_MIXERS_PER_THREAD: NonZeroUsize = match NonZeroUsize::new(16) {
+    Some(v) => v,
+    None => [][0],
+};
+
 /// The default shared scheduler instance.
 ///
-/// This is built using the default calue of [`ScheduleMode`]. Users desiring
+/// This is built using the default value of [`ScheduleMode`]. Users desiring
 /// a custom strategy should avoid calling [`Config::default`].
 ///
 /// [`Config::default`]: crate::Config::default
+/// [`ScheduleMode`]: Mode
 pub static DEFAULT_SCHEDULER: Lazy<Scheduler> = Lazy::new(Scheduler::default);
 
 /// A reference to a shared group of threads used for running idle and active
@@ -46,10 +54,10 @@ struct InnerScheduler {
 }
 
 impl Scheduler {
-    /// Create a new mixer scheduler from the allocation strategy `mode`.
+    /// Create a new mixer scheduler from the allocation strategy in `config`.
     #[must_use]
-    pub fn new(mode: ScheduleMode) -> Self {
-        let (core, tx) = Idle::new(mode);
+    pub fn new(config: Config) -> Self {
+        let (core, tx) = Idle::new(config);
 
         let stats = core.stats.clone();
         core.spawn();
@@ -59,7 +67,12 @@ impl Scheduler {
         Self { inner }
     }
 
-    pub(crate) fn new_mixer(&self, config: &Config, ic: Interconnect, rx: Receiver<MixerMessage>) {
+    pub(crate) fn new_mixer(
+        &self,
+        config: &DriverConfig,
+        ic: Interconnect,
+        rx: Receiver<MixerMessage>,
+    ) {
         self.inner
             .tx
             .send(SchedulerMessage::NewMixer(rx, ic, config.clone()))
@@ -110,56 +123,14 @@ impl Drop for InnerScheduler {
 
 impl Default for Scheduler {
     fn default() -> Self {
-        Scheduler::new(ScheduleMode::default())
-    }
-}
-
-/// Strategies for mapping live mixer tasks to individual threads.
-///
-/// Defaults to `MaxPerThread(16)`.
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub enum ScheduleMode {
-    /// Allows at most `n` tasks to run per thread.
-    MaxPerThread(NonZeroUsize),
-}
-
-impl ScheduleMode {
-    /// Returns the number of `Mixer`s that a scheduler should preallocate
-    /// resources for.
-    fn prealloc_size(&self) -> usize {
-        match self {
-            Self::MaxPerThread(n) => n.get(),
-        }
-    }
-
-    /// Returns the maximum number of concurrent mixers that a scheduler is
-    /// allowed to place on a single thread.
-    ///
-    /// Future scheduling modes may choose to limit *only* on execution cost.
-    #[allow(clippy::unnecessary_wraps)]
-    fn task_limit(&self) -> Option<usize> {
-        match self {
-            Self::MaxPerThread(n) => Some(n.get()),
-        }
-    }
-}
-
-const DEFAULT_MIXERS_PER_THREAD: NonZeroUsize = match NonZeroUsize::new(16) {
-    Some(v) => v,
-    None => [][0],
-};
-
-impl Default for ScheduleMode {
-    fn default() -> Self {
-        Self::MaxPerThread(DEFAULT_MIXERS_PER_THREAD)
+        Scheduler::new(Config::default())
     }
 }
 
 /// Control messages for a scheduler.
 pub enum SchedulerMessage {
     /// Build a new `Mixer` as part of the initialisation of a `Driver`.
-    NewMixer(Receiver<MixerMessage>, Interconnect, Config),
+    NewMixer(Receiver<MixerMessage>, Interconnect, DriverConfig),
     /// Forward a command for
     Do(TaskId, MixerMessage),
     /// Return a `Mixer` from a worker back to the idle pool.

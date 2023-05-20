@@ -16,7 +16,7 @@ use crate::{
 #[cfg(test)]
 use crate::driver::test_config::*;
 #[cfg(all(test, feature = "driver"))]
-use crate::driver::ScheduleMode;
+use crate::driver::SchedulerConfig;
 
 #[cfg(feature = "driver")]
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
@@ -418,10 +418,13 @@ impl Config {
             (OutputMode::Rtp(rtp_tx), OutputReceiver::Rtp(rtp_rx))
         };
 
+        let mut sc_config = SchedulerConfig::default();
+        sc_config.strategy = crate::driver::SchedulerMode::MaxPerThread(1.try_into().unwrap());
+
         let config = Config::default()
             .tick_style(TickStyle::UntimedWithExecLimit(tick_rx))
             // give each test its own thread in the scheduler for simplicity.
-            .scheduler(Scheduler::new(ScheduleMode::MaxPerThread(1.try_into().unwrap())))
+            .scheduler(Scheduler::new(sc_config))
             .override_connection(Some(conn));
 
         let handle = DriverTestHandle { rx, tx: tick_tx };

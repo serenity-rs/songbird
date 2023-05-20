@@ -31,9 +31,10 @@ pub(crate) use crypto::CryptoState;
 pub use decode_mode::DecodeMode;
 pub use mix_mode::MixMode;
 pub use scheduler::{
+    Config as SchedulerConfig,
     Error as SchedulerError,
     LiveStatBlock,
-    ScheduleMode,
+    Mode as SchedulerMode,
     Scheduler,
     DEFAULT_SCHEDULER,
 };

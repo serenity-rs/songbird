@@ -53,7 +53,7 @@ impl Mixer {
 
         // Scheduler must be created from a Tokio context...
         let (tx, rx) = flume::unbounded();
-        handle.spawn_blocking(move || tx.send(Config::default().use_softclip(softclip)));
+        handle.spawn_blocking(move || tx.send(crate::Config::default().use_softclip(softclip)));
         let config = rx.recv().unwrap();
 
         let mut out = Mixer::new(mix_rx, handle, ic, config);
@@ -180,16 +180,19 @@ pub struct MockScheduler {
 }
 
 impl MockScheduler {
-    pub fn new(mode: Option<ScheduleMode>) -> Self {
+    pub fn new(mode: Option<Mode>) -> Self {
         let stats = Arc::new(StatBlock::default());
         let local = Arc::new(LiveStatBlock::default());
 
         let (task_tx, task_rx) = flume::unbounded();
         let (sched_tx, sched_rx) = flume::unbounded();
 
+        let mut cfg = crate::driver::SchedulerConfig::default();
+        cfg.strategy = mode.unwrap_or_default();
+
         let core = Live::new(
             WorkerId::new(),
-            mode.unwrap_or_default(),
+            cfg,
             stats.clone(),
             local.clone(),
             task_rx,
@@ -210,10 +213,7 @@ impl MockScheduler {
         self.core.add_task_direct(m, id);
     }
 
-    pub fn from_mixers(
-        mode: Option<ScheduleMode>,
-        mixers: Vec<DummyMixer>,
-    ) -> (Self, Vec<Listeners>) {
+    pub fn from_mixers(mode: Option<Mode>, mixers: Vec<DummyMixer>) -> (Self, Vec<Listeners>) {
         let mut out = Self::new(mode);
         let mut listeners = vec![];
         for (mixer, listener) in mixers {

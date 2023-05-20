@@ -19,7 +19,7 @@ use super::*;
 pub struct Worker {
     id: WorkerId,
     stats: Arc<LiveStatBlock>,
-    mode: ScheduleMode,
+    config: Config,
     tx: Sender<(TaskId, ParkedMixer)>,
     known_empty_since: Option<TokInstant>,
 }
@@ -28,7 +28,7 @@ pub struct Worker {
 impl Worker {
     pub fn new(
         id: WorkerId,
-        mode: ScheduleMode,
+        config: Config,
         sched_tx: Sender<SchedulerMessage>,
         global_stats: Arc<StatBlock>,
     ) -> Self {
@@ -37,7 +37,7 @@ impl Worker {
 
         let core = Live::new(
             id,
-            mode.clone(),
+            config.clone(),
             global_stats,
             stats.clone(),
             live_rx,
@@ -48,7 +48,7 @@ impl Worker {
         Self {
             id,
             stats,
-            mode,
+            config,
             tx: live_tx,
             known_empty_since: None,
         }
@@ -84,7 +84,8 @@ impl Worker {
     /// for the given task.
     #[inline]
     pub fn can_schedule(&self, task: &ParkedMixer, avoid: Option<WorkerId>) -> bool {
-        avoid.map_or(true, |id| !self.has_id(id)) && self.stats.has_room(&self.mode, task)
+        avoid.map_or(true, |id| !self.has_id(id))
+            && self.stats.has_room(&self.config.strategy, task)
     }
 
     #[inline]
@@ -110,9 +111,13 @@ const MEMORY_CULL_TIMER: Duration = Duration::from_secs(10);
 
 /// A synchronous thread responsible for mixing, encoding, encrypting, and
 /// sending the audio output of many `Mixer`s.
+///
+/// `Mixer`s remain `Box`ed due to large move costs, and unboxing them appeared to have
+/// a 5--10% perf cost from benchmarks.
 pub struct Live {
     packets: Vec<Box<[u8]>>,
     packet_lens: Vec<usize>,
+    #[allow(clippy::vec_box)]
     tasks: Vec<Box<Mixer>>,
     ids: Vec<TaskId>,
     to_cull: Vec<bool>,
@@ -121,7 +126,7 @@ pub struct Live {
     start_of_work: Option<Instant>,
 
     id: WorkerId,
-    mode: ScheduleMode,
+    config: Config,
     stats: Arc<LiveStatBlock>,
     global_stats: Arc<StatBlock>,
     rx: Receiver<(TaskId, ParkedMixer)>,
@@ -134,15 +139,16 @@ pub struct Live {
 impl Live {
     pub fn new(
         id: WorkerId,
-        mode: ScheduleMode,
+        config: Config,
         global_stats: Arc<StatBlock>,
         stats: Arc<LiveStatBlock>,
         rx: Receiver<(TaskId, ParkedMixer)>,
         tx: Sender<SchedulerMessage>,
     ) -> Self {
-        let to_prealloc = mode.prealloc_size();
+        let to_prealloc = config.strategy.prealloc_size();
 
-        let block_size = mode
+        let block_size = config
+            .strategy
             .task_limit()
             .unwrap_or(PACKETS_PER_BLOCK)
             .min(PACKETS_PER_BLOCK);
@@ -160,7 +166,7 @@ impl Live {
             start_of_work: None,
 
             id,
-            mode,
+            config,
             stats,
             global_stats,
             rx,
@@ -227,9 +233,10 @@ impl Live {
         if let Some(start_of_work) = self.start_of_work {
             let ns_cost = self.stats.store_compute_cost(end_of_work - start_of_work);
 
-            if ns_cost >= RESCHEDULE_THRESHOLD && self.ids.len() > 1 {
-                // TODO: optionally prevent this happening in tests.
-                // One or two are broken on GH runners.
+            if self.config.move_expensive_tasks
+                && ns_cost >= RESCHEDULE_THRESHOLD
+                && self.ids.len() > 1
+            {
                 self.offload_mixer(worst_task.0, worst_task.1);
             }
         }
@@ -516,7 +523,7 @@ impl Live {
     /// is not aligned to `PACKETS_PER_BLOCK`.
     #[inline]
     fn add_packet_block(&mut self) {
-        let n_packets = if let Some(limit) = self.mode.task_limit() {
+        let n_packets = if let Some(limit) = self.config.strategy.task_limit() {
             let (block, inner) = get_memory_indices_unscaled(limit);
             if self.packets.len() < block || inner == 0 {
                 PACKETS_PER_BLOCK
@@ -688,7 +695,7 @@ mod test {
     async fn block_alloc_is_partial_small() {
         let n_mixers = 1;
         let (sched, _listeners) = MockScheduler::from_mixers(
-            Some(ScheduleMode::MaxPerThread(n_mixers.try_into().unwrap())),
+            Some(Mode::MaxPerThread(n_mixers.try_into().unwrap())),
             (0..n_mixers)
                 .map(|_| Mixer::test_with_float(1, Handle::current(), false))
                 .collect(),
@@ -702,7 +709,7 @@ mod test {
     async fn block_alloc_is_partial_large() {
         let n_mixers = 33;
         let (sched, _listeners) = MockScheduler::from_mixers(
-            Some(ScheduleMode::MaxPerThread(n_mixers.try_into().unwrap())),
+            Some(Mode::MaxPerThread(n_mixers.try_into().unwrap())),
             (0..n_mixers)
                 .map(|_| Mixer::test_with_float(1, Handle::current(), false))
                 .collect(),

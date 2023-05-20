@@ -13,7 +13,7 @@ const THREAD_CULL_TIMER: Duration = Duration::from_secs(60);
 /// An async task responsible for maintaining UDP keepalives and event state for inactive
 /// `Mixer` tasks.
 pub(crate) struct Idle {
-    mode: ScheduleMode,
+    config: Config,
     cull_timer: Duration,
     tasks: IntMap<TaskId, ParkedMixer>,
     // track taskids which are live to prevent their realloc? unlikely w u64 but still
@@ -27,7 +27,7 @@ pub(crate) struct Idle {
 }
 
 impl Idle {
-    pub fn new(mode: ScheduleMode) -> (Self, Sender<SchedulerMessage>) {
+    pub fn new(config: Config) -> (Self, Sender<SchedulerMessage>) {
         let (tx, rx) = flume::unbounded();
 
         let stats = Arc::default();
@@ -35,7 +35,7 @@ impl Idle {
 
         // TODO: include heap of keepalive sending times?
         let out = Self {
-            mode,
+            config,
             cull_timer: THREAD_CULL_TIMER,
             tasks,
             stats,
@@ -165,7 +165,7 @@ impl Idle {
             .unwrap_or_else(|| {
                 self.workers.push(Worker::new(
                     self.next_worker_id.incr(),
-                    self.mode.clone(),
+                    self.config.clone(),
                     self.tx.clone(),
                     self.stats.clone(),
                 ));
@@ -194,8 +194,8 @@ mod test {
 
     #[tokio::test]
     async fn inactive_mixers_dont_need_threads() {
-        let sched = Scheduler::new(ScheduleMode::default());
-        let cfg = Config::default().scheduler(sched.clone());
+        let sched = Scheduler::new(Config::default());
+        let cfg = DriverConfig::default().scheduler(sched.clone());
 
         let _drivers: Vec<Driver> = (0..1024).map(|_| Driver::new(cfg.clone())).collect();
         tokio::time::sleep(Duration::from_secs(1)).await;
@@ -207,9 +207,12 @@ mod test {
 
     #[tokio::test]
     async fn active_mixers_spawn_threads() {
-        let sched = Scheduler::new(ScheduleMode::default());
+        let mut config = Config::default();
+        config.move_expensive_tasks = false;
+
+        let sched = Scheduler::new(config);
         let (pkt_tx, _pkt_rx) = flume::unbounded();
-        let cfg = Config::default()
+        let cfg = DriverConfig::default()
             .scheduler(sched.clone())
             .override_connection(Some(OutputMode::Rtp(pkt_tx)));
 
@@ -235,8 +238,9 @@ mod test {
 
     #[tokio::test]
     async fn excess_threads_are_cleaned_up() {
-        let mode = ScheduleMode::MaxPerThread(1.try_into().unwrap());
-        let (mut core, tx) = Idle::new(mode.clone());
+        let mut config = Config::default();
+        config.strategy = Mode::MaxPerThread(1.try_into().unwrap());
+        let (mut core, tx) = Idle::new(config.clone());
 
         const TEST_TIMER: Duration = Duration::from_millis(500);
         core.cull_timer = TEST_TIMER;
@@ -247,7 +251,7 @@ mod test {
         for i in 0..2 {
             let mut worker = Worker::new(
                 thread_id.incr(),
-                mode.clone(),
+                config.clone(),
                 tx.clone(),
                 core.stats.clone(),
             );

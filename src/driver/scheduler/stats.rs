@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use super::{ParkedMixer, ScheduleMode, RESCHEDULE_THRESHOLD};
+use super::{Mode, ParkedMixer, RESCHEDULE_THRESHOLD};
 
 /// Statistics shared by an entire `Scheduler`.
 #[derive(Debug, Default)]
@@ -110,7 +110,7 @@ impl LiveStatBlock {
     }
 
     #[inline]
-    pub(crate) fn has_room(&self, strategy: &ScheduleMode, task: &ParkedMixer) -> bool {
+    pub(crate) fn has_room(&self, strategy: &Mode, task: &ParkedMixer) -> bool {
         let task_room = strategy
             .task_limit()
             .map_or(true, |limit| self.live_mixers() < limit as u64);
