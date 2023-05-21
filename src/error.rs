@@ -143,6 +143,9 @@ pub type JoinResult<T> = Result<T, JoinError>;
 
 #[cfg(feature = "driver")]
 pub use crate::{
-    driver::connection::error::{Error as ConnectionError, Result as ConnectionResult},
+    driver::{
+        connection::error::{Error as ConnectionError, Result as ConnectionResult},
+        SchedulerError,
+    },
     tracks::{ControlError, PlayError, TrackResult},
 };

@@ -122,6 +122,9 @@ pub mod test_data {
     /// Path to a Wav source which can be read via a File.
     pub const FILE_WAV_TARGET: &str = "resources/loop.wav";
 
+    /// Path to a shorter MP3 source which can be read via a File.
+    pub const FILE_SHORT_MP3_TARGET: &str = "resources/ting.mp3";
+
     /// Path to an MP4 (H264 + AAC) source which can be read via a File.
     pub const FILE_VID_TARGET: &str = "resources/ting-vid.mp4";
 }

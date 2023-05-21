@@ -6,6 +6,7 @@ use songbird::{
         MixMode,
     },
     input::{codecs::*, Input, LiveInput, Parsed},
+    test_utils as utils,
 };
 use std::io::Cursor;
 use symphonia_core::audio::{AudioBuffer, Layout, SampleBuffer, Signal, SignalSpec};

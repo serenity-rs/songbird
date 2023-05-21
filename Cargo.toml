@@ -23,6 +23,7 @@ derivative = "2"
 discortp = { default-features = false, features = ["discord", "pnet", "rtp"], optional = true, version = "0.5" }
 flume = { optional = true, version = "0.10" }
 futures = "0.3"
+nohash-hasher = { optional = true, version = "0.2.0" }
 once_cell = { optional = true, version = "1" }
 parking_lot = { optional = true, version = "0.12" }
 pin-project = "1"
@@ -64,11 +65,11 @@ git = "https://github.com/serenity-rs/serenity"
 optional = true
 
 [dev-dependencies]
+byteorder = "1"
 criterion = "0.4"
 ntest = "0.9"
 symphonia = { version = "0.5.2", features = ["aac", "isomp4", "mp3"] }
-utils = { path = "utils" }
-tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "test-util"] }
 
 [features]
 # Core features
@@ -95,6 +96,7 @@ driver = [
     "dep:discortp",
     "dep:reqwest",
     "dep:flume",
+    "dep:nohash-hasher",
     "dep:once_cell",
     "dep:parking_lot",
     "dep:rand",
@@ -143,7 +145,10 @@ receive = ["dep:bytes", "discortp?/demux", "discortp?/rtcp"]
 
 # Used for docgen/testing/benchmarking.
 full-doc = ["default", "twilight", "builtin-queue", "receive"]
-internals = []
+internals = ["dep:byteorder"]
+
+[lib]
+bench = false
 
 [[bench]]
 name = "base-mixing"
