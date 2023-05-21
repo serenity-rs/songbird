@@ -30,6 +30,7 @@ impl WsStream {
                 max_send_queue: None,
                 ..Default::default()
             }),
+            true,
         )
         .await?;
 
