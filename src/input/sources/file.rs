@@ -55,7 +55,7 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
         true
     }
 
-    //
+    // SEE: issue #186
     // Below is removed due to issues with:
     // 1) deadlocks on small files.
     // 2) serde_aux poorly handles missing field names.

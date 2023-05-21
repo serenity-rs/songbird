@@ -110,6 +110,8 @@ impl Idle {
             _ = interval.tick() => {
                 // TODO: store keepalive sends in another data structure so
                 // we don't check every task every 20ms.
+                //
+                // if we can also make tick handling lazy(er), we can also optimise for that.
                 let now = TokInstant::now();
 
                 for (id, task) in &mut self.tasks {

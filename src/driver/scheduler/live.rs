@@ -207,16 +207,15 @@ impl Live {
         let mut pre_pkt_time = Instant::now();
         let mut worst_task = (0, Duration::default());
 
-        for (i, ((packet, packet_len), mixer)) in self
-            .packets
+        for (i, (packet_len, mixer)) in self
+            .packet_lens
             .iter_mut()
-            // TODO: here and above -- benchmark this vs explicit indexing
-            .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
-            .zip(self.packet_lens.iter_mut())
             .zip(self.tasks.iter_mut())
             .enumerate()
         {
-            match mixer.mix_and_build_packet(packet) {
+            let (block, inner) = get_memory_indices(i);
+            match mixer.mix_and_build_packet(&mut self.packets[block][inner..][..VOICE_PACKET_MAX])
+            {
                 Ok(written_sz) => *packet_len = written_sz,
                 e => {
                     *packet_len = 0;
@@ -252,14 +251,14 @@ impl Live {
 
         // Send all.
         self.start_of_work = Some(Instant::now());
-        for (i, ((packet, packet_len), mixer)) in self
-            .packets
+        for (i, (packet_len, mixer)) in self
+            .packet_lens
             .iter_mut()
-            .flat_map(|v| v.chunks_exact_mut(VOICE_PACKET_MAX))
-            .zip(self.packet_lens.iter())
             .zip(self.tasks.iter_mut())
             .enumerate()
         {
+            let (block, inner) = get_memory_indices(i);
+            let packet = &mut self.packets[block][inner..];
             if *packet_len > 0 {
                 let res = mixer.send_packet(&packet[..*packet_len]);
                 rebuild_if_err(mixer, res, &mut self.to_cull, i);

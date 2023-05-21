@@ -46,7 +46,7 @@ pub struct Scheduler {
 /// Inner contents of a [`Scheduler`] instance.
 ///
 /// This is an `Arc` around `Arc`'d contents so that we can make use of the
-/// drop check on `Scheduler` to cleanup resources.
+/// drop check on `Scheduler` to clean up resources.
 #[derive(Clone, Debug)]
 struct InnerScheduler {
     tx: Sender<SchedulerMessage>,
