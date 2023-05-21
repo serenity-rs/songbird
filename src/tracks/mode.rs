@@ -4,8 +4,10 @@ use crate::events::TrackEvent;
 /// Playback status of a track.
 #[derive(Clone, Debug)]
 #[non_exhaustive]
+#[derive(Default)]
 pub enum PlayMode {
     /// The track is currently playing.
+    #[default]
     Play,
     /// The track is currently paused, and may be resumed.
     Pause,
@@ -64,12 +66,6 @@ impl PlayMode {
             Self::Errored(_) => Some(vec![TrackEvent::End]),
             _ => None,
         }
-    }
-}
-
-impl Default for PlayMode {
-    fn default() -> Self {
-        PlayMode::Play
     }
 }
 

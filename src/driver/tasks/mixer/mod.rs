@@ -821,7 +821,7 @@ impl Mixer {
                 input,
                 mix_state,
                 vol,
-                do_passthrough.then(|| &mut *opus_frame),
+                do_passthrough.then_some(&mut *opus_frame),
             );
 
             let return_here = if let MixType::MixedPcm(pcm_len) = mix_type {

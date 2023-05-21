@@ -114,7 +114,7 @@ impl UdpRx {
                             }
                         };
 
-                        let _ = self.ssrc_signalling.disconnected_users.remove(&id);
+                        _ = self.ssrc_signalling.disconnected_users.remove(&id);
                         if let Some((_, ssrc)) = self.ssrc_signalling.user_ssrc_map.remove(&id) {
                             if let Some(state) = self.decoder_map.get_mut(&ssrc) {
                                 // don't cleanup immediately: leave for later cycle
