@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/config.rs`."><title>config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (39c6804b9 2023-04-19)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-1a524efa7bd4ab32.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/config.rs`."><title>config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (77f4f828a 2023-05-20)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -400,16 +400,67 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::driver::DecodeMode;
 <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">use crate</span>::{
-    driver::{retry::Retry, tasks::disposal::DisposalThread, CryptoMode, MixMode},
+    driver::{
+        retry::Retry,
+        tasks::disposal::DisposalThread,
+        CryptoMode,
+        MixMode,
+        Scheduler,
+        DEFAULT_SCHEDULER,
+    },
     input::codecs::<span class="kw-2">*</span>,
 };
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">use </span><span class="kw">crate</span>::driver::test_config::<span class="kw-2">*</span>;
+<span class="attr">#[cfg(all(test, feature = <span class="string">&quot;driver&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::driver::SchedulerConfig;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">use </span>symphonia::core::{codecs::CodecRegistry, probe::Probe};
@@ -568,6 +619,7 @@
     ///
     /// [`PROBE`]: static@PROBE
     </span><span class="kw">pub </span>format_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Probe,
+
     <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
     </span><span class="doccomment">/// The Sender for a channel that will run the destructor of possibly blocking values.
     ///
@@ -578,6 +630,15 @@
     ///
     /// [`Songbird`]: crate::Songbird
     </span><span class="kw">pub </span>disposer: <span class="prelude-ty">Option</span>&lt;DisposalThread&gt;,
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span><span class="doccomment">/// The scheduler is responsible for mapping idle and active [`Driver`] instances
+    /// to threads.
+    ///
+    /// If set to None, then songbird will initialise the [`DEFAULT_SCHEDULER`].
+    ///
+    /// [`Driver`]: crate::Driver
+    </span><span class="kw">pub </span>scheduler: <span class="prelude-ty">Option</span>&lt;Scheduler&gt;,
 
     <span class="comment">// Test only attributes
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
@@ -621,6 +682,8 @@
             </span>format_registry: <span class="kw-2">&amp;</span>PROBE,
             <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
             </span>disposer: <span class="prelude-val">None</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+            </span>scheduler: <span class="prelude-val">None</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
             #[cfg(test)]
             </span>tick_style: TickStyle::Timed,
@@ -728,6 +791,22 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Sets this `Config`&#39;s mixer scheduler.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>scheduler(<span class="kw-2">mut </span><span class="self">self</span>, scheduler: Scheduler) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.scheduler = <span class="prelude-val">Some</span>(scheduler);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Returns a lightweight reference to the audio scheduler this `Config` will use.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>get_scheduler(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Scheduler {
+        <span class="self">self</span>.scheduler
+            .as_ref()
+            .unwrap_or(<span class="kw-2">&amp;*</span>DEFAULT_SCHEDULER)
+            .clone()
+    }
+
     <span class="doccomment">/// Ensures a global disposer has been set, initializing one if not.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialise_disposer(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
@@ -783,8 +862,13 @@
             (OutputMode::Rtp(rtp_tx), OutputReceiver::Rtp(rtp_rx))
         };
 
+        <span class="kw">let </span><span class="kw-2">mut </span>sc_config = SchedulerConfig::default();
+        sc_config.strategy = <span class="kw">crate</span>::driver::SchedulerMode::MaxPerThread(<span class="number">1</span>.try_into().unwrap());
+
         <span class="kw">let </span>config = Config::default()
             .tick_style(TickStyle::UntimedWithExecLimit(tick_rx))
+            <span class="comment">// give each test its own thread in the scheduler for simplicity.
+            </span>.scheduler(Scheduler::new(sc_config))
             .override_connection(<span class="prelude-val">Some</span>(conn));
 
         <span class="kw">let </span>handle = DriverTestHandle { rx, tx: tick_tx };

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/mixer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (39c6804b9 2023-04-19)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-1a524efa7bd4ab32.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/mixer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (77f4f828a 2023-05-20)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -866,116 +866,6 @@
 <a href="#866" id="866">866</a>
 <a href="#867" id="867">867</a>
 <a href="#868" id="868">868</a>
-<a href="#869" id="869">869</a>
-<a href="#870" id="870">870</a>
-<a href="#871" id="871">871</a>
-<a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
-<a href="#874" id="874">874</a>
-<a href="#875" id="875">875</a>
-<a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
-<a href="#926" id="926">926</a>
-<a href="#927" id="927">927</a>
-<a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
-<a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
-<a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
-<a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a>
-<a href="#950" id="950">950</a>
-<a href="#951" id="951">951</a>
-<a href="#952" id="952">952</a>
-<a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
-<a href="#976" id="976">976</a>
-<a href="#977" id="977">977</a>
-<a href="#978" id="978">978</a>
 </pre></div><pre class="rust"><code><span class="kw">pub mod </span>mix_logic;
 <span class="kw">mod </span>pool;
 <span class="kw">mod </span>result;
@@ -1012,11 +902,12 @@
     rtp::{MutableRtpPacket, RtpPacket},
     MutablePacket,
 };
-<span class="kw">use </span>flume::{Receiver, Sender, TryRecvError};
+<span class="kw">use </span>flume::{Receiver, SendError, Sender, TryRecvError};
 <span class="kw">use </span>rand::random;
 <span class="kw">use </span>rubato::{FftFixedOut, Resampler};
 <span class="kw">use </span>std::{
     io::Write,
+    result::Result <span class="kw">as </span>StdResult,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -1029,11 +920,11 @@
     units::Time,
 };
 <span class="kw">use </span>tokio::runtime::Handle;
-<span class="kw">use </span>tracing::{debug, error, instrument, warn};
+<span class="kw">use </span>tracing::error;
 <span class="kw">use </span>xsalsa20poly1305::TAG_SIZE;
 
 <span class="attr">#[cfg(test)]
-</span><span class="kw">use </span><span class="kw">crate</span>::driver::test_config::{OutputMessage, OutputMode, TickStyle};
+</span><span class="kw">use </span><span class="kw">crate</span>::driver::test_config::{OutputMessage, OutputMode};
 <span class="attr">#[cfg(test)]
 </span><span class="kw">use </span>discortp::Packet <span class="kw">as _</span>;
 
@@ -1048,10 +939,9 @@
     <span class="kw">pub </span>interconnect: Interconnect,
     <span class="kw">pub </span>mix_rx: Receiver&lt;MixerMessage&gt;,
     <span class="kw">pub </span>muted: bool,
-    <span class="kw">pub </span>packet: [u8; VOICE_PACKET_MAX],
-    <span class="kw">pub </span>prevent_events: bool,
+    <span class="comment">// pub packet: [u8; VOICE_PACKET_MAX],
+    </span><span class="kw">pub </span>prevent_events: bool,
     <span class="kw">pub </span>silence_frames: u8,
-    <span class="kw">pub </span>skip_sleep: bool,
     <span class="kw">pub </span>soft_clip: SoftClip,
     thread_pool: BlockyTaskPool,
     <span class="kw">pub </span>ws: <span class="prelude-ty">Option</span>&lt;Sender&lt;WsMessage&gt;&gt;,
@@ -1067,7 +957,10 @@
     resample_scratch: AudioBuffer&lt;f32&gt;,
 
     <span class="attr">#[cfg(test)]
-    </span>remaining_loops: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+    </span><span class="kw">pub </span>remaining_loops: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+
+    <span class="attr">#[cfg(test)]
+    </span>raw_msg: <span class="prelude-ty">Option</span>&lt;OutputMessage&gt;,
 }
 
 <span class="kw">fn </span>new_encoder(bitrate: Bitrate, mix_mode: MixMode) -&gt; <span class="prelude-ty">Result</span>&lt;OpusEncoder&gt; {
@@ -1089,17 +982,7 @@
             .expect(<span class="string">&quot;Failed to create encoder in mixing thread with known-good values.&quot;</span>);
         <span class="kw">let </span>soft_clip = SoftClip::new(config.mix_mode.to_opus());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>packet = [<span class="number">0u8</span>; VOICE_PACKET_MAX];
         <span class="kw">let </span>keepalive_packet = [<span class="number">0u8</span>; MutableKeepalivePacket::minimum_packet_size()];
-
-        <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>packet[..]).expect(
-            <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
-                (Blame: VOICE_PACKET_MAX?)&quot;</span>,
-        );
-        rtp.set_version(RTP_VERSION);
-        rtp.set_payload_type(RTP_PROFILE_TYPE);
-        rtp.set_sequence(random::&lt;u16&gt;().into());
-        rtp.set_timestamp(random::&lt;u32&gt;().into());
 
         <span class="kw">let </span>tracks = Vec::with_capacity(<span class="number">1</span>.max(config.preallocated_tracks));
         <span class="kw">let </span>track_handles = Vec::with_capacity(<span class="number">1</span>.max(config.preallocated_tracks));
@@ -1143,10 +1026,8 @@
             interconnect,
             mix_rx,
             muted: <span class="bool-val">false</span>,
-            packet,
             prevent_events: <span class="bool-val">false</span>,
             silence_frames: <span class="number">0</span>,
-            skip_sleep: <span class="bool-val">false</span>,
             soft_clip,
             thread_pool,
             ws: <span class="prelude-val">None</span>,
@@ -1163,110 +1044,55 @@
 
             <span class="attr">#[cfg(test)]
             </span>remaining_loops: <span class="prelude-val">None</span>,
+            <span class="attr">#[cfg(test)]
+            </span>raw_msg: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn </span>run(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>events_failure = <span class="bool-val">false</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>conn_failure = <span class="bool-val">false</span>;
+    <span class="kw">fn </span>set_bitrate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bitrate: Bitrate) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.encoder.set_bitrate(bitrate).map_err(Into::into)
+    }
 
-        <span class="attr">#[cfg(test)]
-        </span><span class="kw">let </span>ignore_check = <span class="self">self</span>.config.override_connection.is_some();
-        <span class="attr">#[cfg(not(test))]
-        </span><span class="kw">let </span>ignore_check = <span class="bool-val">false</span>;
-
-        <span class="lifetime">&#39;runner</span>: <span class="kw">loop </span>{
-            <span class="kw">if </span><span class="self">self</span>.conn_active.is_some() || ignore_check {
-                <span class="kw">loop </span>{
-                    <span class="kw">match </span><span class="self">self</span>.mix_rx.try_recv() {
-                        <span class="prelude-val">Ok</span>(m) =&gt; {
-                            <span class="kw">let </span>(events, conn, should_exit) = <span class="self">self</span>.handle_message(m);
-                            events_failure |= events;
-                            conn_failure |= conn;
-
-                            <span class="kw">if </span>should_exit {
-                                <span class="kw">break </span><span class="lifetime">&#39;runner</span>;
-                            }
-                        },
-
-                        <span class="prelude-val">Err</span>(TryRecvError::Disconnected) =&gt; {
-                            <span class="kw">break </span><span class="lifetime">&#39;runner</span>;
-                        },
-
-                        <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; {
-                            <span class="kw">break</span>;
-                        },
-                    };
-                }
-
-                <span class="comment">// The above action may have invalidated the connection; need to re-check!
-                // Also, if we&#39;re in a test mode we should unconditionally run packet mixing code.
-                </span><span class="kw">if </span><span class="self">self</span>.conn_active.is_some() || ignore_check {
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self
-                        </span>.cycle()
-                        .and_then(|<span class="kw">_</span>| <span class="self">self</span>.audio_commands_events())
-                        .and_then(|<span class="kw">_</span>| {
-                            <span class="self">self</span>.check_and_send_keepalive()
-                                .or_else(Error::disarm_would_block)
-                        })
-                    {
-                        events_failure |= e.should_trigger_interconnect_rebuild();
-                        conn_failure |= e.should_trigger_connect();
-
-                        <span class="macro">debug!</span>(<span class="string">&quot;Mixer thread cycle: {:?}&quot;</span>, e);
-                    }
-                }
-            } <span class="kw">else </span>{
-                <span class="kw">match </span><span class="self">self</span>.mix_rx.recv() {
-                    <span class="prelude-val">Ok</span>(m) =&gt; {
-                        <span class="kw">let </span>(events, conn, should_exit) = <span class="self">self</span>.handle_message(m);
-                        events_failure |= events;
-                        conn_failure |= conn;
-
-                        <span class="kw">if </span>should_exit {
-                            <span class="kw">break </span><span class="lifetime">&#39;runner</span>;
-                        }
-                    },
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="kw">break </span><span class="lifetime">&#39;runner</span>;
-                    },
-                }
-            }
-
-            <span class="comment">// event failure? rebuild interconnect.
-            // ws or udp failure? full connect
-            // (soft reconnect is covered by the ws task.)
-            //
-            // in both cases, send failure is fatal,
-            // but will only occur on disconnect.
-            // expecting this is fairly noisy, so exit silently.
-            </span><span class="kw">if </span>events_failure {
-                <span class="self">self</span>.prevent_events = <span class="bool-val">true</span>;
-                <span class="kw">let </span>sent = <span class="self">self
-                    </span>.interconnect
-                    .core
-                    .send(CoreMessage::RebuildInterconnect);
-                events_failure = <span class="bool-val">false</span>;
-
-                <span class="kw">if </span>sent.is_err() {
-                    <span class="kw">break</span>;
-                }
-            }
-
-            <span class="kw">if </span>conn_failure {
-                <span class="self">self</span>.conn_active = <span class="prelude-val">None</span>;
-                <span class="kw">let </span>sent = <span class="self">self</span>.interconnect.core.send(CoreMessage::FullReconnect);
-                conn_failure = <span class="bool-val">false</span>;
-
-                <span class="kw">if </span>sent.is_err() {
-                    <span class="kw">break</span>;
-                }
-            }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>do_rebuilds(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        event_failure: bool,
+        conn_failure: bool,
+    ) -&gt; StdResult&lt;(), SendError&lt;CoreMessage&gt;&gt; {
+        <span class="comment">// event failure? rebuild interconnect.
+        // ws or udp failure? full connect
+        // (soft reconnect is covered by the ws task.)
+        //
+        // in both cases, send failure is fatal,
+        // but will only occur on disconnect.
+        </span><span class="kw">if </span>event_failure {
+            <span class="self">self</span>.rebuild_interconnect()<span class="question-mark">?</span>;
         }
+
+        <span class="kw">if </span>conn_failure {
+            <span class="self">self</span>.full_reconnect_gateway()<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>rebuild_interconnect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; StdResult&lt;(), SendError&lt;CoreMessage&gt;&gt; {
+        <span class="self">self</span>.prevent_events = <span class="bool-val">true</span>;
+        <span class="self">self</span>.interconnect
+            .core
+            .send(CoreMessage::RebuildInterconnect)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>full_reconnect_gateway(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; StdResult&lt;(), SendError&lt;CoreMessage&gt;&gt; {
+        <span class="self">self</span>.conn_active = <span class="prelude-val">None</span>;
+        <span class="self">self</span>.interconnect.core.send(CoreMessage::FullReconnect)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>handle_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: MixerMessage) -&gt; (bool, bool, bool) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>handle_message(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        msg: MixerMessage,
+        packet: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; (bool, bool, bool) {
         <span class="kw">let </span><span class="kw-2">mut </span>events_failure = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>conn_failure = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>should_exit = <span class="bool-val">false</span>;
@@ -1301,7 +1127,7 @@
             },
             MixerMessage::SetConn(conn, ssrc) =&gt; {
                 <span class="self">self</span>.conn_active = <span class="prelude-val">Some</span>(conn);
-                <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.packet[..]).expect(
+                <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(packet).expect(
                     <span class="string">&quot;Too few bytes in self.packet for RTP header.\
                         (Blame: VOICE_PACKET_MAX?)&quot;</span>,
                 );
@@ -1310,10 +1136,7 @@
                 rtp.set_timestamp(random::&lt;u32&gt;().into());
                 <span class="self">self</span>.deadline = Instant::now();
 
-                <span class="kw">let </span><span class="kw-2">mut </span>ka = MutableKeepalivePacket::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.keepalive_packet[..])
-                    .expect(<span class="string">&quot;FATAL: Insufficient bytes given to keepalive packet.&quot;</span>);
-                ka.set_ssrc(ssrc);
-                <span class="self">self</span>.keepalive_deadline = <span class="self">self</span>.deadline + UDP_KEEPALIVE_GAP;
+                <span class="self">self</span>.update_keepalive(ssrc);
                 <span class="prelude-val">Ok</span>(())
             },
             MixerMessage::DropConn =&gt; {
@@ -1398,6 +1221,9 @@
             },
             MixerMessage::Ws(new_ws_handle) =&gt; {
                 <span class="self">self</span>.ws = new_ws_handle;
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.send_gateway_speaking() {
+                    conn_failure |= e.should_trigger_connect();
+                }
                 <span class="prelude-val">Ok</span>(())
             },
             MixerMessage::Poison =&gt; {
@@ -1414,8 +1240,15 @@
         (events_failure, conn_failure, should_exit)
     }
 
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update_keepalive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ssrc: u32) {
+        <span class="kw">let </span><span class="kw-2">mut </span>ka = MutableKeepalivePacket::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.keepalive_packet[..])
+            .expect(<span class="string">&quot;FATAL: Insufficient bytes given to keepalive packet.&quot;</span>);
+        ka.set_ssrc(ssrc);
+        <span class="self">self</span>.keepalive_deadline = <span class="self">self</span>.deadline + UDP_KEEPALIVE_GAP;
+    }
+
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fire_event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: EventMessage) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fire_event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: EventMessage) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="comment">// As this task is responsible for noticing the potential death of an event context,
         // it&#39;s responsible for not forcibly recreating said context repeatedly.
         </span><span class="kw">if </span>!<span class="self">self</span>.prevent_events {
@@ -1454,7 +1287,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>audio_commands_events(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>audio_commands_events(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="comment">// Apply user commands.
         </span><span class="kw">for </span>(i, track) <span class="kw">in </span><span class="self">self</span>.tracks.iter_mut().enumerate() {
             <span class="comment">// This causes fallible event system changes,
@@ -1536,48 +1369,19 @@
     }
 
     <span class="attr">#[cfg(test)]
-    </span><span class="kw">fn </span>_march_deadline(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.config.tick_style {
-            TickStyle::Timed =&gt; {
-                std::thread::sleep(<span class="self">self</span>.deadline.saturating_duration_since(Instant::now()));
-                <span class="self">self</span>.deadline += TIMESTEP_LENGTH;
-            },
-            TickStyle::UntimedWithExecLimit(rx) =&gt; {
-                <span class="kw">if </span><span class="self">self</span>.remaining_loops.is_none() {
-                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(new_val) = rx.recv() {
-                        <span class="self">self</span>.remaining_loops = <span class="prelude-val">Some</span>(new_val.wrapping_sub(<span class="number">1</span>));
-                    }
-                }
-
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(cnt) = <span class="self">self</span>.remaining_loops.as_mut() {
-                    <span class="kw">if </span><span class="kw-2">*</span>cnt == <span class="number">0 </span>{
-                        <span class="self">self</span>.remaining_loops = <span class="prelude-val">None</span>;
-                    } <span class="kw">else </span>{
-                        <span class="kw-2">*</span>cnt = cnt.wrapping_sub(<span class="number">1</span>);
-                    }
-                }
-            },
+    #[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>test_signal_empty_tick(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.config.override_connection {
+            <span class="prelude-val">Some</span>(OutputMode::Raw(tx)) =&gt;
+                drop(tx.send(<span class="kw">crate</span>::driver::test_config::TickMessage::NoEl)),
+            <span class="prelude-val">Some</span>(OutputMode::Rtp(tx)) =&gt;
+                drop(tx.send(<span class="kw">crate</span>::driver::test_config::TickMessage::NoEl)),
+            <span class="prelude-val">None </span>=&gt; {},
         }
-    }
-
-    <span class="attr">#[cfg(not(test))]
-    #[inline(always)]
-    #[allow(clippy::inline_always)] </span><span class="comment">// Justified, this is a very very hot path
-    </span><span class="kw">fn </span>_march_deadline(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        std::thread::sleep(<span class="self">self</span>.deadline.saturating_duration_since(Instant::now()));
-        <span class="self">self</span>.deadline += TIMESTEP_LENGTH;
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>march_deadline(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if </span><span class="self">self</span>.skip_sleep {
-            <span class="kw">return</span>;
-        }
-
-        <span class="self">self</span>._march_deadline();
-    }
-
-    <span class="kw">pub fn </span>cycle(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub fn </span>mix_and_build_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, packet: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
         <span class="comment">// symph_mix is an `AudioBuffer` (planar format), we need to convert this
         // later into an interleaved `SampleBuffer` for libopus.
         </span><span class="self">self</span>.symph_mix.clear();
@@ -1587,7 +1391,7 @@
         <span class="comment">// Walk over all the audio files, combining into one audio frame according
         // to volume, play state, etc.
         </span><span class="kw">let </span><span class="kw-2">mut </span>mix_len = {
-            <span class="kw">let </span>out = <span class="self">self</span>.mix_tracks();
+            <span class="kw">let </span>out = <span class="self">self</span>.mix_tracks(packet);
 
             <span class="self">self</span>.sample_buffer.copy_interleaved_typed(<span class="kw-2">&amp;</span><span class="self">self</span>.symph_mix);
 
@@ -1604,7 +1408,7 @@
         </span><span class="kw">if </span>mix_len == MixType::MixedPcm(<span class="number">0</span>) {
             <span class="kw">if </span><span class="self">self</span>.silence_frames &gt; <span class="number">0 </span>{
                 <span class="self">self</span>.silence_frames -= <span class="number">1</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.packet[..]).expect(
+                <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(packet).expect(
                     <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
                         (Blame: VOICE_PACKET_MAX?)&quot;</span>,
                 );
@@ -1616,28 +1420,7 @@
                 mix_len = MixType::Passthrough(SILENT_FRAME.len());
             } <span class="kw">else </span>{
                 <span class="comment">// Per official guidelines, send 5x silence BEFORE we stop speaking.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(ws) = <span class="kw-2">&amp;</span><span class="self">self</span>.ws {
-                    <span class="comment">// NOTE: this explicit `drop` should prevent a catastrophic thread pileup.
-                    // A full reconnect might cause an inner closed connection.
-                    // It&#39;s safer to leave the central task to clean this up and
-                    // pass the mixer a new channel.
-                    </span>drop(ws.send(WsMessage::Speaking(<span class="bool-val">false</span>)));
-                }
-
-                <span class="self">self</span>.march_deadline();
-
-                <span class="attr">#[cfg(test)]
-                </span><span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.config.override_connection {
-                    <span class="prelude-val">Some</span>(OutputMode::Raw(tx)) =&gt;
-                        drop(tx.send(<span class="kw">crate</span>::driver::test_config::TickMessage::NoEl)),
-                    <span class="prelude-val">Some</span>(OutputMode::Rtp(tx)) =&gt;
-                        drop(tx.send(<span class="kw">crate</span>::driver::test_config::TickMessage::NoEl)),
-                    <span class="prelude-val">None </span>=&gt; {},
-                }
-
-                <span class="self">self</span>.advance_rtp_timestamp();
-
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
             }
         } <span class="kw">else </span>{
             <span class="self">self</span>.silence_frames = <span class="number">5</span>;
@@ -1654,20 +1437,14 @@
             }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ws) = <span class="kw-2">&amp;</span><span class="self">self</span>.ws {
-            ws.send(WsMessage::Speaking(<span class="bool-val">true</span>))<span class="question-mark">?</span>;
-        }
-
-        <span class="comment">// Wait till the right time to send this packet:
-        // usually a 20ms tick, in test modes this is either a finite number of runs or user input.
-        </span><span class="self">self</span>.march_deadline();
-
-        <span class="attr">#[cfg(test)]
-        </span><span class="kw">let </span>send_status = <span class="kw">if let </span><span class="prelude-val">Some</span>(OutputMode::Raw(tx)) = <span class="kw-2">&amp;</span><span class="self">self</span>.config.override_connection {
-            <span class="kw">let </span>msg = <span class="kw">match </span>mix_len {
+        <span class="comment">// For the benefit of test cases, send the raw un-RTP&#39;d data.
+        </span><span class="attr">#[cfg(test)]
+        </span><span class="kw">let </span>out = <span class="kw">if let </span><span class="prelude-val">Some</span>(OutputMode::Raw(<span class="kw">_</span>)) = <span class="kw-2">&amp;</span><span class="self">self</span>.config.override_connection {
+            <span class="comment">// This case has been handled before buffer clearing above.
+            </span><span class="kw">let </span>msg = <span class="kw">match </span>mix_len {
                 MixType::Passthrough(len) <span class="kw">if </span>len == SILENT_FRAME.len() =&gt; OutputMessage::Silent,
                 MixType::Passthrough(len) =&gt; {
-                    <span class="kw">let </span>rtp = RtpPacket::new(<span class="kw-2">&amp;</span><span class="self">self</span>.packet[..]).expect(
+                    <span class="kw">let </span>rtp = RtpPacket::new(<span class="kw-2">&amp;</span>packet).expect(
                         <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
                             (Blame: VOICE_PACKET_MAX?)&quot;</span>,
                     );
@@ -1682,19 +1459,15 @@
                 ),
             };
 
-            drop(tx.send(msg.into()));
+            <span class="self">self</span>.raw_msg = <span class="prelude-val">Some</span>(msg);
 
-            <span class="prelude-val">Ok</span>(())
+            <span class="prelude-val">Ok</span>(<span class="number">1</span>)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.prep_and_send_packet(mix_len)
+            <span class="self">self</span>.prep_packet(mix_len, packet)
         };
 
         <span class="attr">#[cfg(not(test))]
-        </span><span class="kw">let </span>send_status = <span class="self">self</span>.prep_and_send_packet(mix_len);
-
-        send_status.or_else(Error::disarm_would_block)<span class="question-mark">?</span>;
-
-        <span class="self">self</span>.advance_rtp_counters();
+        </span><span class="kw">let </span>out = <span class="self">self</span>.prep_packet(mix_len, packet);
 
         <span class="comment">// Zero out all planes of the mix buffer if any audio was written.
         </span><span class="kw">if </span><span class="macro">matches!</span>(mix_len, MixType::MixedPcm(a) <span class="kw">if </span>a &gt; <span class="number">0</span>) {
@@ -1703,15 +1476,11 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">fn </span>set_bitrate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bitrate: Bitrate) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="self">self</span>.encoder.set_bitrate(bitrate).map_err(Into::into)
+        out
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>prep_and_send_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mix_len: MixType) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">fn </span>prep_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mix_len: MixType, packet: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
         <span class="kw">let </span>send_buffer = <span class="self">self</span>.sample_buffer.samples();
 
         <span class="kw">let </span>conn = <span class="self">self
@@ -1719,92 +1488,97 @@
             .as_mut()
             .expect(<span class="string">&quot;Shouldn&#39;t be mixing packets without access to a cipher + UDP dest.&quot;</span>);
 
-        <span class="kw">let </span>index = {
-            <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.packet[..]).expect(
-                <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
-                    (Blame: VOICE_PACKET_MAX?)&quot;</span>,
-            );
+        <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(packet).expect(
+            <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
+                (Blame: VOICE_PACKET_MAX?)&quot;</span>,
+        );
 
-            <span class="kw">let </span>payload = rtp.payload_mut();
-            <span class="kw">let </span>crypto_mode = conn.crypto_state.kind();
+        <span class="kw">let </span>payload = rtp.payload_mut();
+        <span class="kw">let </span>crypto_mode = conn.crypto_state.kind();
 
-            <span class="comment">// If passthrough, Opus payload in place already.
-            // Else encode into buffer with space for AEAD encryption headers.
-            </span><span class="kw">let </span>payload_len = <span class="kw">match </span>mix_len {
-                MixType::Passthrough(opus_len) =&gt; opus_len,
-                MixType::MixedPcm(_samples) =&gt; {
-                    <span class="kw">let </span>total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
-                    <span class="self">self</span>.encoder.encode_float(
-                        <span class="kw-2">&amp;</span>send_buffer[..<span class="self">self</span>.config.mix_mode.sample_count_in_frame()],
-                        <span class="kw-2">&amp;mut </span>payload[TAG_SIZE..total_payload_space],
-                    )<span class="question-mark">?
-                </span>},
-            };
-
-            <span class="kw">let </span>final_payload_size = conn
-                .crypto_state
-                .write_packet_nonce(<span class="kw-2">&amp;mut </span>rtp, TAG_SIZE + payload_len);
-
-            <span class="comment">// Packet encryption ignored in test modes.
-            </span><span class="attr">#[cfg(not(test))]
-            </span><span class="kw">let </span>encrypt = <span class="bool-val">true</span>;
-            <span class="attr">#[cfg(test)]
-            </span><span class="kw">let </span>encrypt = <span class="self">self</span>.config.override_connection.is_none();
-
-            <span class="kw">if </span>encrypt {
-                conn.crypto_state.kind().encrypt_in_place(
-                    <span class="kw-2">&amp;mut </span>rtp,
-                    <span class="kw-2">&amp;</span>conn.cipher,
-                    final_payload_size,
-                )<span class="question-mark">?</span>;
-            }
-
-            RtpPacket::minimum_packet_size() + final_payload_size
+        <span class="comment">// If passthrough, Opus payload in place already.
+        // Else encode into buffer with space for AEAD encryption headers.
+        </span><span class="kw">let </span>payload_len = <span class="kw">match </span>mix_len {
+            MixType::Passthrough(opus_len) =&gt; opus_len,
+            MixType::MixedPcm(_samples) =&gt; {
+                <span class="kw">let </span>total_payload_space = payload.len() - crypto_mode.payload_suffix_len();
+                <span class="self">self</span>.encoder.encode_float(
+                    <span class="kw-2">&amp;</span>send_buffer[..<span class="self">self</span>.config.mix_mode.sample_count_in_frame()],
+                    <span class="kw-2">&amp;mut </span>payload[TAG_SIZE..total_payload_space],
+                )<span class="question-mark">?
+            </span>},
         };
+
+        <span class="kw">let </span>final_payload_size = conn
+            .crypto_state
+            .write_packet_nonce(<span class="kw-2">&amp;mut </span>rtp, TAG_SIZE + payload_len);
+
+        <span class="comment">// Packet encryption ignored in test modes.
+        </span><span class="attr">#[cfg(not(test))]
+        </span><span class="kw">let </span>encrypt = <span class="bool-val">true</span>;
+        <span class="attr">#[cfg(test)]
+        </span><span class="kw">let </span>encrypt = <span class="self">self</span>.config.override_connection.is_none();
+
+        <span class="kw">if </span>encrypt {
+            conn.crypto_state.kind().encrypt_in_place(
+                <span class="kw-2">&amp;mut </span>rtp,
+                <span class="kw-2">&amp;</span>conn.cipher,
+                final_payload_size,
+            )<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(RtpPacket::minimum_packet_size() + final_payload_size)
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_packet(<span class="kw-2">&amp;</span><span class="self">self</span>, packet: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="attr">#[cfg(test)]
+        </span><span class="kw">let </span>send_status = <span class="kw">if let </span><span class="prelude-val">Some</span>(OutputMode::Raw(tx)) = <span class="kw-2">&amp;</span><span class="self">self</span>.config.override_connection {
+            <span class="comment">// This case has been handled before buffer clearing in `mix_and_build_packet`.
+            </span>drop(tx.send(<span class="self">self</span>.raw_msg.clone().unwrap().into()));
+
+            <span class="prelude-val">Ok</span>(())
+        } <span class="kw">else </span>{
+            <span class="self">self</span>._send_packet(packet)
+        };
+
+        <span class="attr">#[cfg(not(test))]
+        </span><span class="kw">let </span>send_status = <span class="self">self</span>._send_packet(packet);
+
+        send_status.or_else(Error::disarm_would_block)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>_send_packet(<span class="kw-2">&amp;</span><span class="self">self</span>, packet: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">let </span>conn = <span class="self">self
+            </span>.conn_active
+            .as_ref()
+            .expect(<span class="string">&quot;Shouldn&#39;t be mixing packets without access to a cipher + UDP dest.&quot;</span>);
 
         <span class="attr">#[cfg(test)]
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(OutputMode::Rtp(tx)) = <span class="kw-2">&amp;</span><span class="self">self</span>.config.override_connection {
             <span class="comment">// Test mode: send unencrypted (compressed) packets to local receiver.
-            </span>drop(tx.send(<span class="self">self</span>.packet[..index].to_vec().into()));
+            </span>drop(tx.send(packet.to_vec().into()));
         } <span class="kw">else </span>{
-            conn.udp_tx.send(<span class="kw-2">&amp;</span><span class="self">self</span>.packet[..index])<span class="question-mark">?</span>;
+            conn.udp_tx.send(packet)<span class="question-mark">?</span>;
         }
 
         <span class="attr">#[cfg(not(test))]
         </span>{
             <span class="comment">// Normal operation: send encrypted payload to UDP Tx task.
-            </span>conn.udp_tx.send(<span class="kw-2">&amp;</span><span class="self">self</span>.packet[..index])<span class="question-mark">?</span>;
+            </span>conn.udp_tx.send(packet)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>advance_rtp_counters(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.packet[..]).expect(
-            <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
-                (Blame: VOICE_PACKET_MAX?)&quot;</span>,
-        );
-        rtp.set_sequence(rtp.get_sequence() + <span class="number">1</span>);
-        rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE <span class="kw">as </span>u32);
-    }
-
-    <span class="attr">#[inline]
-    </span><span class="comment">// Even if we don&#39;t send a packet, we *do* need to keep advancing the timestamp
-    // to make it easier for a receiver to reorder packets and compute jitter measures
-    // wrt. our clock difference vs. theirs.
-    </span><span class="kw">fn </span>advance_rtp_timestamp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.packet[..]).expect(
-            <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
-                (Blame: VOICE_PACKET_MAX?)&quot;</span>,
-        );
-        rtp.set_timestamp(rtp.get_timestamp() + MONO_FRAME_SIZE <span class="kw">as </span>u32);
-    }
-
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>check_and_send_keepalive(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_and_send_keepalive(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: <span class="prelude-ty">Option</span>&lt;Instant&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(conn) = <span class="self">self</span>.conn_active.as_mut() {
-            <span class="kw">if </span>Instant::now() &gt;= <span class="self">self</span>.keepalive_deadline {
+            <span class="kw">let </span>now = now.unwrap_or_else(Instant::now);
+            <span class="kw">if </span>now &gt;= <span class="self">self</span>.keepalive_deadline {
                 conn.udp_tx.send(<span class="kw-2">&amp;</span><span class="self">self</span>.keepalive_packet)<span class="question-mark">?</span>;
                 <span class="self">self</span>.keepalive_deadline += UDP_KEEPALIVE_GAP;
             }
@@ -1814,9 +1588,29 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>mix_tracks(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; MixType {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_gateway_speaking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ws) = <span class="kw-2">&amp;</span><span class="self">self</span>.ws {
+            ws.send(WsMessage::Speaking(<span class="bool-val">true</span>))<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send_gateway_not_speaking(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ws) = <span class="kw-2">&amp;</span><span class="self">self</span>.ws {
+            <span class="comment">// NOTE: this explicit `drop` should prevent a catastrophic thread pileup.
+            // A full reconnect might cause an inner closed connection.
+            // It&#39;s safer to leave the central task to clean this up and
+            // pass the mixer a new channel.
+            </span>drop(ws.send(WsMessage::Speaking(<span class="bool-val">false</span>)));
+        }
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>mix_tracks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, packet: <span class="kw-2">&amp;mut </span>[u8]) -&gt; MixType {
         <span class="comment">// Get a slice of bytes to write in data for Opus packet passthrough.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.packet[..]).expect(
+        </span><span class="kw">let </span><span class="kw-2">mut </span>rtp = MutableRtpPacket::new(packet).expect(
             <span class="string">&quot;FATAL: Too few bytes in self.packet for RTP header.\
                 (Blame: VOICE_PACKET_MAX?)&quot;</span>,
         );
@@ -1939,19 +1733,5 @@
 
         MixType::MixedPcm(len)
     }
-}
-
-<span class="doccomment">/// The mixing thread is a synchronous context due to its compute-bound nature.
-///
-/// We pass in an async handle for the benefit of some Input classes (e.g., restartables)
-/// who need to run their restart code elsewhere and return blank data until such time.
-</span><span class="attr">#[instrument(skip(interconnect, mix_rx, async_handle))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>runner(
-    interconnect: Interconnect,
-    mix_rx: Receiver&lt;MixerMessage&gt;,
-    async_handle: Handle,
-    config: Config,
-) {
-    Mixer::new(mix_rx, async_handle, interconnect, config).run();
 }
 </code></pre></div></section></main></body></html>
