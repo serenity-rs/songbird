@@ -114,6 +114,7 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{error::JsonError, model::Event};
 
 <span class="kw">use </span>futures::{SinkExt, StreamExt, TryStreamExt};
@@ -146,6 +147,7 @@
                 max_send_queue: <span class="prelude-val">None</span>,
                 ..Default::default()
             }),
+            <span class="bool-val">true</span>,
         )
         .<span class="kw">await</span><span class="question-mark">?</span>;
 
