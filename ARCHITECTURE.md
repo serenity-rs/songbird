@@ -35,7 +35,7 @@ Audio processing remains synchronous for the following reasons:
 Songbird subdivides voice connection handling into several long- and short-lived tasks.
 
 * **Core**: Handles and directs commands received from the driver. Responsible for connection/reconnection, and creates network tasks.
-* **Mixer**: Combines audio sources together, Opus encodes the result, and encrypts the built packets every 20ms. Responsible for handling track commands/state, and transmitting completed voice packets and keepalive messages. ***Synchronous***.
+* **Mixer**: Combines audio sources together, Opus encodes the result, and encrypts the built packets every 20ms. Responsible for handling track commands/state, and transmitting completed voice packets and keepalive messages. ***Synchronous when live***.
 * **Thread Pool**: A dynamically sized thread-pool for I/O tasks. Creates lazy tracks using `Compose` if sync creation is needed, otherwise spawns a tokio task. Seek operations always go to the thread pool. ***Synchronous***.
 * **Disposer**: Used by mixer thread to dispose of data with potentially long/blocking `Drop` implementations (i.e., audio sources). ***Synchronous***.
 * **Events**: Stores and runs event handlers, tracks event timing, and handles 
@@ -45,6 +45,33 @@ Songbird subdivides voice connection handling into several long- and short-lived
 *Note: all tasks are able to message the permanent tasks via a block of interconnecting channels.*
 
 ![](images/driver.png)
+
+## Scheduler
+To save threads and memory (e.g., packet buffer allocations), Songbird parks Mixer tasks which do not have any live Tracks.
+These are all co-located on a single async task.
+This task is responsible for managing UDP keepalive messages for each task, maintaining event state, and executing any Mixer task messages.
+Whenever any message arrives which adds a `Track`, the mixer task is moved to a live thread.
+The Idle task inspects task counts and execution time on each thread, choosing the first live thread with room, creating a new one if needed.
+
+Each live thread is responsible for running as many live mixers as it can in a single tick every 20ms: this currently defaults to 16 mixers per thread, but is user-configurable.
+A live thread also stores RTP packet blocks to be written into by each sub-task.
+Audio threads have a budget of 20ms to complete all message handling, mixing, encoding, and encryption.
+*These threads are synchronous, as explained above: the bulk costs (i.e., encoding) are compute-bound work and would block the Tokio executor.*
+Mixer logic is handled in this order to minimise deadline variance:
+```
+handle idle->live messages
+handle all driver->mixer messages
+cleanup idle/dead mixers
+mix + encode + encrypt all mixers into packet buffer
+check for excess packet blocks
+sleep 'til next 20ms boundary
+
+send all packets, adjust RTP fields
+handle per-track messages
+```
+Each live thread has a conservative limit of 18ms that it will aim to stay under: if all work takes longer than this, it will offload the task with the highest mixing cost once per 20ms tick.
+
+![](images/scheduler.png)
 
 ```
 src/driver/*
