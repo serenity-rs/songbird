@@ -2,12 +2,21 @@
 use crate::driver::DecodeMode;
 #[cfg(feature = "driver")]
 use crate::{
-    driver::{retry::Retry, tasks::disposal::DisposalThread, CryptoMode, MixMode},
+    driver::{
+        retry::Retry,
+        tasks::disposal::DisposalThread,
+        CryptoMode,
+        MixMode,
+        Scheduler,
+        DEFAULT_SCHEDULER,
+    },
     input::codecs::*,
 };
 
 #[cfg(test)]
 use crate::driver::test_config::*;
+#[cfg(all(test, feature = "driver"))]
+use crate::driver::SchedulerConfig;
 
 #[cfg(feature = "driver")]
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
@@ -166,6 +175,7 @@ pub struct Config {
     ///
     /// [`PROBE`]: static@PROBE
     pub format_registry: &'static Probe,
+
     #[cfg(feature = "driver")]
     /// The Sender for a channel that will run the destructor of possibly blocking values.
     ///
@@ -176,6 +186,15 @@ pub struct Config {
     ///
     /// [`Songbird`]: crate::Songbird
     pub disposer: Option<DisposalThread>,
+
+    #[cfg(feature = "driver")]
+    /// The scheduler is responsible for mapping idle and active [`Driver`] instances
+    /// to threads.
+    ///
+    /// If set to None, then songbird will initialise the [`DEFAULT_SCHEDULER`].
+    ///
+    /// [`Driver`]: crate::Driver
+    pub scheduler: Option<Scheduler>,
 
     // Test only attributes
     #[cfg(feature = "driver")]
@@ -219,6 +238,8 @@ impl Default for Config {
             format_registry: &PROBE,
             #[cfg(feature = "driver")]
             disposer: None,
+            #[cfg(feature = "driver")]
+            scheduler: None,
             #[cfg(feature = "driver")]
             #[cfg(test)]
             tick_style: TickStyle::Timed,
@@ -326,6 +347,22 @@ impl Config {
         self
     }
 
+    /// Sets this `Config`'s mixer scheduler.
+    #[must_use]
+    pub fn scheduler(mut self, scheduler: Scheduler) -> Self {
+        self.scheduler = Some(scheduler);
+        self
+    }
+
+    /// Returns a lightweight reference to the audio scheduler this `Config` will use.
+    #[must_use]
+    pub fn get_scheduler(&self) -> Scheduler {
+        self.scheduler
+            .as_ref()
+            .unwrap_or(&*DEFAULT_SCHEDULER)
+            .clone()
+    }
+
     /// Ensures a global disposer has been set, initializing one if not.
     #[must_use]
     pub(crate) fn initialise_disposer(self) -> Self {
@@ -381,8 +418,13 @@ impl Config {
             (OutputMode::Rtp(rtp_tx), OutputReceiver::Rtp(rtp_rx))
         };
 
+        let mut sc_config = SchedulerConfig::default();
+        sc_config.strategy = crate::driver::SchedulerMode::MaxPerThread(1.try_into().unwrap());
+
         let config = Config::default()
             .tick_style(TickStyle::UntimedWithExecLimit(tick_rx))
+            // give each test its own thread in the scheduler for simplicity.
+            .scheduler(Scheduler::new(sc_config))
             .override_connection(Some(conn));
 
         let handle = DriverTestHandle { rx, tx: tick_tx };

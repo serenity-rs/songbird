@@ -177,7 +177,7 @@ impl AsyncAdapterStream {
         };
 
         tokio::spawn(async move {
-            sink.launch().await;
+            Box::pin(sink.launch()).await;
         });
 
         stream

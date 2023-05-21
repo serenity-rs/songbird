@@ -1,7 +1,6 @@
-use crate::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, Input};
+use crate::input::{AudioStream, AudioStreamError, Compose, Input};
 use std::{error::Error, ffi::OsStr, path::Path};
 use symphonia_core::{io::MediaSource, probe::Hint};
-use tokio::process::Command;
 
 /// A lazily instantiated local file.
 #[derive(Clone, Debug)]
@@ -56,25 +55,32 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
         true
     }
 
-    /// Probes for metadata about this audio files using `ffprobe`.
-    async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
-        let args = [
-            "-v",
-            "quiet",
-            "-of",
-            "json",
-            "-show_format",
-            "-show_streams",
-            "-i",
-        ];
+    // SEE: issue #186
+    // Below is removed due to issues with:
+    // 1) deadlocks on small files.
+    // 2) serde_aux poorly handles missing field names.
+    //
 
-        let mut output = Command::new("ffprobe")
-            .args(args)
-            .output()
-            .await
-            .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
+    // Probes for metadata about this audio file using `ffprobe`.
+    // async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
+    //     let args = [
+    //         "-v",
+    //         "quiet",
+    //         "-of",
+    //         "json",
+    //         "-show_format",
+    //         "-show_streams",
+    //         "-i",
+    //     ];
 
-        AuxMetadata::from_ffprobe_json(&mut output.stdout[..])
-            .map_err(|e| AudioStreamError::Fail(Box::new(e)))
-    }
+    //     let mut output = Command::new("ffprobe")
+    //         .args(args)
+    //         .arg(self.path.as_ref().as_os_str())
+    //         .output()
+    //         .await
+    //         .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
+
+    //     AuxMetadata::from_ffprobe_json(&mut output.stdout[..])
+    //         .map_err(|e| AudioStreamError::Fail(Box::new(e)))
+    // }
 }

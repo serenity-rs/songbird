@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::mem;
 

@@ -98,6 +98,8 @@ mod manager;
 pub mod serenity;
 #[cfg(feature = "gateway")]
 pub mod shards;
+#[cfg(any(test, feature = "internals"))]
+pub mod test_utils;
 #[cfg(feature = "driver")]
 pub mod tracks;
 #[cfg(feature = "driver")]

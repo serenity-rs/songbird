@@ -17,3 +17,7 @@ use crate::{
 pub fn track_context(t: Track) -> (TrackHandle, TrackContext) {
     t.into_context()
 }
+
+pub mod scheduler {
+    pub use crate::driver::scheduler::*;
+}

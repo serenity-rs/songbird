@@ -37,16 +37,19 @@ impl TwilightMap {
     /// Construct a map of shards and command senders to those shards.
     ///
     /// For correctness all shards should be in the map.
+    #[must_use]
     pub fn new(map: std::collections::HashMap<u64, MessageSender>) -> Self {
         TwilightMap { map }
     }
 
     /// Get the message sender for `shard_id`.
+    #[must_use]
     pub fn get(&self, shard_id: u64) -> Option<&MessageSender> {
         self.map.get(&shard_id)
     }
 
     /// Get the total number of shards in the map.
+    #[must_use]
     pub fn shard_count(&self) -> u64 {
         self.map.len() as u64
     }
