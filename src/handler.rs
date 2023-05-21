@@ -141,7 +141,7 @@ impl Call {
             #[cfg(feature = "driver")]
             Some((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) => {
                 // It's okay if the receiver hung up.
-                let _ = first_tx.send(());
+                _ = first_tx.send(());
 
                 self.driver.raw_connect(c.clone(), driver_tx.clone());
             },

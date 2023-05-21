@@ -126,7 +126,7 @@ impl Decoder for OpusDecoder {
     }
 
     fn reset(&mut self) {
-        let _ = self.inner.reset_state();
+        _ = self.inner.reset_state();
     }
 
     fn finalize(&mut self) -> FinalizeResult {

@@ -75,10 +75,7 @@ impl Connection {
             .await?;
 
         loop {
-            let value = match client.recv_json().await? {
-                Some(value) => value,
-                None => continue,
-            };
+            let Some(value) = client.recv_json().await? else { continue };
 
             match value {
                 GatewayEvent::Ready(r) => {
@@ -282,10 +279,7 @@ impl Connection {
         let mut resumed = None;
 
         loop {
-            let value = match client.recv_json().await? {
-                Some(value) => value,
-                None => continue,
-            };
+            let Some(value) = client.recv_json().await? else { continue };
 
             match value {
                 GatewayEvent::Resumed => {
@@ -337,10 +331,7 @@ fn generate_url(endpoint: &mut String) -> Result<Url> {
 #[inline]
 async fn init_cipher(client: &mut WsStream, mode: CryptoMode) -> Result<Cipher> {
     loop {
-        let value = match client.recv_json().await? {
-            Some(value) => value,
-            None => continue,
-        };
+        let Some(value) = client.recv_json().await? else { continue };
 
         match value {
             GatewayEvent::SessionDescription(desc) => {

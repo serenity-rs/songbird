@@ -74,9 +74,7 @@ impl Decompressed {
         .await??;
 
         // If success, guaranteed to be Parsed
-        let parsed = if let LiveInput::Parsed(parsed) = promoted {
-            parsed
-        } else {
+        let LiveInput::Parsed(parsed) = promoted else {
             unreachable!()
         };
 

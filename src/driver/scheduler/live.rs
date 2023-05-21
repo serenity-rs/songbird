@@ -427,7 +427,7 @@ impl Live {
 
                 if let Some((id, parked)) = self.remove_task(i) {
                     self.global_stats.move_mixer_to_idle();
-                    let _ = self.tx.send(SchedulerMessage::Demote(id, parked));
+                    _ = self.tx.send(SchedulerMessage::Demote(id, parked));
                 } else {
                     self.global_stats.remove_live_mixer();
                 }
@@ -445,7 +445,7 @@ impl Live {
         if let Some((id, mut parked)) = self.remove_task(idx) {
             self.global_stats.move_mixer_to_idle();
             parked.last_cost = Some(cost);
-            let _ = self
+            _ = self
                 .tx
                 .send(SchedulerMessage::Overspill(self.id, id, parked));
         } else {

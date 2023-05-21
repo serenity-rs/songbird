@@ -156,9 +156,7 @@ impl Compressed {
         .await??;
 
         // If success, guaranteed to be Parsed
-        let mut parsed = if let LiveInput::Parsed(parsed) = promoted {
-            parsed
-        } else {
+        let LiveInput::Parsed(mut parsed) = promoted else {
             unreachable!()
         };
 
