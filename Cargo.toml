@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-rust-version = "1.61"
+rust-version = "1.68.2"
 version = "0.3.2"
 
 [dependencies]
@@ -35,13 +35,13 @@ rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
 serde-aux = { optional = true, version = "4"}
 serde_json = "1"
-simd-json = { features = ["serde_impl"], optional = true, version = "0.8.0" }
+simd-json = { features = ["serde_impl"], optional = true, version = "0.9" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
 symphonia = { default_features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
-tokio-tungstenite = { optional = true, version = "0.18" }
+tokio-tungstenite = { optional = true, version = "0.19" }
 tokio-util = { features = ["io"], optional = true, version = "0.7" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
