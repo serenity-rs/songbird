@@ -138,8 +138,6 @@
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{compressed::Config, CodecCacheError, ToAudioBytes};
 <span class="kw">use crate</span>::{
     constants::SAMPLE_RATE_RAW,
@@ -216,9 +214,7 @@
         .<span class="kw">await</span><span class="question-mark">??</span>;
 
         <span class="comment">// If success, guaranteed to be Parsed
-        </span><span class="kw">let </span>parsed = <span class="kw">if let </span>LiveInput::Parsed(parsed) = promoted {
-            parsed
-        } <span class="kw">else </span>{
+        </span><span class="kw">let </span>LiveInput::Parsed(parsed) = promoted <span class="kw">else </span>{
             <span class="macro">unreachable!</span>()
         };
 

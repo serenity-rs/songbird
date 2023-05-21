@@ -1689,7 +1689,7 @@
                 input,
                 mix_state,
                 vol,
-                do_passthrough.then(|| <span class="kw-2">&amp;mut *</span>opus_frame),
+                do_passthrough.then_some(<span class="kw-2">&amp;mut *</span>opus_frame),
             );
 
             <span class="kw">let </span>return_here = <span class="kw">if let </span>MixType::MixedPcm(pcm_len) = mix_type {

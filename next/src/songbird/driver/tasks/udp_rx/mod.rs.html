@@ -382,7 +382,7 @@
                             }
                         };
 
-                        <span class="kw">let _ </span>= <span class="self">self</span>.ssrc_signalling.disconnected_users.remove(<span class="kw-2">&amp;</span>id);
+                        <span class="kw">_ </span>= <span class="self">self</span>.ssrc_signalling.disconnected_users.remove(<span class="kw-2">&amp;</span>id);
                         <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, ssrc)) = <span class="self">self</span>.ssrc_signalling.user_ssrc_map.remove(<span class="kw-2">&amp;</span>id) {
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <span class="self">self</span>.decoder_map.get_mut(<span class="kw-2">&amp;</span>ssrc) {
                                 <span class="comment">// don&#39;t cleanup immediately: leave for later cycle

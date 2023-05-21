@@ -568,7 +568,7 @@
                 <span class="self">self</span>.resp_rx.try_recv().ok()
             };
 
-            <span class="kw">let </span>msg = <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = msg { msg } <span class="kw">else </span>{ <span class="kw">break </span><span class="prelude-val">None </span>};
+            <span class="kw">let </span><span class="prelude-val">Some</span>(msg) = msg <span class="kw">else </span>{ <span class="kw">break </span><span class="prelude-val">None </span>};
 
             <span class="comment">// state changes
             </span><span class="kw">match </span><span class="kw-2">&amp;</span>msg {
@@ -644,7 +644,7 @@
 
         <span class="self">self</span>.check_dropped()<span class="question-mark">?</span>;
 
-        <span class="kw">let _ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::Seek(pos));
+        <span class="kw">_ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::Seek(pos));
 
         <span class="comment">// wait for async to tell us that it has stopped writing,
         // then clear buf and allow async to write again.
@@ -657,7 +657,7 @@
 
         <span class="self">self</span>.bytes_out.skip(<span class="self">self</span>.bytes_out.capacity());
 
-        <span class="kw">let _ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::SeekCleared);
+        <span class="kw">_ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::SeekCleared);
 
         <span class="kw">match </span><span class="self">self</span>.handle_messages(Operation::Seek) {
             <span class="prelude-val">Some</span>(AdapterResponse::SeekResult(a)) =&gt; a,
@@ -675,7 +675,7 @@
     <span class="kw">fn </span>byte_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
         <span class="self">self</span>.check_dropped().ok()<span class="question-mark">?</span>;
 
-        <span class="kw">let _ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::ByteLen);
+        <span class="kw">_ </span>= <span class="self">self</span>.req_tx.send(AdapterRequest::ByteLen);
 
         <span class="kw">match </span><span class="self">self</span>.handle_messages(Operation::Len) {
             <span class="prelude-val">Some</span>(AdapterResponse::ByteLen(a)) =&gt; a,
