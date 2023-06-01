@@ -82,7 +82,7 @@ impl HttpRequest {
             .await
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
-        if resp.status().is_success() {
+        if !resp.status().is_success() {
             return Err(AudioStreamError::HttpRequestFailed(resp.status().to_string()));
         }
 
