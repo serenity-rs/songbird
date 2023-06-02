@@ -83,7 +83,9 @@ impl HttpRequest {
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
         if !resp.status().is_success() {
-            return Err(AudioStreamError::HttpRequestFailed(resp.status().to_string()));
+            return Err(AudioStreamError::HttpRequestFailed(
+                resp.status().to_string(),
+            ));
         }
 
         if let Some(t) = resp.headers().get(RETRY_AFTER) {
