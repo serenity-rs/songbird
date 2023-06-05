@@ -13,6 +13,7 @@ use reqwest::{
     header::{HeaderMap, ACCEPT_RANGES, CONTENT_LENGTH, CONTENT_TYPE, RANGE, RETRY_AFTER},
     Client,
 };
+use std::fmt::format;
 use std::{
     io::{Error as IoError, ErrorKind as IoErrorKind, Result as IoResult, SeekFrom},
     pin::Pin,
@@ -83,9 +84,9 @@ impl HttpRequest {
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
         if !resp.status().is_success() {
-            return Err(AudioStreamError::HttpRequestFailed(
-                resp.status().to_string(),
-            ));
+            let msg: Box<dyn std::error::Error + Send + Sync + 'static> =
+                format!("failed with http status code: {}", resp.status()).into();
+            return Err(AudioStreamError::Fail(msg));
         }
 
         if let Some(t) = resp.headers().get(RETRY_AFTER) {

@@ -18,8 +18,6 @@ pub enum AudioStreamError {
     Fail(Box<dyn Error + Send + Sync>),
     /// The operation was not supported, and will never succeed.
     Unsupported,
-    /// The Http request failed. If you get this you may be being rate limited
-    HttpRequestFailed(String),
 }
 
 impl Display for AudioStreamError {
@@ -29,9 +27,6 @@ impl Display for AudioStreamError {
             Self::RetryIn(t) => f.write_fmt(format_args!("retry in {:.2}s", t.as_secs_f32())),
             Self::Fail(why) => f.write_fmt(format_args!("{why}")),
             Self::Unsupported => f.write_str("operation was not supported"),
-            Self::HttpRequestFailed(code) => f.write_fmt(format_args!(
-                "Got HTTP Response Code: {code}. You may be getting rate limited."
-            )),
         }
     }
 }
