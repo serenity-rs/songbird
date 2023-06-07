@@ -328,7 +328,7 @@
 <span class="kw">use </span>flume::{Receiver, Sender};
 <span class="kw">use </span>nohash_hasher::{BuildNoHashHasher, IntMap};
 <span class="kw">use </span>tokio::time::{Instant <span class="kw">as </span>TokInstant, Interval};
-<span class="kw">use </span>tracing::warn;
+<span class="kw">use </span>tracing::info;
 
 <span class="kw">use </span><span class="kw">crate</span>::constants::<span class="kw-2">*</span>;
 
@@ -422,7 +422,7 @@
                             <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.to_cull.push(id),
                         }
                     } <span class="kw">else </span>{
-                        <span class="macro">warn!</span>(<span class="string">&quot;Received post-cull message for {id:?}, discarding.&quot;</span>);
+                        <span class="macro">info!</span>(<span class="string">&quot;Received post-cull message for {id:?}, discarding.&quot;</span>);
                     }
                 },
                 <span class="prelude-val">Ok</span>(SchedulerMessage::Overspill(worker_id, id, task)) =&gt; {
