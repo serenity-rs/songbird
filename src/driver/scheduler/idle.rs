@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 use flume::{Receiver, Sender};
 use nohash_hasher::{BuildNoHashHasher, IntMap};
 use tokio::time::{Instant as TokInstant, Interval};
-use tracing::warn;
+use tracing::info;
 
 use crate::constants::*;
 
@@ -97,7 +97,7 @@ impl Idle {
                             Ok(true) | Err(_) => self.to_cull.push(id),
                         }
                     } else {
-                        warn!("Received post-cull message for {id:?}, discarding.");
+                        info!("Received post-cull message for {id:?}, discarding.");
                     }
                 },
                 Ok(SchedulerMessage::Overspill(worker_id, id, task)) => {
