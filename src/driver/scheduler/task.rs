@@ -75,6 +75,8 @@ pub struct ParkedMixer {
     /// The last known cost of executing this task, if it had to be moved
     /// due to a limit on thread resources.
     pub last_cost: Option<Duration>,
+    /// Handle to any forwarder task, used if this mixer is culled while idle.
+    pub cull_handle: Option<Sender<()>>,
 }
 
 #[allow(missing_docs)]
@@ -88,6 +90,7 @@ impl ParkedMixer {
             rtp_timestamp: random::<u32>(),
             park_time: Instant::now(),
             last_cost: None,
+            cull_handle: None,
         }
     }
 
@@ -95,14 +98,28 @@ impl ParkedMixer {
     ///
     /// Any requests which would cause this mixer to become live will terminate
     /// this task.
-    pub fn spawn_forwarder(&self, tx: Sender<SchedulerMessage>, id: TaskId) {
+    pub fn spawn_forwarder(&mut self, tx: Sender<SchedulerMessage>, id: TaskId) {
+        let (kill_tx, kill_rx) = flume::bounded(1);
+        self.cull_handle = Some(kill_tx);
+
         let remote_rx = self.mixer.mix_rx.clone();
         tokio::spawn(async move {
-            while let Ok(msg) = remote_rx.recv_async().await {
-                let exit = msg.is_mixer_now_live();
-                let dead = tx.send_async(SchedulerMessage::Do(id, msg)).await.is_err();
-                if exit || dead {
-                    break;
+            loop {
+                tokio::select! {
+                    biased;
+                    _ = kill_rx.recv_async() => break,
+                    msg = remote_rx.recv_async() => {
+                        let exit = if let Ok(msg) = msg {
+                            let remove_self = msg.is_mixer_now_live();
+                            tx.send_async(SchedulerMessage::Do(id, msg)).await.is_err() || remove_self
+                        } else {
+                            true
+                        };
+
+                        if exit {
+                            break;
+                        }
+                    }
                 }
             }
         });
