@@ -554,6 +554,7 @@ impl Live {
                 rtp_timestamp: id_0 as u32,
                 park_time: Instant::now(),
                 last_cost: None,
+                cull_handle: None,
             },
             id,
             Instant::now(),
@@ -617,6 +618,7 @@ impl Live {
                     rtp_timestamp,
                     park_time,
                     last_cost: None,
+                    cull_handle: None,
                 },
             )
         })

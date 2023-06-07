@@ -13,7 +13,6 @@ use reqwest::{
     header::{HeaderMap, ACCEPT_RANGES, CONTENT_LENGTH, CONTENT_TYPE, RANGE, RETRY_AFTER},
     Client,
 };
-use std::fmt::format;
 use std::{
     io::{Error as IoError, ErrorKind as IoErrorKind, Result as IoResult, SeekFrom},
     pin::Pin,

@@ -3,6 +3,7 @@ use std::{collections::HashMap, sync::Arc, time::Duration};
 use flume::{Receiver, Sender};
 use nohash_hasher::{BuildNoHashHasher, IntMap};
 use tokio::time::{Instant as TokInstant, Interval};
+use tracing::warn;
 
 use crate::constants::*;
 
@@ -71,14 +72,14 @@ impl Idle {
             biased;
             msg = self.rx.recv_async() => match msg {
                 Ok(SchedulerMessage::NewMixer(rx, ic, cfg)) => {
-                    let mixer = ParkedMixer::new(rx, ic, cfg);
+                    let mut mixer = ParkedMixer::new(rx, ic, cfg);
                     let id = self.next_id.incr();
 
                     mixer.spawn_forwarder(self.tx.clone(), id);
                     self.tasks.insert(id, mixer);
                     self.stats.add_idle_mixer();
                 },
-                Ok(SchedulerMessage::Demote(id, task)) => {
+                Ok(SchedulerMessage::Demote(id, mut task)) => {
                     task.send_gateway_not_speaking();
 
                     task.spawn_forwarder(self.tx.clone(), id);
@@ -86,15 +87,17 @@ impl Idle {
                 },
                 Ok(SchedulerMessage::Do(id, mix_msg)) => {
                     let now_live = mix_msg.is_mixer_now_live();
-                    let task = self.tasks.get_mut(&id).unwrap();
-
-                    match task.handle_message(mix_msg) {
-                        Ok(false) if now_live => {
-                            let task = self.tasks.remove(&id).unwrap();
-                            self.schedule_mixer(task, id, None);
-                        },
-                        Ok(false) => {},
-                        Ok(true) | Err(_) => self.to_cull.push(id),
+                    if let Some(task) = self.tasks.get_mut(&id) {
+                        match task.handle_message(mix_msg) {
+                            Ok(false) if now_live => {
+                                let task = self.tasks.remove(&id).unwrap();
+                                self.schedule_mixer(task, id, None);
+                            },
+                            Ok(false) => {},
+                            Ok(true) | Err(_) => self.to_cull.push(id),
+                        }
+                    } else {
+                        warn!("Received post-cull message for {id:?}, discarding.");
                     }
                 },
                 Ok(SchedulerMessage::Overspill(worker_id, id, task)) => {
@@ -136,7 +139,9 @@ impl Idle {
         }
 
         for id in self.to_cull.drain(..) {
-            self.tasks.remove(&id);
+            if let Some(tx) = self.tasks.remove(&id).and_then(|t| t.cull_handle) {
+                _ = tx.send_async(()).await;
+            }
         }
 
         true
@@ -292,6 +297,7 @@ mod test {
                 rtp_timestamp: i,
                 park_time: TokInstant::now().into(),
                 last_cost: None,
+                cull_handle: None,
             };
             core.stats.add_idle_mixer();
             core.stats.move_mixer_to_live();
