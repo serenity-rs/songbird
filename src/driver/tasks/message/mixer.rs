@@ -6,8 +6,8 @@ use crate::{
     driver::{Bitrate, Config, CryptoState},
     tracks::Track,
 };
+use crypto_secretbox::XSalsa20Poly1305 as Cipher;
 use flume::Sender;
-use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 pub struct MixerConnection {
     pub cipher: Cipher,

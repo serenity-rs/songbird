@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-version = "0.3.2"
+version = "0.3.3"
 
 [dependencies]
 derivative = "2"
@@ -109,9 +109,9 @@ optional = true
 version = "0.8"
 features = ["v4"]
 
-[dependencies.xsalsa20poly1305]
+[dependencies.crypto_secretbox]
 optional = true
-version = "0.8"
+version = "0.1.1"
 features = ["std"]
 
 [dev-dependencies]
@@ -161,7 +161,7 @@ driver-core = [
     "typemap_rev",
     "url",
     "uuid",
-    "xsalsa20poly1305",
+    "crypto_secretbox",
 ]
 rustls = ["async-tungstenite/tokio-rustls-webpki-roots", "rustls-marker"]
 native = ["async-tungstenite/tokio-native-tls", "native-marker"]

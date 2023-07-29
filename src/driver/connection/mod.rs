@@ -15,6 +15,7 @@ use crate::{
     ws::{self, ReceiverExt, SenderExt, WsStream},
     ConnectionInfo,
 };
+use crypto_secretbox::{KeyInit, XSalsa20Poly1305 as Cipher};
 use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
 use error::{Error, Result};
 use flume::Sender;
@@ -22,7 +23,6 @@ use std::{net::IpAddr, str::FromStr, sync::Arc};
 use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
-use xsalsa20poly1305::{aead::NewAead, XSalsa20Poly1305 as Cipher};
 
 #[cfg(all(feature = "rustls-marker", not(feature = "native-marker")))]
 use ws::create_rustls_client;

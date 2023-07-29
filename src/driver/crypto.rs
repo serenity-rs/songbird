@@ -1,16 +1,19 @@
 //! Encryption schemes supported by Discord's secure RTP negotiation.
 use byteorder::{NetworkEndian, WriteBytesExt};
+use crypto_secretbox::{
+    AeadInPlace,
+    Error as CryptoError,
+    Nonce,
+    SecretBox,
+    Tag,
+    XSalsa20Poly1305 as Cipher,
+};
 use discortp::{rtp::RtpPacket, MutablePacket};
 use rand::Rng;
 use std::num::Wrapping;
-use xsalsa20poly1305::{
-    aead::{AeadInPlace, Error as CryptoError},
-    Nonce,
-    Tag,
-    XSalsa20Poly1305 as Cipher,
-    NONCE_SIZE,
-    TAG_SIZE,
-};
+
+pub const TAG_SIZE: usize = SecretBox::<()>::TAG_SIZE;
+pub const NONCE_SIZE: usize = SecretBox::<()>::NONCE_SIZE;
 
 /// Variants of the XSalsa20Poly1305 encryption scheme.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -241,8 +244,10 @@ impl CryptoState {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crypto_secretbox::{KeyInit, SecretBox};
     use discortp::rtp::MutableRtpPacket;
-    use xsalsa20poly1305::{aead::NewAead, KEY_SIZE, TAG_SIZE};
+    pub const KEY_SIZE: usize = SecretBox::<()>::KEY_SIZE;
+    pub const NONCE_SIZE: usize = SecretBox::<()>::KEY_SIZE;
 
     #[test]
     fn small_packet_decrypts_error() {

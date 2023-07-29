@@ -11,6 +11,7 @@ use audiopus::{
     Bitrate,
     Channels,
 };
+use crypto_secretbox::SecretBox;
 use discortp::{
     rtp::{MutableRtpPacket, RtpPacket},
     MutablePacket,
@@ -20,7 +21,8 @@ use rand::random;
 use std::{convert::TryInto, time::Instant};
 use tokio::runtime::Handle;
 use tracing::{debug, error, instrument};
-use xsalsa20poly1305::TAG_SIZE;
+
+const TAG_SIZE: usize = SecretBox::<()>::TAG_SIZE;
 
 pub struct Mixer {
     pub async_handle: Handle,
