@@ -12,8 +12,8 @@ use discortp::{rtp::RtpPacket, MutablePacket};
 use rand::Rng;
 use std::num::Wrapping;
 
-pub const TAG_SIZE: usize = SecretBox::<()>::TAG_SIZE;
 pub const NONCE_SIZE: usize = SecretBox::<()>::NONCE_SIZE;
+pub const TAG_SIZE: usize = SecretBox::<()>::TAG_SIZE;
 
 /// Variants of the XSalsa20Poly1305 encryption scheme.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -246,8 +246,8 @@ mod test {
     use super::*;
     use crypto_secretbox::{KeyInit, SecretBox};
     use discortp::rtp::MutableRtpPacket;
+
     pub const KEY_SIZE: usize = SecretBox::<()>::KEY_SIZE;
-    pub const NONCE_SIZE: usize = SecretBox::<()>::KEY_SIZE;
 
     #[test]
     fn small_packet_decrypts_error() {
