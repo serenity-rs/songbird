@@ -14,6 +14,7 @@ use audiopus::{
     packet::Packet as OpusPacket,
     Channels,
 };
+use crypto_secretbox::XSalsa20Poly1305 as Cipher;
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::{RtpExtensionPacket, RtpPacket},
@@ -25,7 +26,6 @@ use flume::Receiver;
 use std::{collections::HashMap, convert::TryInto, sync::Arc};
 use tokio::{net::UdpSocket, select};
 use tracing::{error, instrument, trace, warn};
-use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 #[derive(Debug)]
 struct SsrcState {

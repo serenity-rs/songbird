@@ -1,4 +1,5 @@
 use super::{disposal, error::Result, message::*};
+use crate::driver::crypto::TAG_SIZE;
 use crate::{
     constants::*,
     tracks::{PlayMode, Track},
@@ -20,7 +21,6 @@ use rand::random;
 use std::{convert::TryInto, time::Instant};
 use tokio::runtime::Handle;
 use tracing::{debug, error, instrument};
-use xsalsa20poly1305::TAG_SIZE;
 
 pub struct Mixer {
     pub async_handle: Handle,
