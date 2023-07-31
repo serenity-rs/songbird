@@ -8,10 +8,10 @@ use crate::{
     driver::{Bitrate, Config, CryptoState},
     input::{AudioStreamError, Compose, Parsed},
 };
+use crypto_secretbox::XSalsa20Poly1305 as Cipher;
 use flume::Sender;
 use std::{net::UdpSocket, sync::Arc};
 use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
-use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 pub struct MixerConnection {
     pub cipher: Cipher,

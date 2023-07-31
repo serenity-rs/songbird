@@ -2,6 +2,7 @@
 
 use crate::{
     constants::*,
+    driver::crypto::KEY_SIZE,
     input::{
         cached::Compressed,
         codecs::{CODEC_REGISTRY, PROBE},
@@ -10,10 +11,10 @@ use crate::{
     test_utils,
     tracks::LoopState,
 };
+use crypto_secretbox::{KeyInit, XSalsa20Poly1305 as Cipher};
 use flume::{Receiver, Sender};
 use std::{io::Cursor, net::UdpSocket, sync::Arc};
 use tokio::runtime::Handle;
-use xsalsa20poly1305::{KeyInit, XSalsa20Poly1305 as Cipher, KEY_SIZE};
 
 use super::{
     scheduler::*,

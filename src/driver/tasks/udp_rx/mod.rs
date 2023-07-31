@@ -12,6 +12,7 @@ use crate::{
     Config,
 };
 use bytes::BytesMut;
+use crypto_secretbox::XSalsa20Poly1305 as Cipher;
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::RtpPacket,
@@ -25,7 +26,6 @@ use std::{
 };
 use tokio::{net::UdpSocket, select, time::Instant};
 use tracing::{error, instrument, trace, warn};
-use xsalsa20poly1305::XSalsa20Poly1305 as Cipher;
 
 type RtpSequence = Wrapping<u16>;
 type RtpTimestamp = Wrapping<u32>;
