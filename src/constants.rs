@@ -92,7 +92,7 @@ pub mod test_data {
     ///
     /// Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
     pub const YTDL_PLAYLIST_TARGET: &str =
-        "https://www.youtube.com/watch?v=hAl_mSCEe5w&list=RDhAl_mSCEe5w&start_radio=1";
+        "https://www.youtube.com/watch?v=KSgEFfWZ-W0&list=OLAK5uy_l2x81ffbpevMSjUn7NniL_rNLulWM3n6g&index=7";
 
     /// URL for a source which can be read via an Http Request.
     ///
