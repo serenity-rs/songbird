@@ -75,7 +75,9 @@ impl Connection {
             .await?;
 
         loop {
-            let Some(value) = client.recv_json().await? else { continue };
+            let Some(value) = client.recv_json().await? else {
+                continue;
+            };
 
             match value {
                 GatewayEvent::Ready(r) => {
@@ -112,7 +114,10 @@ impl Connection {
             udp
         } else {
             let socket = Socket::from(udp.into_std()?);
+
+            #[cfg(not(target_os = "macos"))]
             socket.set_recv_buffer_size(0)?;
+
             UdpSocket::from_std(socket.into())?
         };
 
@@ -279,7 +284,9 @@ impl Connection {
         let mut resumed = None;
 
         loop {
-            let Some(value) = client.recv_json().await? else { continue };
+            let Some(value) = client.recv_json().await? else {
+                continue;
+            };
 
             match value {
                 GatewayEvent::Resumed => {
@@ -331,7 +338,9 @@ fn generate_url(endpoint: &mut String) -> Result<Url> {
 #[inline]
 async fn init_cipher(client: &mut WsStream, mode: CryptoMode) -> Result<Cipher> {
     loop {
-        let Some(value) = client.recv_json().await? else { continue };
+        let Some(value) = client.recv_json().await? else {
+            continue;
+        };
 
         match value {
             GatewayEvent::SessionDescription(desc) => {
