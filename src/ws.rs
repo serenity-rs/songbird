@@ -27,7 +27,6 @@ impl WsStream {
             Some(Config {
                 max_message_size: None,
                 max_frame_size: None,
-                max_send_queue: None,
                 ..Default::default()
             }),
             true,

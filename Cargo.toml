@@ -22,7 +22,7 @@ crypto_secretbox = { optional = true, features = ["std"], version = "0.1" }
 dashmap = { optional = true, version = "5" }
 derivative = "2"
 discortp = { default-features = false, features = ["discord", "pnet", "rtp"], optional = true, version = "0.5" }
-flume = { optional = true, version = "0.10" }
+flume = { optional = true, version = "0.11" }
 futures = "0.3"
 nohash-hasher = { optional = true, version = "0.2.0" }
 once_cell = { optional = true, version = "1" }
@@ -36,13 +36,13 @@ rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
 serde-aux = { optional = true, version = "4"}
 serde_json = "1"
-simd-json = { features = ["serde_impl"], optional = true, version = "0.9" }
+simd-json = { features = ["serde_impl"], optional = true, version = "0.10" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
 symphonia = { default_features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
-tokio-tungstenite = { optional = true, version = "0.19" }
+tokio-tungstenite = { optional = true, version = "0.20" }
 tokio-util = { features = ["io"], optional = true, version = "0.7" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
@@ -64,7 +64,7 @@ optional = true
 
 [dev-dependencies]
 byteorder = "1"
-criterion = "0.4"
+criterion = "0.5"
 ntest = "0.9"
 symphonia = { version = "0.5.2", features = ["aac", "isomp4", "mp3"] }
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "test-util"] }
