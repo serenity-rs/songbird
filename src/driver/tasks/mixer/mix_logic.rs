@@ -172,7 +172,7 @@ pub fn mix_symph_indiv(
                     chan_c,
                 )
                 .expect("Failed to create resampler.");
-                let out_buf = resampler.output_buffer_allocate();
+                let out_buf = resampler.output_buffer_allocate(false);
 
                 (chan_c, resampler, out_buf)
             });
