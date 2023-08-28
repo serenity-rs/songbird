@@ -533,6 +533,10 @@
 <a href="#533" id="533">533</a>
 <a href="#534" id="534">534</a>
 <a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{compressed_cost_per_sec, default_config, CodecCacheError, ToAudioBytes};
 <span class="kw">use crate</span>::{
     constants::<span class="kw-2">*</span>,
@@ -584,7 +588,8 @@
 };
 <span class="kw">use </span>tracing::{debug, trace};
 
-<span class="kw">pub struct </span>Config {
+<span class="doccomment">/// Configuration for a cached source.
+</span><span class="kw">pub struct </span>Config {
     <span class="doccomment">/// Registry of audio codecs supported by the driver.
     ///
     /// Defaults to [`CODEC_REGISTRY`], which adds audiopus-based Opus codec support
@@ -616,7 +621,10 @@
 }
 
 <span class="kw">impl </span>Config {
-    <span class="kw">pub fn </span>default_from_cost(cost_per_sec: usize) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Generate a storage configuration given an estimated storage bitrate
+    /// `cost_per_sec` in bytes/s.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>default_from_cost(cost_per_sec: usize) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>streamcatcher = default_config(cost_per_sec);
         <span class="self">Self </span>{
             streamcatcher,

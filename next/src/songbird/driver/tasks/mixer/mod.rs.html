@@ -883,6 +883,7 @@
     error::{Error, <span class="prelude-ty">Result</span>},
     message::<span class="kw-2">*</span>,
 };
+<span class="kw">use </span><span class="kw">crate</span>::driver::crypto::TAG_SIZE;
 <span class="kw">use crate</span>::{
     constants::<span class="kw-2">*</span>,
     driver::MixMode,
@@ -921,7 +922,6 @@
 };
 <span class="kw">use </span>tokio::runtime::Handle;
 <span class="kw">use </span>tracing::error;
-<span class="kw">use </span>xsalsa20poly1305::TAG_SIZE;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">use </span><span class="kw">crate</span>::driver::test_config::{OutputMessage, OutputMode};

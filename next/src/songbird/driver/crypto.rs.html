@@ -303,20 +303,28 @@
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Encryption schemes supported by Discord&#39;s secure RTP negotiation.
 </span><span class="kw">use </span>byteorder::{NetworkEndian, WriteBytesExt};
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;receive&quot;</span>, test))]
+</span><span class="kw">use </span>crypto_secretbox::Tag;
+<span class="kw">use </span>crypto_secretbox::{
+    aead::{AeadInPlace, Error <span class="kw">as </span>CryptoError},
+    Nonce,
+    SecretBox,
+    XSalsa20Poly1305 <span class="kw">as </span>Cipher,
+};
 <span class="kw">use </span>discortp::{rtp::RtpPacket, MutablePacket};
 <span class="kw">use </span>rand::Rng;
 <span class="kw">use </span>std::num::Wrapping;
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;receive&quot;</span>, test))]
-</span><span class="kw">use </span>xsalsa20poly1305::Tag;
-<span class="kw">use </span>xsalsa20poly1305::{
-    aead::{AeadInPlace, Error <span class="kw">as </span>CryptoError},
-    Nonce,
-    XSalsa20Poly1305 <span class="kw">as </span>Cipher,
-    NONCE_SIZE,
-    TAG_SIZE,
-};
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">pub const </span>KEY_SIZE: usize = SecretBox::&lt;()&gt;::KEY_SIZE;
+<span class="kw">pub const </span>NONCE_SIZE: usize = SecretBox::&lt;()&gt;::NONCE_SIZE;
+<span class="kw">pub const </span>TAG_SIZE: usize = SecretBox::&lt;()&gt;::TAG_SIZE;
 
 <span class="doccomment">/// Variants of the `XSalsa20Poly1305` encryption scheme.
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -558,8 +566,8 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>crypto_secretbox::KeyInit;
     <span class="kw">use </span>discortp::rtp::MutableRtpPacket;
-    <span class="kw">use </span>xsalsa20poly1305::{KeyInit, KEY_SIZE, TAG_SIZE};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>small_packet_decrypts_error() {

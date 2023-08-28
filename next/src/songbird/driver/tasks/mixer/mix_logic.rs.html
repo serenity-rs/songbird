@@ -751,7 +751,7 @@
     <span class="kw">if </span>source_mono {
         <span class="comment">// mix this signal into *all* output channels at req&#39;d volume.
         </span><span class="kw">let </span>source_plane = source_raw_planes[<span class="number">0</span>];
-        <span class="kw">for </span>d_plane <span class="kw">in </span>(<span class="kw-2">*</span>target.planes_mut().planes()).iter_mut() {
+        <span class="kw">for </span>d_plane <span class="kw">in </span><span class="kw-2">&amp;mut </span>(<span class="kw-2">*</span>target.planes_mut().planes()) {
             <span class="kw">for </span>(d, s) <span class="kw">in </span>d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane[source_pos..source_pos + mix_ct].iter())
@@ -765,7 +765,7 @@
         </span><span class="kw">let </span>vol_adj = <span class="number">1.0 </span>/ (source_chans <span class="kw">as </span>f32);
         <span class="kw">let </span><span class="kw-2">mut </span>t_planes = target.planes_mut();
         <span class="kw">let </span>d_plane = <span class="kw-2">&amp;mut *</span>t_planes.planes()[<span class="number">0</span>];
-        <span class="kw">for </span>s_plane <span class="kw">in </span>source_raw_planes[..].iter() {
+        <span class="kw">for </span>s_plane <span class="kw">in </span>source_raw_planes {
             <span class="kw">for </span>(d, s) <span class="kw">in </span>d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(s_plane[source_pos..source_pos + mix_ct].iter())
@@ -808,7 +808,7 @@
     <span class="comment">// see `mix_symph_buffer` for explanations of stereo&lt;-&gt;mono logic.
     </span><span class="kw">if </span>source_mono {
         <span class="kw">let </span>source_plane = <span class="kw-2">&amp;</span>source[<span class="number">0</span>];
-        <span class="kw">for </span>d_plane <span class="kw">in </span>(<span class="kw-2">*</span>target.planes_mut().planes()).iter_mut() {
+        <span class="kw">for </span>d_plane <span class="kw">in </span><span class="kw-2">&amp;mut </span>(<span class="kw-2">*</span>target.planes_mut().planes()) {
             <span class="kw">for </span>(d, s) <span class="kw">in </span>d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane)
@@ -820,7 +820,7 @@
         <span class="kw">let </span>vol_adj = <span class="number">1.0 </span>/ (source_chans <span class="kw">as </span>f32);
         <span class="kw">let </span><span class="kw-2">mut </span>t_planes = target.planes_mut();
         <span class="kw">let </span>d_plane = <span class="kw-2">&amp;mut *</span>t_planes.planes()[<span class="number">0</span>];
-        <span class="kw">for </span>s_plane <span class="kw">in </span>source[..].iter() {
+        <span class="kw">for </span>s_plane <span class="kw">in </span>source {
             <span class="kw">for </span>(d, s) <span class="kw">in </span>d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
                 <span class="kw-2">*</span>d += volume * vol_adj * s;
             }

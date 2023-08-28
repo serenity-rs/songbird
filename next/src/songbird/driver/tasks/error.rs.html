@@ -104,9 +104,9 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::message::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::ws::Error <span class="kw">as </span>WsError;
 <span class="kw">use </span>audiopus::Error <span class="kw">as </span>OpusError;
+<span class="kw">use </span>crypto_secretbox::aead::Error <span class="kw">as </span>CryptoError;
 <span class="kw">use </span>flume::SendError;
 <span class="kw">use </span>std::io::{Error <span class="kw">as </span>IoError, ErrorKind <span class="kw">as </span>IoErrorKind};
-<span class="kw">use </span>xsalsa20poly1305::aead::Error <span class="kw">as </span>CryptoError;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Recipient {

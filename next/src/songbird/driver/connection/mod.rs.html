@@ -392,6 +392,7 @@
     ws::WsStream,
     ConnectionInfo,
 };
+<span class="kw">use </span>crypto_secretbox::{KeyInit, XSalsa20Poly1305 <span class="kw">as </span>Cipher};
 <span class="kw">use </span>discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
 <span class="kw">use </span>error::{Error, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>flume::Sender;
@@ -402,7 +403,6 @@
 <span class="kw">use </span>tokio::{net::UdpSocket, spawn, time::timeout};
 <span class="kw">use </span>tracing::{debug, info, instrument};
 <span class="kw">use </span>url::Url;
-<span class="kw">use </span>xsalsa20poly1305::{KeyInit, XSalsa20Poly1305 <span class="kw">as </span>Cipher};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Connection {
     <span class="kw">pub</span>(<span class="kw">crate</span>) info: ConnectionInfo,

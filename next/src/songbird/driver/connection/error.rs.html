@@ -141,11 +141,11 @@
     driver::tasks::{error::Recipient, message::<span class="kw-2">*</span>},
     ws::Error <span class="kw">as </span>WsError,
 };
+<span class="kw">use </span>crypto_secretbox::Error <span class="kw">as </span>CryptoError;
 <span class="kw">use </span>flume::SendError;
 <span class="kw">use </span>serde_json::Error <span class="kw">as </span>JsonError;
 <span class="kw">use </span>std::{error::Error <span class="kw">as </span>StdError, fmt, io::Error <span class="kw">as </span>IoError};
 <span class="kw">use </span>tokio::time::error::Elapsed;
-<span class="kw">use </span>xsalsa20poly1305::aead::Error <span class="kw">as </span>CryptoError;
 
 <span class="doccomment">/// Errors encountered while connecting to a Discord voice server over the driver.
 </span><span class="attr">#[derive(Debug)]

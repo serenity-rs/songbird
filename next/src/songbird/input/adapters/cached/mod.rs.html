@@ -64,7 +64,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::input::utils;
 <span class="kw">use </span>audiopus::Bitrate;
 <span class="kw">use </span>std::{mem, time::Duration};
-<span class="kw">use </span>streamcatcher::{Config, GrowthStrategy};
+<span class="kw">use </span>streamcatcher::{Config <span class="kw">as </span>ScConfig, GrowthStrategy};
 
 <span class="doccomment">/// Estimates the cost, in B/s, of audio data compressed at the given bitrate.
 </span><span class="attr">#[must_use]
@@ -93,7 +93,7 @@
 ///
 /// [`streamcatcher`]: https://docs.rs/streamcatcher/0.1.0/streamcatcher/struct.Config.html
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>default_config(cost_per_sec: usize) -&gt; Config {
-    Config::new().chunk_size(GrowthStrategy::Constant(<span class="number">5 </span>* cost_per_sec))
+</span><span class="kw">pub fn </span>default_config(cost_per_sec: usize) -&gt; ScConfig {
+    ScConfig::new().chunk_size(GrowthStrategy::Constant(<span class="number">5 </span>* cost_per_sec))
 }
 </code></pre></div></section></main></body></html>

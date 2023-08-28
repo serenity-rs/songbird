@@ -65,10 +65,10 @@
     driver::{Bitrate, Config, CryptoState},
     input::{AudioStreamError, Compose, Parsed},
 };
+<span class="kw">use </span>crypto_secretbox::XSalsa20Poly1305 <span class="kw">as </span>Cipher;
 <span class="kw">use </span>flume::Sender;
 <span class="kw">use </span>std::{net::UdpSocket, sync::Arc};
 <span class="kw">use </span>symphonia_core::{errors::Error <span class="kw">as </span>SymphoniaError, formats::SeekedTo};
-<span class="kw">use </span>xsalsa20poly1305::XSalsa20Poly1305 <span class="kw">as </span>Cipher;
 
 <span class="kw">pub struct </span>MixerConnection {
     <span class="kw">pub </span>cipher: Cipher,
