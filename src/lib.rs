@@ -75,6 +75,7 @@
     clippy::cast_possible_truncation,
     // TODO: would require significant rewriting of all existing docs
     clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
 )]
 
 mod config;
