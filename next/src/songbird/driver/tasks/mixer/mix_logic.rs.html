@@ -616,7 +616,7 @@
                     chan_c,
                 )
                 .expect(<span class="string">&quot;Failed to create resampler.&quot;</span>);
-                <span class="kw">let </span>out_buf = resampler.output_buffer_allocate();
+                <span class="kw">let </span>out_buf = resampler.output_buffer_allocate(<span class="bool-val">false</span>);
 
                 (chan_c, resampler, out_buf)
             });

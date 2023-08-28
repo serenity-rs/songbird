@@ -546,7 +546,7 @@
             )
             .expect(<span class="string">&quot;Failed to create resampler.&quot;</span>);
 
-            <span class="kw">let </span>resampled_data = resampler.output_buffer_allocate();
+            <span class="kw">let </span>resampled_data = resampler.output_buffer_allocate(<span class="bool-val">false</span>);
 
             ResampleState {
                 resampled_data,
