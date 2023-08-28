@@ -15,7 +15,7 @@ use crate::constants::*;
 use crate::input::utils;
 use audiopus::Bitrate;
 use std::{mem, time::Duration};
-use streamcatcher::{Config, GrowthStrategy};
+use streamcatcher::{Config as ScConfig, GrowthStrategy};
 
 /// Estimates the cost, in B/s, of audio data compressed at the given bitrate.
 #[must_use]
@@ -44,6 +44,6 @@ pub fn raw_cost_per_sec(stereo: bool) -> usize {
 ///
 /// [`streamcatcher`]: https://docs.rs/streamcatcher/0.1.0/streamcatcher/struct.Config.html
 #[must_use]
-pub fn default_config(cost_per_sec: usize) -> Config {
-    Config::new().chunk_size(GrowthStrategy::Constant(5 * cost_per_sec))
+pub fn default_config(cost_per_sec: usize) -> ScConfig {
+    ScConfig::new().chunk_size(GrowthStrategy::Constant(5 * cost_per_sec))
 }

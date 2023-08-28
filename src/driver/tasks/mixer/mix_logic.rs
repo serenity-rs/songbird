@@ -307,7 +307,7 @@ where
     if source_mono {
         // mix this signal into *all* output channels at req'd volume.
         let source_plane = source_raw_planes[0];
-        for d_plane in (*target.planes_mut().planes()).iter_mut() {
+        for d_plane in &mut (*target.planes_mut().planes()) {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane[source_pos..source_pos + mix_ct].iter())
@@ -321,7 +321,7 @@ where
         let vol_adj = 1.0 / (source_chans as f32);
         let mut t_planes = target.planes_mut();
         let d_plane = &mut *t_planes.planes()[0];
-        for s_plane in source_raw_planes[..].iter() {
+        for s_plane in source_raw_planes {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(s_plane[source_pos..source_pos + mix_ct].iter())
@@ -364,7 +364,7 @@ fn mix_resampled(
     // see `mix_symph_buffer` for explanations of stereo<->mono logic.
     if source_mono {
         let source_plane = &source[0];
-        for d_plane in (*target.planes_mut().planes()).iter_mut() {
+        for d_plane in &mut (*target.planes_mut().planes()) {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane)
@@ -376,7 +376,7 @@ fn mix_resampled(
         let vol_adj = 1.0 / (source_chans as f32);
         let mut t_planes = target.planes_mut();
         let d_plane = &mut *t_planes.planes()[0];
-        for s_plane in source[..].iter() {
+        for s_plane in source {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
                 *d += volume * vol_adj * s;
             }

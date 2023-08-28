@@ -150,8 +150,10 @@ impl fmt::Debug for Partial {
         f.debug_struct("Partial")
             .field("channel_id", &self.channel_id)
             .field("endpoint", &self.endpoint)
+            .field("guild_id", &self.guild_id)
             .field("session_id", &self.session_id)
             .field("token_is_some", &self.token.is_some())
+            .field("user_id", &self.user_id)
             .finish()
     }
 }

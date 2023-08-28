@@ -49,6 +49,7 @@ use symphonia_core::{
 };
 use tracing::{debug, trace};
 
+/// Configuration for a cached source.
 pub struct Config {
     /// Registry of audio codecs supported by the driver.
     ///
@@ -81,6 +82,9 @@ impl Default for Config {
 }
 
 impl Config {
+    /// Generate a storage configuration given an estimated storage bitrate
+    /// `cost_per_sec` in bytes/s.
+    #[must_use]
     pub fn default_from_cost(cost_per_sec: usize) -> Self {
         let streamcatcher = default_config(cost_per_sec);
         Self {
