@@ -26,7 +26,7 @@ impl BlockyTaskPool {
             pool: Arc::new(RwLock::new(rusty_pool::ThreadPool::new(
                 0,
                 64,
-                Duration::from_secs(300),
+                Duration::from_secs(5),
             ))),
             handle,
         }
