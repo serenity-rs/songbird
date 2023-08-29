@@ -88,7 +88,7 @@ impl ToAudioBytes {
             )
             .expect("Failed to create resampler.");
 
-            let resampled_data = resampler.output_buffer_allocate(false);
+            let resampled_data = resampler.output_buffer_allocate(true);
 
             ResampleState {
                 resampled_data,
