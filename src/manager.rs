@@ -443,11 +443,9 @@ impl VoiceGatewayManager for Songbird {
     }
 
     async fn state_update(&self, guild_id: SerenityGuild, voice_state: &VoiceState) {
-        if self
-            .client_data
-            .get()
-            .map_or(true, |data| voice_state.user_id.0 != data.user_id.0)
-        {
+        if self.client_data.get().map_or(true, |data| {
+            voice_state.user_id.get() != data.user_id.0.get()
+        }) {
             return;
         }
 

@@ -31,7 +31,8 @@ use serenity::{
     framework::{
         standard::{
             macros::{command, group},
-            Args, CommandResult,
+            Args,
+            CommandResult,
         },
         StandardFramework,
     },

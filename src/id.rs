@@ -45,7 +45,7 @@ impl From<NonZeroU64> for ChannelId {
 #[cfg(feature = "serenity")]
 impl From<SerenityChannel> for ChannelId {
     fn from(id: SerenityChannel) -> Self {
-        Self(id.0)
+        Self(NonZeroU64::new(id.get()).unwrap())
     }
 }
 
@@ -71,7 +71,7 @@ impl From<NonZeroU64> for GuildId {
 #[cfg(feature = "serenity")]
 impl From<SerenityGuild> for GuildId {
     fn from(id: SerenityGuild) -> Self {
-        Self(id.0)
+        Self(NonZeroU64::new(id.get()).unwrap())
     }
 }
 
@@ -104,7 +104,7 @@ impl From<NonZeroU64> for UserId {
 #[cfg(feature = "serenity")]
 impl From<SerenityUser> for UserId {
     fn from(id: SerenityUser) -> Self {
-        Self(id.0)
+        Self(NonZeroU64::new(id.get()).unwrap())
     }
 }
 
