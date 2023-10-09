@@ -234,16 +234,13 @@ async fn main() {
 #[command]
 #[only_in(guilds)]
 async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let connect_to = match args.single::<std::num::NonZeroU64>() {
-        Ok(id) => ChannelId(id),
-        Err(_) => {
-            check_msg(
-                msg.reply(ctx, "Requires a valid voice channel ID be given")
-                    .await,
-            );
+    let Ok(connect_to) = args.single::<ChannelId>() else {
+        check_msg(
+            msg.reply(ctx, "Requires a valid voice channel ID be given")
+                .await,
+        );
 
-            return Ok(());
-        },
+        return Ok(());
     };
 
     let guild_id = msg.guild_id.unwrap();
