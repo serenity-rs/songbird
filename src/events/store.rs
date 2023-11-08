@@ -57,16 +57,10 @@ impl EventStore {
 
         match evt.event {
             Event::Core(c) => {
-                self.untimed
-                    .entry(c.into())
-                    .or_insert_with(Vec::new)
-                    .push(evt);
+                self.untimed.entry(c.into()).or_default().push(evt);
             },
             Event::Track(t) => {
-                self.untimed
-                    .entry(t.into())
-                    .or_insert_with(Vec::new)
-                    .push(evt);
+                self.untimed.entry(t.into()).or_default().push(evt);
             },
             Event::Delayed(_) | Event::Periodic(_, _) => {
                 self.timed.push(evt);
@@ -170,7 +164,7 @@ impl GlobalEvents {
     }
 
     pub(crate) fn fire_track_event(&mut self, evt: TrackEvent, index: usize) {
-        let holder = self.awaiting_tick.entry(evt).or_insert_with(Vec::new);
+        let holder = self.awaiting_tick.entry(evt).or_default();
 
         holder.push(index);
     }

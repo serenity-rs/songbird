@@ -241,7 +241,7 @@ impl Call {
 
             self.update()
                 .await
-                .map(|_| Join::new(rx.into_recv_async(), gw_rx.into_recv_async(), timeout))
+                .map(|()| Join::new(rx.into_recv_async(), gw_rx.into_recv_async(), timeout))
         } else {
             // Skipping the gateway connection implies that the current connection is complete
             // AND the channel is a match.
@@ -304,7 +304,7 @@ impl Call {
 
             self.update()
                 .await
-                .map(|_| JoinGateway::new(rx.into_recv_async(), timeout))
+                .map(|()| JoinGateway::new(rx.into_recv_async(), timeout))
         } else {
             Ok(JoinGateway::new(rx.into_recv_async(), None))
         }

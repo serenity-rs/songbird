@@ -405,6 +405,7 @@ impl Config {
         self
     }
 
+    #[must_use]
     pub fn test_cfg(raw_output: bool) -> (DriverTestHandle, Config) {
         let (tick_tx, tick_rx) = flume::unbounded();
 
@@ -418,8 +419,10 @@ impl Config {
             (OutputMode::Rtp(rtp_tx), OutputReceiver::Rtp(rtp_rx))
         };
 
-        let mut sc_config = SchedulerConfig::default();
-        sc_config.strategy = crate::driver::SchedulerMode::MaxPerThread(1.try_into().unwrap());
+        let sc_config = SchedulerConfig {
+            strategy: crate::driver::SchedulerMode::MaxPerThread(1.try_into().unwrap()),
+            move_expensive_tasks: true,
+        };
 
         let config = Config::default()
             .tick_style(TickStyle::UntimedWithExecLimit(tick_rx))

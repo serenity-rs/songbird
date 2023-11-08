@@ -3,6 +3,7 @@
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::mem;
 
+#[must_use]
 pub fn make_sine(float_len: usize, stereo: bool) -> Vec<u8> {
     let sample_len = mem::size_of::<f32>();
     let byte_len = float_len * sample_len;
@@ -34,6 +35,7 @@ pub fn make_sine(float_len: usize, stereo: bool) -> Vec<u8> {
     }
 }
 
+#[must_use]
 pub fn make_pcm_sine(i16_len: usize, stereo: bool) -> Vec<u8> {
     let sample_len = mem::size_of::<i16>();
     let byte_len = i16_len * sample_len;

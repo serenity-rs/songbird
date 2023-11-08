@@ -273,7 +273,7 @@ impl Live {
         for (i, mixer) in self.tasks.iter_mut().enumerate() {
             let res = mixer
                 .audio_commands_events()
-                .and_then(|_| mixer.check_and_send_keepalive(self.start_of_work));
+                .and_then(|()| mixer.check_and_send_keepalive(self.start_of_work));
             rebuild_if_err(mixer, res, &mut self.to_cull, i);
         }
 

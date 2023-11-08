@@ -404,7 +404,7 @@ where
             // However, we can guarantee that reads will be channel aligned at least!
             for el in sample_buf[..samples_in_frame].chunks_mut(interleaved_count) {
                 match src.read_f32_into::<LittleEndian>(el) {
-                    Ok(_) => {
+                    Ok(()) => {
                         raw_len += interleaved_count;
                     },
                     Err(e) if e.kind() == IoErrorKind::UnexpectedEof => {

@@ -82,7 +82,7 @@ impl AuxNetwork {
             let hb = sleep_until(next_heartbeat);
 
             select! {
-                _ = hb => {
+                () = hb => {
                     ws_error = match self.send_heartbeat().await {
                         Err(e) => {
                             should_reconnect = ws_error_is_not_final(&e);

@@ -78,7 +78,7 @@ fn cleanup_child_processes(mut children: Vec<Child>) {
         return;
     };
 
-    let attempt = attempt.and_then(|_| {
+    let attempt = attempt.and_then(|()| {
         children
             .iter_mut()
             .rev()

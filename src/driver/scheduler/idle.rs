@@ -94,7 +94,7 @@ impl Idle {
                                 self.schedule_mixer(task, id, None);
                             },
                             Ok(false) => {},
-                            Ok(true) | Err(_) => self.to_cull.push(id),
+                            Ok(true) | Err(()) => self.to_cull.push(id),
                         }
                     } else {
                         info!("Received post-cull message for {id:?}, discarding.");
@@ -161,7 +161,7 @@ impl Idle {
                 let task = loop_task.take().unwrap();
                 let (worker, idx) = self.fetch_worker(&task, avoid);
                 match worker.schedule_mixer(id, task) {
-                    Ok(_) => {
+                    Ok(()) => {
                         self.stats.move_mixer_to_live();
                         break;
                     },
@@ -239,8 +239,10 @@ mod test {
 
     #[tokio::test]
     async fn active_mixers_spawn_threads() {
-        let mut config = Config::default();
-        config.move_expensive_tasks = false;
+        let config = Config {
+            strategy: Mode::default(),
+            move_expensive_tasks: false,
+        };
 
         let sched = Scheduler::new(config);
         let (pkt_tx, _pkt_rx) = flume::unbounded();
@@ -270,11 +272,14 @@ mod test {
 
     #[tokio::test]
     async fn excess_threads_are_cleaned_up() {
-        let mut config = Config::default();
-        config.strategy = Mode::MaxPerThread(1.try_into().unwrap());
-        let (mut core, tx) = Idle::new(config.clone());
-
         const TEST_TIMER: Duration = Duration::from_millis(500);
+
+        let config = Config {
+            strategy: Mode::MaxPerThread(1.try_into().unwrap()),
+            move_expensive_tasks: true,
+        };
+
+        let (mut core, tx) = Idle::new(config.clone());
         core.cull_timer = TEST_TIMER;
 
         let mut next_id = TaskId::new();

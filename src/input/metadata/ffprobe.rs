@@ -102,8 +102,10 @@ pub struct Format {
     pub filename: String,
     pub nb_streams: u64,
     pub nb_programs: u64,
-    pub format_name: String,
-    pub format_long_name: Option<String>,
+    #[serde(rename = "format_name")]
+    pub name: String,
+    #[serde(rename = "format_long_name")]
+    pub long_name: Option<String>,
 
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub start_time: Option<f64>,
