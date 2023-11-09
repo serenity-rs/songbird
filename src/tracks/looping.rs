@@ -66,7 +66,7 @@ mod tests {
         let _ = handle.add_event(Event::Track(TrackEvent::Loop), Looper { tx: l_tx });
         let _ = handle.add_event(Event::Track(TrackEvent::End), Looper { tx: e_tx });
 
-        t_handle.spawn_ticker().await;
+        t_handle.spawn_ticker();
 
         // CONDITIONS:
         // 1) 2 loop events, each changes the loop count.
@@ -100,7 +100,7 @@ mod tests {
         let (l_tx, l_rx) = flume::unbounded();
         let _ = handle.add_event(Event::Track(TrackEvent::Loop), Looper { tx: l_tx });
 
-        t_handle.spawn_ticker().await;
+        t_handle.spawn_ticker();
 
         // CONDITIONS:
         // 1) 3 loop events, each does not change the loop count.

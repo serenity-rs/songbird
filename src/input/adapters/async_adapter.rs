@@ -83,7 +83,7 @@ impl AsyncAdapterSink {
             let msg = if blocked || hit_end {
                 let mut fs = FuturesUnordered::new();
                 fs.push(Either::Left(self.req_rx.recv_async()));
-                fs.push(Either::Right(self.notify_rx.notified().map(|_| {
+                fs.push(Either::Right(self.notify_rx.notified().map(|()| {
                     let o: Result<AdapterRequest, RecvError> = Ok(AdapterRequest::Wake);
                     o
                 })));
@@ -274,7 +274,7 @@ impl Seek for AsyncAdapterStream {
         self.finalised.store(false, Ordering::Relaxed);
         match self.handle_messages(Operation::Seek) {
             Some(AdapterResponse::SeekClear) => {},
-            None => self.check_dropped().map(|_| unreachable!())?,
+            None => self.check_dropped().map(|()| unreachable!())?,
             _ => unreachable!(),
         }
 
@@ -284,7 +284,7 @@ impl Seek for AsyncAdapterStream {
 
         match self.handle_messages(Operation::Seek) {
             Some(AdapterResponse::SeekResult(a)) => a,
-            None => self.check_dropped().map(|_| unreachable!()),
+            None => self.check_dropped().map(|()| unreachable!()),
             _ => unreachable!(),
         }
     }
@@ -302,7 +302,7 @@ impl MediaSource for AsyncAdapterStream {
 
         match self.handle_messages(Operation::Len) {
             Some(AdapterResponse::ByteLen(a)) => a,
-            None => self.check_dropped().ok().map(|_| unreachable!()),
+            None => self.check_dropped().ok().map(|()| unreachable!()),
             _ => unreachable!(),
         }
     }

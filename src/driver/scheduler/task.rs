@@ -39,7 +39,7 @@ impl<T> IsEnabled for ResId<T> {}
 #[allow(missing_docs)]
 impl<T: Copy> ResId<T> {
     pub fn new() -> Self {
-        ResId(0, PhantomData)
+        Self::default()
     }
 
     pub fn incr(&mut self) -> Self {
@@ -49,8 +49,14 @@ impl<T: Copy> ResId<T> {
     }
 
     #[cfg(any(test, feature = "internals"))]
-    pub fn get(&self) -> u64 {
+    pub fn get(self) -> u64 {
         self.0
+    }
+}
+
+impl<T: Copy> Default for ResId<T> {
+    fn default() -> Self {
+        Self(0, PhantomData)
     }
 }
 
@@ -152,7 +158,7 @@ impl ParkedMixer {
                 self.mixer
                     .do_rebuilds(events_failure, conn_failure)
                     .map_err(|_| ())
-                    .map(|_| should_exit)
+                    .map(|()| should_exit)
             },
         }
     }

@@ -74,7 +74,7 @@ impl<A: MediaSource> Seek for RawAdapter<A> {
             };
 
             let out = if target_pos as usize <= self.prepend.len() {
-                self.inner.rewind().map(|_| 0)
+                self.inner.rewind().map(|()| 0)
             } else {
                 self.inner.seek(SeekFrom::Start(target_pos))
             };

@@ -282,7 +282,7 @@ mod tests {
         let handle = driver.play(Track::from(file).pause());
 
         let callback = handle.make_playable();
-        t_handle.spawn_ticker().await;
+        t_handle.spawn_ticker();
         assert!(callback.result_async().await.is_ok());
     }
 
@@ -297,7 +297,7 @@ mod tests {
 
         let target = Duration::from_millis(500);
         let callback = handle.seek(target);
-        t_handle.spawn_ticker().await;
+        t_handle.spawn_ticker();
 
         let answer = callback.result_async().await;
         assert!(answer.is_ok());

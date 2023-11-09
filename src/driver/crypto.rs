@@ -153,7 +153,7 @@ impl CryptoMode {
 
         cipher
             .decrypt_in_place_detached(nonce_slice, b"", data_bytes, tag)
-            .map(|_| (body_start, body_tail))
+            .map(|()| (body_start, body_tail))
     }
 
     /// Encrypts a Discord RT(C)P packet using the given key.
@@ -290,8 +290,7 @@ mod test {
             let mut pkt = MutableRtpPacket::new(&mut buf[..]).unwrap();
             let mut crypto_state = CryptoState::from(mode);
             let payload = pkt.payload_mut();
-            (&mut payload[TAG_SIZE..TAG_SIZE + TRUE_PAYLOAD.len()])
-                .copy_from_slice(&TRUE_PAYLOAD[..]);
+            payload[TAG_SIZE..TAG_SIZE + TRUE_PAYLOAD.len()].copy_from_slice(&TRUE_PAYLOAD[..]);
 
             let final_payload_size =
                 crypto_state.write_packet_nonce(&mut pkt, TAG_SIZE + TRUE_PAYLOAD.len());

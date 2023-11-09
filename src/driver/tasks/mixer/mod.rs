@@ -576,12 +576,12 @@ impl Mixer {
             let msg = match mix_len {
                 MixType::Passthrough(len) if len == SILENT_FRAME.len() => OutputMessage::Silent,
                 MixType::Passthrough(len) => {
-                    let rtp = RtpPacket::new(&packet).expect(
+                    let rtp = RtpPacket::new(packet).expect(
                         "FATAL: Too few bytes in self.packet for RTP header.\
                             (Blame: VOICE_PACKET_MAX?)",
                     );
                     let payload = rtp.payload();
-                    let opus_frame = (&payload[TAG_SIZE..][..len]).to_vec();
+                    let opus_frame = (payload[TAG_SIZE..][..len]).to_vec();
 
                     OutputMessage::Passthrough(opus_frame)
                 },

@@ -27,14 +27,17 @@ pub enum OutputMessage {
 
 #[allow(dead_code)]
 impl OutputMessage {
+    #[must_use]
     pub fn is_passthrough(&self) -> bool {
         matches!(self, Self::Passthrough(_))
     }
 
+    #[must_use]
     pub fn is_mixed(&self) -> bool {
         matches!(self, Self::Mixed(_))
     }
 
+    #[must_use]
     pub fn is_mixed_with_nonzero_signal(&self) -> bool {
         if let Self::Mixed(data) = self {
             data.iter().any(|v| *v != 0.0f32)
@@ -43,6 +46,7 @@ impl OutputMessage {
         }
     }
 
+    #[must_use]
     pub fn is_explicit_silence(&self) -> bool {
         *self == Self::Silent
     }
@@ -94,6 +98,7 @@ pub enum OutputPacket {
 }
 
 impl OutputPacket {
+    #[must_use]
     pub fn raw(&self) -> Option<&OutputMessage> {
         if let Self::Raw(o) = self {
             Some(o)
@@ -116,6 +121,7 @@ pub struct DriverTestHandle {
 }
 
 impl DriverTestHandle {
+    #[must_use]
     pub fn recv(&self) -> OutputPacket {
         match &self.rx {
             OutputReceiver::Raw(rx) => rx.recv().unwrap().into(),
@@ -130,11 +136,17 @@ impl DriverTestHandle {
         }
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         match &self.rx {
             OutputReceiver::Raw(rx) => rx.len(),
             OutputReceiver::Rtp(rx) => rx.len(),
         }
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn wait(&self, n_ticks: u64) {
@@ -149,7 +161,7 @@ impl DriverTestHandle {
         }
     }
 
-    pub async fn spawn_ticker(&self) {
+    pub fn spawn_ticker(&self) {
         let remote = self.clone();
         tokio::spawn(async move {
             loop {
@@ -179,9 +191,11 @@ impl DriverTestHandle {
     }
 
     pub fn tick(&self, n_ticks: u64) {
-        if n_ticks == 0 {
-            panic!("Number of ticks to advance driver/mixer must be >= 1.");
-        }
+        assert!(
+            n_ticks != 0,
+            "Number of ticks to advance driver/mixer must be >= 1."
+        );
+
         self.tx.send(n_ticks).unwrap();
     }
 
@@ -190,9 +204,6 @@ impl DriverTestHandle {
         handle: &TrackHandle,
         tick_wait: Option<Duration>,
     ) -> TrackState {
-        let (tx, rx) = flume::bounded(1);
-        let (err_tx, err_rx) = flume::bounded(1);
-
         struct SongPlayable {
             tx: Sender<TrackState>,
         }
@@ -223,6 +234,9 @@ impl DriverTestHandle {
             }
         }
 
+        let (tx, rx) = flume::bounded(1);
+        let (err_tx, err_rx) = flume::bounded(1);
+
         handle
             .add_event(Event::Track(TrackEvent::Playable), SongPlayable { tx })
             .expect("Adding track evt should not fail before any ticks.");
@@ -237,7 +251,7 @@ impl DriverTestHandle {
             self.wait_async(1).await;
 
             match err_rx.try_recv() {
-                Ok(e) => panic!("Error reported on track: {:?}", e),
+                Ok(e) => panic!("Error reported on track: {e:?}"),
                 Err(flume::TryRecvError::Empty | flume::TryRecvError::Disconnected) => {},
             }
 

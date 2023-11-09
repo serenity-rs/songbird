@@ -66,7 +66,7 @@ impl Mixer {
 
         #[cfg(feature = "receive")]
         let fake_conn = MixerConnection {
-            cipher: Cipher::new_from_slice(&vec![0u8; KEY_SIZE]).unwrap(),
+            cipher: Cipher::new_from_slice(&[0u8; KEY_SIZE]).unwrap(),
             crypto_state: CryptoState::Normal,
             udp_rx: udp_receiver_tx,
             udp_tx,
@@ -74,7 +74,7 @@ impl Mixer {
 
         #[cfg(not(feature = "receive"))]
         let fake_conn = MixerConnection {
-            cipher: Cipher::new_from_slice(&vec![0u8; KEY_SIZE]).unwrap(),
+            cipher: Cipher::new_from_slice(&[0u8; KEY_SIZE]).unwrap(),
             crypto_state: CryptoState::Normal,
             udp_tx,
         };
@@ -97,7 +97,7 @@ impl Mixer {
             let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
             let promoted = match input {
                 Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
-                _ => panic!("Failed to create a guaranteed source."),
+                Input::Lazy(_) => panic!("Failed to create a guaranteed source."),
             };
             let (_, ctx) = Track::from(Input::Live(promoted.unwrap(), None)).into_context();
             _ = out.0.add_track(ctx);
@@ -114,7 +114,7 @@ impl Mixer {
         let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
         let promoted = match input {
             Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
-            _ => panic!("Failed to create a guaranteed source."),
+            Input::Lazy(_) => panic!("Failed to create a guaranteed source."),
         };
         let mut track = Track::from(Input::Live(promoted.unwrap(), None));
         track.loops = LoopState::Infinite;
@@ -133,7 +133,7 @@ impl Mixer {
             let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
             let promoted = match input {
                 Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
-                _ => panic!("Failed to create a guaranteed source."),
+                Input::Lazy(_) => panic!("Failed to create a guaranteed source."),
             };
             let (_, ctx) = Track::from(Input::Live(promoted.unwrap(), None)).into_context();
             _ = out.0.add_track(ctx);
@@ -142,7 +142,7 @@ impl Mixer {
         out
     }
 
-    pub fn test_with_opus(handle: Handle) -> DummyMixer {
+    pub fn test_with_opus(handle: &Handle) -> DummyMixer {
         // should add a single opus-based track.
         // make this fully loaded to prevent any perf cost there.
         let mut out = Self::mock(handle.clone(), false);
@@ -161,7 +161,7 @@ impl Mixer {
 
         let promoted = match src.into() {
             Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
-            _ => panic!("Failed to create a guaranteed source."),
+            Input::Lazy(_) => panic!("Failed to create a guaranteed source."),
         };
         let (_, ctx) = Track::from(Input::Live(promoted.unwrap(), None)).into_context();
 
@@ -181,6 +181,7 @@ pub struct MockScheduler {
 }
 
 impl MockScheduler {
+    #[must_use]
     pub fn new(mode: Option<Mode>) -> Self {
         let stats = Arc::new(StatBlock::default());
         let local = Arc::new(LiveStatBlock::default());
@@ -188,8 +189,10 @@ impl MockScheduler {
         let (task_tx, task_rx) = flume::unbounded();
         let (sched_tx, sched_rx) = flume::unbounded();
 
-        let mut cfg = crate::driver::SchedulerConfig::default();
-        cfg.strategy = mode.unwrap_or_default();
+        let cfg = crate::driver::SchedulerConfig {
+            strategy: mode.unwrap_or_default(),
+            move_expensive_tasks: true,
+        };
 
         let core = Live::new(
             WorkerId::new(),
@@ -214,6 +217,7 @@ impl MockScheduler {
         self.core.add_task_direct(m, id);
     }
 
+    #[must_use]
     pub fn from_mixers(mode: Option<Mode>, mixers: Vec<DummyMixer>) -> (Self, Vec<Listeners>) {
         let mut out = Self::new(mode);
         let mut listeners = vec![];

@@ -188,6 +188,8 @@ impl Songbird {
     }
 
     /// Creates an iterator for all [`Call`]s currently managed.
+    // TODO: Implement IntoIterator
+    #[allow(clippy::iter_without_into_iter)]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.calls.iter().map(|x| (*x.key(), Arc::clone(x.value()))),
@@ -253,7 +255,7 @@ impl Songbird {
         };
 
         match stage_1 {
-            Ok(chan) => chan.await.map(|_| call),
+            Ok(chan) => chan.await.map(|()| call),
             Err(e) => Err(e),
         }
     }

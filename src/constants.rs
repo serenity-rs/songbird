@@ -81,6 +81,7 @@ pub const RTP_VERSION: u8 = 2;
 pub const RTP_PROFILE_TYPE: RtpType = RtpType::Dynamic(120);
 
 #[cfg(test)]
+#[allow(clippy::doc_markdown)]
 pub mod test_data {
     /// URL for a source which YTDL must extract.
     ///
