@@ -188,8 +188,6 @@ impl Songbird {
     }
 
     /// Creates an iterator for all [`Call`]s currently managed.
-    // TODO: Implement IntoIterator
-    #[allow(clippy::iter_without_into_iter)]
     pub fn iter(&self) -> Iter<'_> {
         Iter {
             inner: self.calls.iter().map(|x| (*x.key(), Arc::clone(x.value()))),
@@ -351,6 +349,16 @@ impl Songbird {
         self.leave(guild_id).await?;
         self.calls.remove(&guild_id);
         Ok(())
+    }
+}
+
+impl<'a> IntoIterator for &'a Songbird {
+    type Item = <Iter<'a> as Iterator>::Item;
+
+    type IntoIter = Iter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 
