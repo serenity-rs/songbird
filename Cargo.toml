@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-rust-version = "1.72"
+rust-version = "1.74"
 version = "0.3.2"
 
 [dependencies]
@@ -36,6 +36,8 @@ rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
 serde-aux = { optional = true, version = "4"}
 serde_json = "1"
+serenity = { optional = true, version = "0.12.0-rc", features = ["voice", "gateway"] }
+serenity-voice-model = { optional = true, version = "0.1" }
 simd-json = { features = ["serde_impl"], optional = true, version = "0.13" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
@@ -51,16 +53,6 @@ twilight-model = { default-features = false, optional = true, version = "0.15.0"
 typemap_rev = { optional = true, version = "0.3" }
 url = { optional = true, version = "2" }
 uuid = { features = ["v4"], optional = true, version = "1" }
-
-[dependencies.serenity]
-version = "0.11"
-default-features = false
-features = ["voice", "gateway"]
-optional = true
-
-[dependencies.serenity-voice-model]
-version = "0.11"
-optional = true
 
 [dev-dependencies]
 byteorder = "1"
