@@ -1,6 +1,140 @@
 # Changelog
 
-## [0.3.2] - 2023-04-09
+## [0.4.0] — 2023-11-20 — **Nightingale**
+
+Possessing a beautiful, creative, and evocative song through both night and day, the humble Nightingale has long been seen as a symbol of poetry and love.
+
+In keeping with the spirit of this release's passerine of choice, *songbird* now sings more melodiously than ever!
+This release has been a *long* time coming, and as such *Nightingale* brings several huge changes to how songbird is used and how it performs.
+
+---
+
+The largest change by far is a complete overhaul of all code relating to audio decoding, mixing, and loading from different locations, driven by [**Symphonia**](https://github.com/pdeljanov/Symphonia).
+Broadly, this means that we handle every part of the audio pipeline *in-process* and ffmpeg is entirely removed, saving significant memory and CPU and letting you scale to more voice calls on one box.
+Another boon is that reading in-memory audio now Just Works: if you can treat it as a `&[u8]`, then you're good to go!
+Having this level of control also lets us expand our list of file-formats supporting direct Opus passthrough to include Ogg Opus and WebM/MKV, as well as the [DCA](https://github.com/bwmarrin/dca) format.
+Given that many sites will serve WebM, this is a significant saving on CPU time for many playback use cases.
+Additionally, we now handle HTTP reconnection logic internally, offering more reliable behaviour than certain `downloader -> ffmpeg` process chains would provide.
+Symphonia format support is [significant](https://github.com/pdeljanov/Symphonia?tab=readme-ov-file#formats-demuxers), and you can enable and disable exactly the codecs and containers you need at compile-time.
+
+Voice receive has been given its own fair share of improvements.
+Most importantly, all receive sessions now make use of per-user *jitter buffers* – *songbird* will now delay decoding of all users to correctly reorder audio packets, smooth out network latency jitter, and to help synchronize playback of several speakers.
+Receive functionality is now feature-gated and disabled by default, and so won't affect compile-time or runtime performance if you don't want to make use of it.
+
+Finally, songbird now includes a new deadline-aware audio scheduler, which will pack as many concurrent `Call`s as possible onto a single thread.
+Compared to the previous model we now reduce thread counts, CPU use, and context switching – for context, up to 660 live Opus-passthrough-enabled calls can run on a single thread on a Ryzen 5700X.
+This is also helped by how we now park all `Call`s without any active `Track`s onto a single shared event handling async task.
+
+---
+
+All in all, we're really excited to see what you build with these new tools and performance improvements.
+
+Thanks to the following for their contributions:
+
+- [@Erk-]
+- [@fee1-dead]
+- [@FelixMcFelix]
+- [@GnomedDev]
+- [@jontze]
+- [@maxall41]
+- [@Sebbl0508]
+- [@tazz4843]
+- [@vicky5124]
+
+### Upgrade Pathway
+
+**Inputs**:
+* `ytdl` etc. are removed and replaced with new lazy initialisers – [read the docs on how to create sources from a URL or local path](https://serenity-rs.github.io/songbird/next/songbird/input/index.html#common-sources).
+* All inputs are now lazy by default, so `Restartable` is no longer needed.
+* Inputs can no longer directly output raw audio, as symphonia must always parse a container/codec pair. We've included a custom `RawReader` container format and the `RawAdapter` transform to support this.
+* Metadata is now split according to what you can learn when creating a source (`AuxMetadata`, e.g. info learned from a web scrape) and what metadata is encoded in a track itself (`Metadata`). `Metadata` can only be read once a track is fully initialised and parsed.
+* Songbird can now better encode an audio source's lifecycle from uninitialised, to readable, to having its headers fully parsed. [Read the examples on how they can be manipulated](https://serenity-rs.github.io/songbird/next/songbird/input/enum.Input.html), particularly if you want to make use of metadata.
+* Songbird's audio systems have undergone the most change in this release, so this list is non-exhaustive.
+
+**Tracks**:
+* `TrackHandle::action` now gives temporary access to a `View` object – a set of current track state and extracted metadata – which can be used to fire more complex commands like seeking or pre-loading a `Track` by returning an `Action`.
+* `TrackHandle`s are now created only from `Driver::play`/`play_input` and related methods.
+* `tracks::create_player` is removed in favour of the above methods on `Driver`.
+
+**Voice Receive**:
+* Users of voice receive will now need to enable the `"receive"` feature.
+* `CoreEvent::VoicePacket` has now split into two events: `RtpPacket` and `VoiceTick`.
+`RtpPacket` corresponds to raw RTP packets received from each user and does not decode audio, while `VoiceTick` fires every 20ms and includes the reordered (and decoded, if so configured) audio for every user, synchronised and ready to use.
+* Per-user jitter buffer sizes can be configured using `Config::playout_buffer_length` and `::playout_spike_length`.
+
+### Added
+
+- [driver] Driver: Implement audio scheduler (#179) ([@FelixMcFelix]) [c:3daf11f]
+- [gateway] Gateway: Add `Songbird::iter` (#166) ([@fee1-dead]) [c:5bc8430]
+- [driver] Driver/receive: Implement audio reorder/jitter buffer (#156) ([@FelixMcFelix]) [c:c60c454]
+- [driver] Driver: Split receive into its own feature (#141) ([@FelixMcFelix]) [c:2277595]
+- [driver] Driver: Add toggle for softclip (#137) ([@FelixMcFelix]) [c:13946b4]
+- [driver] Support simd_json (#105) ([@vicky5124]) [c:cb0a74f]
+- [driver] Driver/Input: Migrate audio backend to Symphonia (#89) ([@FelixMcFelix]) [c:8cc7a22]
+
+### Changed
+
+- [clippy] Chore: Cleanup clippy lints ([@FelixMcFelix]) [c:91640f6]
+- [deps] Chore: Upgrade serenity to 0.12.0-rc ([@FelixMcFelix]) [c:1487da1]
+- [deps] Chore: Bump DiscoRTP version ([@FelixMcFelix]) [c:0ef0e4f]
+- [clippy] Fix clippy pedantic warnings (#204) ([@GnomedDev]) [c:3d307aa]
+- [deps] Update simd-json to 0.13 (#203) ([@GnomedDev]) [c:63d48ee]
+- [deps] Chore: Update Rubato -> 0.14.1 ([@FelixMcFelix]) [c:67b3b3e]
+- [deps] Chore: Update (most) dependencies ([@FelixMcFelix]) [c:4220c1f]
+- [clippy] Chore: Rust 1.72.0 Clippy lints, adjust MSRV ([@FelixMcFelix]) [c:6f80156]
+- [deps] Driver: Replace `xsalsa20poly1305` with `crypto_secretbox` (#198) ([@Sebbl0508]) [c:77a9b46]
+- [ci] Chore(ci): Update rust, cargo and cache actions (#177) ([@jontze]) [c:5ddc8f4]
+- [ci] chore(docs): Update rust setup action and cache (#176) ([@jontze]) [c:4eadeb6]
+- [ci] chore(workflows): Update checkout action to v3 (#175) ([@jontze]) [c:841224e]
+- [driver] Driver: Retune threadpool keepalive time ([@FelixMcFelix]) [c:9ab5be8]
+- [driver] Driver: Downgrade failed scheduler message delivery to info ([@FelixMcFelix]) [c:02c9812]
+- [clippy] Chore: Clippy fixes to match new MSRV. ([@FelixMcFelix]) [c:9fa063f]
+- [deps] Chore: Update dependencies, MSRV. ([@FelixMcFelix]) [c:1bf17d1]
+- [deps] Chore: Update dependencies. ([@FelixMcFelix]) [c:a5f7d3f]
+- [ci] Repo: Update issue templates ([@FelixMcFelix]) [c:6cd3097]
+- [deps] Gateway: Twilight 0.15 support (#171) ([@Erk-]) [c:b2507f3]
+- [clippy] Chore: Fix clippy warnings (#167) ([@fee1-dead]) [c:6e6d8e7]
+- [ci] CI: Disable Windows, MacOS Testing ([@FelixMcFelix]) [c:2de071f]
+- [input] Input: Clarify `YoutubeDl` error if command missing (#160) ([@FelixMcFelix]) [c:53ebc3c]
+- [deps] Deps: Move to published `symphonia` v0.5.2 from git ([@FelixMcFelix]) [c:fdd0d83]
+- [gateway] Gateway: Simplify return value of `join`/`join_gateway` (#157) ([@FelixMcFelix]) [c:f2fbbfe]
+- [deps] Chore: Update tokio-tungstenite, typemap_rev ([@FelixMcFelix]) [c:5d06a42]
+- [deps] Chore: Apply latest nightly clippy lints ([@FelixMcFelix]) [c:125c803]
+- [driver] Driver: remove copy to receive &mut for softclip (#143) ([@FelixMcFelix]) [c:ab18f9e]
+- [deps] Deps: Move symphonia back to mainline repo. ([@FelixMcFelix]) [c:b7e40ab]
+- [deps] Deps: Update dev-dependencies ([@FelixMcFelix]) [c:f72175b]
+- [deps] Deps: Update Ringbuf, Serde-Aux, Simd-Json, Typemap ([@FelixMcFelix]) [c:6a38fc8]
+- [clippy] Chore: Fix new(er) Clippy lints ([@FelixMcFelix]) [c:662debd]
+- [deps] Deps: Update Twilight -> v0.14 ([@FelixMcFelix]) [c:646190e]
+- [deps] Deps: Update twilight to 0.13 (#147) ([@Erk-]) [c:372156e]
+- [deps] Chore: Update `xsalsa20poly1305` -> 0.9 ([@FelixMcFelix]) [c:48db45f]
+- [deps] Chore: Rework crate features (#139) ([@FelixMcFelix]) [c:d8061d5]
+- [driver] Driver: Migrate to `tokio_tungstenite` (#138) ([@FelixMcFelix]) [c:76c9851]
+- [input] Input: lazy_static -> once_cell::sync::Lazy (#136) ([@GnomedDev]) [c:0beb0f0]
+
+### Fixed
+
+- [gateway] Fix compiling with latest serenity (#199) ([@GnomedDev]) [c:509743f]
+- [driver] Driver: Correct buffer instantiation for Rubato ([@FelixMcFelix]) [c:935171d]
+- [tests] Chore: Update test URL for playlist. ([@FelixMcFelix]) [c:c55a313]
+- [driver] Driver: Don't trim recv_buffer on MacOS ([@FelixMcFelix]) [c:019ac27]
+- [driver] Driver: Fix scheduler crash after task closure ([@FelixMcFelix]) [c:77e3916]
+- [input] Input: Add HTTP Status Code Checks (#190) ([@maxall41]) [c:c976d50]
+- [driver] Fix: Move WS error handling (#174) ([@Erk-]) [c:500d679]
+- [gateway] Gateway: Fix serenity breaking changes (#173) ([@tazz4843]) [c:4d0c1c0]
+- [driver] fix(ws): Songbird would fail if it could not deserialize ws payload. (#170) ([@Erk-]) [c:c73f498]
+- [repo] Chore: Fix README.md CI badge (#161) ([@FelixMcFelix]) [c:50dbc62]
+- [input] Input: Pass `--no-playlist` for `YoutubeDl` (#168) ([@fee1-dead]) [c:296f0e5]
+- [docs] Docs: Fix a link in constant docstring (#169) ([@fee1-dead]) [c:3f6114c]
+- [input] Input: Fix high CPU use when initialising long files over HTTP (#163) ([@FelixMcFelix]) [c:50fa17f]
+- [deps] Docs: Correct version for symphonia codec support ([@FelixMcFelix]) [c:ed4be7c]
+- [driver] Avoid spawning a disposal thread per driver (#151) ([@GnomedDev]) [c:be3a4e9]
+- [input] Input: Fix audio stream selection for video files. (#150) ([@FelixMcFelix]) [c:03b0803]
+- [driver] Driver: Prune `SsrcState` after timeout/disconnect (#145) ([@FelixMcFelix]) [c:893dbaa]
+- [docs] Events: Fix typo in docs for VoiceData (#142) ([@tazz4843]) [c:6769131]
+- [docs] Docs: Fix module docs for `songbird::tracks`. ([@FelixMcFelix]) [c:c1d93f7]
+
+## [0.3.2] — 2023-04-09
 
 This patch release fixes a WS disconnection that would occur when receiving a
 new opcode, which was happening due to Discord sending such an opcode upon
@@ -436,6 +570,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
+[0.4.0]: https://github.com/serenity-rs/songbird/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/serenity-rs/songbird/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/serenity-rs/songbird/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/serenity-rs/songbird/compare/v0.2.2...v0.3.0
@@ -462,6 +597,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@DoumanAsh]: https://github.com/DoumanAsh
 [@Elinvynia]: https://github.com/Elinvynia
 [@Erk-]: https://github.com/Erk-
+[@fee1-dead]: https://github.com/fee1-dead
 [@FelixMcFelix]: https://github.com/FelixMcFelix
 [@Flat]: https://github.com/Flat
 [@ForsakenHarmony]: https://github.com/ForsakenHarmony
@@ -472,12 +608,14 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@james7132]: https://github.com/james7132
 [@JamesDSource]: https://github.com/JamesDSource
 [@JellyWX]: https://github.com/JellyWX
+[@jontze]: https://github.com/jontze
 [@jtscuba]: https://github.com/jtscuba
 [@Lakelezz]: https://github.com/Lakelezz
 [@lajp]: https://github.com/lajp
 [@LikeLakers2]: https://github.com/LikeLakers2
 [@Lunarmagpie]: https://github.com/Lunarmagpie
 [@Maspenguin]: https://github.com/Maspenguin
+[@maxall41]: https://github.com/maxall41
 [@mendess]: https://github.com/mendess
 [@Miezhiko]: https://github.com/Miezhiko
 [@nickelc]: https://github.com/nickelc
@@ -489,17 +627,82 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@reiyw]: https://github.com/reiyw
 [@Roughsketch]: https://github.com/Roughsketch
 [@saanuregh]: https://github.com/saanuregh
+[@Sebbl0508]: https://github.com/Sebbl0508
 [@s0lst1ce]: https://github.com/s0lst1ce
 [@Sreyas-Sreelal]: https://github.com/Sreyas-Sreelal
 [@tarcieri]: https://github.com/tarcieri
 [@tazz4843]: https://github.com/tazz4843
 [@tktcorporation]: https://github.com/tktcorporation
 [@vaporox]: https://github.com/vaporox
+[@vicky5124]: https://github.com/vicky5124
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@wlcx]: https://github.com/wlcx
 
 <!-- COMMITS -->
+[c:3daf11f]: https://github.com/serenity-rs/songbird/commit/3daf11f5d128eb57eea1d7dea0419c638d3912d6
+[c:5bc8430]: https://github.com/serenity-rs/songbird/commit/5bc843047f7d15ee1ee9e110fc203d64f657a126
+[c:c60c454]: https://github.com/serenity-rs/songbird/commit/c60c454cf529f2ba63381f4a56a830828b67eed4
+[c:2277595]: https://github.com/serenity-rs/songbird/commit/2277595be4d150eb14098ab4d7959213b22e0337
+[c:13946b4]: https://github.com/serenity-rs/songbird/commit/13946b47ce80fe1fd7acec9b02ff1949688e4e98
+[c:cb0a74f]: https://github.com/serenity-rs/songbird/commit/cb0a74f511d4ff574369a42fd380ca074f0763c6
+[c:8cc7a22]: https://github.com/serenity-rs/songbird/commit/8cc7a22b0bae5da405e1c52639567ed24bc7325b
+[c:91640f6]: https://github.com/serenity-rs/songbird/commit/91640f6c86dfb6571851182d38bb73063ec6044d
+[c:1487da1]: https://github.com/serenity-rs/songbird/commit/1487da175c4ce2f32d58e356e27564f43164af6a
+[c:0ef0e4f]: https://github.com/serenity-rs/songbird/commit/0ef0e4fc8266512b0639b5b6fe5d106552c0fa4d
+[c:3d307aa]: https://github.com/serenity-rs/songbird/commit/3d307aaa8bb71be21d06ae31e4523a1cefa7213f
+[c:63d48ee]: https://github.com/serenity-rs/songbird/commit/63d48ee5973bf6b9549c10809996f3634bd81310
+[c:67b3b3e]: https://github.com/serenity-rs/songbird/commit/67b3b3ec50be6695998d762b90f37b222de0f0b8
+[c:4220c1f]: https://github.com/serenity-rs/songbird/commit/4220c1ffe534072e39ca9de1a8d84cc36534ab92
+[c:6f80156]: https://github.com/serenity-rs/songbird/commit/6f801563e51a9a94c2ed46ede3d08848ac149699
+[c:77a9b46]: https://github.com/serenity-rs/songbird/commit/77a9b4626cb1f660b3c92e96dc0ed28621a257a8
+[c:5ddc8f4]: https://github.com/serenity-rs/songbird/commit/5ddc8f44480e00435bb50a540949dc65ff907c79
+[c:4eadeb6]: https://github.com/serenity-rs/songbird/commit/4eadeb6834e5e20be34004202a4d08856c81ff1c
+[c:841224e]: https://github.com/serenity-rs/songbird/commit/841224ee7abf01d126e22330c3dfedccbe997367
+[c:9ab5be8]: https://github.com/serenity-rs/songbird/commit/9ab5be8c9f577f81f32ac8be615056d659775f37
+[c:02c9812]: https://github.com/serenity-rs/songbird/commit/02c9812c3eda600693a6c75f01271cca6aaff1a6
+[c:9fa063f]: https://github.com/serenity-rs/songbird/commit/9fa063ff0edd0372f0e4d0f0269056b01321cb19
+[c:1bf17d1]: https://github.com/serenity-rs/songbird/commit/1bf17d128e19fdf190579fec56932b7f4818c480
+[c:a5f7d3f]: https://github.com/serenity-rs/songbird/commit/a5f7d3f4886241d9d27dd7800aa47b02d2febc24
+[c:6cd3097]: https://github.com/serenity-rs/songbird/commit/6cd3097da0716f5aca9fba70a5e79b323710cc65
+[c:b2507f3]: https://github.com/serenity-rs/songbird/commit/b2507f34f1e69dac3fd2bb71d6fd29168437829d
+[c:6e6d8e7]: https://github.com/serenity-rs/songbird/commit/6e6d8e7ebf4de57f18968d35021b4217f2683372
+[c:2de071f]: https://github.com/serenity-rs/songbird/commit/2de071f9218d7d72c94e2be6722f2bbf457386fe
+[c:53ebc3c]: https://github.com/serenity-rs/songbird/commit/53ebc3c637137c6d8b383494e8bbdde31a81cc07
+[c:fdd0d83]: https://github.com/serenity-rs/songbird/commit/fdd0d830c78fbf1fa6addfc0029bf76dbac56dbf
+[c:f2fbbfe]: https://github.com/serenity-rs/songbird/commit/f2fbbfeb2537085f867be01c935149e472544445
+[c:5d06a42]: https://github.com/serenity-rs/songbird/commit/5d06a429a8bfe16645886dd96da368d97abeaee6
+[c:125c803]: https://github.com/serenity-rs/songbird/commit/125c803fa713e728c2f712c222ce00b7a7131d7b
+[c:ab18f9e]: https://github.com/serenity-rs/songbird/commit/ab18f9e092dd28101961cc945c0038bddc38560a
+[c:b7e40ab]: https://github.com/serenity-rs/songbird/commit/b7e40ab5e44fa1b1b893b6d9b47a741dbd16b766
+[c:f72175b]: https://github.com/serenity-rs/songbird/commit/f72175b799b3ab16ec69c096aaba9f2a009530df
+[c:6a38fc8]: https://github.com/serenity-rs/songbird/commit/6a38fc82f46c06580fb7b6fac5ff54dcab6b24ad
+[c:662debd]: https://github.com/serenity-rs/songbird/commit/662debd4146fa090f144b1ec0c4dd83d977fc9a2
+[c:646190e]: https://github.com/serenity-rs/songbird/commit/646190eaf82ca665537692ef7613f3570a858840
+[c:372156e]: https://github.com/serenity-rs/songbird/commit/372156e638ce45cd25223d15d6d2168468af2f40
+[c:48db45f]: https://github.com/serenity-rs/songbird/commit/48db45ffd8d54db7404b9df4a3915860e85c6e85
+[c:d8061d5]: https://github.com/serenity-rs/songbird/commit/d8061d5029e8ab987667686c8d2f720642c1aeb4
+[c:76c9851]: https://github.com/serenity-rs/songbird/commit/76c98510349db3b5c9eaa1efbb1a989dedd214fe
+[c:0beb0f0]: https://github.com/serenity-rs/songbird/commit/0beb0f0d760fbd84f3f4abcb68fa8e71a667e896
+[c:509743f]: https://github.com/serenity-rs/songbird/commit/509743fd40664de742e1e84149ba076f35226dfa
+[c:935171d]: https://github.com/serenity-rs/songbird/commit/935171df4fa9c55c03e45d99c4c96ddcebb27e8a
+[c:c55a313]: https://github.com/serenity-rs/songbird/commit/c55a3130d6e29bffcc3d65dfd8a72e3f04f9c3f9
+[c:019ac27]: https://github.com/serenity-rs/songbird/commit/019ac27a85e98feea4312f8b7125cf92ca5a6bd6
+[c:77e3916]: https://github.com/serenity-rs/songbird/commit/77e3916bdca36fad5978171f5b07be3781f52ccf
+[c:c976d50]: https://github.com/serenity-rs/songbird/commit/c976d50cc5bf4af2c3d3a567e65634728cd0d81c
+[c:500d679]: https://github.com/serenity-rs/songbird/commit/500d679ae553f234ff725aab40187232e4b50121
+[c:4d0c1c0]: https://github.com/serenity-rs/songbird/commit/4d0c1c030d4287d77469585a2fb47c27ed3ae917
+[c:c73f498]: https://github.com/serenity-rs/songbird/commit/c73f4988c83d43cb8ee2cf8b3cd6898b9f78c542
+[c:50dbc62]: https://github.com/serenity-rs/songbird/commit/50dbc62a6abd2594d57ea1a0445a9630c2f6ecf5
+[c:296f0e5]: https://github.com/serenity-rs/songbird/commit/296f0e552c72314ed08cea86cd680856d5d5ae20
+[c:3f6114c]: https://github.com/serenity-rs/songbird/commit/3f6114c53c4ed7200cc55639494a58d2de296a02
+[c:50fa17f]: https://github.com/serenity-rs/songbird/commit/50fa17fb592fc07b22c15af73d8983bd2b5dec50
+[c:ed4be7c]: https://github.com/serenity-rs/songbird/commit/ed4be7c6070fe471fe5e54ad6c4127141d2be8e7
+[c:be3a4e9]: https://github.com/serenity-rs/songbird/commit/be3a4e9b245b6c375a0e65d1262764f7554485c1
+[c:03b0803]: https://github.com/serenity-rs/songbird/commit/03b0803a1d08b4d4e420192ff15da359d4b1fb4c
+[c:893dbaa]: https://github.com/serenity-rs/songbird/commit/893dbaae34b56c01fbd482840e9b794944f90ca9
+[c:6769131]: https://github.com/serenity-rs/songbird/commit/6769131fa2d5aecb8702126757f3408ef846f95e
+[c:c1d93f7]: https://github.com/serenity-rs/songbird/commit/c1d93f790cf36a82b28a6c9c163364372d641c62
 [c:e5d3feb]: https://github.com/serenity-rs/songbird/commit/e5d3febb7bfbc6b4b98af3dbf312c23528307544
 [c:752cae7]: https://github.com/serenity-rs/songbird/commit/752cae7a09b25f69ffac110ca3ce4c841d1ec99b
 [c:eedab8f]: https://github.com/serenity-rs/songbird/commit/eedab8f69d1c17125971e290ee8a50fc1adcdffc
