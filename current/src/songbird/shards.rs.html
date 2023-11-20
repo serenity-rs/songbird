@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/shards.rs`."><title>shards.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (32303b219 2023-07-29)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/shards.rs`."><title>shards.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9a66e4471 2023-11-19)" data-channel="nightly" data-search-js="search-d23a059ec093b287.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f06f02fd918e3bb3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -294,30 +294,62 @@
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Handlers for sending packets over sharded connections.
 
-</span><span class="kw">use crate</span>::{
-    error::{JoinError, JoinResult},
-    id::<span class="kw-2">*</span>,
-};
+</span><span class="kw">use crate</span>::{error::JoinResult, id::<span class="kw-2">*</span>};
 <span class="kw">use </span>async_trait::async_trait;
+<span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span>dashmap::DashMap;
 <span class="kw">use </span>derivative::Derivative;
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 </span><span class="kw">use </span>futures::channel::mpsc::{TrySendError, UnboundedSender <span class="kw">as </span>Sender};
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 </span><span class="kw">use </span>parking_lot::{lock_api::RwLockWriteGuard, Mutex <span class="kw">as </span>PMutex, RwLock <span class="kw">as </span>PRwLock};
-<span class="kw">use </span>serde_json::json;
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
-</span><span class="kw">use </span>serenity::gateway::InterMessage;
+</span><span class="kw">use </span>serde_json::json;
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
-</span><span class="kw">use </span>std::{collections::HashMap, result::Result <span class="kw">as </span>StdResult};
-<span class="kw">use </span>std::{num::NonZeroU64, sync::Arc};
-<span class="kw">use </span>tracing::{debug, error};
+</span><span class="kw">use </span>serenity::gateway::ShardRunnerMessage;
+<span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span>std::result::Result <span class="kw">as </span>StdResult;
+<span class="kw">use </span>std::sync::Arc;
+<span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span>tracing::{debug, error};
 <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-</span><span class="kw">use </span>twilight_gateway::{Cluster, Shard <span class="kw">as </span>TwilightShard};
+</span><span class="kw">use </span>twilight_gateway::MessageSender;
 <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
 </span><span class="kw">use </span>twilight_model::gateway::payload::outgoing::update_voice_state::UpdateVoiceState <span class="kw">as </span>TwilightVoiceState;
+
+<span class="doccomment">/// Map containing [`MessageSender`]s for Twilight.
+///
+/// [`MessageSender`]: twilight_gateway::MessageSender
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
+#[derive(Debug)]
+</span><span class="kw">pub struct </span>TwilightMap {
+    map: std::collections::HashMap&lt;u64, MessageSender&gt;,
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
+</span><span class="kw">impl </span>TwilightMap {
+    <span class="doccomment">/// Construct a map of shards and command senders to those shards.
+    ///
+    /// For correctness all shards should be in the map.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>new(map: std::collections::HashMap&lt;u64, MessageSender&gt;) -&gt; <span class="self">Self </span>{
+        TwilightMap { map }
+    }
+
+    <span class="doccomment">/// Get the message sender for `shard_id`.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MessageSender&gt; {
+        <span class="self">self</span>.map.get(<span class="kw-2">&amp;</span>shard_id)
+    }
+
+    <span class="doccomment">/// Get the total number of shards in the map.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>shard_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.map.len() <span class="kw">as </span>u64
+    }
+}
 
 <span class="attr">#[derive(Derivative)]
 #[derivative(Debug)]
@@ -328,11 +360,8 @@
     </span><span class="doccomment">/// Serenity-specific wrapper for sharder state initialised by the library.
     </span>Serenity(SerenitySharder),
     <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-    </span><span class="doccomment">/// Twilight-specific wrapper for sharder state initialised by the user.
-    </span>TwilightCluster(Arc&lt;Cluster&gt;),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-    </span><span class="doccomment">/// Twilight-specific wrapper for a single shard initialised by the user.
-    </span>TwilightShard(Arc&lt;TwilightShard&gt;),
+    </span><span class="doccomment">/// Twilight-specific wrapper for a map of command senders.
+    </span>Twilight(Arc&lt;TwilightMap&gt;),
     <span class="doccomment">/// A generic shard handle source.
     </span>Generic(<span class="attr">#[derivative(Debug = <span class="string">&quot;ignore&quot;</span>)] </span>Arc&lt;<span class="kw">dyn </span>GenericSharder + Send + Sync&gt;),
 }
@@ -349,14 +378,15 @@
 
 <span class="kw">impl </span>Sharder {
     <span class="doccomment">/// Returns a new handle to the required inner shard.
+    </span><span class="attr">#[allow(clippy::must_use_candidate)] </span><span class="comment">// get_or_insert_shard_handle has side effects
     </span><span class="kw">pub fn </span>get_shard(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64) -&gt; <span class="prelude-ty">Option</span>&lt;Shard&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
-            </span>Sharder::Serenity(s) =&gt; <span class="prelude-val">Some</span>(Shard::Serenity(s.get_or_insert_shard_handle(shard_id))),
+            </span>Sharder::Serenity(s) =&gt; <span class="prelude-val">Some</span>(Shard::Serenity(
+                s.get_or_insert_shard_handle(shard_id <span class="kw">as </span>u32),
+            )),
             <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-            </span>Sharder::TwilightCluster(t) =&gt; <span class="prelude-val">Some</span>(Shard::TwilightCluster(t.clone(), shard_id)),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-            </span>Sharder::TwilightShard(t) =&gt; <span class="prelude-val">Some</span>(Shard::TwilightShard(t.clone())),
+            </span>Sharder::Twilight(t) =&gt; <span class="prelude-val">Some</span>(Shard::Twilight(t.clone(), shard_id)),
             Sharder::Generic(src) =&gt; src.get_shard(shard_id).map(Shard::Generic),
         }
     }
@@ -365,18 +395,20 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 </span><span class="kw">impl </span>Sharder {
     <span class="attr">#[allow(unreachable_patterns)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64, sender: Sender&lt;InterMessage&gt;) {
-        <span class="kw">match </span><span class="self">self </span>{
-            Sharder::Serenity(s) =&gt; s.register_shard_handle(shard_id, sender),
-            <span class="kw">_ </span>=&gt; <span class="macro">error!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>),
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u32, sender: Sender&lt;ShardRunnerMessage&gt;) {
+        <span class="kw">if let </span>Sharder::Serenity(s) = <span class="self">self </span>{
+            s.register_shard_handle(shard_id, sender);
+        } <span class="kw">else </span>{
+            <span class="macro">error!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>);
         }
     }
 
     <span class="attr">#[allow(unreachable_patterns)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deregister_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64) {
-        <span class="kw">match </span><span class="self">self </span>{
-            Sharder::Serenity(s) =&gt; s.deregister_shard_handle(shard_id),
-            <span class="kw">_ </span>=&gt; <span class="macro">error!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>),
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deregister_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u32) {
+        <span class="kw">if let </span>Sharder::Serenity(s) = <span class="self">self </span>{
+            s.deregister_shard_handle(shard_id);
+        } <span class="kw">else </span>{
+            <span class="macro">error!</span>(<span class="string">&quot;Called serenity management function on a non-serenity Songbird instance.&quot;</span>);
         }
     }
 }
@@ -387,29 +419,22 @@
 ///
 /// This is updated and maintained by the library, and is designed to prevent
 /// message loss during rebalances and reconnects.
-</span><span class="kw">pub struct </span>SerenitySharder(PRwLock&lt;HashMap&lt;u64, Arc&lt;SerenityShardHandle&gt;&gt;&gt;);
+</span><span class="kw">pub struct </span>SerenitySharder(DashMap&lt;u32, Arc&lt;SerenityShardHandle&gt;&gt;);
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 </span><span class="kw">impl </span>SerenitySharder {
-    <span class="kw">fn </span>get_or_insert_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64) -&gt; Arc&lt;SerenityShardHandle&gt; {
-        ({
-            <span class="kw">let </span>map_read = <span class="self">self</span>.<span class="number">0</span>.read();
-            map_read.get(<span class="kw-2">&amp;</span>shard_id).cloned()
-        })
-        .unwrap_or_else(|| {
-            <span class="kw">let </span><span class="kw-2">mut </span>map_read = <span class="self">self</span>.<span class="number">0</span>.write();
-            map_read.entry(shard_id).or_default().clone()
-        })
+    <span class="kw">fn </span>get_or_insert_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u32) -&gt; Arc&lt;SerenityShardHandle&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.entry(shard_id).or_default().clone()
     }
 
-    <span class="kw">fn </span>register_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64, sender: Sender&lt;InterMessage&gt;) {
+    <span class="kw">fn </span>register_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u32, sender: Sender&lt;ShardRunnerMessage&gt;) {
         <span class="comment">// Write locks are only used to add new entries to the map.
         </span><span class="kw">let </span>handle = <span class="self">self</span>.get_or_insert_shard_handle(shard_id);
 
         handle.register(sender);
     }
 
-    <span class="kw">fn </span>deregister_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64) {
+    <span class="kw">fn </span>deregister_shard_handle(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u32) {
         <span class="comment">// Write locks are only used to add new entries to the map.
         </span><span class="kw">let </span>handle = <span class="self">self</span>.get_or_insert_shard_handle(shard_id);
 
@@ -417,7 +442,7 @@
     }
 }
 
-<span class="attr">#[derive(Derivative)]
+<span class="attr">#[derive(Derivative, Clone)]
 #[derivative(Debug)]
 #[non_exhaustive]
 </span><span class="doccomment">/// A reference to an individual websocket connection.
@@ -426,29 +451,10 @@
     </span><span class="doccomment">/// Handle to one of serenity&#39;s shard runners.
     </span>Serenity(Arc&lt;SerenityShardHandle&gt;),
     <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-    </span><span class="doccomment">/// Handle to a twilight shard spawned from a cluster.
-    </span>TwilightCluster(Arc&lt;Cluster&gt;, u64),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-    </span><span class="doccomment">/// Handle to a twilight shard spawned from a cluster.
-    </span>TwilightShard(Arc&lt;TwilightShard&gt;),
+    </span><span class="doccomment">/// Handle to a map of twilight command senders.
+    </span>Twilight(Arc&lt;TwilightMap&gt;, u64),
     <span class="doccomment">/// Handle to a generic shard instance.
     </span>Generic(<span class="attr">#[derivative(Debug = <span class="string">&quot;ignore&quot;</span>)] </span>Arc&lt;<span class="kw">dyn </span>VoiceUpdate + Send + Sync&gt;),
-}
-
-<span class="kw">impl </span>Clone <span class="kw">for </span>Shard {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">use </span>Shard::<span class="kw-2">*</span>;
-
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
-            </span>Serenity(handle) =&gt; Serenity(Arc::clone(handle)),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-            </span>TwilightCluster(handle, id) =&gt; TwilightCluster(Arc::clone(handle), <span class="kw-2">*</span>id),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-            </span>TwilightShard(handle) =&gt; TwilightShard(Arc::clone(handle)),
-            Generic(handle) =&gt; Generic(Arc::clone(handle)),
-        }
-    }
 }
 
 <span class="attr">#[async_trait]
@@ -460,13 +466,6 @@
         self_deaf: bool,
         self_mute: bool,
     ) -&gt; JoinResult&lt;()&gt; {
-        <span class="kw">let </span>nz_guild_id = NonZeroU64::new(guild_id.<span class="number">0</span>).ok_or(JoinError::IllegalGuild)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>nz_channel_id = <span class="kw">match </span>channel_id {
-            <span class="prelude-val">Some</span>(c) =&gt; <span class="prelude-val">Some</span>(NonZeroU64::new(c.<span class="number">0</span>).ok_or(JoinError::IllegalChannel)<span class="question-mark">?</span>),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
-        };
-
         <span class="kw">match </span><span class="self">self </span>{
             <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
             </span>Shard::Serenity(handle) =&gt; {
@@ -480,21 +479,17 @@
                     }
                 });
 
-                handle.send(InterMessage::Json(map))<span class="question-mark">?</span>;
+                handle.send(ShardRunnerMessage::Message(map.to_string().into()))<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             },
             <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-            </span>Shard::TwilightCluster(handle, shard_id) =&gt; {
-                <span class="kw">let </span>channel_id = nz_channel_id.map(From::from);
-                <span class="kw">let </span>cmd = TwilightVoiceState::new(nz_guild_id, channel_id, self_deaf, self_mute);
-                handle.command(<span class="kw-2">*</span>shard_id, <span class="kw-2">&amp;</span>cmd).<span class="kw">await</span><span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(())
-            },
-            <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-            </span>Shard::TwilightShard(handle) =&gt; {
-                <span class="kw">let </span>channel_id = nz_channel_id.map(From::from);
-                <span class="kw">let </span>cmd = TwilightVoiceState::new(nz_guild_id, channel_id, self_deaf, self_mute);
-                handle.command(<span class="kw-2">&amp;</span>cmd).<span class="kw">await</span><span class="question-mark">?</span>;
+            </span>Shard::Twilight(map, shard_id) =&gt; {
+                <span class="kw">let </span>channel_id = channel_id.map(|c| c.<span class="number">0</span>).map(From::from);
+                <span class="kw">let </span>cmd = TwilightVoiceState::new(guild_id.<span class="number">0</span>, channel_id, self_deaf, self_mute);
+                <span class="kw">let </span>sender = map
+                    .get(<span class="kw-2">*</span>shard_id)
+                    .ok_or(<span class="kw">crate</span>::error::JoinError::NoSender)<span class="question-mark">?</span>;
+                sender.command(<span class="kw-2">&amp;</span>cmd)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             },
             Shard::Generic(g) =&gt;
@@ -532,13 +527,13 @@
 /// a reconnect/rebalance is ongoing.
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>SerenityShardHandle {
-    sender: PRwLock&lt;<span class="prelude-ty">Option</span>&lt;Sender&lt;InterMessage&gt;&gt;&gt;,
-    queue: PMutex&lt;Vec&lt;InterMessage&gt;&gt;,
+    sender: PRwLock&lt;<span class="prelude-ty">Option</span>&lt;Sender&lt;ShardRunnerMessage&gt;&gt;&gt;,
+    queue: PMutex&lt;Vec&lt;ShardRunnerMessage&gt;&gt;,
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 </span><span class="kw">impl </span>SerenityShardHandle {
-    <span class="kw">fn </span>register(<span class="kw-2">&amp;</span><span class="self">self</span>, sender: Sender&lt;InterMessage&gt;) {
+    <span class="kw">fn </span>register(<span class="kw-2">&amp;</span><span class="self">self</span>, sender: Sender&lt;ShardRunnerMessage&gt;) {
         <span class="macro">debug!</span>(<span class="string">&quot;Adding shard handle send channel...&quot;</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>sender_lock = <span class="self">self</span>.sender.write();
@@ -579,10 +574,13 @@
         <span class="macro">debug!</span>(<span class="string">&quot;Removed shard handle send channel.&quot;</span>);
     }
 
-    <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, message: InterMessage) -&gt; StdResult&lt;(), TrySendError&lt;InterMessage&gt;&gt; {
+    <span class="kw">fn </span>send(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        message: ShardRunnerMessage,
+    ) -&gt; StdResult&lt;(), Box&lt;TrySendError&lt;ShardRunnerMessage&gt;&gt;&gt; {
         <span class="kw">let </span>sender_lock = <span class="self">self</span>.sender.read();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(sender) = <span class="kw-2">&amp;*</span>sender_lock {
-            sender.unbounded_send(message)
+            sender.unbounded_send(message).map_err(Box::new)
         } <span class="kw">else </span>{
             <span class="macro">debug!</span>(<span class="string">&quot;Serenity shard temporarily disconnected: buffering message...&quot;</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>messages_lock = <span class="self">self</span>.queue.lock();

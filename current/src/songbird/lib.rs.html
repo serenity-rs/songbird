@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (32303b219 2023-07-29)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9a66e4471 2023-11-19)" data-channel="nightly" data-search-js="search-d23a059ec093b287.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f06f02fd918e3bb3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -92,24 +92,68 @@
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
 </pre></div><pre class="rust"><code><span class="attr">#![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png&quot;</span>,
     html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png&quot;
 </span>)]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(missing_docs)]
-#![deny(broken_intra_doc_links)]
+#![deny(rustdoc::broken_intra_doc_links)]
 </span><span class="doccomment">//! ![project logo][logo]
 //!
 //! Songbird is an async, cross-library compatible voice system for Discord, written in Rust.
 //! The library offers:
 //!  * A standalone gateway frontend compatible with [serenity] and [twilight] using the
-//!  `&quot;gateway&quot;` and `&quot;[serenity/twilight]-[rustls/native]&quot;` features. You can even run
+//!  `&quot;gateway&quot;` and `&quot;[serenity/twilight]&quot;` plus `&quot;[rustls/native]&quot;` features. You can even run
 //!  driverless, to help manage your [lavalink] sessions.
 //!  * A standalone driver for voice calls, via the `&quot;driver&quot;` feature. If you can create
-//!  a [`ConnectionInfo`] using any other gateway, or language for your bot, then you
+//!  a `ConnectionInfo` using any other gateway, or language for your bot, then you
 //!  can run the songbird voice driver.
-//!  * And, by default, a fully featured voice system featuring events, queues, RT(C)P packet
-//!  handling, seeking on compatible streams, shared multithreaded audio stream caches,
+//!  * Voice receive and RT(C)P packet handling via the `&quot;receive&quot;` feature.
+//!  * SIMD-accelerated JSON decoding via the `&quot;simd-json&quot;` feature.
+//!  * And, by default, a fully featured voice system featuring events, queues,
+//!  seeking on compatible streams, shared multithreaded audio stream caches,
 //!  and direct Opus data passthrough from DCA files.
 //!
 //! ## Intents
@@ -118,6 +162,26 @@
 //! ## Examples
 //! Full examples showing various types of functionality and integrations can be found
 //! in [this crate&#39;s examples directory].
+//!
+//! ## Codec support
+//! Songbird supports all [codecs and formats provided by Symphonia] (pure-Rust), with Opus support
+//! provided by [audiopus] (an FFI wrapper for libopus).
+//!
+//! **By default, *Songbird will not request any codecs from Symphonia*.** To change this, in your own
+//! project you will need to depend on Symphonia as well.
+//!
+//! ```toml
+//! # Including songbird alone gives you support for Opus via the DCA file format.
+//! [dependencies.songbird]
+//! version = &quot;0.4&quot;
+//! features = [&quot;builtin-queue&quot;]
+//!
+//! # To get additional codecs, you *must* add Symphonia yourself.
+//! # This includes the default formats (MKV/WebM, Ogg, Wave) and codecs (FLAC, PCM, Vorbis)...
+//! [dependencies.symphonia]
+//! version = &quot;0.5&quot;
+//! features = [&quot;aac&quot;, &quot;mp3&quot;, &quot;isomp4&quot;, &quot;alac&quot;] # ...as well as any extras you need!
+//! ```
 //!
 //! ## Attribution
 //!
@@ -130,55 +194,73 @@
 //! [&quot;Black-Capped Chickadee&quot;]: https://www.oldbookillustrations.com/illustrations/black-capped-chickadee/
 //! [`ConnectionInfo`]: struct@ConnectionInfo
 //! [lavalink]: https://github.com/freyacodes/Lavalink
+//! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
+//! [audiopus]: https://github.com/lakelezz/audiopus
 
-</span><span class="attr">#[cfg(all(feature = <span class="string">&quot;youtube-dlc&quot;</span>, feature = <span class="string">&quot;yt-dlp&quot;</span>))]
-</span><span class="macro">compile_error!</span>(<span class="string">&quot;feature \&quot;youtube-dlc\&quot; and feature \&quot;yt-dlp\&quot; cannot be enabled at the same time&quot;</span>);
+</span><span class="attr">#![warn(clippy::pedantic)]
+#![allow(
+    <span class="comment">// Allowed as they are too pedantic
+    </span>clippy::module_name_repetitions,
+    clippy::wildcard_imports,
+    clippy::too_many_lines,
+    clippy::cast_lossless,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    <span class="comment">// TODO: would require significant rewriting of all existing docs
+    </span>clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+)]
 
-<span class="kw">mod </span>config;
+</span><span class="kw">mod </span>config;
 <span class="kw">pub mod </span>constants;
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">pub mod </span>driver;
 <span class="kw">pub mod </span>error;
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">pub mod </span>events;
-<span class="attr">#[cfg(feature = <span class="string">&quot;gateway-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]
 </span><span class="kw">mod </span>handler;
 <span class="kw">pub mod </span>id;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>info;
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">pub mod </span>input;
-<span class="attr">#[cfg(feature = <span class="string">&quot;gateway-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]
 </span><span class="kw">pub mod </span>join;
-<span class="attr">#[cfg(feature = <span class="string">&quot;gateway-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]
 </span><span class="kw">mod </span>manager;
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 </span><span class="kw">pub mod </span>serenity;
-<span class="attr">#[cfg(feature = <span class="string">&quot;gateway-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]
 </span><span class="kw">pub mod </span>shards;
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;internals&quot;</span>))]
+</span><span class="kw">pub mod </span>test_utils;
+<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">pub mod </span>tracks;
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">mod </span>ws;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(all(feature = <span class="string">&quot;driver&quot;</span>, feature = <span class="string">&quot;receive&quot;</span>))]
 </span><span class="kw">pub use </span>discortp <span class="kw">as </span>packet;
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">pub use </span>serenity_voice_model <span class="kw">as </span>model;
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">pub use </span>typemap_rev <span class="kw">as </span>typemap;
 
-<span class="attr">#[cfg(test)]
-</span><span class="kw">use </span>utils <span class="kw">as </span>test_utils;
+<span class="comment">// Re-export serde-json APIs locally to minimise conditional config elsewhere.
+</span><span class="attr">#[cfg(not(feature = <span class="string">&quot;simd-json&quot;</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>serde_json <span class="kw">as </span>json;
+<span class="attr">#[cfg(feature = <span class="string">&quot;simd-json&quot;</span>)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>simd_json::serde <span class="kw">as </span>json;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
 </span><span class="kw">pub use crate</span>::{
     driver::Driver,
     events::{CoreEvent, Event, EventContext, EventHandler, TrackEvent},
-    input::{ffmpeg, ytdl},
-    tracks::create_player,
 };
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;gateway-core&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;gateway&quot;</span>)]
 </span><span class="kw">pub use crate</span>::{handler::<span class="kw-2">*</span>, manager::<span class="kw-2">*</span>};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]

@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"songbird":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"songbird/tracks/struct.Queued.html\" title=\"struct songbird::tracks::Queued\">Queued</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"songbird/struct.Call.html\" title=\"struct songbird::Call\">Call</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

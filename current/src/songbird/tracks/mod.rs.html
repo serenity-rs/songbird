@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (32303b219 2023-07-29)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9a66e4471 2023-11-19)" data-channel="nightly" data-search-js="search-d23a059ec093b287.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f06f02fd918e3bb3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -200,594 +200,206 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
-<a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
-<a href="#328" id="328">328</a>
-<a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Live, controllable audio instances.
 //!
 //! Tracks add control and event data around the bytestreams offered by [`Input`],
-//! where each represents a live audio source inside of the driver&#39;s mixer.
+//! where each represents a live audio source inside of the driver&#39;s mixer. This includes
+//! play state, volume, and looping behaviour.
 //!
-//! To prevent locking and stalling of the driver, tracks are controlled from your bot using a
-//! [`TrackHandle`]. These handles remotely send commands from your bot&#39;s (a)sync
-//! context to control playback, register events, and execute synchronous closures.
+//! To configure an audio source as it is created, you can create a [`Track`] to set the
+//! above playback state [from any `Input` or `T: Into&lt;Input&gt;`](Track#trait-implementations)
+//! using `Track::from(...)`.
 //!
-//! If you want a new track from an [`Input`], i.e., for direct control before
-//! playing your source on the driver, use [`create_player`].
+//! To configure an audio source once it has been given to a [`Driver`], you are given a
+//! [`TrackHandle`] once you hand the [`Input`] and state over to be played. These handles
+//! remotely send commands from your bot&#39;s (a)sync context to control playback, register events,
+//! and execute synchronous closures. This design prevents user code from being able to lock
+//! or stall the audio mixer.
 //!
-//! [`Input`]: ../input/struct.Input.html
-//! [`TrackHandle`]: struct.TrackHandle.html
-//! [`create_player`]: fn.create_player.html
+//! [`Driver`]: crate::driver::Driver
 
-</span><span class="kw">mod </span>command;
+</span><span class="kw">mod </span>action;
+<span class="kw">mod </span>command;
 <span class="kw">mod </span>error;
 <span class="kw">mod </span>handle;
 <span class="kw">mod </span>looping;
 <span class="kw">mod </span>mode;
 <span class="kw">mod </span>queue;
+<span class="kw">mod </span>ready;
 <span class="kw">mod </span>state;
+<span class="kw">mod </span>view;
 
-<span class="kw">pub use </span><span class="self">self</span>::{command::<span class="kw-2">*</span>, error::<span class="kw-2">*</span>, handle::<span class="kw-2">*</span>, looping::<span class="kw-2">*</span>, mode::<span class="kw-2">*</span>, queue::<span class="kw-2">*</span>, state::<span class="kw-2">*</span>};
+<span class="kw">pub use </span><span class="self">self</span>::{
+    action::<span class="kw-2">*</span>,
+    error::<span class="kw-2">*</span>,
+    handle::<span class="kw-2">*</span>,
+    looping::<span class="kw-2">*</span>,
+    mode::<span class="kw-2">*</span>,
+    queue::<span class="kw-2">*</span>,
+    ready::<span class="kw-2">*</span>,
+    state::<span class="kw-2">*</span>,
+    view::<span class="kw-2">*</span>,
+};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>command::<span class="kw-2">*</span>;
 
 <span class="kw">use crate</span>::{constants::<span class="kw-2">*</span>, driver::tasks::message::<span class="kw-2">*</span>, events::EventStore, input::Input};
-<span class="kw">use </span>flume::{Receiver, TryRecvError};
 <span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>uuid::Uuid;
 
-<span class="doccomment">/// Control object for audio playback.
+<span class="doccomment">/// Initial state for audio playback.
 ///
-/// Accessed by both commands and the playback code -- as such, access from user code is
-/// almost always guarded via a [`TrackHandle`]. You should expect to receive
-/// access to a raw object of this type via [`create_player`], for use in
-/// [`Driver::play`] or [`Driver::play_only`].
+/// [`Track`]s allow you to configure play modes, volume, event handlers, and other track state
+/// before you pass an input to the [`Driver`].
+///
+/// Live track data is accessed via a [`TrackHandle`], which is returned by [`Driver::play`] and
+/// related methods.
 ///
 /// # Example
 ///
 /// ```rust,no_run
-/// use songbird::{driver::Driver, ffmpeg, tracks::create_player};
+/// use songbird::{driver::Driver, input::File, tracks::Track};
 ///
-/// # async {
 /// // A Call is also valid here!
-/// let mut handler: Driver = Default::default();
-/// let source = ffmpeg(&quot;../audio/my-favourite-song.mp3&quot;)
-///     .await
-///     .expect(&quot;This might fail: handle this error!&quot;);
-/// let (mut audio, audio_handle) = create_player(source);
+/// let mut driver: Driver = Default::default();
+/// let source = File::new(&quot;../audio/my-favourite-song.mp3&quot;);
 ///
-/// audio.set_volume(0.5);
+/// let handle = driver.play_only(Track::from(source).volume(0.5));
 ///
-/// handler.play_only(audio);
-///
-/// // Future access occurs via audio_handle.
-/// # };
+/// // Future access occurs via audio.
 /// ```
 ///
-/// [`Driver::play_only`]: crate::driver::Driver::play_only
+/// [`Driver`]: crate::driver::Driver
 /// [`Driver::play`]: crate::driver::Driver::play
-/// [`TrackHandle`]: TrackHandle
-/// [`create_player`]: create_player
-</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Track {
     <span class="doccomment">/// Whether or not this sound is currently playing.
     ///
-    /// Can be controlled with [`play`] or [`pause`] if chaining is desired.
-    ///
-    /// [`play`]: Track::play
-    /// [`pause`]: Track::pause
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) playing: PlayMode,
+    /// Defaults to [`PlayMode::Play`].
+    </span><span class="kw">pub </span>playing: PlayMode,
 
-    <span class="doccomment">/// The desired volume for playback.
+    <span class="doccomment">/// The volume for playback.
     ///
-    /// Sensible values fall between `0.0` and `1.0`.
+    /// Sensible values fall between `0.0` and `1.0`. Values outside this range can
+    /// cause clipping or other audio artefacts.
     ///
-    /// Can be controlled with [`volume`] if chaining is desired.
-    ///
-    /// [`volume`]: Track::volume
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) volume: f32,
+    /// Defaults to `1.0`.
+    </span><span class="kw">pub </span>volume: f32,
 
-    <span class="doccomment">/// Underlying data access object.
-    ///
-    /// *Calling code is not expected to use this.*
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) source: Input,
-
-    <span class="doccomment">/// The current playback position in the track.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) position: Duration,
-
-    <span class="doccomment">/// The total length of time this track has been active.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) play_time: Duration,
+    <span class="doccomment">/// The live or lazily-initialised audio stream to be played.
+    </span><span class="kw">pub </span>input: Input,
 
     <span class="doccomment">/// List of events attached to this audio track.
     ///
     /// This may be used to add additional events to a track
     /// before it is sent to the audio context for playing.
-    </span><span class="kw">pub </span>events: <span class="prelude-ty">Option</span>&lt;EventStore&gt;,
-
-    <span class="doccomment">/// Channel from which commands are received.
     ///
-    /// Track commands are sent in this manner to ensure that access
-    /// occurs in a thread-safe manner, without allowing any external
-    /// code to lock access to audio objects and block packet generation.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) commands: Receiver&lt;TrackCommand&gt;,
-
-    <span class="doccomment">/// Handle for safe control of this audio track from other threads.
-    ///
-    /// Typically, this is used by internal code to supply context information
-    /// to event handlers, though more may be cloned from this handle.
-    </span><span class="kw">pub </span>handle: TrackHandle,
+    /// Defaults to an empty set.
+    </span><span class="kw">pub </span>events: EventStore,
 
     <span class="doccomment">/// Count of remaining loops.
+    ///
+    /// Defaults to play a track once (i.e., [`LoopState::Finite(0)`]).
+    ///
+    /// [`LoopState::Finite(0)`]: LoopState::Finite
     </span><span class="kw">pub </span>loops: LoopState,
 
     <span class="doccomment">/// Unique identifier for this track.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) uuid: Uuid,
+    ///
+    /// Defaults to a random 128-bit number.
+    </span><span class="kw">pub </span>uuid: Uuid,
 }
 
 <span class="kw">impl </span>Track {
-    <span class="doccomment">/// Create a new track directly from an input, command source,
-    /// and handle.
-    ///
-    /// In general, you should probably use [`create_player`].
-    ///
-    /// [`create_player`]: fn.create_player.html
-    </span><span class="kw">pub fn </span>new_raw(source: Input, commands: Receiver&lt;TrackCommand&gt;, handle: TrackHandle) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>uuid = handle.uuid();
+    <span class="doccomment">/// Create a new track directly from an [`Input`] and a random [`Uuid`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>new(input: Input) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>uuid = Uuid::new_v4();
 
+        <span class="self">Self</span>::new_with_uuid(input, uuid)
+    }
+
+    <span class="doccomment">/// Create a new track directly from an [`Input`] with a custom [`Uuid`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>new_with_uuid(input: Input, uuid: Uuid) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            playing: Default::default(),
+            playing: PlayMode::default(),
             volume: <span class="number">1.0</span>,
-            source,
-            position: Default::default(),
-            play_time: Default::default(),
-            events: <span class="prelude-val">Some</span>(EventStore::new_local()),
-            commands,
-            handle,
+            input,
+            events: EventStore::new_local(),
             loops: LoopState::Finite(<span class="number">0</span>),
             uuid,
         }
     }
 
-    <span class="doccomment">/// Sets a track to playing if it is paused.
-    </span><span class="kw">pub fn </span>play(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="self">self</span>.set_playing(PlayMode::Play)
-    }
-
-    <span class="doccomment">/// Pauses a track if it is playing.
-    </span><span class="kw">pub fn </span>pause(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="self">self</span>.set_playing(PlayMode::Pause)
-    }
-
-    <span class="doccomment">/// Manually stops a track.
-    ///
-    /// This will cause the audio track to be removed, with any relevant events triggered.
-    /// Stopped/ended tracks cannot be restarted.
-    </span><span class="kw">pub fn </span>stop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="self">self</span>.set_playing(PlayMode::Stop)
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>end(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="self">self</span>.set_playing(PlayMode::End)
-    }
-
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_playing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_state: PlayMode) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="self">self</span>.playing = <span class="self">self</span>.playing.change_to(new_state);
-
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Sets a track to playing if it is paused.
+    </span><span class="kw">pub fn </span>play(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.playing = PlayMode::Play;
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Returns the current play status of this track.
-    </span><span class="kw">pub fn </span>playing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PlayMode {
-        <span class="self">self</span>.playing
-    }
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Pre-emptively pauses a track, preventing it from being automatically played.
+    </span><span class="kw">pub fn </span>pause(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.playing = PlayMode::Pause;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets [`volume`] in a manner that allows method chaining.
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Manually stops a track.
+    ///
+    /// This will cause the audio track to be removed by the driver almost immediately,
+    /// with any relevant events triggered.
+    </span><span class="kw">pub fn </span>stop(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.playing = PlayMode::Stop;
+        <span class="self">self
+    </span>}
+
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Sets [`volume`] in a manner that allows method chaining.
     ///
     /// [`volume`]: Track::volume
-    </span><span class="kw">pub fn </span>set_volume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, volume: f32) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>volume(<span class="kw-2">mut </span><span class="self">self</span>, volume: f32) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.volume = volume;
 
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Returns the current volume.
-    </span><span class="kw">pub fn </span>volume(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.volume
-    }
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Set an audio track to loop a set number of times.
+    </span><span class="kw">pub fn </span>loops(<span class="kw-2">mut </span><span class="self">self</span>, loops: LoopState) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.loops = loops;
 
-    <span class="doccomment">/// Returns the current playback position.
-    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
-        <span class="self">self</span>.position
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Returns the total length of time this track has been active.
-    </span><span class="kw">pub fn </span>play_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Duration {
-        <span class="self">self</span>.play_time
-    }
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Returns this track&#39;s unique identifier.
+    </span><span class="kw">pub fn </span>uuid(<span class="kw-2">mut </span><span class="self">self</span>, uuid: Uuid) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.uuid = uuid;
 
-    <span class="doccomment">/// Set an audio track to loop a set number of times.
-    ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
-    ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
-    </span><span class="kw">pub fn </span>set_loops(<span class="kw-2">&amp;mut </span><span class="self">self</span>, loops: LoopState) -&gt; TrackResult&lt;()&gt; {
-        <span class="kw">if </span><span class="self">self</span>.source.is_seekable() {
-            <span class="self">self</span>.loops = loops;
-            <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(TrackError::SeekUnsupported)
-        }
-    }
+        <span class="self">self
+    </span>}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>do_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">match </span><span class="self">self</span>.loops {
-            LoopState::Infinite =&gt; <span class="bool-val">true</span>,
-            LoopState::Finite(<span class="number">0</span>) =&gt; <span class="bool-val">false</span>,
-            LoopState::Finite(<span class="kw-2">ref mut </span>n) =&gt; {
-                <span class="kw-2">*</span>n -= <span class="number">1</span>;
-                <span class="bool-val">true
-            </span>},
-        }
-    }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_context(<span class="self">self</span>) -&gt; (TrackHandle, TrackContext) {
+        <span class="kw">let </span>(tx, receiver) = flume::unbounded();
+        <span class="kw">let </span>handle = TrackHandle::new(tx, <span class="self">self</span>.uuid);
 
-    <span class="doccomment">/// Steps playback location forward by one frame.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>step_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.position += TIMESTEP_LENGTH;
-        <span class="self">self</span>.play_time += TIMESTEP_LENGTH;
-    }
+        <span class="kw">let </span>context = TrackContext {
+            handle: handle.clone(),
+            track: <span class="self">self</span>,
+            receiver,
+        };
 
-    <span class="doccomment">/// Receives and acts upon any commands forwarded by TrackHandles.
-    ///
-    /// *Used internally*, this should not be exposed to users.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>process_commands(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize, ic: <span class="kw-2">&amp;</span>Interconnect) {
-        <span class="comment">// Note: disconnection and an empty channel are both valid,
-        // and should allow the audio object to keep running as intended.
-
-        // Note that interconnect failures are not currently errors.
-        // In correct operation, the event thread should never panic,
-        // but it receiving status updates is secondary do actually
-        // doing the work.
-        </span><span class="kw">loop </span>{
-            <span class="kw">match </span><span class="self">self</span>.commands.try_recv() {
-                <span class="prelude-val">Ok</span>(cmd) =&gt; {
-                    <span class="kw">use </span>TrackCommand::<span class="kw-2">*</span>;
-                    <span class="kw">match </span>cmd {
-                        Play =&gt; {
-                            <span class="self">self</span>.play();
-                            <span class="kw">let _ </span>= ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Mode(<span class="self">self</span>.playing),
-                            ));
-                        },
-                        Pause =&gt; {
-                            <span class="self">self</span>.pause();
-                            <span class="kw">let _ </span>= ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Mode(<span class="self">self</span>.playing),
-                            ));
-                        },
-                        Stop =&gt; {
-                            <span class="self">self</span>.stop();
-                            <span class="kw">let _ </span>= ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Mode(<span class="self">self</span>.playing),
-                            ));
-                        },
-                        Volume(vol) =&gt; {
-                            <span class="self">self</span>.set_volume(vol);
-                            <span class="kw">let _ </span>= ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Volume(<span class="self">self</span>.volume),
-                            ));
-                        },
-                        Seek(time) =&gt;
-                            <span class="kw">if let </span><span class="prelude-val">Ok</span>(new_time) = <span class="self">self</span>.seek_time(time) {
-                                <span class="kw">let _ </span>= ic.events.send(EventMessage::ChangeState(
-                                    index,
-                                    TrackStateChange::Position(new_time),
-                                ));
-                            },
-                        AddEvent(evt) =&gt; {
-                            <span class="kw">let _ </span>= ic.events.send(EventMessage::AddTrackEvent(index, evt));
-                        },
-                        Do(action) =&gt; {
-                            action(<span class="self">self</span>);
-                            <span class="kw">let _ </span>= ic.events.send(EventMessage::ChangeState(
-                                index,
-                                TrackStateChange::Total(<span class="self">self</span>.state()),
-                            ));
-                        },
-                        Request(tx) =&gt; {
-                            <span class="kw">let _ </span>= tx.send(<span class="self">self</span>.state());
-                        },
-                        Loop(loops) =&gt;
-                            <span class="kw">if </span><span class="self">self</span>.set_loops(loops).is_ok() {
-                                <span class="kw">let _ </span>= ic.events.send(EventMessage::ChangeState(
-                                    index,
-                                    TrackStateChange::Loops(<span class="self">self</span>.loops, <span class="bool-val">true</span>),
-                                ));
-                            },
-                        MakePlayable =&gt; <span class="self">self</span>.make_playable(),
-                    }
-                },
-                <span class="prelude-val">Err</span>(TryRecvError::Disconnected) =&gt; {
-                    <span class="comment">// this branch will never be visited.
-                    </span><span class="kw">break</span>;
-                },
-                <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; {
-                    <span class="kw">break</span>;
-                },
-            }
-        }
-    }
-
-    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.
-    ///
-    /// Currently, only [`Restartable`] sources support lazy setup.
-    /// This call is a no-op for all others.
-    ///
-    /// [`Restartable`]: crate::input::restartable::Restartable
-    </span><span class="kw">pub fn </span>make_playable(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.source.reader.make_playable();
-    }
-
-    <span class="doccomment">/// Creates a read-only copy of the audio track&#39;s state.
-    ///
-    /// The primary use-case of this is sending information across
-    /// threads in response to a [`TrackHandle`].
-    ///
-    /// [`TrackHandle`]: TrackHandle
-    </span><span class="kw">pub fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackState {
-        TrackState {
-            playing: <span class="self">self</span>.playing,
-            volume: <span class="self">self</span>.volume,
-            position: <span class="self">self</span>.position,
-            play_time: <span class="self">self</span>.play_time,
-            loops: <span class="self">self</span>.loops,
-        }
-    }
-
-    <span class="doccomment">/// Seek to a specific point in the track.
-    ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
-    ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
-    </span><span class="kw">pub fn </span>seek_time(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: Duration) -&gt; TrackResult&lt;Duration&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.source.seek_time(pos) {
-            <span class="self">self</span>.position = t;
-            <span class="prelude-val">Ok</span>(t)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(TrackError::SeekUnsupported)
-        }
-    }
-
-    <span class="doccomment">/// Returns this track&#39;s unique identifier.
-    </span><span class="kw">pub fn </span>uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Uuid {
-        <span class="self">self</span>.uuid
+        (handle, context)
     }
 }
 
-<span class="doccomment">/// Creates a [`Track`] object to pass into the audio context, and a [`TrackHandle`]
-/// for safe, lock-free access in external code.
-///
-/// Typically, this would be used if you wished to directly work on or configure
-/// the [`Track`] object before it is passed over to the driver.
-///
-/// [`Track`]: Track
-/// [`TrackHandle`]: TrackHandle
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>create_player(source: Input) -&gt; (Track, TrackHandle) {
-    create_player_with_uuid(source, Uuid::new_v4())
-}
-
-<span class="doccomment">/// Creates a [`Track`] and [`TrackHandle`] as in [`create_player`], allowing
-/// a custom UUID to be set.
-///
-/// [`create_player`]: create_player
-/// [`Track`]: Track
-/// [`TrackHandle`]: TrackHandle
-</span><span class="kw">pub fn </span>create_player_with_uuid(source: Input, uuid: Uuid) -&gt; (Track, TrackHandle) {
-    <span class="kw">let </span>(tx, rx) = flume::unbounded();
-    <span class="kw">let </span>can_seek = source.is_seekable();
-    <span class="kw">let </span>metadata = source.metadata.clone();
-    <span class="kw">let </span>handle = TrackHandle::new(tx, can_seek, uuid, metadata);
-
-    <span class="kw">let </span>player = Track::new_raw(source, rx, handle.clone());
-
-    (player, handle)
+<span class="doccomment">/// Any [`Input`] (or struct which can be used as one) can also be made into a [`Track`].
+</span><span class="kw">impl</span>&lt;T: Into&lt;Input&gt;&gt; From&lt;T&gt; <span class="kw">for </span>Track {
+    <span class="comment">// NOTE: this is `Into` to support user-given structs which can
+    // only `impl Into&lt;Input&gt;`.
+    </span><span class="kw">fn </span>from(val: T) -&gt; <span class="self">Self </span>{
+        Track::new(val.into())
+    }
 }
 </code></pre></div></section></main></body></html>

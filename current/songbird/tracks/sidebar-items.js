@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["LoopState","PlayMode","TrackCommand","TrackError"],"fn":["create_player","create_player_with_uuid"],"struct":["Queued","Track","TrackHandle","TrackQueue","TrackState"],"type":["TrackResult"]};
+window.SIDEBAR_ITEMS = {"enum":["ControlError","LoopState","PlayError","PlayMode","ReadyState"],"struct":["Action","Queued","Track","TrackCallback","TrackHandle","TrackQueue","TrackState","View"],"type":["TrackResult"]};

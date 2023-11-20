@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/handle.rs`."><title>handle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (32303b219 2023-07-29)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/handle.rs`."><title>handle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9a66e4471 2023-11-19)" data-channel="nightly" data-search-js="search-d23a059ec093b287.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f06f02fd918e3bb3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -251,12 +251,64 @@
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
 <a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use crate</span>::{
-    events::{Event, EventData, EventHandler},
-    input::Metadata,
-};
-<span class="kw">use </span>flume::Sender;
+<span class="kw">use </span><span class="kw">crate</span>::events::{Event, EventData, EventHandler};
+<span class="kw">use </span>flume::{Receiver, Sender};
 <span class="kw">use </span>std::{fmt, sync::Arc, time::Duration};
 <span class="kw">use </span>tokio::sync::RwLock;
 <span class="kw">use </span>typemap_rev::TypeMap;
@@ -270,19 +322,14 @@
 ///
 /// Many method calls here are fallible; in most cases, this will be because
 /// the underlying [`Track`] object has been discarded. Those which aren&#39;t refer
-/// to immutable properties of the underlying stream, or shared data not used
-/// by the driver.
-///
-/// [`Track`]: Track
+/// to shared data not used by the driver.
 </span><span class="kw">pub struct </span>TrackHandle {
     inner: Arc&lt;InnerHandle&gt;,
 }
 
 <span class="kw">struct </span>InnerHandle {
     command_channel: Sender&lt;TrackCommand&gt;,
-    seekable: bool,
     uuid: Uuid,
-    metadata: Box&lt;Metadata&gt;,
     typemap: RwLock&lt;TypeMap&gt;,
 }
 
@@ -290,30 +337,21 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;InnerHandle&quot;</span>)
             .field(<span class="string">&quot;command_channel&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.command_channel)
-            .field(<span class="string">&quot;seekable&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.seekable)
             .field(<span class="string">&quot;uuid&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.uuid)
-            .field(<span class="string">&quot;metadata&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.metadata)
             .field(<span class="string">&quot;typemap&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;LOCK&gt;&quot;</span>)
             .finish()
     }
 }
 
 <span class="kw">impl </span>TrackHandle {
-    <span class="doccomment">/// Creates a new handle, using the given command sink and hint as to whether
-    /// the underlying [`Input`] supports seek operations.
+    <span class="doccomment">/// Creates a new handle, using the given command sink.
     ///
     /// [`Input`]: crate::input::Input
-    </span><span class="kw">pub fn </span>new(
-        command_channel: Sender&lt;TrackCommand&gt;,
-        seekable: bool,
-        uuid: Uuid,
-        metadata: Box&lt;Metadata&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(command_channel: Sender&lt;TrackCommand&gt;, uuid: Uuid) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>inner = Arc::new(InnerHandle {
             command_channel,
-            seekable,
             uuid,
-            metadata,
             typemap: RwLock::new(TypeMap::new()),
         });
 
@@ -345,53 +383,64 @@
         <span class="self">self</span>.send(TrackCommand::Volume(volume))
     }
 
-    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Ready a track for playing if it is lazily initialised.
     ///
-    /// Currently, only [`Restartable`] sources support lazy setup.
-    /// This call is a no-op for all others.
-    ///
-    /// [`Restartable`]: crate::input::restartable::Restartable
-    </span><span class="kw">pub fn </span>make_playable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
-        <span class="self">self</span>.send(TrackCommand::MakePlayable)
+    /// If a track is already playable, the callback will instantly succeed.
+    </span><span class="kw">pub fn </span>make_playable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackCallback&lt;()&gt; {
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
+        <span class="kw">let </span>fail = <span class="self">self</span>.send(TrackCommand::MakePlayable(tx)).is_err();
+
+        TrackCallback { fail, rx }
     }
 
-    <span class="doccomment">/// Denotes whether the underlying [`Input`] stream is compatible with arbitrary seeking.
+    <span class="doccomment">/// Ready a track for playing if it is lazily initialised.
     ///
-    /// If this returns `false`, all calls to [`seek_time`] will fail, and the track is
-    /// incapable of looping.
+    /// This folds [`Self::make_playable`] into a single `async` result, but must
+    /// be awaited for the command to be sent.
+    </span><span class="kw">pub async fn </span>make_playable_async(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
+        <span class="self">self</span>.make_playable().result_async().<span class="kw">await
+    </span>}
+
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Seeks along the track to the specified position.
     ///
-    /// [`seek_time`]: TrackHandle::seek_time
+    /// If the underlying [`Input`] does not support seeking,
+    /// forward seeks will succeed. Backward seeks will recreate the
+    /// track using the lazy [`Compose`] if present. The returned callback
+    /// will indicate whether the seek succeeded.
+    ///
     /// [`Input`]: crate::input::Input
-    </span><span class="kw">pub fn </span>is_seekable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.inner.seekable
+    /// [`Compose`]: crate::input::Compose
+    </span><span class="kw">pub fn </span>seek(<span class="kw-2">&amp;</span><span class="self">self</span>, position: Duration) -&gt; TrackCallback&lt;Duration&gt; {
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
+        <span class="kw">let </span>fail = <span class="self">self
+            </span>.send(TrackCommand::Seek(SeekRequest {
+                time: position,
+                callback: tx,
+            }))
+            .is_err();
+
+        TrackCallback { fail, rx }
     }
 
     <span class="doccomment">/// Seeks along the track to the specified position.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
-    ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
-    </span><span class="kw">pub fn </span>seek_time(<span class="kw-2">&amp;</span><span class="self">self</span>, position: Duration) -&gt; TrackResult&lt;()&gt; {
-        <span class="kw">if </span><span class="self">self</span>.is_seekable() {
-            <span class="self">self</span>.send(TrackCommand::Seek(position))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(TrackError::SeekUnsupported)
-        }
-    }
+    /// This folds [`Self::seek`] into a single `async` result, but must
+    /// be awaited for the command to be sent.
+    </span><span class="kw">pub async fn </span>seek_async(<span class="kw-2">&amp;</span><span class="self">self</span>, position: Duration) -&gt; TrackResult&lt;Duration&gt; {
+        <span class="self">self</span>.seek(position).result_async().<span class="kw">await
+    </span>}
 
     <span class="doccomment">/// Attach an event handler to an audio track. These will receive [`EventContext::Track`].
     ///
-    /// Events which can only be fired by the global context return [`TrackError::InvalidTrackEvent`]
+    /// Events which can only be fired by the global context return [`ControlError::InvalidTrackEvent`]
     ///
-    /// [`Track`]: Track
     /// [`EventContext::Track`]: crate::events::EventContext::Track
-    /// [`TrackError::InvalidTrackEvent`]: TrackError::InvalidTrackEvent
     </span><span class="kw">pub fn </span>add_event&lt;F: EventHandler + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, event: Event, action: F) -&gt; TrackResult&lt;()&gt; {
         <span class="kw">let </span>cmd = TrackCommand::AddEvent(EventData::new(event, action));
         <span class="kw">if </span>event.is_global_only() {
-            <span class="prelude-val">Err</span>(TrackError::InvalidTrackEvent)
+            <span class="prelude-val">Err</span>(ControlError::InvalidTrackEvent)
         } <span class="kw">else </span>{
             <span class="self">self</span>.send(cmd)
         }
@@ -399,14 +448,17 @@
 
     <span class="doccomment">/// Perform an arbitrary synchronous action on a raw [`Track`] object.
     ///
+    /// This will give access to a [`View`] of the current track state and [`Metadata`],
+    /// which can be used to take an [`Action`].
+    ///
     /// Users **must** ensure that no costly work or blocking occurs
     /// within the supplied function or closure. *Taking excess time could prevent
     /// timely sending of packets, causing audio glitches and delays*.
     ///
-    /// [`Track`]: Track
+    /// [`Metadata`]: crate::input::Metadata
     </span><span class="kw">pub fn </span>action&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, action: F) -&gt; TrackResult&lt;()&gt;
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Track) + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>F: FnOnce(View) -&gt; <span class="prelude-ty">Option</span>&lt;Action&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
         <span class="self">self</span>.send(TrackCommand::Do(Box::new(action)))
     }
@@ -416,77 +468,52 @@
         <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
         <span class="self">self</span>.send(TrackCommand::Request(tx))<span class="question-mark">?</span>;
 
-        rx.recv_async().<span class="kw">await</span>.map_err(|<span class="kw">_</span>| TrackError::Finished)
+        rx.recv_async().<span class="kw">await</span>.map_err(|<span class="kw">_</span>| ControlError::Finished)
     }
 
     <span class="doccomment">/// Set an audio track to loop indefinitely.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This requires either a [`Compose`] to be present or for the
+    /// input stream to be seekable.
     ///
     /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`Compose`]: crate::input::Compose
     </span><span class="kw">pub fn </span>enable_loop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
-        <span class="kw">if </span><span class="self">self</span>.is_seekable() {
-            <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Infinite))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(TrackError::SeekUnsupported)
-        }
+        <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Infinite))
     }
 
     <span class="doccomment">/// Set an audio track to no longer loop.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This follows the same rules as [`enable_loop`].
     ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`enable_loop`]: Self::enable_loop
     </span><span class="kw">pub fn </span>disable_loop(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TrackResult&lt;()&gt; {
-        <span class="kw">if </span><span class="self">self</span>.is_seekable() {
-            <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Finite(<span class="number">0</span>)))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(TrackError::SeekUnsupported)
-        }
+        <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Finite(<span class="number">0</span>)))
     }
 
     <span class="doccomment">/// Set an audio track to loop a set number of times.
     ///
-    /// If the underlying [`Input`] does not support seeking,
-    /// then all calls will fail with [`TrackError::SeekUnsupported`].
+    /// This follows the same rules as [`enable_loop`].
     ///
-    /// [`Input`]: crate::input::Input
-    /// [`TrackError::SeekUnsupported`]: TrackError::SeekUnsupported
+    /// [`enable_loop`]: Self::enable_loop
     </span><span class="kw">pub fn </span>loop_for(<span class="kw-2">&amp;</span><span class="self">self</span>, count: usize) -&gt; TrackResult&lt;()&gt; {
-        <span class="kw">if </span><span class="self">self</span>.is_seekable() {
-            <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Finite(count)))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(TrackError::SeekUnsupported)
-        }
+        <span class="self">self</span>.send(TrackCommand::Loop(LoopState::Finite(count)))
     }
 
     <span class="doccomment">/// Returns this handle&#39;s (and track&#39;s) unique identifier.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>uuid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Uuid {
         <span class="self">self</span>.inner.uuid
     }
 
-    <span class="doccomment">/// Returns the metadata stored in the handle.
+    <span class="doccomment">/// Allows access to this track&#39;s attached [`TypeMap`].
     ///
-    /// Metadata is cloned from the inner [`Input`] at
-    /// the time a track/handle is created, and is effectively
-    /// read-only from then on.
-    ///
-    /// [`Input`]: crate::input::Input
-    </span><span class="kw">pub fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Metadata {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.metadata
-    }
-
-    <span class="doccomment">/// Allows access to this track&#39;s attached TypeMap.
-    ///
-    /// TypeMaps allow additional, user-defined data shared by all handles
+    /// [`TypeMap`]s allow additional, user-defined data shared by all handles
     /// to be attached to any track.
     ///
     /// Driver code will never attempt to lock access to this map,
     /// preventing deadlock/stalling.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>typemap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RwLock&lt;TypeMap&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.typemap
     }
@@ -495,13 +522,96 @@
     </span><span class="doccomment">/// Send a raw command to the [`Track`] object.
     ///
     /// [`Track`]: Track
-    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, cmd: TrackCommand) -&gt; TrackResult&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, cmd: TrackCommand) -&gt; TrackResult&lt;()&gt; {
         <span class="comment">// As the send channels are unbounded, we can be reasonably certain
         // that send failure == cancellation.
         </span><span class="self">self</span>.inner
             .command_channel
             .send(cmd)
-            .map_err(|_e| TrackError::Finished)
+            .map_err(|_e| ControlError::Finished)
+    }
+}
+
+<span class="doccomment">/// Asynchronous reply for an operation applied to a [`TrackHandle`].
+///
+/// This object does not need to be `.await`ed for the driver to perform an action.
+/// Async threads can then call, e.g., [`TrackHandle::make_playable`], and safely drop
+/// this callback if the result isn&#39;t needed.
+</span><span class="kw">pub struct </span>TrackCallback&lt;T&gt; {
+    fail: bool,
+    rx: Receiver&lt;<span class="prelude-ty">Result</span>&lt;T, PlayError&gt;&gt;,
+}
+
+<span class="kw">impl</span>&lt;T&gt; TrackCallback&lt;T&gt; {
+    <span class="doccomment">/// Consumes this handle to await a reply from the driver, blocking the current thread.
+    </span><span class="kw">pub fn </span>result(<span class="self">self</span>) -&gt; TrackResult&lt;T&gt; {
+        <span class="kw">if </span><span class="self">self</span>.fail {
+            <span class="prelude-val">Err</span>(ControlError::Finished)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.rx.recv()<span class="question-mark">?</span>.map_err(ControlError::Play)
+        }
+    }
+
+    <span class="doccomment">/// Consumes this handle to await a reply from the driver asynchronously.
+    </span><span class="kw">pub async fn </span>result_async(<span class="self">self</span>) -&gt; TrackResult&lt;T&gt; {
+        <span class="kw">if </span><span class="self">self</span>.fail {
+            <span class="prelude-val">Err</span>(ControlError::Finished)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.rx.recv_async().<span class="kw">await</span><span class="question-mark">?</span>.map_err(ControlError::Play)
+        }
+    }
+
+    <span class="attr">#[must_use]
+    </span><span class="doccomment">/// Returns `true` if the operation instantly failed due to the target track being
+    /// removed.
+    </span><span class="kw">pub fn </span>is_hung_up(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.fail
+    }
+}
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use crate</span>::{
+        constants::test_data::FILE_WAV_TARGET,
+        driver::Driver,
+        input::File,
+        tracks::Track,
+        Config,
+    };
+
+    <span class="attr">#[tokio::test]
+    #[ntest::timeout(<span class="number">10_000</span>)]
+    </span><span class="kw">async fn </span>make_playable_callback_fires() {
+        <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
+
+        <span class="kw">let </span>file = File::new(FILE_WAV_TARGET);
+        <span class="kw">let </span>handle = driver.play(Track::from(file).pause());
+
+        <span class="kw">let </span>callback = handle.make_playable();
+        t_handle.spawn_ticker();
+        <span class="macro">assert!</span>(callback.result_async().<span class="kw">await</span>.is_ok());
+    }
+
+    <span class="attr">#[tokio::test]
+    #[ntest::timeout(<span class="number">10_000</span>)]
+    </span><span class="kw">async fn </span>seek_callback_fires() {
+        <span class="kw">let </span>(t_handle, config) = Config::test_cfg(<span class="bool-val">true</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>driver = Driver::new(config.clone());
+
+        <span class="kw">let </span>file = File::new(FILE_WAV_TARGET);
+        <span class="kw">let </span>handle = driver.play(Track::from(file).pause());
+
+        <span class="kw">let </span>target = Duration::from_millis(<span class="number">500</span>);
+        <span class="kw">let </span>callback = handle.seek(target);
+        t_handle.spawn_ticker();
+
+        <span class="kw">let </span>answer = callback.result_async().<span class="kw">await</span>;
+        <span class="macro">assert!</span>(answer.is_ok());
+        <span class="kw">let </span>answer = answer.unwrap();
+        <span class="kw">let </span>delta = Duration::from_millis(<span class="number">100</span>);
+        <span class="macro">assert!</span>(answer &gt; target - delta &amp;&amp; answer &lt; target + delta);
     }
 }
 </code></pre></div></section></main></body></html>

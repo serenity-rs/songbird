@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["DisconnectKind","DisconnectReason"],"struct":["ConnectData","DisconnectData","RtcpData","SpeakingUpdateData","VoiceData"]};
+window.SIDEBAR_ITEMS = {"enum":["DisconnectKind","DisconnectReason"],"struct":["ConnectData","DisconnectData","RtcpData","RtpData","VoiceData","VoiceTick"]};

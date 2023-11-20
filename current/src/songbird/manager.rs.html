@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/manager.rs`."><title>manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (32303b219 2023-07-29)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/manager.rs`."><title>manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9a66e4471 2023-11-19)" data-channel="nightly" data-search-js="search-d23a059ec093b287.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f06f02fd918e3bb3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -442,7 +442,72 @@
 <a href="#442" id="442">442</a>
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+</pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::shards::SerenitySharder;
+<span class="kw">use crate</span>::{
     error::{JoinError, JoinResult},
     id::{ChannelId, GuildId, UserId},
     shards::Sharder,
@@ -455,11 +520,11 @@
 <span class="kw">use </span>dashmap::DashMap;
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 </span><span class="kw">use </span>futures::channel::mpsc::UnboundedSender <span class="kw">as </span>Sender;
+<span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>parking_lot::RwLock <span class="kw">as </span>PRwLock;
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 </span><span class="kw">use </span>serenity::{
-    client::bridge::voice::VoiceGatewayManager,
-    gateway::InterMessage,
+    gateway::{ShardRunnerMessage, VoiceGatewayManager},
     model::{
         id::{GuildId <span class="kw">as </span>SerenityGuild, UserId <span class="kw">as </span>SerenityUser},
         voice::VoiceState,
@@ -467,16 +532,14 @@
 };
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::sync::Mutex;
-<span class="kw">use </span>tracing::debug;
-<span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
-</span><span class="kw">use </span>twilight_gateway::Cluster;
+<span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
+</span><span class="kw">use </span>tracing::debug;
 <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
 </span><span class="kw">use </span>twilight_model::gateway::event::Event <span class="kw">as </span>TwilightEvent;
 
-<span class="attr">#[derive(Clone, Copy, Debug, Default)]
+<span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">struct </span>ClientData {
     shard_count: u64,
-    initialised: bool,
     user_id: UserId,
 }
 
@@ -488,10 +551,10 @@
 /// [`Call`]: Call
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Songbird {
-    client_data: PRwLock&lt;ClientData&gt;,
+    client_data: OnceCell&lt;ClientData&gt;,
     calls: DashMap&lt;GuildId, Arc&lt;Mutex&lt;Call&gt;&gt;&gt;,
     sharder: Sharder,
-    config: PRwLock&lt;<span class="prelude-ty">Option</span>&lt;Config&gt;&gt;,
+    config: PRwLock&lt;Config&gt;,
 }
 
 <span class="kw">impl </span>Songbird {
@@ -501,8 +564,9 @@
     /// This must be [registered] after creation.
     ///
     /// [registered]: crate::serenity::register_with
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>serenity() -&gt; Arc&lt;<span class="self">Self</span>&gt; {
-        <span class="self">Self</span>::serenity_from_config(Default::default())
+        <span class="self">Self</span>::serenity_from_config(Config::default())
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
@@ -511,12 +575,13 @@
     /// This must be [registered] after creation.
     ///
     /// [registered]: crate::serenity::register_with
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>serenity_from_config(config: Config) -&gt; Arc&lt;<span class="self">Self</span>&gt; {
         Arc::new(<span class="self">Self </span>{
-            client_data: Default::default(),
-            calls: Default::default(),
-            sharder: Sharder::Serenity(Default::default()),
-            config: <span class="prelude-val">Some</span>(config).into(),
+            client_data: OnceCell::new(),
+            calls: DashMap::new(),
+            sharder: Sharder::Serenity(SerenitySharder::default()),
+            config: config.initialise_disposer().into(),
         })
     }
 
@@ -528,11 +593,11 @@
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    </span><span class="kw">pub fn </span>twilight&lt;U&gt;(cluster: Arc&lt;Cluster&gt;, user_id: U) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>twilight&lt;U&gt;(cluster: Arc&lt;<span class="kw">crate</span>::shards::TwilightMap&gt;, user_id: U) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>U: Into&lt;UserId&gt;,
     {
-        <span class="self">Self</span>::twilight_from_config(cluster, user_id, Default::default())
+        <span class="self">Self</span>::twilight_from_config(cluster, user_id, Config::default())
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
@@ -543,19 +608,22 @@
     /// [`process`].
     ///
     /// [`process`]: Songbird::process
-    </span><span class="kw">pub fn </span>twilight_from_config&lt;U&gt;(cluster: Arc&lt;Cluster&gt;, user_id: U, config: Config) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>twilight_from_config&lt;U&gt;(
+        sender_map: Arc&lt;<span class="kw">crate</span>::shards::TwilightMap&gt;,
+        user_id: U,
+        config: Config,
+    ) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>U: Into&lt;UserId&gt;,
     {
         <span class="self">Self </span>{
-            client_data: PRwLock::new(ClientData {
-                shard_count: cluster.config().shard_scheme().total(),
-                initialised: <span class="bool-val">true</span>,
+            client_data: OnceCell::with_value(ClientData {
+                shard_count: sender_map.shard_count(),
                 user_id: user_id.into(),
             }),
-            calls: Default::default(),
-            sharder: Sharder::TwilightCluster(cluster),
-            config: <span class="prelude-val">Some</span>(config).into(),
+            calls: DashMap::new(),
+            sharder: Sharder::Twilight(sender_map),
+            config: config.initialise_disposer().into(),
         }
     }
 
@@ -566,15 +634,12 @@
     ///
     /// [`::twilight`]: #method.twilight
     </span><span class="kw">pub fn </span>initialise_client_data&lt;U: Into&lt;UserId&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_count: u64, user_id: U) {
-        <span class="kw">let </span><span class="kw-2">mut </span>client_data = <span class="self">self</span>.client_data.write();
-
-        <span class="kw">if </span>client_data.initialised {
-            <span class="kw">return</span>;
-        }
-
-        client_data.shard_count = shard_count;
-        client_data.user_id = user_id.into();
-        client_data.initialised = <span class="bool-val">true</span>;
+        <span class="self">self</span>.client_data
+            .set(ClientData {
+                shard_count,
+                user_id: user_id.into(),
+            })
+            .ok();
     }
 
     <span class="doccomment">/// Retrieves a [`Call`] for the given guild, if one already exists.
@@ -605,8 +670,12 @@
             <span class="self">self</span>.calls
                 .entry(guild_id)
                 .or_insert_with(|| {
-                    <span class="kw">let </span>info = <span class="self">self</span>.manager_info();
-                    <span class="kw">let </span>shard = shard_id(guild_id.<span class="number">0</span>, info.shard_count);
+                    <span class="kw">let </span>info = <span class="self">self
+                        </span>.client_data
+                        .get()
+                        .expect(<span class="string">&quot;Manager has not been initialised&quot;</span>);
+
+                    <span class="kw">let </span>shard = shard_id(guild_id.<span class="number">0</span>.get(), info.shard_count);
                     <span class="kw">let </span>shard_handle = <span class="self">self
                         </span>.sharder
                         .get_shard(shard)
@@ -616,13 +685,20 @@
                         guild_id,
                         shard_handle,
                         info.user_id,
-                        <span class="self">self</span>.config.read().clone().unwrap_or_default(),
+                        <span class="self">self</span>.config.read().clone(),
                     );
 
                     Arc::new(Mutex::new(call))
                 })
                 .clone()
         })
+    }
+
+    <span class="doccomment">/// Creates an iterator for all [`Call`]s currently managed.
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
+        Iter {
+            inner: <span class="self">self</span>.calls.iter().map(|x| (<span class="kw-2">*</span>x.key(), Arc::clone(x.value()))),
+        }
     }
 
     <span class="doccomment">/// Sets a shared configuration for all drivers created from this
@@ -633,16 +709,10 @@
     /// Requires the `&quot;driver&quot;` feature.
     </span><span class="kw">pub fn </span>set_config(<span class="kw-2">&amp;</span><span class="self">self</span>, new_config: Config) {
         <span class="kw">let </span><span class="kw-2">mut </span>config = <span class="self">self</span>.config.write();
-        <span class="kw-2">*</span>config = <span class="prelude-val">Some</span>(new_config);
+        <span class="kw-2">*</span>config = new_config;
     }
 
-    <span class="kw">fn </span>manager_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ClientData {
-        <span class="kw">let </span>client_data = <span class="self">self</span>.client_data.write();
-
-        <span class="kw-2">*</span>client_data
-    }
-
-    <span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
     </span><span class="doccomment">/// Connects to a target by retrieving its relevant [`Call`] and
     /// connecting, or creating the handler if required.
     ///
@@ -662,11 +732,13 @@
     ///
     /// Twilight users should read the caveats mentioned in [`process`].
     ///
+    /// NOTE: an `Err(..)` value will still create a [`Call`] accessible via [`get`].
+    ///
     /// [`Call`]: Call
     /// [`get`]: Songbird::get
     /// [`process`]: #method.process
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub async fn </span>join&lt;C, G&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G, channel_id: C) -&gt; (Arc&lt;Mutex&lt;Call&gt;&gt;, JoinResult&lt;()&gt;)
+    </span><span class="kw">pub async fn </span>join&lt;C, G&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: G, channel_id: C) -&gt; JoinResult&lt;Arc&lt;Mutex&lt;Call&gt;&gt;&gt;
     <span class="kw">where
         </span>C: Into&lt;ChannelId&gt;,
         G: Into&lt;GuildId&gt;,
@@ -674,12 +746,12 @@
         <span class="self">self</span>._join(guild_id.into(), channel_id.into()).<span class="kw">await
     </span>}
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;driver-core&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
     </span><span class="kw">async fn </span>_join(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         guild_id: GuildId,
         channel_id: ChannelId,
-    ) -&gt; (Arc&lt;Mutex&lt;Call&gt;&gt;, JoinResult&lt;()&gt;) {
+    ) -&gt; JoinResult&lt;Arc&lt;Mutex&lt;Call&gt;&gt;&gt; {
         <span class="kw">let </span>call = <span class="self">self</span>.get_or_insert(guild_id);
 
         <span class="kw">let </span>stage_1 = {
@@ -687,12 +759,10 @@
             handler.join(channel_id).<span class="kw">await
         </span>};
 
-        <span class="kw">let </span>result = <span class="kw">match </span>stage_1 {
-            <span class="prelude-val">Ok</span>(chan) =&gt; chan.<span class="kw">await</span>,
+        <span class="kw">match </span>stage_1 {
+            <span class="prelude-val">Ok</span>(chan) =&gt; chan.<span class="kw">await</span>.map(|()| call),
             <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
-        };
-
-        (call, result)
+        }
     }
 
     <span class="doccomment">/// Partially connects to a target by retrieving its relevant [`Call`] and
@@ -701,13 +771,16 @@
     /// This method returns the handle and the connection info needed for other libraries
     /// or drivers, such as lavalink, and does not actually start or run a voice call.
     ///
+    /// NOTE: an `Err(..)` value will still create a [`Call`] accessible via [`get`].
+    ///
     /// [`Call`]: Call
+    /// [`get`]: Songbird::get
     </span><span class="attr">#[inline]
     </span><span class="kw">pub async fn </span>join_gateway&lt;C, G&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         guild_id: G,
         channel_id: C,
-    ) -&gt; (Arc&lt;Mutex&lt;Call&gt;&gt;, JoinResult&lt;ConnectionInfo&gt;)
+    ) -&gt; JoinResult&lt;(ConnectionInfo, Arc&lt;Mutex&lt;Call&gt;&gt;)&gt;
     <span class="kw">where
         </span>C: Into&lt;ChannelId&gt;,
         G: Into&lt;GuildId&gt;,
@@ -719,7 +792,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         guild_id: GuildId,
         channel_id: ChannelId,
-    ) -&gt; (Arc&lt;Mutex&lt;Call&gt;&gt;, JoinResult&lt;ConnectionInfo&gt;) {
+    ) -&gt; JoinResult&lt;(ConnectionInfo, Arc&lt;Mutex&lt;Call&gt;&gt;)&gt; {
         <span class="kw">let </span>call = <span class="self">self</span>.get_or_insert(guild_id);
 
         <span class="kw">let </span>stage_1 = {
@@ -727,12 +800,13 @@
             handler.join_gateway(channel_id).<span class="kw">await
         </span>};
 
-        <span class="kw">let </span>result = <span class="kw">match </span>stage_1 {
-            <span class="prelude-val">Ok</span>(chan) =&gt; chan.<span class="kw">await</span>.map_err(|<span class="kw">_</span>| JoinError::Dropped),
+        <span class="kw">match </span>stage_1 {
+            <span class="prelude-val">Ok</span>(chan) =&gt; chan
+                .<span class="kw">await
+                </span>.map_err(|<span class="kw">_</span>| JoinError::Dropped)
+                .map(|info| (info, call)),
             <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
-        };
-
-        (call, result)
+        }
     }
 
     <span class="doccomment">/// Retrieves the [handler][`Call`] for the given target and leaves the
@@ -785,6 +859,16 @@
     }
 }
 
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Songbird {
+    <span class="kw">type </span>Item = &lt;Iter&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">as </span>Iterator&gt;::Item;
+
+    <span class="kw">type </span>IntoIter = Iter&lt;<span class="lifetime">&#39;a</span>&gt;;
+
+    <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
+        <span class="self">self</span>.iter()
+    }
+}
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;twilight&quot;</span>)]
 </span><span class="kw">impl </span>Songbird {
     <span class="doccomment">/// Handle events received on the cluster.
@@ -805,7 +889,8 @@
     </span><span class="kw">pub async fn </span>process(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>TwilightEvent) {
         <span class="kw">match </span>event {
             TwilightEvent::VoiceServerUpdate(v) =&gt; {
-                <span class="kw">let </span>call = v.guild_id.map(GuildId::from).and_then(|id| <span class="self">self</span>.get(id));
+                <span class="kw">let </span>guild_id = GuildId::from(v.guild_id);
+                <span class="kw">let </span>call = <span class="self">self</span>.get(guild_id);
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(call) = call {
                     <span class="kw">let </span><span class="kw-2">mut </span>handler = call.lock().<span class="kw">await</span>;
@@ -815,7 +900,11 @@
                 }
             },
             TwilightEvent::VoiceStateUpdate(v) =&gt; {
-                <span class="kw">if </span>v.<span class="number">0</span>.user_id.get() != <span class="self">self</span>.client_data.read().user_id.<span class="number">0 </span>{
+                <span class="kw">if </span><span class="self">self
+                    </span>.client_data
+                    .get()
+                    .map_or(<span class="bool-val">true</span>, |data| v.<span class="number">0</span>.user_id.into_nonzero() != data.user_id.<span class="number">0</span>)
+                {
                     <span class="kw">return</span>;
                 }
 
@@ -834,16 +923,16 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;serenity&quot;</span>)]
 #[async_trait]
 </span><span class="kw">impl </span>VoiceGatewayManager <span class="kw">for </span>Songbird {
-    <span class="kw">async fn </span>initialise(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_count: u64, user_id: SerenityUser) {
+    <span class="kw">async fn </span>initialise(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_count: u32, user_id: SerenityUser) {
         <span class="macro">debug!</span>(
             <span class="string">&quot;Initialising Songbird for Serenity: ID {:?}, {} Shards&quot;</span>,
             user_id, shard_count
         );
-        <span class="self">self</span>.initialise_client_data(shard_count, user_id);
+        <span class="self">self</span>.initialise_client_data(shard_count <span class="kw">as </span>u64, user_id);
         <span class="macro">debug!</span>(<span class="string">&quot;Songbird ({:?}) Initialised!&quot;</span>, user_id);
     }
 
-    <span class="kw">async fn </span>register_shard(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64, sender: Sender&lt;InterMessage&gt;) {
+    <span class="kw">async fn </span>register_shard(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u32, sender: Sender&lt;ShardRunnerMessage&gt;) {
         <span class="macro">debug!</span>(
             <span class="string">&quot;Registering Serenity shard handle {} with Songbird&quot;</span>,
             shard_id
@@ -852,7 +941,7 @@
         <span class="macro">debug!</span>(<span class="string">&quot;Registered shard handle {}.&quot;</span>, shard_id);
     }
 
-    <span class="kw">async fn </span>deregister_shard(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u64) {
+    <span class="kw">async fn </span>deregister_shard(<span class="kw-2">&amp;</span><span class="self">self</span>, shard_id: u32) {
         <span class="macro">debug!</span>(
             <span class="string">&quot;Deregistering Serenity shard handle {} with Songbird&quot;</span>,
             shard_id
@@ -871,7 +960,9 @@
     }
 
     <span class="kw">async fn </span>state_update(<span class="kw-2">&amp;</span><span class="self">self</span>, guild_id: SerenityGuild, voice_state: <span class="kw-2">&amp;</span>VoiceState) {
-        <span class="kw">if </span>voice_state.user_id.<span class="number">0 </span>!= <span class="self">self</span>.client_data.read().user_id.<span class="number">0 </span>{
+        <span class="kw">if </span><span class="self">self</span>.client_data.get().map_or(<span class="bool-val">true</span>, |data| {
+            voice_state.user_id.get() != data.user_id.<span class="number">0</span>.get()
+        }) {
             <span class="kw">return</span>;
         }
 
@@ -879,6 +970,41 @@
             <span class="kw">let </span><span class="kw-2">mut </span>handler = call.lock().<span class="kw">await</span>;
             handler.update_state(voice_state.session_id.clone(), voice_state.channel_id);
         }
+    }
+}
+
+<span class="kw">type </span>DashMapIter&lt;<span class="lifetime">&#39;a</span>&gt; = dashmap::iter::Iter&lt;<span class="lifetime">&#39;a</span>, GuildId, Arc&lt;Mutex&lt;Call&gt;&gt;&gt;;
+<span class="kw">type </span>InnerIter&lt;<span class="lifetime">&#39;a</span>&gt; = std::iter::Map&lt;
+    DashMapIter&lt;<span class="lifetime">&#39;a</span>&gt;,
+    <span class="kw">fn</span>(&lt;DashMapIter&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">as </span>Iterator&gt;::Item) -&gt; (GuildId, Arc&lt;Mutex&lt;Call&gt;&gt;),
+&gt;;
+
+<span class="doccomment">/// An iterator over all [`Call`]s currently stored in the manager instance.
+</span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    inner: InnerIter&lt;<span class="lifetime">&#39;a</span>&gt;,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = (GuildId, Arc&lt;Mutex&lt;Call&gt;&gt;);
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="self">self</span>.inner.next()
+    }
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="self">self</span>.inner.size_hint()
+    }
+
+    <span class="kw">fn </span>count(<span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.inner.count()
+    }
+
+    <span class="kw">fn </span>fold&lt;B, F&gt;(<span class="self">self</span>, init: B, f: F) -&gt; B
+    <span class="kw">where
+        </span><span class="self">Self</span>: Sized,
+        F: FnMut(B, <span class="self">Self</span>::Item) -&gt; B,
+    {
+        <span class="self">self</span>.inner.fold(init, f)
     }
 }
 

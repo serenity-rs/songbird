@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/context/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (32303b219 2023-07-29)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/context/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9a66e4471 2023-11-19)" data-channel="nightly" data-search-js="search-d23a059ec093b287.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-f06f02fd918e3bb3.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -96,6 +96,22 @@
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
 </pre></div><pre class="rust"><code><span class="kw">pub mod </span>data;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>internal_data;
 
@@ -124,24 +140,33 @@
     /// [`EventStore::add_event`]: EventStore::add_event
     /// [`TrackHandle::add_event`]: TrackHandle::add_event
     </span>Track(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TrackState, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TrackHandle)]),
+
     <span class="doccomment">/// Speaking state update, typically describing how another voice
     /// user is transmitting audio data. Clients must send at least one such
     /// packet to allow SSRC/UserID matching.
     </span>SpeakingStateUpdate(Speaking),
-    <span class="doccomment">/// Speaking state transition, describing whether a given source has started/stopped
-    /// transmitting. This fires in response to a silent burst, or the first packet
-    /// breaking such a burst.
-    </span>SpeakingUpdate(SpeakingUpdateData),
-    <span class="doccomment">/// Opus audio packet, received from another stream.
-    </span>VoicePacket(VoiceData&lt;<span class="lifetime">&#39;a</span>&gt;),
-    <span class="doccomment">/// Telemetry/statistics packet, received from another stream.
-    </span>RtcpPacket(RtcpData&lt;<span class="lifetime">&#39;a</span>&gt;),
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+    </span><span class="doccomment">/// Reordered and decoded audio packets, received every 20ms.
+    </span>VoiceTick(VoiceTick),
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+    </span><span class="doccomment">/// Opus audio packet, received from another stream.
+    </span>RtpPacket(RtpData),
+
+    <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+    </span><span class="doccomment">/// Telemetry/statistics packet, received from another stream.
+    </span>RtcpPacket(RtcpData),
+
     <span class="doccomment">/// Fired whenever a client disconnects.
     </span>ClientDisconnect(ClientDisconnect),
+
     <span class="doccomment">/// Fires when this driver successfully connects to a voice channel.
     </span>DriverConnect(ConnectData&lt;<span class="lifetime">&#39;a</span>&gt;),
+
     <span class="doccomment">/// Fires when this driver successfully reconnects after a network error.
     </span>DriverReconnect(ConnectData&lt;<span class="lifetime">&#39;a</span>&gt;),
+
     <span class="doccomment">/// Fires when this driver fails to connect to, or drops from, a voice channel.
     </span>DriverDisconnect(DisconnectData&lt;<span class="lifetime">&#39;a</span>&gt;),
 }
@@ -149,9 +174,12 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>CoreContext {
     SpeakingStateUpdate(Speaking),
-    SpeakingUpdate(InternalSpeakingUpdate),
-    VoicePacket(InternalVoicePacket),
-    RtcpPacket(InternalRtcpPacket),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+    </span>VoiceTick(VoiceTick),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+    </span>RtpPacket(InternalRtpPacket),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+    </span>RtcpPacket(InternalRtcpPacket),
     ClientDisconnect(ClientDisconnect),
     DriverConnect(InternalConnect),
     DriverReconnect(InternalConnect),
@@ -160,17 +188,19 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CoreContext {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_user_context(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; EventContext&lt;<span class="lifetime">&#39;a</span>&gt; {
-        <span class="kw">use </span>CoreContext::<span class="kw-2">*</span>;
-
         <span class="kw">match </span><span class="self">self </span>{
-            SpeakingStateUpdate(evt) =&gt; EventContext::SpeakingStateUpdate(<span class="kw-2">*</span>evt),
-            SpeakingUpdate(evt) =&gt; EventContext::SpeakingUpdate(SpeakingUpdateData::from(evt)),
-            VoicePacket(evt) =&gt; EventContext::VoicePacket(VoiceData::from(evt)),
-            RtcpPacket(evt) =&gt; EventContext::RtcpPacket(RtcpData::from(evt)),
-            ClientDisconnect(evt) =&gt; EventContext::ClientDisconnect(<span class="kw-2">*</span>evt),
-            DriverConnect(evt) =&gt; EventContext::DriverConnect(ConnectData::from(evt)),
-            DriverReconnect(evt) =&gt; EventContext::DriverReconnect(ConnectData::from(evt)),
-            DriverDisconnect(evt) =&gt; EventContext::DriverDisconnect(DisconnectData::from(evt)),
+            <span class="self">Self</span>::SpeakingStateUpdate(evt) =&gt; EventContext::SpeakingStateUpdate(<span class="kw-2">*</span>evt),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            </span><span class="self">Self</span>::VoiceTick(evt) =&gt; EventContext::VoiceTick(evt.clone()),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            </span><span class="self">Self</span>::RtpPacket(evt) =&gt; EventContext::RtpPacket(RtpData::from(evt)),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            </span><span class="self">Self</span>::RtcpPacket(evt) =&gt; EventContext::RtcpPacket(RtcpData::from(evt)),
+            <span class="self">Self</span>::ClientDisconnect(evt) =&gt; EventContext::ClientDisconnect(<span class="kw-2">*</span>evt),
+            <span class="self">Self</span>::DriverConnect(evt) =&gt; EventContext::DriverConnect(ConnectData::from(evt)),
+            <span class="self">Self</span>::DriverReconnect(evt) =&gt; EventContext::DriverReconnect(ConnectData::from(evt)),
+            <span class="self">Self</span>::DriverDisconnect(evt) =&gt;
+                EventContext::DriverDisconnect(DisconnectData::from(evt)),
         }
     }
 }
@@ -178,18 +208,20 @@
 <span class="kw">impl </span>EventContext&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Retreive the event class for an event (i.e., when matching)
     /// an event against the registered listeners.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>to_core_event(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;CoreEvent&gt; {
-        <span class="kw">use </span>EventContext::<span class="kw-2">*</span>;
-
         <span class="kw">match </span><span class="self">self </span>{
-            SpeakingStateUpdate(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::SpeakingStateUpdate),
-            SpeakingUpdate(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::SpeakingUpdate),
-            VoicePacket(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::VoicePacket),
-            RtcpPacket(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::RtcpPacket),
-            ClientDisconnect(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::ClientDisconnect),
-            DriverConnect(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::DriverConnect),
-            DriverReconnect(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::DriverReconnect),
-            DriverDisconnect(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::DriverDisconnect),
+            <span class="self">Self</span>::SpeakingStateUpdate(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::SpeakingStateUpdate),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            </span><span class="self">Self</span>::VoiceTick(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::VoiceTick),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            </span><span class="self">Self</span>::RtpPacket(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::RtpPacket),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            </span><span class="self">Self</span>::RtcpPacket(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::RtcpPacket),
+            <span class="self">Self</span>::ClientDisconnect(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::ClientDisconnect),
+            <span class="self">Self</span>::DriverConnect(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::DriverConnect),
+            <span class="self">Self</span>::DriverReconnect(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::DriverReconnect),
+            <span class="self">Self</span>::DriverDisconnect(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(CoreEvent::DriverDisconnect),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

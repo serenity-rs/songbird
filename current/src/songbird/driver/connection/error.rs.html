@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/connection/error.rs`."><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (32303b219 2023-07-29)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/connection/error.rs`."><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9a66e4471 2023-11-19)" data-channel="nightly" data-search-js="search-d23a059ec093b287.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-f06f02fd918e3bb3.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -135,19 +135,13 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Connection errors and convenience types.
 
 </span><span class="kw">use crate</span>::{
     driver::tasks::{error::Recipient, message::<span class="kw-2">*</span>},
     ws::Error <span class="kw">as </span>WsError,
 };
-<span class="kw">use </span>crypto_secretbox::{cipher::InvalidLength, Error <span class="kw">as </span>CryptoError};
+<span class="kw">use </span>crypto_secretbox::Error <span class="kw">as </span>CryptoError;
 <span class="kw">use </span>flume::SendError;
 <span class="kw">use </span>serde_json::Error <span class="kw">as </span>JsonError;
 <span class="kw">use </span>std::{error::Error <span class="kw">as </span>StdError, fmt, io::Error <span class="kw">as </span>IoError};
@@ -160,10 +154,10 @@
     <span class="doccomment">/// The driver hung up an internal signaller, either due to another connection attempt
     /// or a crash.
     </span>AttemptDiscarded,
-    <span class="doccomment">/// An error occurred during [en/de]cryption of voice packets or key generation.
+    <span class="doccomment">/// An error occurred during [en/de]cryption of voice packets.
     </span>Crypto(CryptoError),
-    <span class="doccomment">/// Invalid length error while generating crypto keys
-    </span>InvalidLength(InvalidLength),
+    <span class="doccomment">/// The symmetric key supplied by Discord had the wrong size.
+    </span>CryptoInvalidLength,
     <span class="doccomment">/// Server did not return the expected crypto mode during negotiation.
     </span>CryptoModeInvalid,
     <span class="doccomment">/// Selected crypto mode was not offered by server.
@@ -234,30 +228,24 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;InvalidLength&gt; <span class="kw">for </span>Error {
-    <span class="kw">fn </span>from(value: InvalidLength) -&gt; <span class="self">Self </span>{
-        Error::InvalidLength(value)
-    }
-}
-
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;failed to connect to Discord RTP server: &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">use </span>Error::<span class="kw-2">*</span>;
         <span class="kw">match </span><span class="self">self </span>{
-            AttemptDiscarded =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
-            Crypto(e) =&gt; e.fmt(f),
-            InvalidLength(e) =&gt; e.fmt(f),
-            CryptoModeInvalid =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
-            CryptoModeUnavailable =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
-            EndpointUrl =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
-            IllegalDiscoveryResponse =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;IP discovery/NAT punching response was invalid&quot;</span>),
-            IllegalIp =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
-            Io(e) =&gt; e.fmt(f),
-            Json(e) =&gt; e.fmt(f),
-            InterconnectFailure(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;failed to contact other task ({:?})&quot;</span>, e),
-            Ws(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;websocket issue ({:?}).&quot;</span>, e),
-            TimedOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;connection attempt timed out&quot;</span>),
+            <span class="self">Self</span>::AttemptDiscarded =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;connection attempt was aborted/discarded&quot;</span>),
+            <span class="self">Self</span>::Crypto(e) =&gt; e.fmt(f),
+            <span class="self">Self</span>::CryptoInvalidLength =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;server supplied key of wrong length&quot;</span>),
+            <span class="self">Self</span>::CryptoModeInvalid =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;server changed negotiated encryption mode&quot;</span>),
+            <span class="self">Self</span>::CryptoModeUnavailable =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;server did not offer chosen encryption mode&quot;</span>),
+            <span class="self">Self</span>::EndpointUrl =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;endpoint URL received from gateway was invalid&quot;</span>),
+            <span class="self">Self</span>::IllegalDiscoveryResponse =&gt;
+                <span class="macro">write!</span>(f, <span class="string">&quot;IP discovery/NAT punching response was invalid&quot;</span>),
+            <span class="self">Self</span>::IllegalIp =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;IP discovery/NAT punching response had bad IP value&quot;</span>),
+            <span class="self">Self</span>::Io(e) =&gt; e.fmt(f),
+            <span class="self">Self</span>::Json(e) =&gt; e.fmt(f),
+            <span class="self">Self</span>::InterconnectFailure(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;failed to contact other task ({e:?})&quot;</span>),
+            <span class="self">Self</span>::Ws(e) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;websocket issue ({e:?}).&quot;</span>),
+            <span class="self">Self</span>::TimedOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;connection attempt timed out&quot;</span>),
         }
     }
 }
@@ -265,19 +253,19 @@
 <span class="kw">impl </span>StdError <span class="kw">for </span>Error {
     <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">&#39;static</span>)&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            Error::AttemptDiscarded =&gt; <span class="prelude-val">None</span>,
+            Error::AttemptDiscarded
+            | Error::CryptoInvalidLength
+            | Error::CryptoModeInvalid
+            | Error::CryptoModeUnavailable
+            | Error::EndpointUrl
+            | Error::IllegalDiscoveryResponse
+            | Error::IllegalIp
+            | Error::InterconnectFailure(<span class="kw">_</span>)
+            | Error::Ws(<span class="kw">_</span>)
+            | Error::TimedOut =&gt; <span class="prelude-val">None</span>,
             Error::Crypto(e) =&gt; e.source(),
-            Error::InvalidLength(v) =&gt; v.source(),
-            Error::CryptoModeInvalid =&gt; <span class="prelude-val">None</span>,
-            Error::CryptoModeUnavailable =&gt; <span class="prelude-val">None</span>,
-            Error::EndpointUrl =&gt; <span class="prelude-val">None</span>,
-            Error::IllegalDiscoveryResponse =&gt; <span class="prelude-val">None</span>,
-            Error::IllegalIp =&gt; <span class="prelude-val">None</span>,
             Error::Io(e) =&gt; e.source(),
             Error::Json(e) =&gt; e.source(),
-            Error::InterconnectFailure(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            Error::Ws(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            Error::TimedOut =&gt; <span class="prelude-val">None</span>,
         }
     }
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/events.rs`."><title>events.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0-nightly (32303b219 2023-07-29)" data-channel="nightly" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-6d2c9675f3d09c26.css" data-theme-dark-css="dark-45ceb8f2e522f4d1.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-6d2c9675f3d09c26.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-45ceb8f2e522f4d1.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/events.rs`."><title>events.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9a66e4471 2023-11-19)" data-channel="nightly" data-search-js="search-d23a059ec093b287.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-f06f02fd918e3bb3.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -119,10 +119,28 @@
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::message::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{
     events::{EventStore, GlobalEvents, TrackEvent},
-    tracks::{TrackHandle, TrackState},
+    tracks::{ReadyState, TrackHandle, TrackState},
 };
 <span class="kw">use </span>flume::Receiver;
 <span class="kw">use </span>tracing::{debug, info, instrument, trace};
@@ -135,14 +153,13 @@
     <span class="kw">let </span><span class="kw-2">mut </span>states: Vec&lt;TrackState&gt; = <span class="macro">vec!</span>[];
     <span class="kw">let </span><span class="kw-2">mut </span>handles: Vec&lt;TrackHandle&gt; = <span class="macro">vec!</span>[];
 
-    <span class="kw">loop </span>{
-        <span class="kw">use </span>EventMessage::<span class="kw-2">*</span>;
-        <span class="kw">match </span>evt_rx.recv_async().<span class="kw">await </span>{
-            <span class="prelude-val">Ok</span>(AddGlobalEvent(data)) =&gt; {
+    <span class="kw">while let </span><span class="prelude-val">Ok</span>(msg) = evt_rx.recv_async().<span class="kw">await </span>{
+        <span class="kw">match </span>msg {
+            EventMessage::AddGlobalEvent(data) =&gt; {
                 <span class="macro">info!</span>(<span class="string">&quot;Global event added.&quot;</span>);
                 global.add_event(data);
             },
-            <span class="prelude-val">Ok</span>(AddTrackEvent(i, data)) =&gt; {
+            EventMessage::AddTrackEvent(i, data) =&gt; {
                 <span class="macro">info!</span>(<span class="string">&quot;Adding event to track {}.&quot;</span>, i);
 
                 <span class="kw">let </span>event_store = events
@@ -154,7 +171,7 @@
 
                 event_store.add_event(data, state.position);
             },
-            <span class="prelude-val">Ok</span>(FireCoreEvent(ctx)) =&gt; {
+            EventMessage::FireCoreEvent(ctx) =&gt; {
                 <span class="kw">let </span>ctx = ctx.to_user_context();
                 <span class="kw">let </span>evt = ctx
                     .to_core_event()
@@ -164,19 +181,17 @@
 
                 global.fire_core_event(evt, ctx).<span class="kw">await</span>;
             },
-            <span class="prelude-val">Ok</span>(RemoveGlobalEvents) =&gt; {
+            EventMessage::RemoveGlobalEvents =&gt; {
                 global.remove_handlers();
             },
-            <span class="prelude-val">Ok</span>(AddTrack(store, state, handle)) =&gt; {
+            EventMessage::AddTrack(store, state, handle) =&gt; {
                 events.push(store);
                 states.push(state);
                 handles.push(handle);
 
                 <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} added&quot;</span>, events.len());
             },
-            <span class="prelude-val">Ok</span>(ChangeState(i, change)) =&gt; {
-                <span class="kw">use </span>TrackStateChange::<span class="kw-2">*</span>;
-
+            EventMessage::ChangeState(i, change) =&gt; {
                 <span class="kw">let </span>max_states = states.len();
                 <span class="macro">debug!</span>(
                     <span class="string">&quot;Changing state for track {} of {}: {:?}&quot;</span>,
@@ -188,53 +203,74 @@
                     .expect(<span class="string">&quot;Event thread was given an illegal state index for ChangeState.&quot;</span>);
 
                 <span class="kw">match </span>change {
-                    Mode(mode) =&gt; {
-                        <span class="kw">let </span>old = state.playing;
-                        state.playing = mode;
-                        <span class="kw">if </span>old != mode {
-                            global.fire_track_event(mode.as_track_event(), i);
+                    TrackStateChange::Mode(<span class="kw-2">mut </span>mode) =&gt; {
+                        std::mem::swap(<span class="kw-2">&amp;mut </span>state.playing, <span class="kw-2">&amp;mut </span>mode);
+                        <span class="kw">if </span>state.playing != mode {
+                            global.fire_track_event(state.playing.as_track_event(), i);
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(other_evts) = state.playing.also_fired_track_events() {
+                                <span class="kw">for </span>evt <span class="kw">in </span>other_evts {
+                                    global.fire_track_event(evt, i);
+                                }
+                            }
                         }
                     },
-                    Volume(vol) =&gt; {
+                    TrackStateChange::Volume(vol) =&gt; {
                         state.volume = vol;
                     },
-                    Position(pos) =&gt; {
+                    TrackStateChange::Position(pos) =&gt; {
                         <span class="comment">// Currently, only Tick should fire time events.
                         </span>state.position = pos;
                     },
-                    Loops(loops, user_set) =&gt; {
+                    TrackStateChange::Loops(loops, user_set) =&gt; {
                         state.loops = loops;
                         <span class="kw">if </span>!user_set {
                             global.fire_track_event(TrackEvent::Loop, i);
                         }
                     },
-                    Total(new) =&gt; {
+                    TrackStateChange::Total(new) =&gt; {
                         <span class="comment">// Massive, unprecedented state changes.
                         </span><span class="kw-2">*</span>state = new;
                     },
+                    TrackStateChange::Ready(ready_state) =&gt; {
+                        state.ready = ready_state;
+
+                        <span class="kw">match </span>ready_state {
+                            ReadyState::Playable =&gt; {
+                                global.fire_track_event(TrackEvent::Playable, i);
+                            },
+                            ReadyState::Preparing =&gt; {
+                                global.fire_track_event(TrackEvent::Preparing, i);
+                            },
+                            ReadyState::Uninitialised =&gt; {},
+                        }
+                    },
                 }
             },
-            <span class="prelude-val">Ok</span>(RemoveTrack(i)) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} of {} removed.&quot;</span>, i, events.len());
-
-                events.swap_remove(i);
-                states.swap_remove(i);
-                handles.swap_remove(i);
-            },
-            <span class="prelude-val">Ok</span>(RemoveAllTracks) =&gt; {
+            EventMessage::RemoveAllTracks =&gt; {
                 <span class="macro">info!</span>(<span class="string">&quot;Event state for all tracks removed.&quot;</span>);
 
                 events.clear();
                 states.clear();
                 handles.clear();
             },
-            <span class="prelude-val">Ok</span>(Tick) =&gt; {
+            EventMessage::Tick =&gt; {
                 <span class="comment">// NOTE: this should fire saved up blocks of state change evts.
                 </span>global.tick(<span class="kw-2">&amp;mut </span>events, <span class="kw-2">&amp;mut </span>states, <span class="kw-2">&amp;mut </span>handles).<span class="kw">await</span>;
+
+                <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+                <span class="kw">while </span>i &lt; states.len() {
+                    <span class="kw">if </span>states[i].playing.is_done() {
+                        <span class="macro">info!</span>(<span class="string">&quot;Event state for track {} of {} removed.&quot;</span>, i, events.len());
+
+                        events.swap_remove(i);
+                        states.swap_remove(i);
+                        handles.swap_remove(i);
+                    } <span class="kw">else </span>{
+                        i += <span class="number">1</span>;
+                    }
+                }
             },
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) | <span class="prelude-val">Ok</span>(Poison) =&gt; {
-                <span class="kw">break</span>;
-            },
+            EventMessage::Poison =&gt; <span class="kw">break</span>,
         }
     }
 

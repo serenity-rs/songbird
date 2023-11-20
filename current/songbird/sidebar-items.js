@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["constants","driver","error","events","id","input","join","serenity","shards","tracks"],"struct":["Call","Config","ConnectionInfo","Songbird"]};
+window.SIDEBAR_ITEMS = {"mod":["constants","driver","error","events","id","input","join","serenity","shards","tracks"],"struct":["Call","Config","ConnectionInfo","Iter","Songbird"]};
