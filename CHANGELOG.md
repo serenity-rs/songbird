@@ -114,6 +114,7 @@ Thanks to the following for their contributions:
 
 ### Fixed
 
+- [deps] Re-disable default Serenity features ([@FelixMcFelix]) [c:cc53312]
 - [gateway] Fix compiling with latest serenity (#199) ([@GnomedDev]) [c:509743f]
 - [driver] Driver: Correct buffer instantiation for Rubato ([@FelixMcFelix]) [c:935171d]
 - [tests] Chore: Update test URL for playlist. ([@FelixMcFelix]) [c:c55a313]
@@ -640,6 +641,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@wlcx]: https://github.com/wlcx
 
 <!-- COMMITS -->
+[c:cc53312]: https://github.com/serenity-rs/songbird/commit/cc5331256945c14137e2b7d7a17e6e39bd9581fe
 [c:3daf11f]: https://github.com/serenity-rs/songbird/commit/3daf11f5d128eb57eea1d7dea0419c638d3912d6
 [c:5bc8430]: https://github.com/serenity-rs/songbird/commit/5bc843047f7d15ee1ee9e110fc203d64f657a126
 [c:c60c454]: https://github.com/serenity-rs/songbird/commit/c60c454cf529f2ba63381f4a56a830828b67eed4
