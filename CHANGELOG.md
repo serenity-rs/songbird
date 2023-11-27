@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.4.0] — 2023-11-20 — **Nightingale**
+## [0.4.0] — 2023-11-27 — **Nightingale**
 
 Possessing a beautiful, creative, and evocative song through both night and day, the humble Nightingale has long been seen as a symbol of poetry and love.
 
@@ -36,6 +36,7 @@ Thanks to the following for their contributions:
 - [@FelixMcFelix]
 - [@GnomedDev]
 - [@jontze]
+- [@kane50613]
 - [@maxall41]
 - [@Sebbl0508]
 - [@tazz4843]
@@ -74,6 +75,7 @@ Thanks to the following for their contributions:
 
 ### Changed
 
+- [driver] Driver: Remove RwLock from ThreadPool (#206) ([@kane50613]) [c:1ec569b]
 - [clippy] Chore: Cleanup clippy lints ([@FelixMcFelix]) [c:91640f6]
 - [deps] Chore: Upgrade serenity to 0.12.0-rc ([@FelixMcFelix]) [c:1487da1]
 - [deps] Chore: Bump DiscoRTP version ([@FelixMcFelix]) [c:0ef0e4f]
@@ -114,6 +116,7 @@ Thanks to the following for their contributions:
 
 ### Fixed
 
+- [examples] Chore: Fixup examples, bump version pre-push ([@FelixMcFelix]) [c:22ceb17]
 - [deps] Re-disable default Serenity features ([@FelixMcFelix]) [c:cc53312]
 - [gateway] Fix compiling with latest serenity (#199) ([@GnomedDev]) [c:509743f]
 - [driver] Driver: Correct buffer instantiation for Rubato ([@FelixMcFelix]) [c:935171d]
@@ -611,6 +614,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@JellyWX]: https://github.com/JellyWX
 [@jontze]: https://github.com/jontze
 [@jtscuba]: https://github.com/jtscuba
+[@kane50613]: https://github.com/kane50613
 [@Lakelezz]: https://github.com/Lakelezz
 [@lajp]: https://github.com/lajp
 [@LikeLakers2]: https://github.com/LikeLakers2
@@ -641,6 +645,8 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@wlcx]: https://github.com/wlcx
 
 <!-- COMMITS -->
+[c:22ceb17]: https://github.com/serenity-rs/songbird/commit/22ceb175b6d9b4f592d371807be72d3f8ab665d0
+[c:1ec569b]: https://github.com/serenity-rs/songbird/commit/1ec569baf2412cf2eeef8d38d8054712e0fdc051
 [c:cc53312]: https://github.com/serenity-rs/songbird/commit/cc5331256945c14137e2b7d7a17e6e39bd9581fe
 [c:3daf11f]: https://github.com/serenity-rs/songbird/commit/3daf11f5d128eb57eea1d7dea0419c638d3912d6
 [c:5bc8430]: https://github.com/serenity-rs/songbird/commit/5bc843047f7d15ee1ee9e110fc203d64f657a126
