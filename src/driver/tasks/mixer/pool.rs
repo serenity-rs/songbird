@@ -6,7 +6,7 @@ use crate::{
     Config,
 };
 use flume::Sender;
-use parking_lot::RwLock;
+use rusty_pool::ThreadPool;
 use std::{result::Result as StdResult, sync::Arc, time::Duration};
 use symphonia_core::{
     formats::{SeekMode, SeekTo},
@@ -16,18 +16,18 @@ use tokio::runtime::Handle;
 
 #[derive(Clone)]
 pub struct BlockyTaskPool {
-    pool: Arc<RwLock<rusty_pool::ThreadPool>>,
+    pool: ThreadPool,
     handle: Handle,
 }
 
 impl BlockyTaskPool {
     pub fn new(handle: Handle) -> Self {
         Self {
-            pool: Arc::new(RwLock::new(rusty_pool::ThreadPool::new(
+            pool: ThreadPool::new(
                 0,
                 64,
                 Duration::from_secs(5),
-            ))),
+            ),
             handle,
         }
     }
@@ -52,8 +52,7 @@ impl BlockyTaskPool {
                         far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
                 } else {
-                    let pool = self.pool.read();
-                    pool.execute(move || {
+                    self.pool.execute(move || {
                         let out = lazy.create();
                         far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
@@ -91,9 +90,8 @@ impl BlockyTaskPool {
         seek_time: Option<SeekTo>,
     ) {
         let pool_clone = self.clone();
-        let pool = self.pool.read();
 
-        pool.execute(
+        self.pool.execute(
             move || match input.promote(config.codec_registry, config.format_registry) {
                 Ok(LiveInput::Parsed(parsed)) => match seek_time {
                     // If seek time is zero, then wipe it out.
@@ -126,9 +124,8 @@ impl BlockyTaskPool {
         config: Arc<Config>,
     ) {
         let pool_clone = self.clone();
-        let pool = self.pool.read();
 
-        pool.execute(move || match rec {
+        self.pool.execute(move || match rec {
             Some(rec) if (!input.supports_backseek) && backseek_needed => {
                 pool_clone.create(callback, Input::Lazy(rec), Some(seek_time), config);
             },
