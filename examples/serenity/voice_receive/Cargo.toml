@@ -6,15 +6,10 @@ edition = "2021"
 
 [dependencies]
 dashmap = "5"
-serenity = { version = "0.12.0-rc", features = ["client", "standard_framework", "voice", "rustls_backend"] }
-tracing = "0.1"
-tracing-subscriber = "0.2"
-tracing-futures = "0.2"
-
-[dependencies.songbird]
-features = ["receive"]
-path = "../../../"
-
-[dependencies.tokio]
-version = "1.0"
-features = ["macros", "rt-multi-thread"]
+serenity = { workspace = true }
+songbird = { workspace = true, default-features = true, features = ["receive"] }
+symphonia = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-futures = { workspace = true }
