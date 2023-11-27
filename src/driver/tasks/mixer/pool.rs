@@ -23,11 +23,7 @@ pub struct BlockyTaskPool {
 impl BlockyTaskPool {
     pub fn new(handle: Handle) -> Self {
         Self {
-            pool: ThreadPool::new(
-                0,
-                64,
-                Duration::from_secs(5),
-            ),
+            pool: ThreadPool::new(0, 64, Duration::from_secs(5)),
             handle,
         }
     }
@@ -91,8 +87,8 @@ impl BlockyTaskPool {
     ) {
         let pool_clone = self.clone();
 
-        self.pool.execute(
-            move || match input.promote(config.codec_registry, config.format_registry) {
+        self.pool.execute(move || {
+            match input.promote(config.codec_registry, config.format_registry) {
                 Ok(LiveInput::Parsed(parsed)) => match seek_time {
                     // If seek time is zero, then wipe it out.
                     // Some formats (MKV) make SeekTo(0) require a backseek to realign with the
@@ -108,8 +104,8 @@ impl BlockyTaskPool {
                 Err(e) => {
                     drop(callback.send(MixerInputResultMessage::ParseErr(e.into())));
                 },
-            },
-        );
+            }
+        });
     }
 
     pub fn seek(
