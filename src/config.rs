@@ -3,12 +3,12 @@ use crate::driver::DecodeMode;
 #[cfg(feature = "driver")]
 use crate::{
     driver::{
+        get_default_scheduler,
         retry::Retry,
         tasks::disposal::DisposalThread,
         CryptoMode,
         MixMode,
         Scheduler,
-        DEFAULT_SCHEDULER,
     },
     input::codecs::*,
 };
@@ -233,9 +233,9 @@ impl Default for Config {
             #[cfg(feature = "driver")]
             driver_timeout: Some(Duration::from_secs(10)),
             #[cfg(feature = "driver")]
-            codec_registry: &CODEC_REGISTRY,
+            codec_registry: get_codec_registry(),
             #[cfg(feature = "driver")]
-            format_registry: &PROBE,
+            format_registry: get_probe(),
             #[cfg(feature = "driver")]
             disposer: None,
             #[cfg(feature = "driver")]
@@ -359,7 +359,7 @@ impl Config {
     pub fn get_scheduler(&self) -> Scheduler {
         self.scheduler
             .as_ref()
-            .unwrap_or(&*DEFAULT_SCHEDULER)
+            .unwrap_or(get_default_scheduler())
             .clone()
     }
 

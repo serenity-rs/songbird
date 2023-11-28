@@ -160,7 +160,7 @@ mod tests {
         // finds the audio on a non-default track via `LiveInput::promote`.
         let input = Input::from(File::new(FILE_VID_TARGET));
         input
-            .make_playable_async(&CODEC_REGISTRY, &PROBE)
+            .make_playable_async(get_codec_registry(), get_probe())
             .await
             .unwrap();
     }

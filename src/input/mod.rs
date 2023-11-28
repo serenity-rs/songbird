@@ -147,7 +147,7 @@ use tokio::runtime::Handle as TokioHandle;
 /// //
 /// // We can access it on a live track using `TrackHandle::action()`.
 /// in_memory_input = in_memory_input
-///     .make_playable_async(&CODEC_REGISTRY, &PROBE)
+///     .make_playable_async(get_codec_registry(), get_probe())
 ///     .await
 ///     .expect("WAV support is included, and this file is good!");
 ///

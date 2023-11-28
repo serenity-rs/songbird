@@ -2,7 +2,7 @@ use super::{compressed_cost_per_sec, default_config, CodecCacheError, ToAudioByt
 use crate::{
     constants::*,
     input::{
-        codecs::{dca::*, CODEC_REGISTRY, PROBE},
+        codecs::{dca::*, get_codec_registry, get_probe},
         AudioStream,
         Input,
         LiveInput,
@@ -74,8 +74,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            codec_registry: &CODEC_REGISTRY,
-            format_registry: &PROBE,
+            codec_registry: get_codec_registry(),
+            format_registry: get_probe(),
             streamcatcher: ScConfig::default(),
         }
     }
