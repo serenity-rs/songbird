@@ -161,19 +161,15 @@ pub struct Config {
     /// Registry of the inner codecs supported by the driver, adding audiopus-based
     /// Opus codec support to all of Symphonia's default codecs.
     ///
-    /// Defaults to [`CODEC_REGISTRY`].
-    ///
-    /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
+    /// Defaults to [`get_codec_registry`].
     pub codec_registry: &'static CodecRegistry,
 
     #[cfg(feature = "driver")]
     #[derivative(Debug = "ignore")]
     /// Registry of the muxers and container formats supported by the driver.
     ///
-    /// Defaults to [`PROBE`], which includes all of Symphonia's default format handlers
+    /// Defaults to [`get_probe`], which includes all of Symphonia's default format handlers
     /// and DCA format support.
-    ///
-    /// [`PROBE`]: static@PROBE
     pub format_registry: &'static Probe,
 
     #[cfg(feature = "driver")]
@@ -191,7 +187,7 @@ pub struct Config {
     /// The scheduler is responsible for mapping idle and active [`Driver`] instances
     /// to threads.
     ///
-    /// If set to None, then songbird will initialise the [`DEFAULT_SCHEDULER`].
+    /// If set to None, then songbird will use [`get_default_scheduler`].
     ///
     /// [`Driver`]: crate::Driver
     pub scheduler: Option<Scheduler>,

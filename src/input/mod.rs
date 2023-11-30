@@ -49,8 +49,8 @@
 //! [`OpusDecoder`]: codecs::OpusDecoder
 //! [`DcaReader`]: codecs::DcaReader
 //! [`RawReader`]: codecs::RawReader
-//! [format]: static@codecs::PROBE
-//! [codec registries]: static@codecs::CODEC_REGISTRY
+//! [format]: codecs::get_probe
+//! [codec registries]: codecs::get_codec_registry
 
 mod adapters;
 mod audiostream;
