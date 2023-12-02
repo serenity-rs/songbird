@@ -13,7 +13,6 @@ use async_trait::async_trait;
 use dashmap::DashMap;
 #[cfg(feature = "serenity")]
 use futures::channel::mpsc::UnboundedSender as Sender;
-use once_cell::sync::OnceCell;
 use parking_lot::RwLock as PRwLock;
 #[cfg(feature = "serenity")]
 use serenity::{
@@ -23,7 +22,7 @@ use serenity::{
         voice::VoiceState,
     },
 };
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use tokio::sync::Mutex;
 #[cfg(feature = "serenity")]
 use tracing::debug;
@@ -44,7 +43,7 @@ struct ClientData {
 /// [`Call`]: Call
 #[derive(Debug)]
 pub struct Songbird {
-    client_data: OnceCell<ClientData>,
+    client_data: OnceLock<ClientData>,
     calls: DashMap<GuildId, Arc<Mutex<Call>>>,
     sharder: Sharder,
     config: PRwLock<Config>,
@@ -71,7 +70,7 @@ impl Songbird {
     #[must_use]
     pub fn serenity_from_config(config: Config) -> Arc<Self> {
         Arc::new(Self {
-            client_data: OnceCell::new(),
+            client_data: OnceLock::new(),
             calls: DashMap::new(),
             sharder: Sharder::Serenity(SerenitySharder::default()),
             config: config.initialise_disposer().into(),
@@ -110,7 +109,7 @@ impl Songbird {
         U: Into<UserId>,
     {
         Self {
-            client_data: OnceCell::with_value(ClientData {
+            client_data: OnceLock::from(ClientData {
                 shard_count: sender_map.shard_count(),
                 user_id: user_id.into(),
             }),

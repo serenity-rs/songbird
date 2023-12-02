@@ -31,12 +31,12 @@ pub(crate) use crypto::CryptoState;
 pub use decode_mode::DecodeMode;
 pub use mix_mode::MixMode;
 pub use scheduler::{
+    get_default_scheduler,
     Config as SchedulerConfig,
     Error as SchedulerError,
     LiveStatBlock,
     Mode as SchedulerMode,
     Scheduler,
-    DEFAULT_SCHEDULER,
 };
 #[cfg(test)]
 pub use test_config::*;

@@ -88,7 +88,7 @@ fn make_src(src: &Vec<u8>, chans: u32, hz: u32) -> (Parsed, DecodeState) {
     let adapted: Input =
         songbird::input::RawAdapter::new(Cursor::new(src.clone()), hz, chans).into();
     let promoted = match adapted {
-        Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+        Input::Live(l, _) => l.promote(get_codec_registry(), get_probe()),
         _ => panic!("Failed to create a guaranteed source."),
     };
     let parsed = match promoted {
