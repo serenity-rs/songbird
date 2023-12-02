@@ -1,11 +1,14 @@
-use std::{error::Error as StdError, fmt::Display, num::NonZeroUsize, sync::Arc};
+use std::{
+    error::Error as StdError,
+    fmt::Display,
+    num::NonZeroUsize,
+    sync::{Arc, OnceLock},
+};
 
 use flume::{Receiver, RecvError, Sender};
-use once_cell::sync::Lazy;
-
-use crate::{constants::TIMESTEP_LENGTH, Config as DriverConfig};
 
 use super::tasks::message::{Interconnect, MixerMessage};
+use crate::{constants::TIMESTEP_LENGTH, Config as DriverConfig};
 
 mod config;
 mod idle;
@@ -34,7 +37,10 @@ const DEFAULT_MIXERS_PER_THREAD: NonZeroUsize = match NonZeroUsize::new(16) {
 ///
 /// [`Config::default`]: crate::Config::default
 /// [`ScheduleMode`]: Mode
-pub static DEFAULT_SCHEDULER: Lazy<Scheduler> = Lazy::new(Scheduler::default);
+pub fn get_default_scheduler() -> &'static Scheduler {
+    static DEFAULT_SCHEDULER: OnceLock<Scheduler> = OnceLock::new();
+    DEFAULT_SCHEDULER.get_or_init(Scheduler::default)
+}
 
 /// A reference to a shared group of threads used for running idle and active
 /// audio threads.
