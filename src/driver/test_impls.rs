@@ -9,7 +9,7 @@ use crate::{
     constants::*,
     input::{
         cached::Compressed,
-        codecs::{CODEC_REGISTRY, PROBE},
+        codecs::{get_codec_registry, get_probe},
         RawAdapter,
     },
     test_utils,
@@ -103,7 +103,7 @@ impl Mixer {
         for _ in 0..num_tracks {
             let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
             let promoted = match input {
-                Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+                Input::Live(l, _) => l.promote(get_codec_registry(), get_probe()),
                 Input::Lazy(_) => panic!("Failed to create a guaranteed source."),
             };
             let (_, ctx) = Track::from(Input::Live(promoted.unwrap(), None)).into_context();
@@ -121,7 +121,7 @@ impl Mixer {
 
         let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
         let promoted = match input {
-            Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+            Input::Live(l, _) => l.promote(get_codec_registry(), get_probe()),
             Input::Lazy(_) => panic!("Failed to create a guaranteed source."),
         };
         let mut track = Track::from(Input::Live(promoted.unwrap(), None));
@@ -141,7 +141,7 @@ impl Mixer {
             let floats = test_utils::make_sine((i / 5) * STEREO_FRAME_SIZE, true);
             let input: Input = RawAdapter::new(Cursor::new(floats.clone()), 48_000, 2).into();
             let promoted = match input {
-                Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+                Input::Live(l, _) => l.promote(get_codec_registry(), get_probe()),
                 Input::Lazy(_) => panic!("Failed to create a guaranteed source."),
             };
             let (_, ctx) = Track::from(Input::Live(promoted.unwrap(), None)).into_context();
@@ -170,7 +170,7 @@ impl Mixer {
         src.raw.load_all();
 
         let promoted = match src.into() {
-            Input::Live(l, _) => l.promote(&CODEC_REGISTRY, &PROBE),
+            Input::Live(l, _) => l.promote(get_codec_registry(), get_probe()),
             Input::Lazy(_) => panic!("Failed to create a guaranteed source."),
         };
         let (_, ctx) = Track::from(Input::Live(promoted.unwrap(), None)).into_context();

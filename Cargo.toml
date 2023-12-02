@@ -28,7 +28,6 @@ discortp = { default-features = false, features = ["discord", "pnet", "rtp"], op
 flume = { optional = true, version = "0.11" }
 futures = "0.3"
 nohash-hasher = { optional = true, version = "0.2.0" }
-once_cell = { optional = true, version = "1" }
 parking_lot = { optional = true, version = "0.12" }
 pin-project = "1"
 rand = { optional = true, version = "0.8" }
@@ -78,7 +77,6 @@ gateway = [
     "dep:async-trait",
     "dep:dashmap",
     "dep:flume",
-    "dep:once_cell",
     "dep:parking_lot",
     "dep:tokio",
     "tokio?/sync",
@@ -96,7 +94,6 @@ driver = [
     "dep:discortp",
     "dep:flume",
     "dep:nohash-hasher",
-    "dep:once_cell",
     "dep:parking_lot",
     "dep:rand",
     "dep:reqwest",

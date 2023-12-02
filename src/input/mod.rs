@@ -49,8 +49,8 @@
 //! [`OpusDecoder`]: codecs::OpusDecoder
 //! [`DcaReader`]: codecs::DcaReader
 //! [`RawReader`]: codecs::RawReader
-//! [format]: static@codecs::PROBE
-//! [codec registries]: static@codecs::CODEC_REGISTRY
+//! [format]: codecs::get_probe
+//! [codec registries]: codecs::get_codec_registry
 
 mod adapters;
 mod audiostream;
@@ -147,7 +147,7 @@ use tokio::runtime::Handle as TokioHandle;
 /// //
 /// // We can access it on a live track using `TrackHandle::action()`.
 /// in_memory_input = in_memory_input
-///     .make_playable_async(&CODEC_REGISTRY, &PROBE)
+///     .make_playable_async(get_codec_registry(), get_probe())
 ///     .await
 ///     .expect("WAV support is included, and this file is good!");
 ///
