@@ -1,11 +1,5 @@
 use crate::input::{
-    metadata::ytdl::Output,
-    AudioStream,
-    AudioStreamError,
-    AuxMetadata,
-    Compose,
-    HttpRequest,
-    Input,
+    metadata::ytdl::Output, AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input,
 };
 use async_trait::async_trait;
 use reqwest::{
@@ -54,6 +48,52 @@ impl YoutubeDl {
             metadata: None,
             url,
         }
+    }
+
+    /// Creates a lazy(?) request to search youtube for a videos matching `query`.
+    ///
+    /// [`new`]: Self::new
+    #[must_use]
+    pub fn new_yt_search(client: Client, query: String) -> Self {
+        Self::new_ytdl_like(YOUTUBE_DL_COMMAND, client, format!("ytsearch5:{}", query))
+    }
+
+    /// Does a search query for the given url, returning a list of possible matches
+    /// which are youtube urls.
+    pub async fn search_query(&mut self) -> Result<Vec<String>, AudioStreamError> {
+        let search_str = if self.url.starts_with("ytsearch") {
+            self.url.clone()
+        } else {
+            format!("ytsearch5:{}", self.url)
+        };
+
+        let ytdl_args = [
+            "-s",
+            &search_str,
+            "--get-id",
+            "--get-title",
+            "--get-duration",
+        ];
+
+        let output = Command::new(self.program)
+            .args(ytdl_args)
+            .output()
+            .await
+            .map_err(|e| {
+                AudioStreamError::Fail(if e.kind() == ErrorKind::NotFound {
+                    format!("could not find executable '{}' on path", self.program).into()
+                } else {
+                    Box::new(e)
+                })
+            })?;
+
+        let lines = output
+            .stdout
+            .split(|&b| b == b'\n')
+            .map(|line| format!("{}", String::from_utf8_lossy(line)))
+            .collect::<Vec<_>>();
+
+        Ok(lines)
     }
 
     async fn query(&mut self) -> Result<Output, AudioStreamError> {
@@ -142,6 +182,10 @@ impl Compose for YoutubeDl {
                 "Failed to instansiate any metadata... Should be unreachable.".into();
             AudioStreamError::Fail(msg)
         })
+    }
+
+    async fn search(&mut self) -> Result<Vec<String>, AudioStreamError> {
+        self.search_query().await
     }
 }
 

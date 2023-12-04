@@ -37,4 +37,11 @@ pub trait Compose: Send {
     async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
         Err(AudioStreamError::Unsupported)
     }
+
+    /// Uses a query to search for a source and return the results.
+    ///
+    /// This method allows for searching for a source and being able to select from the results.
+    async fn search(&mut self) -> Result<Vec<String>, AudioStreamError> {
+        Err(AudioStreamError::Unsupported)
+    }
 }
