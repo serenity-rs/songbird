@@ -70,7 +70,7 @@ impl YoutubeDl {
     }
 
     /// Does a search query for the given url, returning a list of possible matches
-    /// which are youtube urls.
+    /// which are AuxMetadata objects with the title, duration, and url set.
     pub async fn search_query(&mut self) -> Result<Vec<AuxMetadata>, AudioStreamError> {
         let search_str = if self.url.starts_with("ytsearch") {
             self.url.clone()
@@ -105,11 +105,14 @@ impl YoutubeDl {
             .collect::<Vec<_>>()
             .chunks_exact(3)
             .map(|chunk| {
+                let title = chunk[0].clone();
                 let id = chunk[1].clone();
-                let title = chunk[2].clone();
                 let duration = chunk[2]
                     .clone()
                     .split(":")
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .rev()
                     .enumerate()
                     .fold(0.0, |acc, (i, s)| {
                         acc + s.parse::<f64>().unwrap_or(0.0) * 60.0f64.powi(i as i32)
@@ -261,9 +264,16 @@ mod tests {
     #[tokio::test]
     #[ntest::timeout(20_000)]
     async fn ytdl_search() {
-        let mut ytdl = YoutubeDl::new_yt_search(Client::new(), "test".into(), None);
+        let mut ytdl =
+            YoutubeDl::new_yt_search(Client::new(), "World War III Dos Gringos".into(), None);
         let res = ytdl.search_query().await;
+        println!("{:?}", res.as_ref().unwrap()[0]);
 
+        assert_eq!(res.as_ref().unwrap()[0].title, Some("World War III".into()));
+        assert_eq!(
+            res.as_ref().unwrap()[0].duration,
+            Some(Duration::from_secs(4 * 60 + 32))
+        );
         assert_eq!(res.unwrap().len(), 5);
     }
 
