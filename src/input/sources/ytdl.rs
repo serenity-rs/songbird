@@ -12,7 +12,7 @@ use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
-use std::{error::Error, io::ErrorKind};
+use std::{error::Error, io::ErrorKind, time::Duration};
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
 
@@ -56,17 +56,22 @@ impl YoutubeDl {
         }
     }
 
-    /// Creates a lazy(?) request to search youtube for a videos matching `query`.
+    /// Creates a request to search youtube for an optionally specified number of videos matching `query`.
     ///
     /// [`new`]: Self::new
     #[must_use]
-    pub fn new_yt_search(client: Client, query: String) -> Self {
-        Self::new_ytdl_like(YOUTUBE_DL_COMMAND, client, format!("ytsearch5:{}", query))
+    pub fn new_yt_search(client: Client, query: String, results: Option<u32>) -> Self {
+        let results = results.unwrap_or(5);
+        Self::new_ytdl_like(
+            YOUTUBE_DL_COMMAND,
+            client,
+            format!("ytsearch{}:{}", results, query),
+        )
     }
 
     /// Does a search query for the given url, returning a list of possible matches
     /// which are youtube urls.
-    pub async fn search_query(&mut self) -> Result<Vec<String>, AudioStreamError> {
+    pub async fn search_query(&mut self) -> Result<Vec<AuxMetadata>, AudioStreamError> {
         let search_str = if self.url.starts_with("ytsearch") {
             self.url.clone()
         } else {
@@ -93,13 +98,34 @@ impl YoutubeDl {
                 })
             })?;
 
-        let lines = output
+        let metadata = output
             .stdout
             .split(|&b| b == b'\n')
             .map(|line| format!("{}", String::from_utf8_lossy(line)))
+            .collect::<Vec<_>>()
+            .chunks_exact(3)
+            .map(|chunk| {
+                let id = chunk[1].clone();
+                let title = chunk[2].clone();
+                let duration = chunk[2]
+                    .clone()
+                    .split(":")
+                    .enumerate()
+                    .fold(0.0, |acc, (i, s)| {
+                        acc + s.parse::<f64>().unwrap_or(0.0) * 60.0f64.powi(i as i32)
+                    });
+
+                let url = format!("https://www.youtube.com/watch?v={}", id);
+                AuxMetadata {
+                    title: Some(title),
+                    duration: Some(Duration::from_secs_f64(duration)),
+                    source_url: Some(url),
+                    ..AuxMetadata::default()
+                }
+            })
             .collect::<Vec<_>>();
 
-        Ok(lines)
+        Ok(metadata)
     }
 
     async fn query(&mut self) -> Result<Output, AudioStreamError> {
@@ -189,10 +215,6 @@ impl Compose for YoutubeDl {
             AudioStreamError::Fail(msg)
         })
     }
-
-    async fn search(&mut self) -> Result<Vec<String>, AudioStreamError> {
-        self.search_query().await
-    }
 }
 
 #[cfg(test)]
@@ -234,5 +256,23 @@ mod tests {
         let mut ytdl = YoutubeDl::new_ytdl_like("yt-dlq", Client::new(), YTDL_TARGET.into());
 
         assert!(ytdl.aux_metadata().await.is_err());
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(20_000)]
+    async fn ytdl_search() {
+        let mut ytdl = YoutubeDl::new_yt_search(Client::new(), "test".into(), None);
+        let res = ytdl.search_query().await;
+
+        assert_eq!(res.unwrap().len(), 5);
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(20_000)]
+    async fn ytdl_search_3() {
+        let mut ytdl = YoutubeDl::new_yt_search(Client::new(), "test".into(), Some(3));
+        let res = ytdl.search_query().await;
+
+        assert_eq!(res.unwrap().len(), 3);
     }
 }
