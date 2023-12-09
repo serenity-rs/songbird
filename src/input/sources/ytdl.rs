@@ -12,11 +12,17 @@ use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
-use std::{error::Error, io::ErrorKind, time::Duration};
+use std::{error::Error, io::ErrorKind};
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
 
 const YOUTUBE_DL_COMMAND: &str = "yt-dlp";
+
+#[derive(Clone, Debug)]
+enum QueryType {
+    Url(String),
+    Search(String),
+}
 
 /// A lazily instantiated call to download a file, finding its URL via youtube-dl.
 ///
@@ -30,7 +36,7 @@ pub struct YoutubeDl {
     program: &'static str,
     client: Client,
     metadata: Option<AuxMetadata>,
-    url: String,
+    query: QueryType,
 }
 
 impl YoutubeDl {
@@ -52,89 +58,63 @@ impl YoutubeDl {
             program,
             client,
             metadata: None,
-            url,
+            query: QueryType::Url(url),
         }
     }
 
-    /// Creates a request to search youtube for an optionally specified number of videos matching `query`.
-    ///
-    /// [`new`]: Self::new
+    /// Creates a request to search youtube for an optionally specified number of videos matching `query`,
+    /// using "yt-dlp".
     #[must_use]
-    pub fn new_yt_search(client: Client, query: String, results: Option<u32>) -> Self {
-        let results = results.unwrap_or(5);
-        Self::new_ytdl_like(
-            YOUTUBE_DL_COMMAND,
+    pub fn new_search(client: Client, query: String) -> Self {
+        Self::new_search_ytdl_like(YOUTUBE_DL_COMMAND, client, query)
+    }
+
+    /// Creates a request to search youtube for an optionally specified number of videos matching `query`,
+    /// using `program`.
+    #[must_use]
+    pub fn new_search_ytdl_like(program: &'static str, client: Client, query: String) -> Self {
+        Self {
+            program,
             client,
-            format!("ytsearch{}:{}", results, query),
-        )
+            metadata: None,
+            query: QueryType::Search(query),
+        }
     }
 
-    /// Does a search query for the given url, returning a list of possible matches
-    /// which are AuxMetadata objects with the title, duration, and url set.
-    pub async fn search_query(&mut self) -> Result<Vec<AuxMetadata>, AudioStreamError> {
-        let search_str = if self.url.starts_with("ytsearch") {
-            self.url.clone()
-        } else {
-            format!("ytsearch5:{}", self.url)
+    /// Runs a search for the given query, returning a list of up to `n_results`
+    /// possible matches which are `AuxMetadata` objects containing a valid URL.
+    ///
+    /// Returns up to 5 matches by default.
+    pub async fn search(
+        &mut self,
+        n_results: Option<usize>,
+    ) -> Result<Vec<AuxMetadata>, AudioStreamError> {
+        let n_results = n_results.unwrap_or(5);
+
+        Ok(match &self.query {
+            // Safer to just return the metadata for the pointee if possible
+            QueryType::Url(_) => vec![self.aux_metadata().await?],
+            QueryType::Search(_) => self
+                .query(n_results)
+                .await?
+                .into_iter()
+                .map(|v| v.as_aux_metadata())
+                .collect(),
+        })
+    }
+
+    async fn query(&mut self, n_results: usize) -> Result<Vec<Output>, AudioStreamError> {
+        let new_query;
+        let query_str = match &self.query {
+            QueryType::Url(url) => url,
+            QueryType::Search(query) => {
+                new_query = format!("ytsearch{n_results}:{query}");
+                &new_query
+            },
         };
-
-        let ytdl_args = [
-            "-s",
-            &search_str,
-            "--get-id",
-            "--get-title",
-            "--get-duration",
-        ];
-
-        let output = Command::new(self.program)
-            .args(ytdl_args)
-            .output()
-            .await
-            .map_err(|e| {
-                AudioStreamError::Fail(if e.kind() == ErrorKind::NotFound {
-                    format!("could not find executable '{}' on path", self.program).into()
-                } else {
-                    Box::new(e)
-                })
-            })?;
-
-        let metadata = output
-            .stdout
-            .split(|&b| b == b'\n')
-            .map(|line| format!("{}", String::from_utf8_lossy(line)))
-            .collect::<Vec<_>>()
-            .chunks_exact(3)
-            .map(|chunk| {
-                let title = chunk[0].clone();
-                let id = chunk[1].clone();
-                let duration = chunk[2]
-                    .clone()
-                    .split(":")
-                    .collect::<Vec<_>>()
-                    .into_iter()
-                    .rev()
-                    .enumerate()
-                    .fold(0.0, |acc, (i, s)| {
-                        acc + s.parse::<f64>().unwrap_or(0.0) * 60.0f64.powi(i as i32)
-                    });
-
-                let url = format!("https://www.youtube.com/watch?v={}", id);
-                AuxMetadata {
-                    title: Some(title),
-                    duration: Some(Duration::from_secs_f64(duration)),
-                    source_url: Some(url),
-                    ..AuxMetadata::default()
-                }
-            })
-            .collect::<Vec<_>>();
-
-        Ok(metadata)
-    }
-
-    async fn query(&mut self) -> Result<Output, AudioStreamError> {
         let ytdl_args = [
             "-j",
-            &self.url,
+            query_str,
             "-f",
             "ba[abr>0][vcodec=none]/best",
             "--no-playlist",
@@ -152,14 +132,35 @@ impl YoutubeDl {
                 })
             })?;
 
-        // NOTE: must be mut for simd-json.
-        #[allow(clippy::unnecessary_mut_passed)]
-        let stdout: Output = crate::json::from_slice(&mut output.stdout[..])
+        if !output.status.success() {
+            return Err(AudioStreamError::Fail(
+                format!(
+                    "{} failed with non-zero status code: {}",
+                    self.program,
+                    std::str::from_utf8(&output.stderr[..]).unwrap_or("<no error message>")
+                )
+                .into(),
+            ));
+        }
+
+        // NOTE: must be split_mut for simd-json.
+        let out = output
+            .stdout
+            .split_mut(|&b| b == b'\n')
+            .filter_map(|x| (!x.is_empty()).then(|| crate::json::from_slice(x)))
+            .collect::<Result<Vec<Output>, _>>()
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
-        self.metadata = Some(stdout.as_aux_metadata());
+        let meta = out
+            .first()
+            .ok_or_else(|| {
+                AudioStreamError::Fail(format!("no results found for '{query_str}'").into())
+            })?
+            .as_aux_metadata();
 
-        Ok(stdout)
+        self.metadata = Some(meta);
+
+        Ok(out)
     }
 }
 
@@ -178,11 +179,13 @@ impl Compose for YoutubeDl {
     async fn create_async(
         &mut self,
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-        let stdout = self.query().await?;
+        // panic safety: `query` should have ensured > 0 results if `Ok`
+        let mut results = self.query(1).await?;
+        let result = results.swap_remove(0);
 
         let mut headers = HeaderMap::default();
 
-        if let Some(map) = stdout.http_headers {
+        if let Some(map) = result.http_headers {
             headers.extend(map.iter().filter_map(|(k, v)| {
                 Some((
                     HeaderName::from_bytes(k.as_bytes()).ok()?,
@@ -193,9 +196,9 @@ impl Compose for YoutubeDl {
 
         let mut req = HttpRequest {
             client: self.client.clone(),
-            request: stdout.url,
+            request: result.url,
             headers,
-            content_length: stdout.filesize,
+            content_length: result.filesize,
         };
 
         req.create_async().await
@@ -210,7 +213,7 @@ impl Compose for YoutubeDl {
             return Ok(meta.clone());
         }
 
-        self.query().await?;
+        self.query(1).await?;
 
         self.metadata.clone().ok_or_else(|| {
             let msg: Box<dyn Error + Send + Sync + 'static> =
@@ -263,25 +266,21 @@ mod tests {
 
     #[tokio::test]
     #[ntest::timeout(20_000)]
-    async fn ytdl_search() {
-        let mut ytdl =
-            YoutubeDl::new_yt_search(Client::new(), "World War III Dos Gringos".into(), None);
-        let res = ytdl.search_query().await;
-        println!("{:?}", res.as_ref().unwrap()[0]);
+    async fn ytdl_search_plays() {
+        let mut ytdl = YoutubeDl::new_search(Client::new(), "cloudkicker 94 days".into());
+        let res = ytdl.search(Some(1)).await;
 
-        assert_eq!(res.as_ref().unwrap()[0].title, Some("World War III".into()));
-        assert_eq!(
-            res.as_ref().unwrap()[0].duration,
-            Some(Duration::from_secs(4 * 60 + 32))
-        );
-        assert_eq!(res.unwrap().len(), 5);
+        let res = res.unwrap();
+        assert_eq!(res.len(), 1);
+
+        track_plays_passthrough(move || ytdl).await;
     }
 
     #[tokio::test]
     #[ntest::timeout(20_000)]
     async fn ytdl_search_3() {
-        let mut ytdl = YoutubeDl::new_yt_search(Client::new(), "test".into(), Some(3));
-        let res = ytdl.search_query().await;
+        let mut ytdl = YoutubeDl::new_search(Client::new(), "test".into());
+        let res = ytdl.search(Some(3)).await;
 
         assert_eq!(res.unwrap().len(), 3);
     }
