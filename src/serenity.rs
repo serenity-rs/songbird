@@ -34,7 +34,7 @@ pub fn register(client_builder: ClientBuilder) -> ClientBuilder {
 /// This should be called after any uses of `ClientBuilder::type_map`.
 pub fn register_with(client_builder: ClientBuilder, voice: Arc<Songbird>) -> ClientBuilder {
     client_builder
-        .voice_manager_arc(voice.clone())
+        .voice_manager::<Songbird>(voice.clone())
         .type_map_insert::<SongbirdKey>(voice)
 }
 
