@@ -278,15 +278,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         },
     };
 
-    if !url.starts_with("http") {
-        check_msg(
-            msg.channel_id
-                .say(&ctx.http, "Must provide a valid URL")
-                .await,
-        );
-
-        return Ok(());
-    }
+    let do_search = !url.starts_with("http");
 
     let guild_id = msg.guild_id.unwrap();
 
@@ -305,8 +297,12 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let src = YoutubeDl::new(http_client, url);
-        let _ = handler.play_input(src.into());
+        let mut src = if do_search {
+            YoutubeDl::new_search(http_client, url)
+        } else {
+            YoutubeDl::new(http_client, url)
+        };
+        let _ = handler.play_input(src.clone().into());
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {
