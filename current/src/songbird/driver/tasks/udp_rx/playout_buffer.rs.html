@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/udp_rx/playout_buffer.rs`."><title>playout_buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (6cf088810 2023-11-26)" data-channel="nightly" data-search-js="search-56a624991a76cfad.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-e1c03aa593074e71.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/udp_rx/playout_buffer.rs`."><title>playout_buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-e883e87179a81222.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (21cce21d8 2023-12-11)" data-channel="nightly" data-search-js="search-2da88d4fc6a75ee8.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../../static.files/storage-bc37acceda91d44a.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -154,14 +154,14 @@
 <span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>StoredPacket {
     <span class="kw">pub </span>packet: Bytes,
-    <span class="comment">// We need to store this as it&#39;s possible that a user can change config modes.
+    <span class="comment">// We need to store this as it's possible that a user can change config modes.
     </span><span class="kw">pub </span>decrypted: bool,
 }
 
-<span class="doccomment">/// Determines whether an SSRC&#39;s packets should be decoded.
+<span class="doccomment">/// Determines whether an SSRC's packets should be decoded.
 ///
 /// Playout requires us to keep an almost constant delay, to do so we build
-/// a user&#39;s packet buffer up to the required length ([`Config::playout_buffer_length`])
+/// a user's packet buffer up to the required length ([`Config::playout_buffer_length`])
 /// ([`Self::Fill`]) and then emit packets on each tick ([`Self::Drain`]).
 ///
 /// This gets a bit harder to reason about when users stop speaking. If a speech gap
@@ -211,21 +211,21 @@
     /// An out of bounds packet must create any remaining `None`s
     </span><span class="kw">pub fn </span>store_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, packet: StoredPacket, config: <span class="kw-2">&amp;</span>Config) {
         <span class="kw">let </span>rtp = RtpPacket::new(<span class="kw-2">&amp;</span>packet.packet)
-            .expect(<span class="string">&quot;FATAL: earlier valid packet now invalid (store)&quot;</span>);
+            .expect(<span class="string">"FATAL: earlier valid packet now invalid (store)"</span>);
 
         <span class="kw">if </span><span class="self">self</span>.current_timestamp.is_none() {
             <span class="self">self</span>.current_timestamp = <span class="prelude-val">Some</span>(reset_timeout(<span class="kw-2">&amp;</span>rtp, config));
         }
 
         <span class="comment">// compute index by taking wrapping difference between both seq numbers.
-        // If the difference is *too big*, or in the past [also &#39;too big, in a way],
+        // If the difference is *too big*, or in the past [also 'too big, in a way],
         // ignore the packet
         </span><span class="kw">let </span>desired_index = (rtp.get_sequence().<span class="number">0 </span>- <span class="self">self</span>.next_seq).<span class="number">0 </span><span class="kw">as </span>i16;
 
         <span class="kw">if </span>desired_index &lt; <span class="number">0 </span>{
-            <span class="macro">trace!</span>(<span class="string">&quot;Missed packet arrived late, discarding from playout.&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"Missed packet arrived late, discarding from playout."</span>);
         } <span class="kw">else if </span>desired_index &gt;= <span class="number">64 </span>{
-            <span class="macro">trace!</span>(<span class="string">&quot;Packet arrived beyond playout max length.&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"Packet arrived beyond playout max length."</span>);
         } <span class="kw">else </span>{
             <span class="kw">let </span>index = desired_index <span class="kw">as </span>usize;
             <span class="kw">while </span><span class="self">self</span>.playout_buffer.len() &lt;= index {
@@ -247,7 +247,7 @@
         <span class="kw">let </span>out = <span class="kw">match </span><span class="self">self</span>.playout_buffer.pop_front() {
             <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(pkt)) =&gt; {
                 <span class="kw">let </span>rtp = RtpPacket::new(<span class="kw-2">&amp;</span>pkt.packet)
-                    .expect(<span class="string">&quot;FATAL: earlier valid packet now invalid (fetch)&quot;</span>);
+                    .expect(<span class="string">"FATAL: earlier valid packet now invalid (fetch)"</span>);
 
                 <span class="kw">let </span>curr_ts = <span class="self">self</span>.current_timestamp.unwrap();
                 <span class="kw">let </span>ts_diff = curr_ts - rtp.get_timestamp().<span class="number">0</span>;
@@ -257,7 +257,7 @@
 
                     PacketLookup::Packet(pkt)
                 } <span class="kw">else </span>{
-                    <span class="macro">trace!</span>(<span class="string">&quot;Witholding packet: ts_diff is {ts_diff}&quot;</span>);
+                    <span class="macro">trace!</span>(<span class="string">"Witholding packet: ts_diff is {ts_diff}"</span>);
                     <span class="self">self</span>.playout_buffer.push_front(<span class="prelude-val">Some</span>(pkt));
                     <span class="self">self</span>.playout_mode = PlayoutMode::Fill;
                     PacketLookup::Filling
@@ -288,7 +288,7 @@
 }
 
 <span class="attr">#[inline]
-</span><span class="kw">fn </span>reset_timeout(packet: <span class="kw-2">&amp;</span>RtpPacket&lt;<span class="lifetime">&#39;_</span>&gt;, config: <span class="kw-2">&amp;</span>Config) -&gt; RtpTimestamp {
+</span><span class="kw">fn </span>reset_timeout(packet: <span class="kw-2">&amp;</span>RtpPacket&lt;<span class="lifetime">'_</span>&gt;, config: <span class="kw-2">&amp;</span>Config) -&gt; RtpTimestamp {
     <span class="kw">let </span>t_shift = MONO_FRAME_SIZE * config.playout_buffer_length.get();
     (packet.get_timestamp() - (t_shift <span class="kw">as </span>u32)).<span class="number">0
 </span>}

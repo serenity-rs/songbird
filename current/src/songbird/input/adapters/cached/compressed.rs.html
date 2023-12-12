@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/adapters/cached/compressed.rs`."><title>compressed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (6cf088810 2023-11-26)" data-channel="nightly" data-search-js="search-56a624991a76cfad.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-e1c03aa593074e71.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/adapters/cached/compressed.rs`."><title>compressed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-e883e87179a81222.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (21cce21d8 2023-12-11)" data-channel="nightly" data-search-js="search-2da88d4fc6a75ee8.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../../static.files/storage-bc37acceda91d44a.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -593,17 +593,17 @@
     <span class="doccomment">/// Registry of audio codecs supported by the driver.
     ///
     /// Defaults to [`CODEC_REGISTRY`], which adds audiopus-based Opus codec support
-    /// to all of Symphonia&#39;s default codecs.
+    /// to all of Symphonia's default codecs.
     ///
     /// [`CODEC_REGISTRY`]: static@CODEC_REGISTRY
-    </span><span class="kw">pub </span>codec_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>CodecRegistry,
+    </span><span class="kw">pub </span>codec_registry: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>CodecRegistry,
     <span class="doccomment">/// Registry of the muxers and container formats supported by the driver.
     ///
-    /// Defaults to [`PROBE`], which includes all of Symphonia&#39;s default format handlers
+    /// Defaults to [`PROBE`], which includes all of Symphonia's default format handlers
     /// and DCA format support.
     ///
     /// [`PROBE`]: static@PROBE
-    </span><span class="kw">pub </span>format_registry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Probe,
+    </span><span class="kw">pub </span>format_registry: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Probe,
     <span class="doccomment">/// Configuration for the inner streamcatcher instance.
     ///
     /// Notably, this governs size hints and resize logic.
@@ -738,7 +738,7 @@
             chan_count <span class="kw">as </span>u8,
             encoding,
         )<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>metabytes = <span class="string">b&quot;DCA1\0\0\0\0&quot;</span>.to_vec();
+        <span class="kw">let </span><span class="kw-2">mut </span>metabytes = <span class="string">b"DCA1\0\0\0\0"</span>.to_vec();
         <span class="kw">let </span>orig_len = metabytes.len();
         <span class="kw">crate</span>::json::to_writer(<span class="kw-2">&amp;mut </span>metabytes, <span class="kw-2">&amp;</span>metadata)<span class="question-mark">?</span>;
         <span class="kw">let </span>meta_len = (metabytes.len() - orig_len)
@@ -747,7 +747,7 @@
 
         (<span class="kw-2">&amp;mut </span>metabytes[<span class="number">4</span>..][..mem::size_of::&lt;i32&gt;()])
             .write_i32::&lt;LittleEndian&gt;(meta_len)
-            .expect(<span class="string">&quot;Magic byte writing location guaranteed to be well-founded.&quot;</span>);
+            .expect(<span class="string">"Magic byte writing location guaranteed to be well-founded."</span>);
 
         <span class="kw">let </span>source = ToAudioBytes::new(parsed, <span class="prelude-val">Some</span>(<span class="number">2</span>));
 
@@ -778,10 +778,10 @@
     <span class="kw">let </span>dca = DcaInfo {
         version: <span class="number">1</span>,
         tool: Tool {
-            name: <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>).into(),
-            version: <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>).into(),
-            url: <span class="prelude-val">Some</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_HOMEPAGE&quot;</span>).into()),
-            author: <span class="prelude-val">Some</span>(<span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_AUTHORS&quot;</span>).into()),
+            name: <span class="macro">env!</span>(<span class="string">"CARGO_PKG_NAME"</span>).into(),
+            version: <span class="macro">env!</span>(<span class="string">"CARGO_PKG_VERSION"</span>).into(),
+            url: <span class="prelude-val">Some</span>(<span class="macro">env!</span>(<span class="string">"CARGO_PKG_HOMEPAGE"</span>).into()),
+            author: <span class="prelude-val">Some</span>(<span class="macro">env!</span>(<span class="string">"CARGO_PKG_AUTHORS"</span>).into()),
         },
     };
 
@@ -792,9 +792,9 @@
     };
 
     <span class="kw">let </span>mode = <span class="kw">match </span>opus.application()<span class="question-mark">? </span>{
-        Application::Voip =&gt; <span class="string">&quot;voip&quot;</span>,
-        Application::Audio =&gt; <span class="string">&quot;music&quot;</span>,
-        Application::LowDelay =&gt; <span class="string">&quot;lowdelay&quot;</span>,
+        Application::Voip =&gt; <span class="string">"voip"</span>,
+        Application::Audio =&gt; <span class="string">"music"</span>,
+        Application::LowDelay =&gt; <span class="string">"lowdelay"</span>,
     }
     .to_string();
 
@@ -810,7 +810,7 @@
     };
 
     <span class="kw">let </span><span class="kw-2">mut </span>origin = Origin {
-        source: <span class="prelude-val">Some</span>(<span class="string">&quot;file&quot;</span>.into()),
+        source: <span class="prelude-val">Some</span>(<span class="string">"file"</span>.into()),
         abr: <span class="prelude-val">None</span>,
         channels: <span class="prelude-val">Some</span>(channels),
         encoding,
@@ -939,7 +939,7 @@
         </span><span class="kw">if </span><span class="self">self</span>.frame_pos == <span class="self">self</span>.last_frame.len() + output_start || <span class="self">self</span>.last_frame.is_empty() {
             <span class="self">self</span>.last_frame.resize(<span class="self">self</span>.last_frame.capacity(), <span class="number">0</span>);
 
-            <span class="comment">// We can&#39;t use `read_f32_into` because we can&#39;t guarantee the buffer will be filled.
+            <span class="comment">// We can't use `read_f32_into` because we can't guarantee the buffer will be filled.
             // However, we can guarantee that reads will be channel aligned at least!
             </span><span class="kw">for </span>el <span class="kw">in </span>sample_buf[..samples_in_frame].chunks_mut(interleaved_count) {
                 <span class="kw">match </span>src.read_f32_into::&lt;LittleEndian&gt;(el) {
@@ -959,25 +959,25 @@
 
             <span class="kw">if </span>out.is_none() &amp;&amp; raw_len &gt; <span class="number">0 </span>{
                 <span class="kw">loop </span>{
-                    <span class="comment">// NOTE: we don&#39;t index by raw_len because the last frame can be too small
-                    // to occupy a &quot;whole packet&quot;. Zero-padding is the correct behaviour.
+                    <span class="comment">// NOTE: we don't index by raw_len because the last frame can be too small
+                    // to occupy a "whole packet". Zero-padding is the correct behaviour.
                     </span><span class="kw">match </span><span class="self">self
                         </span>.encoder
                         .encode_float(<span class="kw-2">&amp;</span>sample_buf[..samples_in_frame], <span class="kw-2">&amp;mut </span><span class="self">self</span>.last_frame[..])
                     {
                         <span class="prelude-val">Ok</span>(pkt_len) =&gt; {
-                            <span class="macro">trace!</span>(<span class="string">&quot;Next packet to write has {:?}&quot;</span>, pkt_len);
+                            <span class="macro">trace!</span>(<span class="string">"Next packet to write has {:?}"</span>, pkt_len);
                             <span class="self">self</span>.frame_pos = <span class="number">0</span>;
                             <span class="self">self</span>.last_frame.truncate(pkt_len);
                             <span class="kw">break</span>;
                         },
                         <span class="prelude-val">Err</span>(OpusError::Opus(OpusErrorCode::BufferTooSmall)) =&gt; {
                             <span class="comment">// If we need more capacity to encode this frame, then take it.
-                            </span><span class="macro">trace!</span>(<span class="string">&quot;Resizing inner buffer (+256).&quot;</span>);
+                            </span><span class="macro">trace!</span>(<span class="string">"Resizing inner buffer (+256)."</span>);
                             <span class="self">self</span>.last_frame.resize(<span class="self">self</span>.last_frame.len() + <span class="number">256</span>, <span class="number">0</span>);
                         },
                         <span class="prelude-val">Err</span>(e) =&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;Read error {:?} {:?} {:?}.&quot;</span>, e, out, raw_len);
+                            <span class="macro">debug!</span>(<span class="string">"Read error {:?} {:?} {:?}."</span>, e, out, raw_len);
                             out = <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(IoError::new(IoErrorKind::Other, e)));
                             <span class="kw">break</span>;
                         },
@@ -992,12 +992,12 @@
                 (<span class="kw-2">&amp;mut </span>buf[..output_start])
                     .write_i16::&lt;LittleEndian&gt;(<span class="self">self</span>.last_frame.len() <span class="kw">as </span>i16)
                     .expect(
-                        <span class="string">&quot;Minimum bytes requirement for Opus (2) should mean that an i16 \
-                             may always be written.&quot;</span>,
+                        <span class="string">"Minimum bytes requirement for Opus (2) should mean that an i16 \
+                             may always be written."</span>,
                     );
                 <span class="self">self</span>.frame_pos += output_start;
 
-                <span class="macro">trace!</span>(<span class="string">&quot;Wrote frame header: {}.&quot;</span>, <span class="self">self</span>.last_frame.len());
+                <span class="macro">trace!</span>(<span class="string">"Wrote frame header: {}."</span>, <span class="self">self</span>.last_frame.len());
 
                 output_start
             } <span class="kw">else </span>{
@@ -1010,13 +1010,13 @@
             buf[start..start + write_len]
                 .copy_from_slice(<span class="kw-2">&amp;</span><span class="self">self</span>.last_frame[out_pos..out_pos + write_len]);
             <span class="self">self</span>.frame_pos += write_len;
-            <span class="macro">trace!</span>(<span class="string">&quot;Appended {} to inner store&quot;</span>, write_len);
+            <span class="macro">trace!</span>(<span class="string">"Appended {} to inner store"</span>, write_len);
             out = <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(write_len + start));
         }
 
         <span class="comment">// NOTE: use of raw_len here preserves true sample length even if
         // stream is extended to 20ms boundary.
-        </span>out.unwrap_or_else(|| <span class="prelude-val">Err</span>(IoError::new(IoErrorKind::Other, <span class="string">&quot;Unclear.&quot;</span>)))
+        </span>out.unwrap_or_else(|| <span class="prelude-val">Err</span>(IoError::new(IoErrorKind::Other, <span class="string">"Unclear."</span>)))
             .map(|compressed_sz| {
                 <span class="self">self</span>.audio_bytes
                     .fetch_add(raw_len * mem::size_of::&lt;f32&gt;(), Ordering::Release);

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/mixer/mix_logic.rs`."><title>mix_logic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (6cf088810 2023-11-26)" data-channel="nightly" data-search-js="search-56a624991a76cfad.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-e1c03aa593074e71.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/mixer/mix_logic.rs`."><title>mix_logic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-e883e87179a81222.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (21cce21d8 2023-12-11)" data-channel="nightly" data-search-js="search-2da88d4fc6a75ee8.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../../static.files/storage-bc37acceda91d44a.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -444,8 +444,8 @@
 <a href="#444" id="444">444</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// Mix a track&#39;s audio stream into either the shared mixing buffer, or directly into the output
-/// packet (&quot;passthrough&quot;) when possible.
+<span class="doccomment">/// Mix a track's audio stream into either the shared mixing buffer, or directly into the output
+/// packet ("passthrough") when possible.
 ///
 /// Passthrough is highest performance, but the source MUST be opus, have 20ms frames, and be the only
 /// live track. In this case we copy the opus-encoded data with no changes. Otherwise, we fall back to
@@ -461,10 +461,10 @@
 /// All of the above challenges often happen at once. The rough pipeline in processing is:
 ///
 /// until source end or 20 ms taken:
-///   (use previous frame &#39;til empty / get new frame) -&gt; [resample] -&gt; [audio += vol * (sample as f32)]
+///   (use previous frame 'til empty / get new frame) -&gt; [resample] -&gt; [audio += vol * (sample as f32)]
 ///
 /// Typically, we mix between a subset of the input packet and the output buf because the 20ms window
-/// straddles packet boundaries. If there&#39;s enough space AND 48kHz AND receive f32s, then we use a fast
+/// straddles packet boundaries. If there's enough space AND 48kHz AND receive f32s, then we use a fast
 /// path.
 ///
 /// In the mono -&gt; stereo case, we duplicate across all target channels. In stereo -&gt; mono, we average
@@ -517,10 +517,10 @@
                         .try_into()
                         .and_then(|buf| audiopus::packet::nb_samples(buf, SAMPLE_RATE));
 
-                    <span class="comment">// We don&#39;t actually block passthrough until a few violations are
+                    <span class="comment">// We don't actually block passthrough until a few violations are
                     // seen. The main one is that most Opus tracks end on a sub-20ms
                     // frame, particularly on Youtube.
-                    // However, a frame that&#39;s bigger than the target buffer is an instant block.
+                    // However, a frame that's bigger than the target buffer is an instant block.
                     </span><span class="kw">let </span>buf_size_fatal = buf.len() &lt;= slot.len();
 
                     <span class="kw">if match </span>sample_ct {
@@ -528,7 +528,7 @@
                         <span class="kw">_ </span>=&gt; !local_state.record_and_check_passthrough_strike_final(buf_size_fatal),
                     } {
                         slot.write_all(buf)
-                            .expect(<span class="string">&quot;Bounds check performed, and failure will block passthrough.&quot;</span>);
+                            .expect(<span class="string">"Bounds check performed, and failure will block passthrough."</span>);
 
                         <span class="kw">return </span>(MixType::Passthrough(buf.len()), MixStatus::Live);
                     }
@@ -615,7 +615,7 @@
                     <span class="number">4</span>,
                     chan_c,
                 )
-                .expect(<span class="string">&quot;Failed to create resampler.&quot;</span>);
+                .expect(<span class="string">"Failed to create resampler."</span>);
                 <span class="kw">let </span>out_buf = resampler.output_buffer_allocate(<span class="bool-val">true</span>);
 
                 (chan_c, resampler, out_buf)
@@ -635,7 +635,7 @@
             <span class="kw">if </span>(!force_copy) &amp;&amp; <span class="macro">matches!</span>(source_packet, AudioBufferRef::F32(<span class="kw">_</span>)) {
                 <span class="comment">// This is the only case where we can pull off a straight resample...
                 // I would really like if this could be a slice of slices,
-                // but the technology just isn&#39;t there yet. And I don&#39;t feel like
+                // but the technology just isn't there yet. And I don't feel like
                 // writing unsafe transformations to do so.
 
                 // NOTE: if let needed as if-let &amp;&amp; {bool} is nightly only.
@@ -749,7 +749,7 @@
     <span class="kw">let </span>source_raw_planes = source_planes.planes();
 
     <span class="kw">if </span>source_mono {
-        <span class="comment">// mix this signal into *all* output channels at req&#39;d volume.
+        <span class="comment">// mix this signal into *all* output channels at req'd volume.
         </span><span class="kw">let </span>source_plane = source_raw_planes[<span class="number">0</span>];
         <span class="kw">for </span>d_plane <span class="kw">in </span><span class="kw-2">&amp;mut </span>(<span class="kw-2">*</span>target.planes_mut().planes()) {
             <span class="kw">for </span>(d, s) <span class="kw">in </span>d_plane[dest_pos..dest_pos + mix_ct]
@@ -774,7 +774,7 @@
             }
         }
     } <span class="kw">else </span>{
-        <span class="comment">// stereo -&gt; stereo: don&#39;t change volume, map input -&gt; output channels w/ no duplication
+        <span class="comment">// stereo -&gt; stereo: don't change volume, map input -&gt; output channels w/ no duplication
         </span><span class="kw">for </span>(d_plane, s_plane) <span class="kw">in </span>(<span class="kw-2">*</span>target.planes_mut().planes())
             .iter_mut()
             .zip(source_raw_planes[..].iter())

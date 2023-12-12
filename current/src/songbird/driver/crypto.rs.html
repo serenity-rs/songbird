@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/crypto.rs`."><title>crypto.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (6cf088810 2023-11-26)" data-channel="nightly" data-search-js="search-56a624991a76cfad.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-e1c03aa593074e71.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/crypto.rs`."><title>crypto.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-e883e87179a81222.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (21cce21d8 2023-12-11)" data-channel="nightly" data-search-js="search-2da88d4fc6a75ee8.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-bc37acceda91d44a.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -306,9 +306,9 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Encryption schemes supported by Discord&#39;s secure RTP negotiation.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Encryption schemes supported by Discord's secure RTP negotiation.
 </span><span class="kw">use </span>byteorder::{NetworkEndian, WriteBytesExt};
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;receive&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"receive"</span>, test))]
 </span><span class="kw">use </span>crypto_secretbox::Tag;
 <span class="kw">use </span>crypto_secretbox::{
     aead::{AeadInPlace, Error <span class="kw">as </span>CryptoError},
@@ -359,11 +359,11 @@
 <span class="kw">impl </span>CryptoMode {
     <span class="doccomment">/// Returns the name of a mode as it will appear during negotiation.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>to_request_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    </span><span class="kw">pub fn </span>to_request_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Normal =&gt; <span class="string">&quot;xsalsa20_poly1305&quot;</span>,
-            <span class="self">Self</span>::Suffix =&gt; <span class="string">&quot;xsalsa20_poly1305_suffix&quot;</span>,
-            <span class="self">Self</span>::Lite =&gt; <span class="string">&quot;xsalsa20_poly1305_lite&quot;</span>,
+            <span class="self">Self</span>::Normal =&gt; <span class="string">"xsalsa20_poly1305"</span>,
+            <span class="self">Self</span>::Suffix =&gt; <span class="string">"xsalsa20_poly1305_suffix"</span>,
+            <span class="self">Self</span>::Lite =&gt; <span class="string">"xsalsa20_poly1305_lite"</span>,
         }
     }
 
@@ -404,11 +404,11 @@
 
     <span class="doccomment">/// Extracts the byte slice in a packet used as the nonce, and the remaining mutable
     /// portion of the packet.
-    </span><span class="kw">fn </span>nonce_slice&lt;<span class="lifetime">&#39;a</span>&gt;(
+    </span><span class="kw">fn </span>nonce_slice&lt;<span class="lifetime">'a</span>&gt;(
         <span class="self">self</span>,
-        header: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
-        body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]), CryptoError&gt; {
+        header: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8],
+        body: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8]), CryptoError&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Normal =&gt; <span class="prelude-val">Ok</span>((header, body)),
             <span class="self">Self</span>::Suffix | <span class="self">Self</span>::Lite =&gt; {
@@ -423,7 +423,7 @@
         }
     }
 
-    <span class="attr">#[cfg(any(feature = <span class="string">&quot;receive&quot;</span>, test))]
+    <span class="attr">#[cfg(any(feature = <span class="string">"receive"</span>, test))]
     </span><span class="doccomment">/// Decrypts a Discord RT(C)P packet using the given key.
     ///
     /// If successful, this returns the number of bytes to be ignored from the
@@ -435,7 +435,7 @@
         cipher: <span class="kw-2">&amp;</span>Cipher,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize), CryptoError&gt; {
         <span class="comment">// FIXME on next: packet encrypt/decrypt should use an internal error
-        //  to denote &quot;too small&quot; vs. &quot;opaque&quot;.
+        //  to denote "too small" vs. "opaque".
         </span><span class="kw">let </span>header_len = packet.packet().len() - packet.payload().len();
         <span class="kw">let </span>(header, body) = packet.packet_mut().split_at_mut(header_len);
         <span class="kw">let </span>(slice_to_use, body_remaining) = <span class="self">self</span>.nonce_slice(header, body)<span class="question-mark">?</span>;
@@ -460,7 +460,7 @@
         <span class="kw">let </span>tag = Tag::from_slice(tag_bytes);
 
         cipher
-            .decrypt_in_place_detached(nonce_slice, <span class="string">b&quot;&quot;</span>, data_bytes, tag)
+            .decrypt_in_place_detached(nonce_slice, <span class="string">b""</span>, data_bytes, tag)
             .map(|()| (body_start, body_tail))
     }
 
@@ -490,7 +490,7 @@
         <span class="comment">// body_remaining is now correctly truncated by this point.
         // the true_payload to encrypt follows after the first TAG_LEN bytes.
         </span><span class="kw">let </span>tag =
-            cipher.encrypt_in_place_detached(nonce_slice, <span class="string">b&quot;&quot;</span>, <span class="kw-2">&amp;mut </span>body_remaining[TAG_SIZE..])<span class="question-mark">?</span>;
+            cipher.encrypt_in_place_detached(nonce_slice, <span class="string">b""</span>, <span class="kw-2">&amp;mut </span>body_remaining[TAG_SIZE..])<span class="question-mark">?</span>;
         body_remaining[..TAG_SIZE].copy_from_slice(<span class="kw-2">&amp;</span>tag[..]);
 
         <span class="prelude-val">Ok</span>(())
@@ -546,7 +546,7 @@
                 (<span class="kw-2">&amp;mut </span>packet.payload_mut()[payload_end..endpoint])
                     .write_u32::&lt;NetworkEndian&gt;(i.<span class="number">0</span>)
                     .expect(
-                        <span class="string">&quot;Nonce size is guaranteed to be sufficient to write u32 for lite tagging.&quot;</span>,
+                        <span class="string">"Nonce size is guaranteed to be sufficient to write u32 for lite tagging."</span>,
                     );
                 i += Wrapping(<span class="number">1</span>);
             },

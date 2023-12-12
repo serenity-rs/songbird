@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/metadata/ffprobe.rs`."><title>ffprobe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (6cf088810 2023-11-26)" data-channel="nightly" data-search-js="search-56a624991a76cfad.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-e1c03aa593074e71.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/metadata/ffprobe.rs`."><title>ffprobe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-e883e87179a81222.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (21cce21d8 2023-12-11)" data-channel="nightly" data-search-js="search-2da88d4fc6a75ee8.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../static.files/storage-bc37acceda91d44a.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -178,7 +178,7 @@
 <span class="kw">use </span>serde_aux::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>std::{collections::HashMap, time::Duration};
 
-<span class="comment">// These have been put together by looking at ffprobe&#39;s output
+<span class="comment">// These have been put together by looking at ffprobe's output
 // and the canonical data formats given in
 // https://github.com/FFmpeg/FFmpeg/blob/master/doc/ffprobe.xsd
 
@@ -203,7 +203,7 @@
 
     <span class="comment">// Video attributes skipped.
     </span><span class="kw">pub </span>sample_fmt: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>sample_rate: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="kw">pub </span>channels: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="kw">pub </span>channel_layout: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -214,14 +214,14 @@
     <span class="kw">pub </span>avg_frame_rate: String,
     <span class="kw">pub </span>time_base: String,
     <span class="kw">pub </span>start_pts: <span class="prelude-ty">Option</span>&lt;i64&gt;,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>start_time: <span class="prelude-ty">Option</span>&lt;f64&gt;,
     <span class="kw">pub </span>duration_ts: <span class="prelude-ty">Option</span>&lt;u64&gt;,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>duration: <span class="prelude-ty">Option</span>&lt;f64&gt;,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>bit_rate: <span class="prelude-ty">Option</span>&lt;u64&gt;,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>max_bit_rate: <span class="prelude-ty">Option</span>&lt;u64&gt;,
     <span class="kw">pub </span>bits_per_raw_sample: <span class="prelude-ty">Option</span>&lt;u64&gt;,
     <span class="kw">pub </span>nb_frames: <span class="prelude-ty">Option</span>&lt;u64&gt;,
@@ -236,39 +236,39 @@
 <span class="attr">#[allow(clippy::struct_excessive_bools)]
 #[derive(Deserialize, Serialize)]
 </span><span class="kw">pub struct </span>Disposition {
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>default: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>dub: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>original: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>comment: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>lyrics: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>karaoke: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>forced: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>hearing_impaired: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>visual_impaired: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>clean_effects: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>attached_pic: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>timed_thumbnails: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>captions: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>descriptions: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>metadata: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>dependent: bool,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_bool_from_anything&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_bool_from_anything"</span>)]
     </span><span class="kw">pub </span>still_image: bool,
 }
 
@@ -277,18 +277,18 @@
     <span class="kw">pub </span>filename: String,
     <span class="kw">pub </span>nb_streams: u64,
     <span class="kw">pub </span>nb_programs: u64,
-    <span class="attr">#[serde(rename = <span class="string">&quot;format_name&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"format_name"</span>)]
     </span><span class="kw">pub </span>name: String,
-    <span class="attr">#[serde(rename = <span class="string">&quot;format_long_name&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"format_long_name"</span>)]
     </span><span class="kw">pub </span>long_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>start_time: <span class="prelude-ty">Option</span>&lt;f64&gt;,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>duration: <span class="prelude-ty">Option</span>&lt;f64&gt;,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;u64&gt;,
-    <span class="attr">#[serde(deserialize_with = <span class="string">&quot;deserialize_option_number_from_string&quot;</span>)]
+    <span class="attr">#[serde(deserialize_with = <span class="string">"deserialize_option_number_from_string"</span>)]
     </span><span class="kw">pub </span>bit_rate: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 
     <span class="kw">pub </span>probe_score: i64,
@@ -298,15 +298,15 @@
 <span class="kw">fn </span>apply_tags(tag_map: HashMap&lt;String, String&gt;, dest: <span class="kw-2">&amp;mut </span>AuxMetadata) {
     <span class="kw">for </span>(k, v) <span class="kw">in </span>tag_map {
         <span class="kw">match </span>k.as_str().to_lowercase().as_str() {
-            <span class="string">&quot;title&quot; </span>=&gt; dest.title = <span class="prelude-val">Some</span>(v),
-            <span class="string">&quot;album&quot; </span>=&gt; dest.album = <span class="prelude-val">Some</span>(v),
-            <span class="string">&quot;artist&quot; </span>=&gt; dest.artist = <span class="prelude-val">Some</span>(v),
-            <span class="string">&quot;date&quot; </span>=&gt; dest.date = <span class="prelude-val">Some</span>(v),
-            <span class="string">&quot;channels&quot; </span>=&gt;
+            <span class="string">"title" </span>=&gt; dest.title = <span class="prelude-val">Some</span>(v),
+            <span class="string">"album" </span>=&gt; dest.album = <span class="prelude-val">Some</span>(v),
+            <span class="string">"artist" </span>=&gt; dest.artist = <span class="prelude-val">Some</span>(v),
+            <span class="string">"date" </span>=&gt; dest.date = <span class="prelude-val">Some</span>(v),
+            <span class="string">"channels" </span>=&gt;
                 <span class="kw">if let </span><span class="prelude-val">Ok</span>(chans) = str::parse::&lt;u8&gt;(<span class="kw-2">&amp;</span>v) {
                     dest.channels = <span class="prelude-val">Some</span>(chans);
                 },
-            <span class="string">&quot;sample_rate&quot; </span>=&gt;
+            <span class="string">"sample_rate" </span>=&gt;
                 <span class="kw">if let </span><span class="prelude-val">Ok</span>(samples) = str::parse::&lt;u32&gt;(<span class="kw-2">&amp;</span>v) {
                     dest.sample_rate = <span class="prelude-val">Some</span>(samples);
                 },
@@ -336,7 +336,7 @@
         }
 
         <span class="kw">for </span>stream <span class="kw">in </span><span class="self">self</span>.streams {
-            <span class="kw">if </span>stream.codec_type.as_deref() != <span class="prelude-val">Some</span>(<span class="string">&quot;audio&quot;</span>) {
+            <span class="kw">if </span>stream.codec_type.as_deref() != <span class="prelude-val">Some</span>(<span class="string">"audio"</span>) {
                 <span class="kw">continue</span>;
             }
 
