@@ -22,6 +22,8 @@ use serenity::{
         voice::VoiceState,
     },
 };
+#[cfg(feature = "serenity")]
+use std::num::NonZeroU16;
 use std::sync::{Arc, OnceLock};
 use tokio::sync::Mutex;
 #[cfg(feature = "serenity")]
@@ -415,16 +417,16 @@ impl Songbird {
 #[cfg(feature = "serenity")]
 #[async_trait]
 impl VoiceGatewayManager for Songbird {
-    async fn initialise(&self, shard_count: u32, user_id: SerenityUser) {
+    async fn initialise(&self, shard_count: NonZeroU16, user_id: SerenityUser) {
         debug!(
             "Initialising Songbird for Serenity: ID {:?}, {} Shards",
             user_id, shard_count
         );
-        self.initialise_client_data(shard_count as u64, user_id);
+        self.initialise_client_data(shard_count.get() as u64, user_id);
         debug!("Songbird ({:?}) Initialised!", user_id);
     }
 
-    async fn register_shard(&self, shard_id: u32, sender: Sender<ShardRunnerMessage>) {
+    async fn register_shard(&self, shard_id: u16, sender: Sender<ShardRunnerMessage>) {
         debug!(
             "Registering Serenity shard handle {} with Songbird",
             shard_id
@@ -433,7 +435,7 @@ impl VoiceGatewayManager for Songbird {
         debug!("Registered shard handle {}.", shard_id);
     }
 
-    async fn deregister_shard(&self, shard_id: u32) {
+    async fn deregister_shard(&self, shard_id: u16) {
         debug!(
             "Deregistering Serenity shard handle {} with Songbird",
             shard_id
@@ -442,11 +444,11 @@ impl VoiceGatewayManager for Songbird {
         debug!("Deregistered shard handle {}.", shard_id);
     }
 
-    async fn server_update(&self, guild_id: SerenityGuild, endpoint: &Option<String>, token: &str) {
+    async fn server_update(&self, guild_id: SerenityGuild, endpoint: Option<&str>, token: &str) {
         if let Some(call) = self.get(guild_id) {
             let mut handler = call.lock().await;
             if let Some(endpoint) = endpoint {
-                handler.update_server(endpoint.clone(), token.to_string());
+                handler.update_server(endpoint.to_string(), token.to_string());
             }
         }
     }
@@ -460,7 +462,7 @@ impl VoiceGatewayManager for Songbird {
 
         if let Some(call) = self.get(guild_id) {
             let mut handler = call.lock().await;
-            handler.update_state(voice_state.session_id.clone(), voice_state.channel_id);
+            handler.update_state(voice_state.session_id.to_string(), voice_state.channel_id);
         }
     }
 }

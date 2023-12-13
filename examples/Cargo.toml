@@ -10,7 +10,7 @@ resolver = "2"
 
 [workspace.dependencies]
 reqwest = "0.11"
-serenity = { features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"], version = "0.12" }
+serenity = { features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"], git = "https://github.com/serenity-rs/serenity", branch = "next" }
 songbird = { path = "../", version = "0.4" }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac"], version = "0.5.2" }
 tokio = { features = ["macros", "rt-multi-thread", "signal", "sync"], version = "1" }

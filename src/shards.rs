@@ -87,7 +87,7 @@ impl Sharder {
         match self {
             #[cfg(feature = "serenity")]
             Sharder::Serenity(s) => Some(Shard::Serenity(
-                s.get_or_insert_shard_handle(shard_id as u32),
+                s.get_or_insert_shard_handle(shard_id as u16),
             )),
             #[cfg(feature = "twilight")]
             Sharder::Twilight(t) => Some(Shard::Twilight(t.clone(), shard_id)),
@@ -99,7 +99,7 @@ impl Sharder {
 #[cfg(feature = "serenity")]
 impl Sharder {
     #[allow(unreachable_patterns)]
-    pub(crate) fn register_shard_handle(&self, shard_id: u32, sender: Sender<ShardRunnerMessage>) {
+    pub(crate) fn register_shard_handle(&self, shard_id: u16, sender: Sender<ShardRunnerMessage>) {
         if let Sharder::Serenity(s) = self {
             s.register_shard_handle(shard_id, sender);
         } else {
@@ -108,7 +108,7 @@ impl Sharder {
     }
 
     #[allow(unreachable_patterns)]
-    pub(crate) fn deregister_shard_handle(&self, shard_id: u32) {
+    pub(crate) fn deregister_shard_handle(&self, shard_id: u16) {
         if let Sharder::Serenity(s) = self {
             s.deregister_shard_handle(shard_id);
         } else {
@@ -123,22 +123,22 @@ impl Sharder {
 ///
 /// This is updated and maintained by the library, and is designed to prevent
 /// message loss during rebalances and reconnects.
-pub struct SerenitySharder(DashMap<u32, Arc<SerenityShardHandle>>);
+pub struct SerenitySharder(DashMap<u16, Arc<SerenityShardHandle>>);
 
 #[cfg(feature = "serenity")]
 impl SerenitySharder {
-    fn get_or_insert_shard_handle(&self, shard_id: u32) -> Arc<SerenityShardHandle> {
+    fn get_or_insert_shard_handle(&self, shard_id: u16) -> Arc<SerenityShardHandle> {
         self.0.entry(shard_id).or_default().clone()
     }
 
-    fn register_shard_handle(&self, shard_id: u32, sender: Sender<ShardRunnerMessage>) {
+    fn register_shard_handle(&self, shard_id: u16, sender: Sender<ShardRunnerMessage>) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 
         handle.register(sender);
     }
 
-    fn deregister_shard_handle(&self, shard_id: u32) {
+    fn deregister_shard_handle(&self, shard_id: u16) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 
