@@ -40,10 +40,9 @@ impl Interconnect {
 
         self.events = evt_tx;
 
-        let ic = self.clone();
         spawn(async move {
             trace!("Event processor restarted.");
-            super::events::runner(ic, evt_rx).await;
+            super::events::runner(evt_rx).await;
             trace!("Event processor finished.");
         });
 

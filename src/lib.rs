@@ -76,6 +76,7 @@
     // TODO: would require significant rewriting of all existing docs
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
+    clippy::doc_link_with_quotes,
 )]
 
 mod config;

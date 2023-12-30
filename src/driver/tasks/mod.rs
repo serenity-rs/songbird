@@ -38,23 +38,20 @@ fn start_internals(core: Sender<CoreMessage>, config: &Config) -> Interconnect {
     let (evt_tx, evt_rx) = flume::unbounded();
     let (mix_tx, mix_rx) = flume::unbounded();
 
-    let interconnect = Interconnect {
+    spawn(async move {
+        trace!("Event processor started.");
+        events::runner(evt_rx).await;
+        trace!("Event processor finished.");
+    });
+
+    let ic = Interconnect {
         core,
         events: evt_tx,
         mixer: mix_tx,
     };
 
-    let ic = interconnect.clone();
-    spawn(async move {
-        trace!("Event processor started.");
-        events::runner(ic, evt_rx).await;
-        trace!("Event processor finished.");
-    });
-
-    let ic = interconnect.clone();
-    config.get_scheduler().new_mixer(config, ic, mix_rx);
-
-    interconnect
+    config.get_scheduler().new_mixer(config, ic.clone(), mix_rx);
+    ic
 }
 
 #[instrument(skip(rx, tx))]
