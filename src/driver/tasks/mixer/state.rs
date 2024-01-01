@@ -15,7 +15,7 @@ pub enum InputState {
 }
 
 impl InputState {
-    pub fn metadata(&mut self) -> Option<Metadata> {
+    pub fn metadata(&mut self) -> Option<Metadata<'_>> {
         if let Self::Ready(parsed, _) = self {
             Some(parsed.into())
         } else {

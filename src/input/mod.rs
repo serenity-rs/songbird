@@ -215,7 +215,7 @@ impl Input {
     ///
     /// Only exists when this input is both [`Self::Live`] and has been fully parsed.
     /// In general, you probably want to use [`Self::aux_metadata`].
-    pub fn metadata(&mut self) -> Result<Metadata, MetadataError> {
+    pub fn metadata(&mut self) -> Result<Metadata<'_>, MetadataError> {
         if let Self::Live(live, _) = self {
             live.metadata()
         } else {

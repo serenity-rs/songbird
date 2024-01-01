@@ -62,7 +62,7 @@
 //! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
 //! [audiopus]: https://github.com/lakelezz/audiopus
 
-#![warn(clippy::pedantic)]
+#![warn(clippy::pedantic, rust_2018_idioms)]
 #![allow(
     // Allowed as they are too pedantic
     clippy::module_name_repetitions,

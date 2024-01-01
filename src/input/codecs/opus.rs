@@ -133,7 +133,7 @@ impl Decoder for OpusDecoder {
         FinalizeResult::default()
     }
 
-    fn last_decoded(&self) -> AudioBufferRef {
+    fn last_decoded(&self) -> AudioBufferRef<'_> {
         self.buf.as_audio_buffer_ref()
     }
 }

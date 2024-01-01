@@ -259,7 +259,7 @@ pub fn mix_symph_indiv(
 
 #[inline]
 fn mix_over_ref(
-    source: &AudioBufferRef,
+    source: &AudioBufferRef<'_>,
     target: &mut AudioBuffer<f32>,
     source_pos: usize,
     dest_pos: usize,
@@ -397,7 +397,7 @@ fn mix_resampled(
 
 #[inline]
 pub(crate) fn copy_into_resampler(
-    source: &AudioBufferRef,
+    source: &AudioBufferRef<'_>,
     target: &mut AudioBuffer<f32>,
     source_pos: usize,
     dest_pos: usize,

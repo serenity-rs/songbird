@@ -335,7 +335,7 @@ impl MediaSource for ToAudioBytes {
 
 #[inline]
 fn write_out(
-    source: &AudioBufferRef,
+    source: &AudioBufferRef<'_>,
     target: &mut [u8],
     source_pos: &mut Range<usize>,
     spillover: &mut Vec<f32>,
