@@ -62,7 +62,7 @@
 //! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
 //! [audiopus]: https://github.com/lakelezz/audiopus
 
-#![warn(clippy::pedantic)]
+#![warn(clippy::pedantic, rust_2018_idioms)]
 #![allow(
     // Allowed as they are too pedantic
     clippy::module_name_repetitions,
@@ -76,6 +76,7 @@
     // TODO: would require significant rewriting of all existing docs
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
+    clippy::doc_link_with_quotes,
 )]
 
 mod config;

@@ -193,8 +193,8 @@ impl TrackQueue {
 
     pub(crate) async fn get_preload_time(track: &mut Track) -> Option<Duration> {
         let meta = match track.input {
-            Input::Lazy(ref mut rec) => rec.aux_metadata().await.ok(),
-            Input::Live(_, Some(ref mut rec)) => rec.aux_metadata().await.ok(),
+            Input::Lazy(ref mut rec) | Input::Live(_, Some(ref mut rec)) =>
+                rec.aux_metadata().await.ok(),
             Input::Live(_, None) => None,
         };
 

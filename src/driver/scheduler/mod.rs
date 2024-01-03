@@ -24,7 +24,7 @@ const RESCHEDULE_THRESHOLD: u64 = ((TIMESTEP_LENGTH.subsec_nanos() as u64) * 9) 
 
 const DEFAULT_MIXERS_PER_THREAD: NonZeroUsize = match NonZeroUsize::new(16) {
     Some(v) => v,
-    None => [][0],
+    None => unreachable!(),
 };
 
 /// The default shared scheduler instance.

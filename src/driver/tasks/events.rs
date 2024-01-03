@@ -6,8 +6,8 @@ use crate::{
 use flume::Receiver;
 use tracing::{debug, info, instrument, trace};
 
-#[instrument(skip(_interconnect, evt_rx))]
-pub(crate) async fn runner(_interconnect: Interconnect, evt_rx: Receiver<EventMessage>) {
+#[instrument(skip(evt_rx))]
+pub(crate) async fn runner(evt_rx: Receiver<EventMessage>) {
     let mut global = GlobalEvents::default();
 
     let mut events: Vec<EventStore> = vec![];

@@ -150,7 +150,7 @@ impl TrackHandle {
     /// [`Metadata`]: crate::input::Metadata
     pub fn action<F>(&self, action: F) -> TrackResult<()>
     where
-        F: FnOnce(View) -> Option<Action> + Send + Sync + 'static,
+        F: FnOnce(View<'_>) -> Option<Action> + Send + Sync + 'static,
     {
         self.send(TrackCommand::Do(Box::new(action)))
     }

@@ -42,7 +42,7 @@ pub enum PacketLookup {
 
 #[derive(Debug)]
 pub struct PlayoutBuffer {
-    playout_buffer: VecDeque<Option<StoredPacket>>,
+    buffer: VecDeque<Option<StoredPacket>>,
     playout_mode: PlayoutMode,
     next_seq: RtpSequence,
     current_timestamp: Option<RtpTimestamp>,
@@ -51,7 +51,7 @@ pub struct PlayoutBuffer {
 impl PlayoutBuffer {
     pub fn new(capacity: usize, next_seq: RtpSequence) -> Self {
         Self {
-            playout_buffer: VecDeque::with_capacity(capacity),
+            buffer: VecDeque::with_capacity(capacity),
             playout_mode: PlayoutMode::Fill,
             next_seq,
             current_timestamp: None,
@@ -81,13 +81,13 @@ impl PlayoutBuffer {
             trace!("Packet arrived beyond playout max length.");
         } else {
             let index = desired_index as usize;
-            while self.playout_buffer.len() <= index {
-                self.playout_buffer.push_back(None);
+            while self.buffer.len() <= index {
+                self.buffer.push_back(None);
             }
-            self.playout_buffer[index] = Some(packet);
+            self.buffer[index] = Some(packet);
         }
 
-        if self.playout_buffer.len() >= config.playout_buffer_length.get() {
+        if self.buffer.len() >= config.playout_buffer_length.get() {
             self.playout_mode = PlayoutMode::Drain;
         }
     }
@@ -97,7 +97,7 @@ impl PlayoutBuffer {
             return PacketLookup::Filling;
         }
 
-        let out = match self.playout_buffer.pop_front() {
+        let out = match self.buffer.pop_front() {
             Some(Some(pkt)) => {
                 let rtp = RtpPacket::new(&pkt.packet)
                     .expect("FATAL: earlier valid packet now invalid (fetch)");
@@ -111,7 +111,7 @@ impl PlayoutBuffer {
                     PacketLookup::Packet(pkt)
                 } else {
                     trace!("Witholding packet: ts_diff is {ts_diff}");
-                    self.playout_buffer.push_front(Some(pkt));
+                    self.buffer.push_front(Some(pkt));
                     self.playout_mode = PlayoutMode::Fill;
                     PacketLookup::Filling
                 }
@@ -123,7 +123,7 @@ impl PlayoutBuffer {
             None => PacketLookup::Filling,
         };
 
-        if self.playout_buffer.is_empty() {
+        if self.buffer.is_empty() {
             self.playout_mode = PlayoutMode::Fill;
             self.current_timestamp = None;
         }

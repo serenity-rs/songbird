@@ -205,8 +205,7 @@ impl Input {
     /// will always fail with [`AudioStreamError::Unsupported`].
     pub async fn aux_metadata(&mut self) -> Result<AuxMetadata, AuxMetadataError> {
         match self {
-            Self::Lazy(ref mut composer) => composer.aux_metadata().await.map_err(Into::into),
-            Self::Live(_, Some(ref mut composer)) =>
+            Self::Lazy(ref mut composer) | Self::Live(_, Some(ref mut composer)) =>
                 composer.aux_metadata().await.map_err(Into::into),
             Self::Live(_, None) => Err(AuxMetadataError::NoCompose),
         }
@@ -216,7 +215,7 @@ impl Input {
     ///
     /// Only exists when this input is both [`Self::Live`] and has been fully parsed.
     /// In general, you probably want to use [`Self::aux_metadata`].
-    pub fn metadata(&mut self) -> Result<Metadata, MetadataError> {
+    pub fn metadata(&mut self) -> Result<Metadata<'_>, MetadataError> {
         if let Self::Live(live, _) = self {
             live.metadata()
         } else {

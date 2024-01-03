@@ -136,7 +136,7 @@ impl LiveInput {
     /// Tries to get any information about this audio stream acquired during parsing.
     ///
     /// Only exists when this input is [`LiveInput::Parsed`].
-    pub fn metadata(&mut self) -> Result<Metadata, MetadataError> {
+    pub fn metadata(&mut self) -> Result<Metadata<'_>, MetadataError> {
         if let Some(parsed) = self.parsed_mut() {
             Ok(parsed.into())
         } else {
