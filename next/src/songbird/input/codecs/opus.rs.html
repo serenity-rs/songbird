@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/codecs/opus.rs`."><title>opus.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (8c2b57721 2023-12-01)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/codecs/opus.rs`."><title>opus.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -211,9 +213,9 @@
             </span>} <span class="kw">else if let </span><span class="prelude-val">Ok</span>(checked_pkt) = packet.buf().try_into() {
                 <span class="prelude-val">Some</span>(checked_pkt)
             } <span class="kw">else </span>{
-                <span class="kw">return </span>decode_error(<span class="string">&quot;Opus packet was too large (greater than i32::MAX bytes).&quot;</span>);
+                <span class="kw">return </span>decode_error(<span class="string">"Opus packet was too large (greater than i32::MAX bytes)."</span>);
             };
-            <span class="kw">let </span>out_space = (<span class="kw-2">&amp;mut </span><span class="self">self</span>.rawbuf[..]).try_into().expect(<span class="string">&quot;The following logic expands this buffer safely below i32::MAX, and we throw our own error.&quot;</span>);
+            <span class="kw">let </span>out_space = (<span class="kw-2">&amp;mut </span><span class="self">self</span>.rawbuf[..]).try_into().expect(<span class="string">"The following logic expands this buffer safely below i32::MAX, and we throw our own error."</span>);
 
             <span class="kw">match </span><span class="self">self</span>.inner.decode_float(pkt, out_space, <span class="bool-val">false</span>) {
                 <span class="prelude-val">Ok</span>(v) =&gt; <span class="kw">break </span>v,
@@ -222,7 +224,7 @@
                     // correct behav would be to mirror the decoder logic in the udp_rx set.
                     </span><span class="kw">let </span>new_size = (<span class="self">self</span>.rawbuf.len() * <span class="number">2</span>).min(std::i32::MAX <span class="kw">as </span>usize);
                     <span class="kw">if </span>new_size == <span class="self">self</span>.rawbuf.len() {
-                        <span class="kw">return </span>decode_error(<span class="string">&quot;Opus frame too big: cannot expand opus frame decode buffer any further.&quot;</span>);
+                        <span class="kw">return </span>decode_error(<span class="string">"Opus frame too big: cannot expand opus frame decode buffer any further."</span>);
                     }
 
                     <span class="self">self</span>.rawbuf.resize(new_size, <span class="number">0.0</span>);
@@ -232,8 +234,8 @@
                     );
                 },
                 <span class="prelude-val">Err</span>(e) =&gt; {
-                    <span class="macro">tracing::error!</span>(<span class="string">&quot;Opus decode error: {:?}&quot;</span>, e);
-                    <span class="kw">return </span>decode_error(<span class="string">&quot;Opus decode error: see &#39;tracing&#39; logs.&quot;</span>);
+                    <span class="macro">tracing::error!</span>(<span class="string">"Opus decode error: {:?}"</span>, e);
+                    <span class="kw">return </span>decode_error(<span class="string">"Opus decode error: see 'tracing' logs."</span>);
                 },
             }
         };
@@ -271,11 +273,11 @@
         })
     }
 
-    <span class="kw">fn </span>supported_codecs() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[CodecDescriptor] {
+    <span class="kw">fn </span>supported_codecs() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[CodecDescriptor] {
         <span class="kw-2">&amp;</span>[<span class="macro">symphonia_core::support_codec!</span>(
             CODEC_TYPE_OPUS,
-            <span class="string">&quot;opus&quot;</span>,
-            <span class="string">&quot;libopus (1.3+, audiopus)&quot;
+            <span class="string">"opus"</span>,
+            <span class="string">"libopus (1.3+, audiopus)"
         </span>)]
     }
 
@@ -283,7 +285,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.params
     }
 
-    <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, packet: <span class="kw-2">&amp;</span>Packet) -&gt; SymphResult&lt;AudioBufferRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    <span class="kw">fn </span>decode(<span class="kw-2">&amp;mut </span><span class="self">self</span>, packet: <span class="kw-2">&amp;</span>Packet) -&gt; SymphResult&lt;AudioBufferRef&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.decode_inner(packet) {
             <span class="self">self</span>.buf.clear();
             <span class="prelude-val">Err</span>(e)
@@ -300,7 +302,7 @@
         FinalizeResult::default()
     }
 
-    <span class="kw">fn </span>last_decoded(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AudioBufferRef {
+    <span class="kw">fn </span>last_decoded(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AudioBufferRef&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.buf.as_audio_buffer_ref()
     }
 }

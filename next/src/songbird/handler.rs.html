@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/handler.rs`."><title>handler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (8c2b57721 2023-12-01)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/handler.rs`."><title>handler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -488,7 +490,7 @@
 <a href="#488" id="488">488</a>
 <a href="#489" id="489">489</a>
 <a href="#490" id="490">490</a>
-</pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+</pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
 </span><span class="kw">use crate</span>::{driver::Driver, error::ConnectionResult};
 <span class="kw">use crate</span>::{
     error::{JoinError, JoinResult},
@@ -502,7 +504,7 @@
 <span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>tracing::instrument;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
 </span><span class="kw">use </span>std::ops::{Deref, DerefMut};
 
 <span class="attr">#[derive(Clone, Debug)]
@@ -510,29 +512,29 @@
     <span class="comment">// Return the connection info as it is received.
     </span>Info(Sender&lt;ConnectionInfo&gt;),
 
-    <span class="comment">// Two channels: first indicates &quot;gateway connection&quot; was successful,
+    <span class="comment">// Two channels: first indicates "gateway connection" was successful,
     // second indicates that the driver successfully connected.
     // The first is needed to cancel a timeout as the driver can/should
     // have separate connection timing/retry config.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
     </span>Conn(Sender&lt;()&gt;, Sender&lt;ConnectionResult&lt;()&gt;&gt;),
 }
 
 <span class="doccomment">/// The Call handler is responsible for a single voice connection, acting
 /// as a clean API above the inner state and gateway message management.
 ///
-/// If the `&quot;driver&quot;` feature is enabled, then a Call exposes all control methods of
+/// If the `"driver"` feature is enabled, then a Call exposes all control methods of
 /// [`Driver`] via `Deref(Mut)`.
 ///
 /// [`Driver`]: struct@Driver
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Call {
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]
+    <span class="attr">#[cfg(not(feature = <span class="string">"driver"</span>))]
     </span>config: Config,
 
     connection: <span class="prelude-ty">Option</span>&lt;(ConnectionProgress, Return)&gt;,
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
     </span><span class="doccomment">/// The internal controller of the voice connection monitor thread.
     </span>driver: Driver,
 
@@ -608,10 +610,10 @@
 
     <span class="kw">fn </span>new_raw_cfg(guild_id: GuildId, ws: <span class="prelude-ty">Option</span>&lt;Shard&gt;, user_id: UserId, config: Config) -&gt; <span class="self">Self </span>{
         Call {
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">"driver"</span>))]
             </span>config,
             connection: <span class="prelude-val">None</span>,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
             </span>driver: Driver::new(config),
             guild_id,
             self_deaf: <span class="bool-val">false</span>,
@@ -625,12 +627,12 @@
     </span><span class="kw">fn </span>do_connect(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.connection {
             <span class="prelude-val">Some</span>((ConnectionProgress::Complete(c), Return::Info(tx))) =&gt; {
-                <span class="comment">// It&#39;s okay if the receiver hung up.
+                <span class="comment">// It's okay if the receiver hung up.
                 </span>drop(tx.send(c.clone()));
             },
-            <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
             </span><span class="prelude-val">Some</span>((ConnectionProgress::Complete(c), Return::Conn(first_tx, driver_tx))) =&gt; {
-                <span class="comment">// It&#39;s okay if the receiver hung up.
+                <span class="comment">// It's okay if the receiver hung up.
                 </span><span class="kw">_ </span>= first_tx.send(());
 
                 <span class="self">self</span>.driver.raw_connect(c.clone(), driver_tx.clone());
@@ -691,12 +693,12 @@
         </span>})
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
     </span><span class="doccomment">/// Connect or switch to the given voice channel by its Id.
     ///
     /// This function acts as a future in two stages:
     /// * The first `await` sends the request over the gateway.
-    /// * The second `await`s a the driver&#39;s connection attempt.
+    /// * The second `await`s a the driver's connection attempt.
     ///   To prevent deadlock, any mutexes around this Call
     ///   *must* be released before this result is queried.
     ///
@@ -712,7 +714,7 @@
         <span class="self">self</span>._join(channel_id.into()).<span class="kw">await
     </span>}
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
     </span><span class="kw">async fn </span>_join(<span class="kw-2">&amp;mut </span><span class="self">self</span>, channel_id: ChannelId) -&gt; JoinResult&lt;Join&gt; {
         <span class="kw">let </span>(tx, rx) = flume::unbounded();
         <span class="kw">let </span>(gw_tx, gw_rx) = flume::unbounded();
@@ -753,7 +755,7 @@
     /// session or running the driver.
     ///
     /// Use this if you require connection info for lavalink,
-    /// some other voice implementation, or don&#39;t want to use the driver for a given call.
+    /// some other voice implementation, or don't want to use the driver for a given call.
     ///
     /// This function acts as a future in two stages:
     /// * The first `await` sends the request over the gateway.
@@ -844,7 +846,7 @@
     <span class="kw">fn </span>leave_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.connection = <span class="prelude-val">None</span>;
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
         </span><span class="self">self</span>.driver.leave();
     }
 
@@ -861,7 +863,7 @@
     </span><span class="kw">pub async fn </span>mute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mute: bool) -&gt; JoinResult&lt;()&gt; {
         <span class="self">self</span>.self_mute = mute;
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
         </span><span class="self">self</span>.driver.mute(mute);
 
         <span class="self">self</span>.update().<span class="kw">await
@@ -945,25 +947,25 @@
     }
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;driver&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"driver"</span>))]
 </span><span class="kw">impl </span>Call {
-    <span class="doccomment">/// Access this call handler&#39;s configuration.
+    <span class="doccomment">/// Access this call handler's configuration.
     </span><span class="kw">pub fn </span>config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Config {
         <span class="kw-2">&amp;</span><span class="self">self</span>.config
     }
 
-    <span class="doccomment">/// Mutably access this call handler&#39;s configuration.
+    <span class="doccomment">/// Mutably access this call handler's configuration.
     </span><span class="kw">pub fn </span>config_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Config {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.config
     }
 
-    <span class="doccomment">/// Set this call handler&#39;s configuration.
+    <span class="doccomment">/// Set this call handler's configuration.
     </span><span class="kw">pub fn </span>set_config(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config: Config) {
         <span class="self">self</span>.config = config;
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
 </span><span class="kw">impl </span>Deref <span class="kw">for </span>Call {
     <span class="kw">type </span>Target = Driver;
 
@@ -972,7 +974,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;driver&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"driver"</span>)]
 </span><span class="kw">impl </span>DerefMut <span class="kw">for </span>Call {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.driver

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (8c2b57721 2023-12-01)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -355,7 +357,7 @@
 <a href="#355" id="355">355</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Runner for a voice connection.
 //!
-//! Songbird&#39;s driver is a mixed-sync system, using:
+//! Songbird's driver is a mixed-sync system, using:
 //!  * Asynchronous connection management, event-handling, and gateway integration.
 //!  * Synchronous audio mixing, packet generation, and encoding.
 //!
@@ -363,12 +365,12 @@
 //! generation from being slowed down past its deadline, or from affecting other
 //! asynchronous tasks your bot must handle.
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;internals&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"internals"</span>)]
 </span><span class="kw">pub mod </span>bench_internals;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>connection;
 <span class="kw">mod </span>crypto;
-<span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
 </span><span class="kw">mod </span>decode_mode;
 <span class="kw">mod </span>mix_mode;
 <span class="kw">pub mod </span>retry;
@@ -376,13 +378,13 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tasks;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>test_config;
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;internals&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"internals"</span>))]
 </span><span class="kw">mod </span>test_impls;
 
 <span class="kw">use </span>connection::error::{Error, <span class="prelude-ty">Result</span>};
 <span class="kw">pub use </span>crypto::CryptoMode;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>crypto::CryptoState;
-<span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
 </span><span class="kw">pub use </span>decode_mode::DecodeMode;
 <span class="kw">pub use </span>mix_mode::MixMode;
 <span class="kw">pub use </span>scheduler::{
@@ -395,10 +397,10 @@
 };
 <span class="attr">#[cfg(test)]
 </span><span class="kw">pub use </span>test_config::<span class="kw-2">*</span>;
-<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;internals&quot;</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"internals"</span>))]
 </span><span class="kw">pub use </span>test_impls::<span class="kw-2">*</span>;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"builtin-queue"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::tracks::TrackQueue;
 <span class="kw">use crate</span>::{
     events::EventData,
@@ -417,7 +419,7 @@
     task::{Context, Poll},
 };
 <span class="kw">use </span>flume::{r#async::RecvFut, SendError, Sender};
-<span class="attr">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"builtin-queue"</span>)]
 </span><span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>tasks::message::CoreMessage;
 <span class="kw">use </span>tracing::instrument;
@@ -425,7 +427,7 @@
 <span class="doccomment">/// The control object for a Discord voice connection, handling connection,
 /// mixing, encoding, en/decryption, and event generation.
 ///
-/// When compiled with the `&quot;builtin-queue&quot;` feature, each driver includes a track queue
+/// When compiled with the `"builtin-queue"` feature, each driver includes a track queue
 /// as a convenience to prevent the additional overhead of per-guild state management.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Driver {
@@ -435,9 +437,9 @@
     <span class="comment">// Making this an Option is an abhorrent hack to coerce the borrow checker
     // into letting us have an &amp;TrackQueue at the same time as an &amp;mut Driver.
     // This is probably preferable to cloning the driver: Arc&lt;...&gt; should be nonzero
-    // and if the compiler&#39;s smart we&#39;ll just codegen a pointer swap. It definitely makes
+    // and if the compiler's smart we'll just codegen a pointer swap. It definitely makes
     // use of NonZero.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"builtin-queue"</span>)]
     </span>queue: <span class="prelude-ty">Option</span>&lt;TrackQueue&gt;,
 }
 
@@ -454,7 +456,7 @@
             config,
             self_mute: <span class="bool-val">false</span>,
             sender,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"builtin-queue"</span>)]
             </span>queue: <span class="prelude-val">Some</span>(TrackQueue::default()),
         }
     }
@@ -586,7 +588,7 @@
         <span class="self">self</span>.send(CoreMessage::SetConfig(config));
     }
 
-    <span class="doccomment">/// Returns a view of this driver&#39;s configuration.
+    <span class="doccomment">/// Returns a view of this driver's configuration.
     </span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
     </span><span class="kw">pub fn </span>config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Config {
         <span class="kw-2">&amp;</span><span class="self">self</span>.config
@@ -606,7 +608,7 @@
     /// [`TrackEvent`]: crate::events::TrackEvent
     /// [`EventContext`]: crate::events::EventContext
     </span><span class="attr">#[instrument(skip(<span class="self">self</span>, action))]
-    </span><span class="kw">pub fn </span>add_global_event&lt;F: EventHandler + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event, action: F) {
+    </span><span class="kw">pub fn </span>add_global_event&lt;F: EventHandler + <span class="lifetime">'static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event, action: F) {
         <span class="self">self</span>.send(CoreMessage::AddEvent(EventData::new(event, action)));
     }
 
@@ -627,30 +629,30 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;builtin-queue&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"builtin-queue"</span>)]
 </span><span class="kw">impl </span>Driver {
-    <span class="doccomment">/// Returns a reference to this driver&#39;s built-in queue.
+    <span class="doccomment">/// Returns a reference to this driver's built-in queue.
     ///
-    /// Requires the `&quot;builtin-queue&quot;` feature.
+    /// Requires the `"builtin-queue"` feature.
     /// Queue additions should be made via [`Driver::enqueue`] and
     /// [`Driver::enqueue_input`].
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TrackQueue {
         <span class="self">self</span>.queue
             .as_ref()
-            .expect(<span class="string">&quot;Queue: The only case this can fail is if a previous queue operation panicked.&quot;</span>)
+            .expect(<span class="string">"Queue: The only case this can fail is if a previous queue operation panicked."</span>)
     }
 
-    <span class="doccomment">/// Adds an audio [`Input`] to this driver&#39;s built-in queue.
+    <span class="doccomment">/// Adds an audio [`Input`] to this driver's built-in queue.
     ///
-    /// Requires the `&quot;builtin-queue&quot;` feature.
+    /// Requires the `"builtin-queue"` feature.
     </span><span class="kw">pub async fn </span>enqueue_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: Input) -&gt; TrackHandle {
         <span class="self">self</span>.enqueue(input.into()).<span class="kw">await
     </span>}
 
-    <span class="doccomment">/// Adds an existing [`Track`] to this driver&#39;s built-in queue.
+    <span class="doccomment">/// Adds an existing [`Track`] to this driver's built-in queue.
     ///
-    /// Requires the `&quot;builtin-queue&quot;` feature.
+    /// Requires the `"builtin-queue"` feature.
     </span><span class="kw">pub async fn </span>enqueue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>track: Track) -&gt; TrackHandle {
         <span class="kw">let </span>preload_time = TrackQueue::get_preload_time(<span class="kw-2">&amp;mut </span>track).<span class="kw">await</span>;
         <span class="self">self</span>.enqueue_with_preload(track, preload_time)
@@ -660,14 +662,14 @@
     ///
     /// See [`TrackQueue::add_with_preload`] for how `preload_time` is used.
     ///
-    /// Requires the `&quot;builtin-queue&quot;` feature.
+    /// Requires the `"builtin-queue"` feature.
     </span><span class="kw">pub fn </span>enqueue_with_preload(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         track: Track,
         preload_time: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
     ) -&gt; TrackHandle {
         <span class="kw">let </span>queue = <span class="self">self</span>.queue.take().expect(
-            <span class="string">&quot;Enqueue: The only case this can fail is if a previous queue operation panicked.&quot;</span>,
+            <span class="string">"Enqueue: The only case this can fail is if a previous queue operation panicked."</span>,
         );
         <span class="kw">let </span>handle = queue.add_with_preload(track, <span class="self">self</span>, preload_time);
         <span class="self">self</span>.queue = <span class="prelude-val">Some</span>(queue);
@@ -695,13 +697,13 @@
 /// This future awaits the *result* of a connection; the driver
 /// is messaged at the time of the call.
 </span><span class="kw">pub struct </span>Connect {
-    inner: RecvFut&lt;<span class="lifetime">&#39;static</span>, <span class="prelude-ty">Result</span>&lt;()&gt;&gt;,
+    inner: RecvFut&lt;<span class="lifetime">'static</span>, <span class="prelude-ty">Result</span>&lt;()&gt;&gt;,
 }
 
 <span class="kw">impl </span>Future <span class="kw">for </span>Connect {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;()&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">match </span>Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll(cx) {
             Poll::Ready(r) =&gt; Poll::Ready(r.map_err(|<span class="kw">_</span>| Error::AttemptDiscarded).and_then(|x| x)),
             Poll::Pending =&gt; Poll::Pending,

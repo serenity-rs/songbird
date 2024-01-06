@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/connection/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (8c2b57721 2023-12-01)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/connection/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -372,7 +374,7 @@
 <a href="#372" id="372">372</a>
 </pre></div><pre class="rust"><code><span class="kw">pub mod </span>error;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
 </span><span class="kw">use </span><span class="kw">super</span>::tasks::udp_rx;
 <span class="kw">use super</span>::{
     tasks::{
@@ -397,7 +399,7 @@
 <span class="kw">use </span>error::{Error, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>flume::Sender;
 <span class="kw">use </span>socket2::Socket;
-<span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
 </span><span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::{net::IpAddr, str::FromStr};
 <span class="kw">use </span>tokio::{net::UdpSocket, spawn, time::timeout};
@@ -465,29 +467,29 @@
                     }
                 },
                 other =&gt; {
-                    <span class="macro">debug!</span>(<span class="string">&quot;Expected ready/hello; got: {:?}&quot;</span>, other);
+                    <span class="macro">debug!</span>(<span class="string">"Expected ready/hello; got: {:?}"</span>, other);
                 },
             }
         }
 
         <span class="kw">let </span>hello =
-            hello.expect(<span class="string">&quot;Hello packet expected in connection initialisation, but not found.&quot;</span>);
+            hello.expect(<span class="string">"Hello packet expected in connection initialisation, but not found."</span>);
         <span class="kw">let </span>ready =
-            ready.expect(<span class="string">&quot;Ready packet expected in connection initialisation, but not found.&quot;</span>);
+            ready.expect(<span class="string">"Ready packet expected in connection initialisation, but not found."</span>);
 
         <span class="kw">if </span>!has_valid_mode(<span class="kw-2">&amp;</span>ready.modes, config.crypto_mode) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::CryptoModeUnavailable);
         }
 
-        <span class="kw">let </span>udp = UdpSocket::bind(<span class="string">&quot;0.0.0.0:0&quot;</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>udp = UdpSocket::bind(<span class="string">"0.0.0.0:0"</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="comment">// Optimisation for non-receive case: set rx buffer size to zero.
-        </span><span class="kw">let </span>udp = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;receive&quot;</span>) {
+        </span><span class="kw">let </span>udp = <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"receive"</span>) {
             udp
         } <span class="kw">else </span>{
             <span class="kw">let </span>socket = Socket::from(udp.into_std()<span class="question-mark">?</span>);
 
-            <span class="attr">#[cfg(not(target_os = <span class="string">&quot;macos&quot;</span>))]
+            <span class="attr">#[cfg(not(target_os = <span class="string">"macos"</span>))]
             </span>socket.set_recv_buffer_size(<span class="number">0</span>)<span class="question-mark">?</span>;
 
             UdpSocket::from_std(socket.into())<span class="question-mark">?
@@ -495,12 +497,12 @@
 
         udp.connect((ready.ip, ready.port)).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="comment">// Follow Discord&#39;s IP Discovery procedures, in case NAT tunnelling is needed.
+        <span class="comment">// Follow Discord's IP Discovery procedures, in case NAT tunnelling is needed.
         </span><span class="kw">let </span><span class="kw-2">mut </span>bytes = [<span class="number">0</span>; IpDiscoveryPacket::const_packet_size()];
         {
             <span class="kw">let </span><span class="kw-2">mut </span>view = MutableIpDiscoveryPacket::new(<span class="kw-2">&amp;mut </span>bytes[..]).expect(
-                <span class="string">&quot;Too few bytes in &#39;bytes&#39; for IPDiscovery packet.\
-                    (Blame: IpDiscoveryPacket::const_packet_size()?)&quot;</span>,
+                <span class="string">"Too few bytes in 'bytes' for IPDiscovery packet.\
+                    (Blame: IpDiscoveryPacket::const_packet_size()?)"</span>,
             );
             view.set_pkt_type(IpDiscoveryType::Request);
             view.set_length(<span class="number">70</span>);
@@ -520,7 +522,7 @@
 
             <span class="comment">// We could do something clever like binary search,
             // but possibility of UDP spoofing precludes us from
-            // making the assumption we can find a &quot;left edge&quot; of &#39;\0&#39;s.
+            // making the assumption we can find a "left edge" of '\0's.
             </span><span class="kw">let </span>nul_byte_index = view
                 .get_address_raw()
                 .iter()
@@ -531,13 +533,13 @@
                 .map_err(|<span class="kw">_</span>| Error::IllegalIp)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>address = IpAddr::from_str(address_str).map_err(|e| {
-                <span class="macro">println!</span>(<span class="string">&quot;{e:?}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{e:?}"</span>);
                 Error::IllegalIp
             })<span class="question-mark">?</span>;
 
             client
                 .send_json(<span class="kw-2">&amp;</span>GatewayEvent::from(SelectProtocol {
-                    protocol: <span class="string">&quot;udp&quot;</span>.into(),
+                    protocol: <span class="string">"udp"</span>.into(),
                     data: ProtocolData {
                         address,
                         mode: config.crypto_mode.to_request_str().into(),
@@ -549,39 +551,39 @@
 
         <span class="kw">let </span>cipher = init_cipher(<span class="kw-2">&amp;mut </span>client, config.crypto_mode).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="macro">info!</span>(<span class="string">&quot;Connected to: {}&quot;</span>, info.endpoint);
+        <span class="macro">info!</span>(<span class="string">"Connected to: {}"</span>, info.endpoint);
 
-        <span class="macro">info!</span>(<span class="string">&quot;WS heartbeat duration {}ms.&quot;</span>, hello.heartbeat_interval,);
+        <span class="macro">info!</span>(<span class="string">"WS heartbeat duration {}ms."</span>, hello.heartbeat_interval,);
 
         <span class="kw">let </span>(ws_msg_tx, ws_msg_rx) = flume::unbounded();
-        <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
         </span><span class="kw">let </span>(udp_receiver_msg_tx, udp_receiver_msg_rx) = flume::unbounded();
 
-        <span class="comment">// NOTE: This causes the UDP Socket on &quot;receive&quot; to be non-blocking,
+        <span class="comment">// NOTE: This causes the UDP Socket on "receive" to be non-blocking,
         // and the standard to be blocking. A UDP send should only WouldBlock if
-        // you&#39;re sending more data than the OS can handle (not likely, and
+        // you're sending more data than the OS can handle (not likely, and
         // at that point you should scale horizontally).
         //
         // If this is a problem for anyone, we can make non-blocking sends
         // queue up a delayed send up to a limit.
-        </span><span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+        </span><span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
         </span><span class="kw">let </span>(udp_rx, udp_tx) = {
             <span class="kw">let </span>udp_tx = udp.into_std()<span class="question-mark">?</span>;
             <span class="kw">let </span>udp_rx = UdpSocket::from_std(udp_tx.try_clone()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
             (udp_rx, udp_tx)
         };
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;receive&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"receive"</span>))]
         </span><span class="kw">let </span>udp_tx = udp.into_std()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>ssrc = ready.ssrc;
 
         <span class="kw">let </span>mix_conn = MixerConnection {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
             </span>cipher: cipher.clone(),
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;receive&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">"receive"</span>))]
             </span>cipher,
             crypto_state: config.crypto_mode.into(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
             </span>udp_rx: udp_receiver_msg_tx,
             udp_tx,
         };
@@ -594,7 +596,7 @@
             .mixer
             .send(MixerMessage::SetConn(mix_conn, ready.ssrc))<span class="question-mark">?</span>;
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
         </span><span class="kw">let </span>ssrc_tracker = Arc::new(SsrcTracker::default());
 
         <span class="kw">let </span>ws_state = AuxNetwork::new(
@@ -604,13 +606,13 @@
             hello.heartbeat_interval,
             idx,
             info.clone(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
             </span>ssrc_tracker.clone(),
         );
 
         spawn(ws_task::runner(interconnect.clone(), ws_state));
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;receive&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"receive"</span>)]
         </span>spawn(udp_rx::runner(
             interconnect.clone(),
             udp_receiver_msg_rx,
@@ -674,37 +676,37 @@
                     }
                 },
                 other =&gt; {
-                    <span class="macro">debug!</span>(<span class="string">&quot;Expected resumed/hello; got: {:?}&quot;</span>, other);
+                    <span class="macro">debug!</span>(<span class="string">"Expected resumed/hello; got: {:?}"</span>, other);
                 },
             }
         }
 
         <span class="kw">let </span>hello =
-            hello.expect(<span class="string">&quot;Hello packet expected in connection initialisation, but not found.&quot;</span>);
+            hello.expect(<span class="string">"Hello packet expected in connection initialisation, but not found."</span>);
 
         <span class="self">self</span>.ws
             .send(WsMessage::SetKeepalive(hello.heartbeat_interval))<span class="question-mark">?</span>;
         <span class="self">self</span>.ws.send(WsMessage::Ws(Box::new(client)))<span class="question-mark">?</span>;
 
-        <span class="macro">info!</span>(<span class="string">&quot;Reconnected to: {}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.info.endpoint);
+        <span class="macro">info!</span>(<span class="string">"Reconnected to: {}"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.info.endpoint);
         <span class="prelude-val">Ok</span>(())
     }
 }
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>Connection {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">info!</span>(<span class="string">&quot;Disconnected&quot;</span>);
+        <span class="macro">info!</span>(<span class="string">"Disconnected"</span>);
     }
 }
 
 <span class="kw">fn </span>generate_url(endpoint: <span class="kw-2">&amp;mut </span>String) -&gt; <span class="prelude-ty">Result</span>&lt;Url&gt; {
-    <span class="kw">if </span>endpoint.ends_with(<span class="string">&quot;:80&quot;</span>) {
+    <span class="kw">if </span>endpoint.ends_with(<span class="string">":80"</span>) {
         <span class="kw">let </span>len = endpoint.len();
 
         endpoint.truncate(len - <span class="number">3</span>);
     }
 
-    Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;wss://{endpoint}/?v={VOICE_GATEWAY_VERSION}&quot;</span>)).or(<span class="prelude-val">Err</span>(Error::EndpointUrl))
+    Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"wss://{endpoint}/?v={VOICE_GATEWAY_VERSION}"</span>)).or(<span class="prelude-val">Err</span>(Error::EndpointUrl))
 }
 
 <span class="attr">#[inline]
@@ -725,7 +727,7 @@
             },
             other =&gt; {
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;Expected ready for key; got: op{}/v{:?}&quot;</span>,
+                    <span class="string">"Expected ready for key; got: op{}/v{:?}"</span>,
                     other.kind() <span class="kw">as </span>u8,
                     other
                 );
@@ -737,7 +739,7 @@
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>has_valid_mode&lt;T, It&gt;(modes: It, mode: CryptoMode) -&gt; bool
 <span class="kw">where
-    </span>T: <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;,
+    </span>T: <span class="kw">for</span>&lt;<span class="lifetime">'a</span>&gt; PartialEq&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;,
     It: IntoIterator&lt;Item = T&gt;,
 {
     modes.into_iter().any(|s| s == mode.to_request_str())

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (8c2b57721 2023-12-01)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../songbird/index.html"><img src="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png" alt="songbird"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -78,13 +80,13 @@
 /// [`TrackHandle`]: TrackHandle
 </span><span class="attr">#[non_exhaustive]
 </span><span class="kw">pub enum </span>TrackCommand {
-    <span class="doccomment">/// Set the track&#39;s play_mode to play/resume.
+    <span class="doccomment">/// Set the track's play_mode to play/resume.
     </span>Play,
-    <span class="doccomment">/// Set the track&#39;s play_mode to pause.
+    <span class="doccomment">/// Set the track's play_mode to pause.
     </span>Pause,
     <span class="doccomment">/// Stop the target track. This cannot be undone.
     </span>Stop,
-    <span class="doccomment">/// Set the track&#39;s volume.
+    <span class="doccomment">/// Set the track's volume.
     </span>Volume(f32),
     <span class="doccomment">/// Seek to the given duration.
     ///
@@ -93,31 +95,31 @@
     <span class="doccomment">/// Register an event on this track.
     </span>AddEvent(EventData),
     <span class="doccomment">/// Run some closure on this track, with direct access to the core object.
-    </span>Do(Box&lt;<span class="kw">dyn </span>FnOnce(View) -&gt; <span class="prelude-ty">Option</span>&lt;Action&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;),
-    <span class="doccomment">/// Request a copy of this track&#39;s state.
+    </span>Do(Box&lt;<span class="kw">dyn </span>FnOnce(View&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Action&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;),
+    <span class="doccomment">/// Request a copy of this track's state.
     </span>Request(Sender&lt;TrackState&gt;),
     <span class="doccomment">/// Change the loop count/strategy of this track.
     </span>Loop(LoopState),
-    <span class="doccomment">/// Prompts a track&#39;s input to become live and usable, if it is not already.
+    <span class="doccomment">/// Prompts a track's input to become live and usable, if it is not already.
     </span>MakePlayable(Sender&lt;<span class="prelude-ty">Result</span>&lt;(), PlayError&gt;&gt;),
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>TrackCommand {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; FmtResult {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; FmtResult {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;TrackCommand::{}&quot;</span>,
+            <span class="string">"TrackCommand::{}"</span>,
             <span class="kw">match </span><span class="self">self </span>{
-                <span class="self">Self</span>::Play =&gt; <span class="string">&quot;Play&quot;</span>.to_string(),
-                <span class="self">Self</span>::Pause =&gt; <span class="string">&quot;Pause&quot;</span>.to_string(),
-                <span class="self">Self</span>::Stop =&gt; <span class="string">&quot;Stop&quot;</span>.to_string(),
-                <span class="self">Self</span>::Volume(vol) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Volume({vol})&quot;</span>),
-                <span class="self">Self</span>::Seek(s) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Seek({:?})&quot;</span>, s.time),
-                <span class="self">Self</span>::AddEvent(evt) =&gt; <span class="macro">format!</span>(<span class="string">&quot;AddEvent({evt:?})&quot;</span>),
-                <span class="self">Self</span>::Do(_f) =&gt; <span class="string">&quot;Do([function])&quot;</span>.to_string(),
-                <span class="self">Self</span>::Request(tx) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Request({tx:?})&quot;</span>),
-                <span class="self">Self</span>::Loop(loops) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Loop({loops:?})&quot;</span>),
-                <span class="self">Self</span>::MakePlayable(<span class="kw">_</span>) =&gt; <span class="string">&quot;MakePlayable&quot;</span>.to_string(),
+                <span class="self">Self</span>::Play =&gt; <span class="string">"Play"</span>.to_string(),
+                <span class="self">Self</span>::Pause =&gt; <span class="string">"Pause"</span>.to_string(),
+                <span class="self">Self</span>::Stop =&gt; <span class="string">"Stop"</span>.to_string(),
+                <span class="self">Self</span>::Volume(vol) =&gt; <span class="macro">format!</span>(<span class="string">"Volume({vol})"</span>),
+                <span class="self">Self</span>::Seek(s) =&gt; <span class="macro">format!</span>(<span class="string">"Seek({:?})"</span>, s.time),
+                <span class="self">Self</span>::AddEvent(evt) =&gt; <span class="macro">format!</span>(<span class="string">"AddEvent({evt:?})"</span>),
+                <span class="self">Self</span>::Do(_f) =&gt; <span class="string">"Do([function])"</span>.to_string(),
+                <span class="self">Self</span>::Request(tx) =&gt; <span class="macro">format!</span>(<span class="string">"Request({tx:?})"</span>),
+                <span class="self">Self</span>::Loop(loops) =&gt; <span class="macro">format!</span>(<span class="string">"Loop({loops:?})"</span>),
+                <span class="self">Self</span>::MakePlayable(<span class="kw">_</span>) =&gt; <span class="string">"MakePlayable"</span>.to_string(),
             }
         )
     }
