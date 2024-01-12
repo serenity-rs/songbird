@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/sources/ytdl.rs`."><title>ytdl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (595bc6f00 2024-01-05)" data-channel="nightly" data-search-js="search-c17e98913a53b3b7.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/input/sources/ytdl.rs`."><title>ytdl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (62d7ed4a6 2024-01-11)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -287,6 +287,13 @@
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::input::{
     metadata::ytdl::Output,
     AudioStream,
@@ -297,20 +304,31 @@
     Input,
 };
 <span class="kw">use </span>async_trait::async_trait;
+<span class="kw">use </span>either::Either;
 <span class="kw">use </span>reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
-<span class="kw">use </span>std::{error::Error, io::ErrorKind};
+<span class="kw">use </span>std::{borrow::Cow, error::Error, io::ErrorKind};
 <span class="kw">use </span>symphonia_core::io::MediaSource;
 <span class="kw">use </span>tokio::process::Command;
 
 <span class="kw">const </span>YOUTUBE_DL_COMMAND: <span class="kw-2">&amp;</span>str = <span class="string">"yt-dlp"</span>;
 
 <span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">enum </span>QueryType {
-    Url(String),
-    Search(String),
+</span><span class="kw">enum </span>QueryType&lt;<span class="lifetime">'a</span>&gt; {
+    Url(Cow&lt;<span class="lifetime">'a</span>, str&gt;),
+    Search(Cow&lt;<span class="lifetime">'a</span>, str&gt;),
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; QueryType&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>as_cow_str(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, n_results: usize) -&gt; Cow&lt;<span class="lifetime">'a</span>, str&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Url(Cow::Owned(u)) =&gt; Cow::Borrowed(u),
+            <span class="self">Self</span>::Url(Cow::Borrowed(u)) =&gt; Cow::Borrowed(u),
+            <span class="self">Self</span>::Search(s) =&gt; Cow::Owned(<span class="macro">format!</span>(<span class="string">"ytsearch{n_results}:{s}"</span>)),
+        }
+    }
 }
 
 <span class="doccomment">/// A lazily instantiated call to download a file, finding its URL via youtube-dl.
@@ -321,20 +339,20 @@
 ///
 /// [`HttpRequest`]: super::HttpRequest
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>YoutubeDl {
-    program: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+</span><span class="kw">pub struct </span>YoutubeDl&lt;<span class="lifetime">'a</span>&gt; {
+    program: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
     client: Client,
     metadata: <span class="prelude-ty">Option</span>&lt;AuxMetadata&gt;,
-    query: QueryType,
+    query: QueryType&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl </span>YoutubeDl {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; YoutubeDl&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Creates a lazy request to select an audio stream from `url`, using "yt-dlp".
     ///
     /// This requires a reqwest client: ideally, one should be created and shared between
     /// all requests.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>new(client: Client, url: String) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(client: Client, url: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new_ytdl_like(YOUTUBE_DL_COMMAND, client, url)
     }
 
@@ -342,31 +360,35 @@
     ///
     /// [`new`]: Self::new
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>new_ytdl_like(program: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, client: Client, url: String) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new_ytdl_like(program: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, client: Client, url: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             program,
             client,
             metadata: <span class="prelude-val">None</span>,
-            query: QueryType::Url(url),
+            query: QueryType::Url(url.into()),
         }
     }
 
     <span class="doccomment">/// Creates a request to search youtube for an optionally specified number of videos matching `query`,
     /// using "yt-dlp".
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>new_search(client: Client, query: String) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new_search(client: Client, query: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new_search_ytdl_like(YOUTUBE_DL_COMMAND, client, query)
     }
 
     <span class="doccomment">/// Creates a request to search youtube for an optionally specified number of videos matching `query`,
     /// using `program`.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>new_search_ytdl_like(program: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, client: Client, query: String) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new_search_ytdl_like(
+        program: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
+        client: Client,
+        query: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             program,
             client,
             metadata: <span class="prelude-val">None</span>,
-            query: QueryType::Search(query),
+            query: QueryType::Search(query.into()),
         }
     }
 
@@ -377,33 +399,26 @@
     </span><span class="kw">pub async fn </span>search(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         n_results: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;AuxMetadata&gt;, AudioStreamError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = AuxMetadata&gt;, AudioStreamError&gt; {
         <span class="kw">let </span>n_results = n_results.unwrap_or(<span class="number">5</span>);
 
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.query {
             <span class="comment">// Safer to just return the metadata for the pointee if possible
-            </span>QueryType::Url(<span class="kw">_</span>) =&gt; <span class="macro">vec!</span>[<span class="self">self</span>.aux_metadata().<span class="kw">await</span><span class="question-mark">?</span>],
-            QueryType::Search(<span class="kw">_</span>) =&gt; <span class="self">self
-                </span>.query(n_results)
-                .<span class="kw">await</span><span class="question-mark">?
-                </span>.into_iter()
-                .map(|v| v.as_aux_metadata())
-                .collect(),
+            </span>QueryType::Url(<span class="kw">_</span>) =&gt; Either::Left(std::iter::once(<span class="self">self</span>.aux_metadata().<span class="kw">await</span><span class="question-mark">?</span>)),
+            QueryType::Search(<span class="kw">_</span>) =&gt; Either::Right(
+                <span class="self">self</span>.query(n_results)
+                    .<span class="kw">await</span><span class="question-mark">?
+                    </span>.into_iter()
+                    .map(|v| v.as_aux_metadata()),
+            ),
         })
     }
 
     <span class="kw">async fn </span>query(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n_results: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Output&gt;, AudioStreamError&gt; {
-        <span class="kw">let </span>new_query;
-        <span class="kw">let </span>query_str = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.query {
-            QueryType::Url(url) =&gt; url,
-            QueryType::Search(query) =&gt; {
-                new_query = <span class="macro">format!</span>(<span class="string">"ytsearch{n_results}:{query}"</span>);
-                <span class="kw-2">&amp;</span>new_query
-            },
-        };
+        <span class="kw">let </span>query_str = <span class="self">self</span>.query.as_cow_str(n_results);
         <span class="kw">let </span>ytdl_args = [
             <span class="string">"-j"</span>,
-            query_str,
+            <span class="kw-2">&amp;</span>query_str,
             <span class="string">"-f"</span>,
             <span class="string">"ba[abr&gt;0][vcodec=none]/best"</span>,
             <span class="string">"--no-playlist"</span>,
@@ -453,14 +468,14 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;YoutubeDl&gt; <span class="kw">for </span>Input {
-    <span class="kw">fn </span>from(val: YoutubeDl) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;YoutubeDl&lt;<span class="lifetime">'static</span>&gt;&gt; <span class="kw">for </span>Input {
+    <span class="kw">fn </span>from(val: YoutubeDl&lt;<span class="lifetime">'static</span>&gt;) -&gt; <span class="self">Self </span>{
         Input::Lazy(Box::new(val))
     }
 }
 
 <span class="attr">#[async_trait]
-</span><span class="kw">impl </span>Compose <span class="kw">for </span>YoutubeDl {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Compose <span class="kw">for </span>YoutubeDl&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>create(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AudioStream&lt;Box&lt;<span class="kw">dyn </span>MediaSource&gt;&gt;, AudioStreamError&gt; {
         <span class="prelude-val">Err</span>(AudioStreamError::Unsupported)
     }
@@ -523,32 +538,31 @@
     <span class="attr">#[tokio::test]
     #[ntest::timeout(<span class="number">20_000</span>)]
     </span><span class="kw">async fn </span>ytdl_track_plays() {
-        track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).<span class="kw">await</span>;
+        track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET)).<span class="kw">await</span>;
     }
 
     <span class="attr">#[tokio::test]
     #[ntest::timeout(<span class="number">20_000</span>)]
     </span><span class="kw">async fn </span>ytdl_page_with_playlist_plays() {
-        track_plays_passthrough(|| YoutubeDl::new(Client::new(), YTDL_PLAYLIST_TARGET.into()))
-            .<span class="kw">await</span>;
+        track_plays_passthrough(|| YoutubeDl::new(Client::new(), YTDL_PLAYLIST_TARGET)).<span class="kw">await</span>;
     }
 
     <span class="attr">#[tokio::test]
     #[ntest::timeout(<span class="number">20_000</span>)]
     </span><span class="kw">async fn </span>ytdl_forward_seek_correct() {
-        forward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).<span class="kw">await</span>;
+        forward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET)).<span class="kw">await</span>;
     }
 
     <span class="attr">#[tokio::test]
     #[ntest::timeout(<span class="number">20_000</span>)]
     </span><span class="kw">async fn </span>ytdl_backward_seek_correct() {
-        backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).<span class="kw">await</span>;
+        backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET)).<span class="kw">await</span>;
     }
 
     <span class="attr">#[tokio::test]
     #[ntest::timeout(<span class="number">20_000</span>)]
     </span><span class="kw">async fn </span>fake_exe_errors() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ytdl = YoutubeDl::new_ytdl_like(<span class="string">"yt-dlq"</span>, Client::new(), YTDL_TARGET.into());
+        <span class="kw">let </span><span class="kw-2">mut </span>ytdl = YoutubeDl::new_ytdl_like(<span class="string">"yt-dlq"</span>, Client::new(), YTDL_TARGET);
 
         <span class="macro">assert!</span>(ytdl.aux_metadata().<span class="kw">await</span>.is_err());
     }
@@ -556,11 +570,11 @@
     <span class="attr">#[tokio::test]
     #[ntest::timeout(<span class="number">20_000</span>)]
     </span><span class="kw">async fn </span>ytdl_search_plays() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ytdl = YoutubeDl::new_search(Client::new(), <span class="string">"cloudkicker 94 days"</span>.into());
+        <span class="kw">let </span><span class="kw-2">mut </span>ytdl = YoutubeDl::new_search(Client::new(), <span class="string">"cloudkicker 94 days"</span>);
         <span class="kw">let </span>res = ytdl.search(<span class="prelude-val">Some</span>(<span class="number">1</span>)).<span class="kw">await</span>;
 
         <span class="kw">let </span>res = res.unwrap();
-        <span class="macro">assert_eq!</span>(res.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(res.count(), <span class="number">1</span>);
 
         track_plays_passthrough(<span class="kw">move </span>|| ytdl).<span class="kw">await</span>;
     }
@@ -568,10 +582,10 @@
     <span class="attr">#[tokio::test]
     #[ntest::timeout(<span class="number">20_000</span>)]
     </span><span class="kw">async fn </span>ytdl_search_3() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ytdl = YoutubeDl::new_search(Client::new(), <span class="string">"test"</span>.into());
+        <span class="kw">let </span><span class="kw-2">mut </span>ytdl = YoutubeDl::new_search(Client::new(), <span class="string">"test"</span>);
         <span class="kw">let </span>res = ytdl.search(<span class="prelude-val">Some</span>(<span class="number">3</span>)).<span class="kw">await</span>;
 
-        <span class="macro">assert_eq!</span>(res.unwrap().len(), <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(res.unwrap().count(), <span class="number">3</span>);
     }
 }
 </code></pre></div></section></main></body></html>
