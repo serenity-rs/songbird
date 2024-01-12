@@ -114,7 +114,7 @@ use tokio::runtime::Handle as TokioHandle;
 /// let mut lazy = YoutubeDl::new(
 ///     reqwest::Client::new(),
 ///     // Referenced under CC BY-NC-SA 3.0 -- https://creativecommons.org/licenses/by-nc-sa/3.0/
-///     "https://cloudkicker.bandcamp.com/track/94-days".to_string(),
+///     "https://cloudkicker.bandcamp.com/track/94-days",
 /// );
 /// let lazy_c = lazy.clone();
 ///

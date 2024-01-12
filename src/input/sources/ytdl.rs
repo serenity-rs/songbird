@@ -8,11 +8,12 @@ use crate::input::{
     Input,
 };
 use async_trait::async_trait;
+use either::Either;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
-use std::{error::Error, io::ErrorKind};
+use std::{borrow::Cow, error::Error, io::ErrorKind};
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
 
@@ -21,9 +22,19 @@ use super::HlsRequest;
 const YOUTUBE_DL_COMMAND: &str = "yt-dlp";
 
 #[derive(Clone, Debug)]
-enum QueryType {
-    Url(String),
-    Search(String),
+enum QueryType<'a> {
+    Url(Cow<'a, str>),
+    Search(Cow<'a, str>),
+}
+
+impl<'a> QueryType<'a> {
+    fn as_cow_str(&'a self, n_results: usize) -> Cow<'a, str> {
+        match self {
+            Self::Url(Cow::Owned(u)) => Cow::Borrowed(u),
+            Self::Url(Cow::Borrowed(u)) => Cow::Borrowed(u),
+            Self::Search(s) => Cow::Owned(format!("ytsearch{n_results}:{s}")),
+        }
+    }
 }
 
 /// A lazily instantiated call to download a file, finding its URL via youtube-dl.
@@ -34,20 +45,20 @@ enum QueryType {
 ///
 /// [`HttpRequest`]: super::HttpRequest
 #[derive(Clone, Debug)]
-pub struct YoutubeDl {
-    program: &'static str,
+pub struct YoutubeDl<'a> {
+    program: &'a str,
     client: Client,
     metadata: Option<AuxMetadata>,
-    query: QueryType,
+    query: QueryType<'a>,
 }
 
-impl YoutubeDl {
+impl<'a> YoutubeDl<'a> {
     /// Creates a lazy request to select an audio stream from `url`, using "yt-dlp".
     ///
     /// This requires a reqwest client: ideally, one should be created and shared between
     /// all requests.
     #[must_use]
-    pub fn new(client: Client, url: String) -> Self {
+    pub fn new(client: Client, url: impl Into<Cow<'a, str>>) -> Self {
         Self::new_ytdl_like(YOUTUBE_DL_COMMAND, client, url)
     }
 
@@ -55,31 +66,35 @@ impl YoutubeDl {
     ///
     /// [`new`]: Self::new
     #[must_use]
-    pub fn new_ytdl_like(program: &'static str, client: Client, url: String) -> Self {
+    pub fn new_ytdl_like(program: &'a str, client: Client, url: impl Into<Cow<'a, str>>) -> Self {
         Self {
             program,
             client,
             metadata: None,
-            query: QueryType::Url(url),
+            query: QueryType::Url(url.into()),
         }
     }
 
     /// Creates a request to search youtube for an optionally specified number of videos matching `query`,
     /// using "yt-dlp".
     #[must_use]
-    pub fn new_search(client: Client, query: String) -> Self {
+    pub fn new_search(client: Client, query: impl Into<Cow<'a, str>>) -> Self {
         Self::new_search_ytdl_like(YOUTUBE_DL_COMMAND, client, query)
     }
 
     /// Creates a request to search youtube for an optionally specified number of videos matching `query`,
     /// using `program`.
     #[must_use]
-    pub fn new_search_ytdl_like(program: &'static str, client: Client, query: String) -> Self {
+    pub fn new_search_ytdl_like(
+        program: &'a str,
+        client: Client,
+        query: impl Into<Cow<'a, str>>,
+    ) -> Self {
         Self {
             program,
             client,
             metadata: None,
-            query: QueryType::Search(query),
+            query: QueryType::Search(query.into()),
         }
     }
 
@@ -90,33 +105,26 @@ impl YoutubeDl {
     pub async fn search(
         &mut self,
         n_results: Option<usize>,
-    ) -> Result<Vec<AuxMetadata>, AudioStreamError> {
+    ) -> Result<impl Iterator<Item = AuxMetadata>, AudioStreamError> {
         let n_results = n_results.unwrap_or(5);
 
         Ok(match &self.query {
             // Safer to just return the metadata for the pointee if possible
-            QueryType::Url(_) => vec![self.aux_metadata().await?],
-            QueryType::Search(_) => self
-                .query(n_results)
-                .await?
-                .into_iter()
-                .map(|v| v.as_aux_metadata())
-                .collect(),
+            QueryType::Url(_) => Either::Left(std::iter::once(self.aux_metadata().await?)),
+            QueryType::Search(_) => Either::Right(
+                self.query(n_results)
+                    .await?
+                    .into_iter()
+                    .map(|v| v.as_aux_metadata()),
+            ),
         })
     }
 
     async fn query(&mut self, n_results: usize) -> Result<Vec<Output>, AudioStreamError> {
-        let new_query;
-        let query_str = match &self.query {
-            QueryType::Url(url) => url,
-            QueryType::Search(query) => {
-                new_query = format!("ytsearch{n_results}:{query}");
-                &new_query
-            },
-        };
+        let query_str = self.query.as_cow_str(n_results);
         let ytdl_args = [
             "-j",
-            query_str,
+            &query_str,
             "-f",
             "ba[abr>0][vcodec=none]/best",
             "--no-playlist",
@@ -166,14 +174,14 @@ impl YoutubeDl {
     }
 }
 
-impl From<YoutubeDl> for Input {
-    fn from(val: YoutubeDl) -> Self {
+impl From<YoutubeDl<'static>> for Input {
+    fn from(val: YoutubeDl<'static>) -> Self {
         Input::Lazy(Box::new(val))
     }
 }
 
 #[async_trait]
-impl Compose for YoutubeDl {
+impl<'a> Compose for YoutubeDl<'a> {
     fn create(&mut self) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
         Err(AudioStreamError::Unsupported)
     }
@@ -243,33 +251,32 @@ mod tests {
     #[tokio::test]
     #[ntest::timeout(20_000)]
     async fn ytdl_track_plays() {
-        track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
+        track_plays_mixed(|| YoutubeDl::new(Client::new(), YTDL_TARGET)).await;
     }
 
     #[tokio::test]
     #[ignore]
     #[ntest::timeout(20_000)]
     async fn ytdl_page_with_playlist_plays() {
-        track_plays_passthrough(|| YoutubeDl::new(Client::new(), YTDL_PLAYLIST_TARGET.into()))
-            .await;
+        track_plays_passthrough(|| YoutubeDl::new(Client::new(), YTDL_PLAYLIST_TARGET)).await;
     }
 
     #[tokio::test]
     #[ntest::timeout(20_000)]
     async fn ytdl_forward_seek_correct() {
-        forward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
+        forward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET)).await;
     }
 
     #[tokio::test]
     #[ntest::timeout(20_000)]
     async fn ytdl_backward_seek_correct() {
-        backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET.into())).await;
+        backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET)).await;
     }
 
     #[tokio::test]
     #[ntest::timeout(20_000)]
     async fn fake_exe_errors() {
-        let mut ytdl = YoutubeDl::new_ytdl_like("yt-dlq", Client::new(), YTDL_TARGET.into());
+        let mut ytdl = YoutubeDl::new_ytdl_like("yt-dlq", Client::new(), YTDL_TARGET);
 
         assert!(ytdl.aux_metadata().await.is_err());
     }
@@ -278,11 +285,11 @@ mod tests {
     #[ignore]
     #[ntest::timeout(20_000)]
     async fn ytdl_search_plays() {
-        let mut ytdl = YoutubeDl::new_search(Client::new(), "cloudkicker 94 days".into());
+        let mut ytdl = YoutubeDl::new_search(Client::new(), "cloudkicker 94 days");
         let res = ytdl.search(Some(1)).await;
 
         let res = res.unwrap();
-        assert_eq!(res.len(), 1);
+        assert_eq!(res.count(), 1);
 
         track_plays_passthrough(move || ytdl).await;
     }
@@ -291,9 +298,9 @@ mod tests {
     #[ignore]
     #[ntest::timeout(20_000)]
     async fn ytdl_search_3() {
-        let mut ytdl = YoutubeDl::new_search(Client::new(), "test".into());
+        let mut ytdl = YoutubeDl::new_search(Client::new(), "test");
         let res = ytdl.search(Some(3)).await;
 
-        assert_eq!(res.unwrap().len(), 3);
+        assert_eq!(res.unwrap().count(), 3);
     }
 }

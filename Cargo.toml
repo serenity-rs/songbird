@@ -25,6 +25,7 @@ crypto_secretbox = { optional = true, features = ["std"], version = "0.1" }
 dashmap = { optional = true, version = "5" }
 derivative = "2"
 discortp = { default-features = false, features = ["discord", "pnet", "rtp"], optional = true, version = "0.6" }
+either = "1.9.0"
 flume = { optional = true, version = "0.11" }
 futures = "0.3"
 nohash-hasher = { optional = true, version = "0.2.0" }

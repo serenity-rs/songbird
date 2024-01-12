@@ -49,7 +49,7 @@ mod tests {
         let (t_handle, config) = Config::test_cfg(true);
         let mut driver = Driver::new(config.clone());
 
-        let file = YoutubeDl::new(Client::new(), YTDL_TARGET.into());
+        let file = YoutubeDl::new(Client::new(), YTDL_TARGET);
         let handle = driver.play(Track::from(file));
 
         let state = t_handle
