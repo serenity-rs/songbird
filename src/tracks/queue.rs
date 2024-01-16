@@ -35,7 +35,7 @@ use tracing::{info, warn};
 /// use std::num::NonZeroU64;
 ///
 /// # async {
-/// let guild = GuildId(NonZeroU64::new(1).unwrap());
+/// let guild = GuildId::default();
 /// // A Call is also valid here!
 /// let mut driver: Driver = Default::default();
 ///

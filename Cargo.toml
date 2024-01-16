@@ -26,6 +26,7 @@ either = "1.9.0"
 flume = { optional = true, version = "0.11" }
 futures = "0.3"
 nohash-hasher = { optional = true, version = "0.2.0" }
+nonmax = { version = "0.5.5", features = ["serde"] }
 parking_lot = { optional = true, version = "0.12" }
 pin-project = "1"
 rand = { optional = true, version = "0.8" }
