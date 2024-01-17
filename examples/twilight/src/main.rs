@@ -27,7 +27,7 @@ use songbird::{
     tracks::{PlayMode, TrackHandle},
     Songbird,
 };
-use std::{collections::HashMap, env, error::Error, future::Future, num::NonZeroU64, sync::Arc};
+use std::{collections::HashMap, env, error::Error, future::Future, sync::Arc};
 use tokio::sync::RwLock;
 use twilight_gateway::{
     stream::{self, ShardEventStream},
@@ -39,7 +39,10 @@ use twilight_http::Client as HttpClient;
 use twilight_model::{
     channel::Message,
     gateway::payload::incoming::MessageCreate,
-    id::{marker::GuildMarker, Id},
+    id::{
+        marker::{ChannelMarker, GuildMarker},
+        Id,
+    },
 };
 use twilight_standby::Standby;
 
@@ -157,11 +160,9 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
             new_msg.author.id == author_id
         })
         .await?;
-    let channel_id = msg.content.parse::<u64>()?;
 
+    let channel_id = msg.content.parse::<Id<ChannelMarker>>()?;
     let guild_id = msg.guild_id.ok_or("Can't join a non-guild channel.")?;
-    let channel_id =
-        NonZeroU64::new(channel_id).ok_or("Joined voice channel must have nonzero ID.")?;
 
     let content = match state.songbird.join(guild_id, channel_id).await {
         Ok(_handle) => format!("Joined <#{}>!", channel_id),

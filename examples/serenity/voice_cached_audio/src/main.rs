@@ -10,8 +10,6 @@
 //! features = ["cache", "framework", "standard_framework", "voice"]
 //! ```
 use std::{
-    collections::HashMap,
-    convert::TryInto,
     env,
     sync::{Arc, Weak},
 };
@@ -44,12 +42,8 @@ use songbird::{
     Event,
     EventContext,
     EventHandler as VoiceEventHandler,
-    SerenityInit,
     TrackEvent,
 };
-
-// This imports `typemap`'s `Key` as `TypeMapKey`.
-use serenity::prelude::*;
 
 struct Handler;
 
@@ -70,23 +64,69 @@ impl From<&CachedSound> for Input {
         use CachedSound::*;
         match obj {
             Compressed(c) => c.new_handle().into(),
-            Uncompressed(u) => u
-                .new_handle()
-                .try_into()
-                .expect("Failed to create decoder for Memory source."),
+            Uncompressed(u) => u.new_handle().into(),
         }
     }
 }
 
-struct SoundStore;
-
-impl TypeMapKey for SoundStore {
-    type Value = Arc<Mutex<HashMap<String, CachedSound>>>;
+struct UserData {
+    songbird: Arc<songbird::Songbird>,
+    sound_store: dashmap::DashMap<String, CachedSound>,
 }
 
 #[group]
 #[commands(deafen, join, leave, mute, ting, undeafen, unmute)]
 struct General;
+
+async fn setup_cached_audio() -> dashmap::DashMap<String, CachedSound> {
+    // Loading the audio ahead of time.
+    let audio_map = dashmap::DashMap::new();
+
+    // Creation of an in-memory source.
+    //
+    // This is a small sound effect, so storing the whole thing is relatively cheap.
+    //
+    // `spawn_loader` creates a new thread which works to copy all the audio into memory
+    // ahead of time. We do this in both cases to ensure optimal performance for the audio
+    // core.
+    let ting_src = Memory::new(File::new("../../../resources/ting.wav").into())
+        .await
+        .expect("These parameters are well-defined.");
+    let _ = ting_src.raw.spawn_loader();
+    audio_map.insert("ting".into(), CachedSound::Uncompressed(ting_src));
+
+    // Another short sting, to show where each loop occurs.
+    let loop_src = Memory::new(File::new("../../../resources/loop.wav").into())
+        .await
+        .expect("These parameters are well-defined.");
+    let _ = loop_src.raw.spawn_loader();
+    audio_map.insert("loop".into(), CachedSound::Uncompressed(loop_src));
+
+    // Creation of a compressed source.
+    //
+    // This is a full song, making this a much less memory-heavy choice.
+    //
+    // Music by Cloudkicker, used under CC BY-SC-SA 3.0 (https://creativecommons.org/licenses/by-nc-sa/3.0/).
+    let song_src = Compressed::new(
+        File::new("../../../resources/Cloudkicker - 2011 07.mp3").into(),
+        Bitrate::BitsPerSecond(128_000),
+    )
+    .await
+    .expect("These parameters are well-defined.");
+    let _ = song_src.raw.spawn_loader();
+
+    // Compressed sources are internally stored as DCA1 format files.
+    // Because `Compressed` implements `std::io::Read`, we can save these
+    // to disk and use them again later if we want!
+    let mut creator = song_src.new_handle();
+    std::thread::spawn(move || {
+        let mut out_file = std::fs::File::create("ckick-dca1.dca").unwrap();
+        std::io::copy(&mut creator, &mut out_file).expect("Error writing out song!");
+    });
+
+    audio_map.insert("song".into(), CachedSound::Compressed(song_src));
+    audio_map
+}
 
 #[tokio::main]
 async fn main() {
@@ -100,68 +140,19 @@ async fn main() {
 
     let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
 
+    let manager = songbird::Songbird::serenity();
+    let user_data = UserData {
+        sound_store: setup_cached_audio().await,
+        songbird: Arc::clone(&manager),
+    };
+
     let mut client = Client::builder(&token, intents)
+        .voice_manager::<songbird::Songbird>(manager)
+        .data(Arc::new(user_data) as _)
         .event_handler(Handler)
         .framework(framework)
-        .register_songbird()
         .await
         .expect("Err creating client");
-
-    // Obtain a lock to the data owned by the client, and insert the client's
-    // voice manager into it. This allows the voice manager to be accessible by
-    // event handlers and framework commands.
-    {
-        let mut data = client.data.write().await;
-
-        // Loading the audio ahead of time.
-        let mut audio_map = HashMap::new();
-
-        // Creation of an in-memory source.
-        //
-        // This is a small sound effect, so storing the whole thing is relatively cheap.
-        //
-        // `spawn_loader` creates a new thread which works to copy all the audio into memory
-        // ahead of time. We do this in both cases to ensure optimal performance for the audio
-        // core.
-        let ting_src = Memory::new(File::new("../../../resources/ting.wav").into())
-            .await
-            .expect("These parameters are well-defined.");
-        let _ = ting_src.raw.spawn_loader();
-        audio_map.insert("ting".into(), CachedSound::Uncompressed(ting_src));
-
-        // Another short sting, to show where each loop occurs.
-        let loop_src = Memory::new(File::new("../../../resources/loop.wav").into())
-            .await
-            .expect("These parameters are well-defined.");
-        let _ = loop_src.raw.spawn_loader();
-        audio_map.insert("loop".into(), CachedSound::Uncompressed(loop_src));
-
-        // Creation of a compressed source.
-        //
-        // This is a full song, making this a much less memory-heavy choice.
-        //
-        // Music by Cloudkicker, used under CC BY-SC-SA 3.0 (https://creativecommons.org/licenses/by-nc-sa/3.0/).
-        let song_src = Compressed::new(
-            File::new("../../../resources/Cloudkicker - 2011 07.mp3").into(),
-            Bitrate::BitsPerSecond(128_000),
-        )
-        .await
-        .expect("These parameters are well-defined.");
-        let _ = song_src.raw.spawn_loader();
-
-        // Compressed sources are internally stored as DCA1 format files.
-        // Because `Compressed` implements `std::io::Read`, we can save these
-        // to disk and use them again later if we want!
-        let mut creator = song_src.new_handle();
-        std::thread::spawn(move || {
-            let mut out_file = std::fs::File::create("ckick-dca1.dca").unwrap();
-            std::io::copy(&mut creator, &mut out_file).expect("Error writing out song!");
-        });
-
-        audio_map.insert("song".into(), CachedSound::Compressed(song_src));
-
-        data.insert::<SoundStore>(Arc::new(Mutex::new(audio_map)));
-    }
 
     let _ = client
         .start()
@@ -173,11 +164,7 @@ async fn main() {
 #[only_in(guilds)]
 async fn deafen(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
 
     let handler_lock = match manager.get(guild_id) {
         Some(handler) => handler,
@@ -229,12 +216,8 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         },
     };
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
-
-    if let Ok(handler_lock) = manager.join(guild_id, connect_to).await {
+    let data = ctx.data::<UserData>();
+    if let Ok(handler_lock) = data.songbird.join(guild_id, connect_to).await {
         let call_lock_for_evt = Arc::downgrade(&handler_lock);
 
         let mut handler = handler_lock.lock().await;
@@ -244,20 +227,13 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
                 .await,
         );
 
-        let sources_lock = ctx
-            .data
-            .read()
-            .await
-            .get::<SoundStore>()
-            .cloned()
-            .expect("Sound cache was installed at startup.");
-        let sources_lock_for_evt = sources_lock.clone();
-        let sources = sources_lock.lock().await;
-        let source = sources
+        let source = data
+            .sound_store
             .get("song")
+            .map(|s| s.value().into())
             .expect("Handle placed into cache at startup.");
 
-        let song = handler.play_input(source.into());
+        let song = handler.play_input(source);
         let _ = song.set_volume(1.0);
         let _ = song.enable_loop();
 
@@ -266,7 +242,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
             Event::Track(TrackEvent::Loop),
             LoopPlaySound {
                 call_lock: call_lock_for_evt,
-                sources: sources_lock_for_evt,
+                data,
             },
         );
     } else {
@@ -282,7 +258,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
 
 struct LoopPlaySound {
     call_lock: Weak<Mutex<Call>>,
-    sources: Arc<Mutex<HashMap<String, CachedSound>>>,
+    data: Arc<UserData>,
 }
 
 #[async_trait]
@@ -290,11 +266,11 @@ impl VoiceEventHandler for LoopPlaySound {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         if let Some(call_lock) = self.call_lock.upgrade() {
             let src = {
-                let sources = self.sources.lock().await;
-                sources
+                self.data
+                    .sound_store
                     .get("loop")
+                    .map(|c| c.value().into())
                     .expect("Handle placed into cache at startup.")
-                    .into()
             };
 
             let mut handler = call_lock.lock().await;
@@ -311,10 +287,7 @@ impl VoiceEventHandler for LoopPlaySound {
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
     let has_handler = manager.get(guild_id).is_some();
 
     if has_handler {
@@ -338,11 +311,7 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn mute(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
 
     let handler_lock = match manager.get(guild_id) {
         Some(handler) => handler,
@@ -376,28 +345,18 @@ async fn mute(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn ting(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
+    let data = ctx.data::<UserData>();
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
-
-    if let Some(handler_lock) = manager.get(guild_id) {
+    if let Some(handler_lock) = data.songbird.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let sources_lock = ctx
-            .data
-            .read()
-            .await
-            .get::<SoundStore>()
-            .cloned()
-            .expect("Sound cache was installed at startup.");
-        let sources = sources_lock.lock().await;
-        let source = sources
+        let source = data
+            .sound_store
             .get("ting")
+            .map(|c| c.value().into())
             .expect("Handle placed into cache at startup.");
 
-        let _sound = handler.play_input(source.into());
+        let _sound = handler.play_input(source);
 
         check_msg(msg.channel_id.say(&ctx.http, "Ting!").await);
     } else {
@@ -416,11 +375,7 @@ async fn ting(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
-
+    let manager = &ctx.data::<UserData>().songbird;
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
@@ -448,10 +403,7 @@ async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn unmute(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
