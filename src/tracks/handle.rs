@@ -1,9 +1,8 @@
 use super::*;
 use crate::events::{Event, EventData, EventHandler};
 use flume::{Receiver, Sender};
-use std::{fmt, sync::Arc};
-use tokio::sync::RwLock;
-use typemap_rev::TypeMap;
+use std::{any::Any, sync::Arc, time::Duration};
+use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 /// Handle for safe control of a [`Track`] from other threads, outside
@@ -18,20 +17,11 @@ pub struct TrackHandle {
     inner: Arc<InnerHandle>,
 }
 
+#[derive(Debug)]
 struct InnerHandle {
     command_channel: Sender<TrackCommand>,
     uuid: Uuid,
-    typemap: RwLock<TypeMap>,
-}
-
-impl fmt::Debug for InnerHandle {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("InnerHandle")
-            .field("command_channel", &self.command_channel)
-            .field("uuid", &self.uuid)
-            .field("typemap", &"<LOCK>")
-            .finish()
-    }
+    data: Arc<dyn Any + Send + Sync + 'static>,
 }
 
 impl TrackHandle {
@@ -39,11 +29,15 @@ impl TrackHandle {
     ///
     /// [`Input`]: crate::input::Input
     #[must_use]
-    pub(crate) fn new(command_channel: Sender<TrackCommand>, uuid: Uuid) -> Self {
+    pub(crate) fn new(
+        command_channel: Sender<TrackCommand>,
+        uuid: Uuid,
+        data: Arc<dyn Any + Send + Sync + 'static>,
+    ) -> Self {
         let inner = Arc::new(InnerHandle {
             command_channel,
             uuid,
-            typemap: RwLock::new(TypeMap::new()),
+            data,
         });
 
         Self { inner }
@@ -197,16 +191,22 @@ impl TrackHandle {
         self.inner.uuid
     }
 
-    /// Allows access to this track's attached [`TypeMap`].
+    /// Allows access to this track's attached Data.
     ///
-    /// [`TypeMap`]s allow additional, user-defined data shared by all handles
+    /// Data allows additional, user-defined data shared by all handles
     /// to be attached to any track.
     ///
-    /// Driver code will never attempt to lock access to this map,
-    /// preventing deadlock/stalling.
+    /// # Panics
+    /// This method will panic if the Data has not been initialised, or the type
+    /// provided does not equal the type passed to [`Track::new_with_data`].
     #[must_use]
-    pub fn typemap(&self) -> &RwLock<TypeMap> {
-        &self.inner.typemap
+    pub fn data<Data>(&self) -> Arc<Data>
+    where
+        Data: Send + Sync + 'static,
+    {
+        Arc::clone(&self.inner.data)
+            .downcast()
+            .expect("TrackHandle::data generic does not match type set in TrackHandle::set_data")
     }
 
     #[inline]

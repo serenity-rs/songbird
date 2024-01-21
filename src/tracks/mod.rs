@@ -41,7 +41,7 @@ pub use self::{
 pub(crate) use command::*;
 
 use crate::{constants::*, driver::tasks::message::*, events::EventStore, input::Input};
-use std::time::Duration;
+use std::{any::Any, sync::Arc, time::Duration};
 use uuid::Uuid;
 
 /// Initial state for audio playback.
@@ -104,20 +104,37 @@ pub struct Track {
     ///
     /// Defaults to a random 128-bit number.
     pub uuid: Uuid,
+
+    /// Any data to be associated with the track.
+    pub user_data: Arc<dyn Any + Send + Sync>,
 }
 
 impl Track {
     /// Create a new track directly from an [`Input`] and a random [`Uuid`].
     #[must_use]
     pub fn new(input: Input) -> Self {
-        let uuid = Uuid::new_v4();
-
-        Self::new_with_uuid(input, uuid)
+        Self::new_with_uuid(input, Uuid::new_v4())
     }
 
     /// Create a new track directly from an [`Input`] with a custom [`Uuid`].
     #[must_use]
     pub fn new_with_uuid(input: Input, uuid: Uuid) -> Self {
+        Self::new_with_uuid_and_data(input, uuid, Arc::new(()))
+    }
+
+    /// Create a new track directly from an [`Input`], user data to be associated with the track, and a random [`Uuid`].
+    #[must_use]
+    pub fn new_with_data(input: Input, user_data: Arc<dyn Any + Send + Sync + 'static>) -> Self {
+        Self::new_with_uuid_and_data(input, Uuid::new_v4(), user_data)
+    }
+
+    /// Create a new track directly from an [`Input`], user data to be associated with the track, and a custom [`Uuid`].
+    #[must_use]
+    pub fn new_with_uuid_and_data(
+        input: Input,
+        uuid: Uuid,
+        user_data: Arc<dyn Any + Send + Sync + 'static>,
+    ) -> Self {
         Self {
             playing: PlayMode::default(),
             volume: 1.0,
@@ -125,6 +142,7 @@ impl Track {
             events: EventStore::new_local(),
             loops: LoopState::Finite(0),
             uuid,
+            user_data,
         }
     }
 
@@ -180,7 +198,7 @@ impl Track {
 
     pub(crate) fn into_context(self) -> (TrackHandle, TrackContext) {
         let (tx, receiver) = flume::unbounded();
-        let handle = TrackHandle::new(tx, self.uuid);
+        let handle = TrackHandle::new(tx, self.uuid, self.user_data.clone());
 
         let context = TrackContext {
             handle: handle.clone(),
