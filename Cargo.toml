@@ -50,7 +50,6 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
 twilight-gateway = { default-features = false, optional = true, version = "0.15.0" }
 twilight-model = { default-features = false, optional = true, version = "0.15.0" }
-typemap_rev = { optional = true, version = "0.3" }
 url = { optional = true, version = "2" }
 uuid = { features = ["v4"], optional = true, version = "1" }
 
@@ -101,7 +100,6 @@ driver = [
     "dep:tokio",
     "dep:tokio-tungstenite",
     "dep:tokio-util",
-    "dep:typemap_rev",
     "dep:url",
     "dep:uuid",
     "tokio?/fs",
