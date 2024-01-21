@@ -45,8 +45,12 @@ use songbird::{
     Event,
     EventContext,
     EventHandler as VoiceEventHandler,
-    SerenityInit,
+    Songbird,
 };
+
+struct UserData {
+    songbird: Arc<Songbird>,
+}
 
 struct Handler;
 
@@ -218,11 +222,17 @@ async fn main() {
     // If you want, you can do this on a per-call basis---here, we need it to
     // read the audio data that other people are sending us!
     let songbird_config = Config::default().decode_mode(DecodeMode::Decode);
+    let manager = songbird::Songbird::serenity_from_config(songbird_config);
+
+    let data = UserData {
+        songbird: Arc::clone(&manager),
+    };
 
     let mut client = Client::builder(&token, intents)
+        .voice_manager::<songbird::Songbird>(manager)
+        .data(Arc::new(data) as _)
         .event_handler(Handler)
         .framework(framework)
-        .register_songbird_from_config(songbird_config)
         .await
         .expect("Err creating client");
 
@@ -245,11 +255,7 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
 
     let guild_id = msg.guild_id.unwrap();
-
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
 
     if let Ok(handler_lock) = manager.join(guild_id, connect_to).await {
         // NOTE: this skips listening for the actual connection result.
@@ -284,10 +290,7 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
     let has_handler = manager.get(guild_id).is_some();
 
     if has_handler {

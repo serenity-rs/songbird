@@ -57,7 +57,7 @@ impl Songbird {
     ///
     /// This must be [registered] after creation.
     ///
-    /// [registered]: crate::serenity::register_with
+    /// [registered]: serenity::client::ClientBuilder::voice_manager
     #[must_use]
     pub fn serenity() -> Arc<Self> {
         Self::serenity_from_config(Config::default())
@@ -68,7 +68,7 @@ impl Songbird {
     ///
     /// This must be [registered] after creation.
     ///
-    /// [registered]: crate::serenity::register_with
+    /// [registered]: serenity::client::ClientBuilder::voice_manager
     #[must_use]
     pub fn serenity_from_config(config: Config) -> Arc<Self> {
         Arc::new(Self {
@@ -169,7 +169,7 @@ impl Songbird {
                         .get()
                         .expect("Manager has not been initialised");
 
-                    let shard = shard_id(guild_id.0.get(), info.shard_count);
+                    let shard = shard_id(guild_id.get(), info.shard_count);
                     let shard_handle = self
                         .sharder
                         .get_shard(shard)
@@ -397,7 +397,7 @@ impl Songbird {
                 if self
                     .client_data
                     .get()
-                    .map_or(true, |data| v.0.user_id.into_nonzero() != data.user_id.0)
+                    .map_or(true, |data| v.0.user_id.get() != data.user_id.get())
                 {
                     return;
                 }
@@ -454,9 +454,11 @@ impl VoiceGatewayManager for Songbird {
     }
 
     async fn state_update(&self, guild_id: SerenityGuild, voice_state: &VoiceState) {
-        if self.client_data.get().map_or(true, |data| {
-            voice_state.user_id.get() != data.user_id.0.get()
-        }) {
+        if self
+            .client_data
+            .get()
+            .map_or(true, |data| voice_state.user_id.get() != data.user_id.get())
+        {
             return;
         }
 
