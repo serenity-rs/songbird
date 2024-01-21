@@ -97,8 +97,6 @@ pub mod input;
 pub mod join;
 #[cfg(feature = "gateway")]
 mod manager;
-#[cfg(feature = "serenity")]
-pub mod serenity;
 #[cfg(feature = "gateway")]
 pub mod shards;
 #[cfg(any(test, feature = "internals"))]
@@ -123,9 +121,6 @@ pub use crate::{
 
 #[cfg(feature = "gateway")]
 pub use crate::{handler::*, manager::*};
-
-#[cfg(feature = "serenity")]
-pub use crate::serenity::*;
 
 pub use config::Config;
 pub use info::ConnectionInfo;

@@ -2,6 +2,7 @@
 
 #[cfg(feature = "driver")]
 use crate::model::id::{GuildId as DriverGuild, UserId as DriverUser};
+use nonmax::NonMaxU64;
 #[cfg(feature = "serenity")]
 use serenity::model::id::{
     ChannelId as SerenityChannel,
@@ -18,106 +19,78 @@ use twilight_model::id::{
     Id as TwilightId,
 };
 
+#[cfg(feature = "twilight")]
+fn nonmax_from_nonzero(val: NonZeroU64) -> NonMaxU64 {
+    NonMaxU64::new(val.get()).unwrap_or(NonMaxU64::ZERO)
+}
+
+macro_rules! impl_id {
+    ($Id:ident, $SerenityId:path, $TwilightId:path) => {
+        impl $Id {
+            /// Returns the u64 representation of this Id.
+            #[must_use]
+            pub fn get(self) -> u64 {
+                { self.0 }.get()
+            }
+
+            #[allow(unused)]
+            pub(crate) fn into_nonzero(self) -> NonZeroU64 {
+                NonZeroU64::new(self.get()).unwrap_or(NonZeroU64::MAX)
+            }
+        }
+
+        impl Display for $Id {
+            fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+                Display::fmt(&{ self.0 }, f)
+            }
+        }
+
+        #[cfg(feature = "serenity")]
+        impl From<$SerenityId> for $Id {
+            fn from(id: $SerenityId) -> Self {
+                Self(NonMaxU64::new(id.get()).unwrap())
+            }
+        }
+
+        #[cfg(feature = "twilight")]
+        impl From<$TwilightId> for $Id {
+            fn from(id: $TwilightId) -> Self {
+                // Map u64::MAX -> u64::ZERO
+                Self(nonmax_from_nonzero(id.into_nonzero()))
+            }
+        }
+    };
+}
+
 /// ID of a Discord voice/text channel.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct ChannelId(pub NonZeroU64);
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[repr(packed)]
+pub struct ChannelId(NonMaxU64);
 
 /// ID of a Discord guild (colloquially, "server").
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct GuildId(pub NonZeroU64);
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[repr(packed)]
+pub struct GuildId(NonMaxU64);
 
 /// ID of a Discord user.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct UserId(pub NonZeroU64);
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[repr(packed)]
+pub struct UserId(NonMaxU64);
 
-impl Display for ChannelId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(&self.0, f)
-    }
-}
-
-impl From<NonZeroU64> for ChannelId {
-    fn from(id: NonZeroU64) -> Self {
-        Self(id)
-    }
-}
-
-#[cfg(feature = "serenity")]
-impl From<SerenityChannel> for ChannelId {
-    fn from(id: SerenityChannel) -> Self {
-        Self(NonZeroU64::new(id.get()).unwrap())
-    }
-}
-
-#[cfg(feature = "twilight")]
-impl From<TwilightId<ChannelMarker>> for ChannelId {
-    fn from(id: TwilightId<ChannelMarker>) -> Self {
-        Self(id.into_nonzero())
-    }
-}
-
-impl Display for GuildId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(&self.0, f)
-    }
-}
-
-impl From<NonZeroU64> for GuildId {
-    fn from(id: NonZeroU64) -> Self {
-        Self(id)
-    }
-}
-
-#[cfg(feature = "serenity")]
-impl From<SerenityGuild> for GuildId {
-    fn from(id: SerenityGuild) -> Self {
-        Self(NonZeroU64::new(id.get()).unwrap())
-    }
-}
+impl_id! {ChannelId, SerenityChannel, TwilightId<ChannelMarker>}
+impl_id! {GuildId, SerenityGuild, TwilightId<GuildMarker>}
+impl_id! {UserId, SerenityUser, TwilightId<UserMarker>}
 
 #[cfg(feature = "driver")]
 impl From<GuildId> for DriverGuild {
     fn from(id: GuildId) -> Self {
-        Self(id.0.get())
-    }
-}
-
-#[cfg(feature = "twilight")]
-impl From<TwilightId<GuildMarker>> for GuildId {
-    fn from(id: TwilightId<GuildMarker>) -> Self {
-        Self(id.into_nonzero())
-    }
-}
-
-impl Display for UserId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(&self.0, f)
-    }
-}
-
-impl From<NonZeroU64> for UserId {
-    fn from(id: NonZeroU64) -> Self {
-        Self(id)
-    }
-}
-
-#[cfg(feature = "serenity")]
-impl From<SerenityUser> for UserId {
-    fn from(id: SerenityUser) -> Self {
-        Self(NonZeroU64::new(id.get()).unwrap())
+        Self(id.get())
     }
 }
 
 #[cfg(feature = "driver")]
 impl From<UserId> for DriverUser {
     fn from(id: UserId) -> Self {
-        Self(id.0.get())
-    }
-}
-
-#[cfg(feature = "twilight")]
-impl From<TwilightId<UserMarker>> for UserId {
-    fn from(id: TwilightId<UserMarker>) -> Self {
-        Self(id.into_nonzero())
+        Self(id.get())
     }
 }
