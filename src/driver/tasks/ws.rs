@@ -469,8 +469,8 @@ impl AuxNetwork {
         let protocol_version = self.dave_protocol_version.load(Ordering::Relaxed);
 
         if let Some(dave_protocol_version) = NonZeroU16::new(protocol_version) {
-            let user_id = self.info.user_id.0.into();
-            let channel_id = self.info.channel_id.0.into();
+            let user_id = self.info.user_id.get();
+            let channel_id = self.info.channel_id.get();
 
             let key_package =
                 if let Some(ref mut dave_session) = *self.dave_session.write().unwrap() {

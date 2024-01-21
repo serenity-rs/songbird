@@ -176,8 +176,8 @@ impl VoiceUpdate for Shard {
                 let map = json!({
                     "op": 4,
                     "d": {
-                        "channel_id": channel_id.map(|c| c.0),
-                        "guild_id": guild_id.0,
+                        "channel_id": channel_id.map(ChannelId::get),
+                        "guild_id": guild_id.get(),
                         "self_deaf": self_deaf,
                         "self_mute": self_mute,
                     }
@@ -188,8 +188,12 @@ impl VoiceUpdate for Shard {
             },
             #[cfg(feature = "twilight")]
             Shard::Twilight(map, shard_id) => {
-                let channel_id = channel_id.map(|c| c.0).map(From::from);
-                let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
+                let guild_id = guild_id.into_nonzero();
+                let channel_id = channel_id
+                    .map(ChannelId::into_nonzero)
+                    .map(twilight_model::id::Id::from);
+
+                let cmd = TwilightVoiceState::new(guild_id, channel_id, self_deaf, self_mute);
                 let sender = map
                     .get(*shard_id)
                     .ok_or(crate::error::JoinError::NoSender)?;
