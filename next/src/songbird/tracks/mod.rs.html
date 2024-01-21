@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (62d7ed4a6 2024-01-11)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (88189a71e 2024-01-19)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -202,6 +202,24 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Live, controllable audio instances.
 //!
 //! Tracks add control and event data around the bytestreams offered by [`Input`],
@@ -245,7 +263,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>command::<span class="kw-2">*</span>;
 
 <span class="kw">use crate</span>::{constants::<span class="kw-2">*</span>, driver::tasks::message::<span class="kw-2">*</span>, events::EventStore, input::Input};
-<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>std::{any::Any, sync::Arc, time::Duration};
 <span class="kw">use </span>uuid::Uuid;
 
 <span class="doccomment">/// Initial state for audio playback.
@@ -308,20 +326,37 @@
     ///
     /// Defaults to a random 128-bit number.
     </span><span class="kw">pub </span>uuid: Uuid,
+
+    <span class="doccomment">/// Any data to be associated with the track.
+    </span><span class="kw">pub </span>user_data: Arc&lt;<span class="kw">dyn </span>Any + Send + Sync&gt;,
 }
 
 <span class="kw">impl </span>Track {
     <span class="doccomment">/// Create a new track directly from an [`Input`] and a random [`Uuid`].
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(input: Input) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>uuid = Uuid::new_v4();
-
-        <span class="self">Self</span>::new_with_uuid(input, uuid)
+        <span class="self">Self</span>::new_with_uuid(input, Uuid::new_v4())
     }
 
     <span class="doccomment">/// Create a new track directly from an [`Input`] with a custom [`Uuid`].
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new_with_uuid(input: Input, uuid: Uuid) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new_with_uuid_and_data(input, uuid, Arc::new(()))
+    }
+
+    <span class="doccomment">/// Create a new track directly from an [`Input`], user data to be associated with the track, and a random [`Uuid`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>new_with_data(input: Input, user_data: Arc&lt;<span class="kw">dyn </span>Any + Send + Sync + <span class="lifetime">'static</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new_with_uuid_and_data(input, Uuid::new_v4(), user_data)
+    }
+
+    <span class="doccomment">/// Create a new track directly from an [`Input`], user data to be associated with the track, and a custom [`Uuid`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>new_with_uuid_and_data(
+        input: Input,
+        uuid: Uuid,
+        user_data: Arc&lt;<span class="kw">dyn </span>Any + Send + Sync + <span class="lifetime">'static</span>&gt;,
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             playing: PlayMode::default(),
             volume: <span class="number">1.0</span>,
@@ -329,6 +364,7 @@
             events: EventStore::new_local(),
             loops: LoopState::Finite(<span class="number">0</span>),
             uuid,
+            user_data,
         }
     }
 
@@ -384,7 +420,7 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_context(<span class="self">self</span>) -&gt; (TrackHandle, TrackContext) {
         <span class="kw">let </span>(tx, receiver) = flume::unbounded();
-        <span class="kw">let </span>handle = TrackHandle::new(tx, <span class="self">self</span>.uuid);
+        <span class="kw">let </span>handle = TrackHandle::new(tx, <span class="self">self</span>.uuid, <span class="self">self</span>.user_data.clone());
 
         <span class="kw">let </span>context = TrackContext {
             handle: handle.clone(),

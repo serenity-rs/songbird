@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/handle.rs`."><title>handle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (62d7ed4a6 2024-01-11)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/tracks/handle.rs`."><title>handle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (88189a71e 2024-01-19)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -307,13 +307,10 @@
 <a href="#305" id="305">305</a>
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::events::{Event, EventData, EventHandler};
 <span class="kw">use </span>flume::{Receiver, Sender};
-<span class="kw">use </span>std::{fmt, sync::Arc, time::Duration};
-<span class="kw">use </span>tokio::sync::RwLock;
-<span class="kw">use </span>typemap_rev::TypeMap;
+<span class="kw">use </span>std::{any::Any, sync::Arc, time::Duration};
 <span class="kw">use </span>uuid::Uuid;
 
 <span class="attr">#[derive(Clone, Debug)]
@@ -329,20 +326,11 @@
     inner: Arc&lt;InnerHandle&gt;,
 }
 
-<span class="kw">struct </span>InnerHandle {
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">struct </span>InnerHandle {
     command_channel: Sender&lt;TrackCommand&gt;,
     uuid: Uuid,
-    typemap: RwLock&lt;TypeMap&gt;,
-}
-
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>InnerHandle {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">"InnerHandle"</span>)
-            .field(<span class="string">"command_channel"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.command_channel)
-            .field(<span class="string">"uuid"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.uuid)
-            .field(<span class="string">"typemap"</span>, <span class="kw-2">&amp;</span><span class="string">"&lt;LOCK&gt;"</span>)
-            .finish()
-    }
+    data: Arc&lt;<span class="kw">dyn </span>Any + Send + Sync + <span class="lifetime">'static</span>&gt;,
 }
 
 <span class="kw">impl </span>TrackHandle {
@@ -350,11 +338,15 @@
     ///
     /// [`Input`]: crate::input::Input
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(command_channel: Sender&lt;TrackCommand&gt;, uuid: Uuid) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+        command_channel: Sender&lt;TrackCommand&gt;,
+        uuid: Uuid,
+        data: Arc&lt;<span class="kw">dyn </span>Any + Send + Sync + <span class="lifetime">'static</span>&gt;,
+    ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>inner = Arc::new(InnerHandle {
             command_channel,
             uuid,
-            typemap: RwLock::new(TypeMap::new()),
+            data,
         });
 
         <span class="self">Self </span>{ inner }
@@ -508,16 +500,22 @@
         <span class="self">self</span>.inner.uuid
     }
 
-    <span class="doccomment">/// Allows access to this track's attached [`TypeMap`].
+    <span class="doccomment">/// Allows access to this track's attached Data.
     ///
-    /// [`TypeMap`]s allow additional, user-defined data shared by all handles
+    /// Data allows additional, user-defined data shared by all handles
     /// to be attached to any track.
     ///
-    /// Driver code will never attempt to lock access to this map,
-    /// preventing deadlock/stalling.
+    /// # Panics
+    /// This method will panic if the Data has not been initialised, or the type
+    /// provided does not equal the type passed to [`Track::new_with_data`].
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>typemap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RwLock&lt;TypeMap&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.typemap
+    </span><span class="kw">pub fn </span>data&lt;Data&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;Data&gt;
+    <span class="kw">where
+        </span>Data: Send + Sync + <span class="lifetime">'static</span>,
+    {
+        Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.data)
+            .downcast()
+            .expect(<span class="string">"TrackHandle::data generic does not match type set in TrackHandle::set_data"</span>)
     }
 
     <span class="attr">#[inline]
