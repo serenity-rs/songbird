@@ -86,12 +86,18 @@ impl Idle {
                     self.tasks.insert(id, task);
                 },
                 Ok(SchedulerMessage::Do(id, mix_msg)) => {
-                    let now_live = mix_msg.is_mixer_now_live();
+                    let maybe_live = mix_msg.is_mixer_maybe_live();
                     if let Some(task) = self.tasks.get_mut(&id) {
                         match task.handle_message(mix_msg) {
-                            Ok(false) if now_live => {
-                                let task = self.tasks.remove(&id).unwrap();
-                                self.schedule_mixer(task, id, None);
+                            Ok(false) if maybe_live => {
+                                if task.mixer.tracks.is_empty() {
+                                    // No tracks, likely due to SetConn.
+                                    // Recreate message forwarding task.
+                                    task.spawn_forwarder(self.tx.clone(), id);
+                                } else {
+                                    let task = self.tasks.remove(&id).unwrap();
+                                    self.schedule_mixer(task, id, None);
+                                }
                             },
                             Ok(false) => {},
                             Ok(true) | Err(()) => self.to_cull.push(id),
