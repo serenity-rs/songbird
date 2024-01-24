@@ -116,7 +116,7 @@ impl ParkedMixer {
                     _ = kill_rx.recv_async() => break,
                     msg = remote_rx.recv_async() => {
                         let exit = if let Ok(msg) = msg {
-                            let remove_self = msg.is_mixer_now_live();
+                            let remove_self = msg.is_mixer_maybe_live();
                             tx.send_async(SchedulerMessage::Do(id, msg)).await.is_err() || remove_self
                         } else {
                             true
@@ -135,7 +135,8 @@ impl ParkedMixer {
     pub fn handle_message(&mut self, msg: MixerMessage) -> Result<bool, ()> {
         match msg {
             MixerMessage::SetConn(conn, ssrc) => {
-                // Overridden because
+                // Overridden because payload-specific fields are carried
+                // externally on `ParkedMixer`.
                 self.ssrc = ssrc;
                 self.rtp_sequence = random::<u16>();
                 self.rtp_timestamp = random::<u32>();

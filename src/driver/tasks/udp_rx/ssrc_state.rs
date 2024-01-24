@@ -141,7 +141,7 @@ impl SsrcState {
             let mut out = vec![0; self.decode_size.len()];
 
             for _ in 0..missed_packets {
-                let missing_frame: Option<OpusPacket> = None;
+                let missing_frame: Option<OpusPacket<'_>> = None;
                 let dest_samples = (&mut out[..])
                     .try_into()
                     .expect("Decode logic will cap decode buffer size at i32::MAX.");

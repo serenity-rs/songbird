@@ -40,8 +40,11 @@ pub enum MixerMessage {
 }
 
 impl MixerMessage {
-    pub fn is_mixer_now_live(&self) -> bool {
-        matches!(self, Self::AddTrack(_) | Self::SetTrack(Some(_)))
+    pub fn is_mixer_maybe_live(&self) -> bool {
+        matches!(
+            self,
+            Self::AddTrack(_) | Self::SetTrack(Some(_)) | Self::SetConn(..)
+        )
     }
 }
 
