@@ -144,6 +144,11 @@ pub fn mix_symph_indiv(
         let source_packet = source_packet.unwrap();
 
         let in_rate = source_packet.spec().rate;
+        let pkt_frames = source_packet.frames();
+
+        if pkt_frames == 0 {
+            continue;
+        }
 
         if in_rate == SAMPLE_RATE_RAW as u32 {
             // No need to resample: mix as standard.
@@ -158,7 +163,7 @@ pub fn mix_symph_indiv(
             samples_written += samples_marched;
 
             local_state.inner_pos += samples_marched;
-            local_state.inner_pos %= source_packet.frames();
+            local_state.inner_pos %= pkt_frames;
         } else {
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels.count();
@@ -178,11 +183,6 @@ pub fn mix_symph_indiv(
             });
 
             let inner_pos = local_state.inner_pos;
-            let pkt_frames = source_packet.frames();
-
-            if pkt_frames == 0 {
-                continue;
-            }
 
             let needed_in_frames = resampler.input_frames_next();
             let available_frames = pkt_frames - inner_pos;
