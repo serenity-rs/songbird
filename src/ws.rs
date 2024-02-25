@@ -74,7 +74,7 @@ impl WsStream {
         let res = crate::json::to_string(value);
         #[cfg(feature = "tungstenite")]
         let res = res.map(Message::Text);
-        #[cfg(feature = "twilight")]
+        #[cfg(feature = "tws")]
         let res = res.map(Message::text);
         Ok(res.map_err(Error::from).map(|m| self.0.send(m))?.await?)
     }
