@@ -140,7 +140,7 @@ builtin-queue = []
 receive = ["dep:bytes", "discortp?/demux", "discortp?/rtcp"]
 
 # Used for docgen/testing/benchmarking.
-full-doc = ["default", "twilight", "builtin-queue", "receive"]
+full-doc = ["default", "tungstenite", "twilight", "builtin-queue", "receive"]
 internals = ["dep:byteorder"]
 
 [lib]
