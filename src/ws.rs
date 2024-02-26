@@ -27,6 +27,12 @@ use tokio_websockets::{
 use tracing::{debug, instrument};
 use url::Url;
 
+#[cfg(any(
+    all(feature = "tws", feature = "tungstenite"),
+    all(not(feature = "tws"), not(feature = "tungstenite"))
+))]
+compile_error!("specify one of `features = [\"tungstenite\"]` (recommended w/ serenity) or `features = [\"tws\"]` (recommended w/ twilight)");
+
 pub struct WsStream(WebSocketStream<MaybeTlsStream<TcpStream>>);
 
 impl WsStream {
