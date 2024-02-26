@@ -20,7 +20,6 @@
 //!
 //! [basic lavalink bot]: https://github.com/twilight-rs/twilight/tree/main/examples/lavalink-basic-bot.rs
 
-use futures::StreamExt;
 use songbird::{
     input::{Compose, YoutubeDl},
     shards::TwilightMap,
@@ -29,12 +28,7 @@ use songbird::{
 };
 use std::{collections::HashMap, env, error::Error, future::Future, num::NonZeroU64, sync::Arc};
 use tokio::sync::RwLock;
-use twilight_gateway::{
-    stream::{self, ShardEventStream},
-    Event,
-    Intents,
-    Shard,
-};
+use twilight_gateway::{Event, EventTypeFlags, Intents, Shard, StreamExt as _};
 use twilight_http::Client as HttpClient;
 use twilight_model::{
     channel::Message,
@@ -68,7 +62,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let (mut shards, state) = {
+    let (shards, state) = {
         let token = env::var("DISCORD_TOKEN")?;
 
         let http = HttpClient::new(token.clone());
@@ -79,7 +73,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         let config = twilight_gateway::Config::new(token.clone(), intents);
 
         let shards: Vec<Shard> =
-            stream::create_recommended(&http, config, |_, builder| builder.build())
+            twilight_gateway::create_recommended(&http, config, |_, builder| builder.build())
                 .await?
                 .collect();
 
@@ -103,51 +97,63 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         )
     };
 
-    let mut stream = ShardEventStream::new(shards.iter_mut());
-    loop {
-        let event = match stream.next().await {
-            Some((_, Ok(event))) => event,
-            Some((_, Err(source))) => {
-                tracing::warn!(?source, "error receiving event");
+    let mut set = tokio::task::JoinSet::new();
+    for shard in shards {
+        set.spawn(tokio::spawn(runner(shard, state.clone())));
+    }
 
-                if source.is_fatal() {
-                    break;
-                }
+    set.join_next().await;
+
+    Ok(())
+}
+
+async fn runner(mut shard: Shard, state: Arc<StateRef>) {
+    while let Some(item) = shard.next_event(EventTypeFlags::all()).await {
+        let event = match item {
+            Ok(event) => event,
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
 
                 continue;
             },
-            None => break,
         };
 
-        state.standby.process(&event);
-        state.songbird.process(&event).await;
-
-        if let Event::MessageCreate(msg) = event {
-            if msg.guild_id.is_none() || !msg.content.starts_with('!') {
-                continue;
+        tokio::spawn({
+            let state = state.clone();
+            async move {
+                handle_event(event, state).await;
             }
+        });
+    }
+}
 
-            match msg.content.splitn(2, ' ').next() {
-                Some("!join") => spawn(join(msg.0, Arc::clone(&state))),
-                Some("!leave") => spawn(leave(msg.0, Arc::clone(&state))),
-                Some("!pause") => spawn(pause(msg.0, Arc::clone(&state))),
-                Some("!play") => spawn(play(msg.0, Arc::clone(&state))),
-                Some("!seek") => spawn(seek(msg.0, Arc::clone(&state))),
-                Some("!stop") => spawn(stop(msg.0, Arc::clone(&state))),
-                Some("!volume") => spawn(volume(msg.0, Arc::clone(&state))),
-                _ => continue,
-            }
+async fn handle_event(event: Event, state: Arc<StateRef>) {
+    state.standby.process(&event);
+    state.songbird.process(&event).await;
+
+    if let Event::MessageCreate(msg) = event {
+        if msg.guild_id.is_none() || !msg.content.starts_with('!') {
+            return;
+        }
+
+        match msg.content.splitn(2, ' ').next() {
+            Some("!join") => spawn(join(msg.0, Arc::clone(&state))),
+            Some("!leave") => spawn(leave(msg.0, Arc::clone(&state))),
+            Some("!pause") => spawn(pause(msg.0, Arc::clone(&state))),
+            Some("!play") => spawn(play(msg.0, Arc::clone(&state))),
+            Some("!seek") => spawn(seek(msg.0, Arc::clone(&state))),
+            Some("!stop") => spawn(stop(msg.0, Arc::clone(&state))),
+            Some("!volume") => spawn(volume(msg.0, Arc::clone(&state))),
+            _ => return,
         }
     }
-
-    Ok(())
 }
 
 async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     state
         .http
         .create_message(msg.channel_id)
-        .content("What's the channel ID you want me to join?")?
+        .content("What's the channel ID you want me to join?")
         .await?;
 
     let author_id = msg.author.id;
@@ -171,7 +177,7 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content(&content)?
+        .content(&content)
         .await?;
 
     Ok(())
@@ -191,7 +197,7 @@ async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
     state
         .http
         .create_message(msg.channel_id)
-        .content("Left the channel")?
+        .content("Left the channel")
         .await?;
 
     Ok(())
@@ -206,7 +212,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content("What's the URL of the audio to play?")?
+        .content("What's the URL of the audio to play?")
         .await?;
 
     let author_id = msg.author.id;
@@ -230,7 +236,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         state
             .http
             .create_message(msg.channel_id)
-            .content(&content)?
+            .content(&content)
             .await?;
 
         if let Some(call_lock) = state.songbird.get(guild_id) {
@@ -244,7 +250,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         state
             .http
             .create_message(msg.channel_id)
-            .content("Didn't find any results")?
+            .content("Didn't find any results")
             .await?;
     }
 
@@ -286,7 +292,7 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
     state
         .http
         .create_message(msg.channel_id)
-        .content(&content)?
+        .content(&content)
         .await?;
 
     Ok(())
@@ -301,7 +307,7 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content("Where in the track do you want to seek to (in seconds)?")?
+        .content("Where in the track do you want to seek to (in seconds)?")
         .await?;
 
     let author_id = msg.author.id;
@@ -326,7 +332,7 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content(&content)?
+        .content(&content)
         .await?;
 
     Ok(())
@@ -349,7 +355,7 @@ async fn stop(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content("Stopped the track")?
+        .content("Stopped the track")
         .await?;
 
     Ok(())
@@ -364,7 +370,7 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
     state
         .http
         .create_message(msg.channel_id)
-        .content("What's the volume you want to set (0.0-10.0, 1.0 being the default)?")?
+        .content("What's the volume you want to set (0.0-10.0, 1.0 being the default)?")
         .await?;
 
     let author_id = msg.author.id;
@@ -381,7 +387,7 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
         state
             .http
             .create_message(msg.channel_id)
-            .content("Invalid volume!")?
+            .content("Invalid volume!")
             .await?;
 
         return Ok(());
@@ -399,7 +405,7 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
     state
         .http
         .create_message(msg.channel_id)
-        .content(&content)?
+        .content(&content)
         .await?;
 
     Ok(())

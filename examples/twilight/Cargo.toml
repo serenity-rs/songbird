@@ -7,12 +7,12 @@ edition = "2021"
 [dependencies]
 futures = "0.3"
 reqwest = { workspace = true }
-songbird = { workspace = true, features = ["driver", "gateway", "twilight", "rustls", "tungstenite"] }
+songbird = { workspace = true, features = ["driver", "gateway", "twilight", "rustls", "tws"] }
 symphonia = { workspace = true }
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
+tracing-subscriber = { workspace = true, default-features = true }
 tokio = { workspace = true }
-twilight-gateway = "0.15"
-twilight-http = "0.15"
-twilight-model = "0.15"
-twilight-standby = "0.15"
+twilight-gateway = "=0.16.0-rc.1"
+twilight-http = "=0.16.0-rc.1"
+twilight-model = "=0.16.0-rc.1"
+twilight-standby = "=0.16.0-rc.1"
