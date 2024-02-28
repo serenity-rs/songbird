@@ -48,13 +48,13 @@ jobs:
             os: windows-latest
             dont-test: true
           - name: driver only
-            features: driver rustls
+            features: driver tungstenite rustls
             dont-test: true
           - name: gateway only
-            features: gateway serenity rustls
+            features: gateway serenity tungstenite rustls
             dont-test: true
           - name: simd json
-            features: simd-json serenity rustls driver gateway serenity?/simd_json
+            features: simd-json serenity tungstenite rustls driver gateway serenity?/simd_json
             rustflags: -C target-cpu=native
             dont-test: true
     steps:
