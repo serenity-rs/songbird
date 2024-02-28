@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/ws.rs`."><title>ws.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (0ecbd0605 2024-02-25)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c37d3936c59ababd.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/ws.rs`."><title>ws.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (ef324565d 2024-02-27)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-12cf3b4f4f9dc36d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -116,6 +116,74 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{error::JsonError, model::Event};
 
 <span class="kw">use </span>futures::{SinkExt, StreamExt, TryStreamExt};
@@ -123,7 +191,8 @@
     net::TcpStream,
     time::{timeout, Duration},
 };
-<span class="kw">use </span>tokio_tungstenite::{
+<span class="attr">#[cfg(feature = <span class="string">"tungstenite"</span>)]
+</span><span class="kw">use </span>tokio_tungstenite::{
     tungstenite::{
         error::Error <span class="kw">as </span>TungsteniteError,
         protocol::{CloseFrame, WebSocketConfig <span class="kw">as </span>Config},
@@ -132,15 +201,31 @@
     MaybeTlsStream,
     WebSocketStream,
 };
+<span class="attr">#[cfg(feature = <span class="string">"tws"</span>)]
+</span><span class="kw">use </span>tokio_websockets::{
+    CloseCode,
+    Error <span class="kw">as </span>TwsError,
+    Limits,
+    MaybeTlsStream,
+    Message,
+    WebSocketStream,
+};
 <span class="kw">use </span>tracing::{debug, instrument};
 <span class="kw">use </span>url::Url;
+
+<span class="attr">#[cfg(any(
+    all(feature = <span class="string">"tws"</span>, feature = <span class="string">"tungstenite"</span>),
+    all(not(feature = <span class="string">"tws"</span>), not(feature = <span class="string">"tungstenite"</span>))
+))]
+</span><span class="macro">compile_error!</span>(<span class="string">"specify one of `features = [\"tungstenite\"]` (recommended w/ serenity) or `features = [\"tws\"]` (recommended w/ twilight)"</span>);
 
 <span class="kw">pub struct </span>WsStream(WebSocketStream&lt;MaybeTlsStream&lt;TcpStream&gt;&gt;);
 
 <span class="kw">impl </span>WsStream {
     <span class="attr">#[instrument]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>connect(url: Url) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>(stream, <span class="kw">_</span>) = tokio_tungstenite::connect_async_with_config::&lt;Url&gt;(
+        <span class="attr">#[cfg(feature = <span class="string">"tungstenite"</span>)]
+        </span><span class="kw">let </span>(stream, <span class="kw">_</span>) = tokio_tungstenite::connect_async_with_config::&lt;Url&gt;(
             url,
             <span class="prelude-val">Some</span>(Config {
                 max_message_size: <span class="prelude-val">None</span>,
@@ -150,6 +235,13 @@
             <span class="bool-val">true</span>,
         )
         .<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="attr">#[cfg(feature = <span class="string">"tws"</span>)]
+        </span><span class="kw">let </span>(stream, <span class="kw">_</span>) = tokio_websockets::ClientBuilder::new()
+            .limits(Limits::unlimited())
+            .uri(url.as_str())
+            .unwrap() <span class="comment">// Any valid URL is a valid URI.
+            </span>.connect()
+            .<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>(stream))
     }
@@ -171,11 +263,12 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>send_json(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Event) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="prelude-val">Ok</span>(<span class="kw">crate</span>::json::to_string(value)
-            .map(Message::Text)
-            .map_err(Error::from)
-            .map(|m| <span class="self">self</span>.<span class="number">0</span>.send(m))<span class="question-mark">?
-            </span>.<span class="kw">await</span><span class="question-mark">?</span>)
+        <span class="kw">let </span>res = <span class="kw">crate</span>::json::to_string(value);
+        <span class="attr">#[cfg(feature = <span class="string">"tungstenite"</span>)]
+        </span><span class="kw">let </span>res = res.map(Message::Text);
+        <span class="attr">#[cfg(feature = <span class="string">"tws"</span>)]
+        </span><span class="kw">let </span>res = res.map(Message::text);
+        <span class="prelude-val">Ok</span>(res.map_err(Error::from).map(|m| <span class="self">self</span>.<span class="number">0</span>.send(m))<span class="question-mark">?</span>.<span class="kw">await</span><span class="question-mark">?</span>)
     }
 }
 
@@ -189,9 +282,15 @@
     /// As a result, only text messages are expected.
     </span>UnexpectedBinaryMessage(Vec&lt;u8&gt;),
 
-    Ws(TungsteniteError),
+    <span class="attr">#[cfg(feature = <span class="string">"tungstenite"</span>)]
+    </span>Ws(TungsteniteError),
+    <span class="attr">#[cfg(feature = <span class="string">"tws"</span>)]
+    </span>Ws(TwsError),
 
-    WsClosed(<span class="prelude-ty">Option</span>&lt;CloseFrame&lt;<span class="lifetime">'static</span>&gt;&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">"tungstenite"</span>)]
+    </span>WsClosed(<span class="prelude-ty">Option</span>&lt;CloseFrame&lt;<span class="lifetime">'static</span>&gt;&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">"tws"</span>)]
+    </span>WsClosed(<span class="prelude-ty">Option</span>&lt;CloseCode&gt;),
 }
 
 <span class="kw">impl </span>From&lt;JsonError&gt; <span class="kw">for </span>Error {
@@ -200,8 +299,16 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;TungsteniteError&gt; <span class="kw">for </span>Error {
+<span class="attr">#[cfg(feature = <span class="string">"tungstenite"</span>)]
+</span><span class="kw">impl </span>From&lt;TungsteniteError&gt; <span class="kw">for </span>Error {
     <span class="kw">fn </span>from(e: TungsteniteError) -&gt; Error {
+        Error::Ws(e)
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"tws"</span>)]
+</span><span class="kw">impl </span>From&lt;TwsError&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(e: TwsError) -&gt; <span class="self">Self </span>{
         Error::Ws(e)
     }
 }
@@ -209,7 +316,8 @@
 <span class="attr">#[inline]
 #[allow(unused_unsafe)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>convert_ws_message(message: <span class="prelude-ty">Option</span>&lt;Message&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Event&gt;&gt; {
-    <span class="prelude-val">Ok</span>(<span class="kw">match </span>message {
+    <span class="attr">#[cfg(feature = <span class="string">"tungstenite"</span>)]
+    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>message {
         <span class="comment">// SAFETY:
         // simd-json::serde::from_str may leave an &amp;mut str in a non-UTF state on failure.
         // The below is safe as we have taken ownership of the inner `String`, and if
@@ -230,6 +338,34 @@
         },
         <span class="comment">// Ping/Pong message behaviour is internally handled by tungstenite.
         </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-    })
+    });
+    <span class="attr">#[cfg(feature = <span class="string">"tws"</span>)]
+    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(message) = message {
+        <span class="kw">if </span>message.is_text() {
+            <span class="kw">let </span><span class="kw-2">mut </span>payload = message.as_text().unwrap().to_owned();
+            <span class="comment">// SAFETY:
+            // simd-json::serde::from_str may leave an &amp;mut str in a non-UTF state on failure.
+            // The below is safe as we have created an owned copy of the payload `&amp;str`, and if
+            // failure occurs we forcibly re-validate its contents before logging.
+            </span>(<span class="kw">unsafe </span>{ <span class="kw">crate</span>::json::from_str(payload.as_mut_str()) })
+                .map_err(|e| {
+                    <span class="kw">let </span>safe_payload = String::from_utf8_lossy(payload.as_bytes());
+                    <span class="macro">debug!</span>(<span class="string">"Unexpected JSON: {e}. Payload: {safe_payload}"</span>);
+                    e
+                })
+                .ok()
+        } <span class="kw">else if </span>message.is_binary() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedBinaryMessage(
+                message.into_payload().to_vec(),
+            ));
+        } <span class="kw">else if </span>message.is_close() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::WsClosed(message.as_close().map(|(c, <span class="kw">_</span>)| c)));
+        } <span class="kw">else </span>{
+            <span class="comment">// ping/pong; will also be internally handled by tokio-websockets
+            </span><span class="prelude-val">None
+        </span>}
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>});
 }
 </code></pre></div></section></main></body></html>
