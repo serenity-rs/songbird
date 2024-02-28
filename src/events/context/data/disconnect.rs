@@ -4,6 +4,7 @@ use crate::{
     model::{CloseCode as VoiceCloseCode, FromPrimitive},
     ws::Error as WsError,
 };
+#[cfg(feature = "tungstenite")]
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 
 /// Voice connection details gathered at termination or failure.
@@ -108,8 +109,14 @@ impl From<&ConnectionError> for DisconnectReason {
 impl From<&WsError> for DisconnectReason {
     fn from(e: &WsError) -> Self {
         Self::WsClosed(match e {
+            #[cfg(feature = "tungstenite")]
             WsError::WsClosed(Some(frame)) => match frame.code {
                 CloseCode::Library(l) => VoiceCloseCode::from_u16(l),
+                _ => None,
+            },
+            #[cfg(feature = "tws")]
+            WsError::WsClosed(Some(code)) => match (*code).into() {
+                code @ 4000..=4999_u16 => VoiceCloseCode::from_u16(code),
                 _ => None,
             },
             _ => None,

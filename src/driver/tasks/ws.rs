@@ -20,6 +20,7 @@ use tokio::{
     select,
     time::{sleep_until, Instant},
 };
+#[cfg(feature = "tungstenite")]
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tracing::{debug, info, instrument, trace, warn};
 
@@ -245,9 +246,20 @@ pub(crate) async fn runner(mut interconnect: Interconnect, mut aux: AuxNetwork) 
 
 fn ws_error_is_not_final(err: &WsError) -> bool {
     match err {
+        #[cfg(feature = "tungstenite")]
         WsError::WsClosed(Some(frame)) => match frame.code {
             CloseCode::Library(l) =>
                 if let Some(code) = VoiceCloseCode::from_u16(l) {
+                    code.should_resume()
+                } else {
+                    true
+                },
+            _ => true,
+        },
+        #[cfg(feature = "tws")]
+        WsError::WsClosed(Some(code)) => match (*code).into() {
+            code @ 4000..=4999_u16 =>
+                if let Some(code) = VoiceCloseCode::from_u16(code) {
                     code.should_resume()
                 } else {
                     true
