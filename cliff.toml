@@ -7,12 +7,12 @@
 body = """
 {% if version %}\
   {%- set versionlink = version -%}
-  {%- set t = timestamp -%}
+  {%- set ts = timestamp -%}
 {% else %}\
   {%- set versionlink = "unreleased" -%}
-  {%- set t = ts -%}
+  {%- set ts = now() -%}
 {% endif %}\
-## [{{ versionlink }}] — {{ t | date(format="%Y-%m-%d") }}
+## [{{ versionlink }}] — {{ ts | date(format="%Y-%m-%d") }}
 
 Thanks to the following for their contributions:
 {% for contributor in github.contributors %}
