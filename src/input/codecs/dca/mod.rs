@@ -109,11 +109,9 @@ impl FormatReader for DcaReader {
                 return symph_err::decode_error("missing DCA1 metadata block");
             }
 
-            let mut raw_json = source.read_boxed_slice_exact(size as usize)?;
+            let raw_json = source.read_boxed_slice_exact(size as usize)?;
 
-            // NOTE: must be mut for simd-json.
-            #[allow(clippy::unnecessary_mut_passed)]
-            let metadata: DcaMetadata = crate::json::from_slice::<DcaMetadata>(&mut raw_json)
+            let metadata: DcaMetadata = serde_json::from_slice::<DcaMetadata>(&raw_json)
                 .map_err(|_| SymphError::DecodeError("malformed DCA1 metadata block"))?;
 
             let mut revision = MetadataBuilder::new();

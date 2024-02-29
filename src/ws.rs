@@ -128,22 +128,10 @@ impl From<TwsError> for Error {
 }
 
 #[inline]
-#[allow(unused_unsafe)]
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     #[cfg(feature = "tungstenite")]
-    return Ok(match message {
-        // SAFETY:
-        // simd-json::serde::from_str may leave an &mut str in a non-UTF state on failure.
-        // The below is safe as we have taken ownership of the inner `String`, and if
-        // failure occurs we forcibly re-validate its contents before logging.
-        Some(Message::Text(mut payload)) =>
-            (unsafe { crate::json::from_str(payload.as_mut_str()) })
-                .map_err(|e| {
-                    let safe_payload = String::from_utf8_lossy(payload.as_bytes());
-                    debug!("Unexpected JSON: {e}. Payload: {safe_payload}");
-                    e
-                })
-                .ok(),
+    let text = match message {
+        Some(Message::Text(ref payload)) => payload,
         Some(Message::Binary(bytes)) => {
             return Err(Error::UnexpectedBinaryMessage(bytes));
         },
@@ -151,34 +139,32 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
             return Err(Error::WsClosed(Some(frame)));
         },
         // Ping/Pong message behaviour is internally handled by tungstenite.
-        _ => None,
-    });
+        _ => return Ok(None),
+    };
     #[cfg(feature = "tws")]
-    return Ok(if let Some(message) = message {
-        if message.is_text() {
-            let mut payload = message.as_text().unwrap().to_owned();
-            // SAFETY:
-            // simd-json::serde::from_str may leave an &mut str in a non-UTF state on failure.
-            // The below is safe as we have created an owned copy of the payload `&str`, and if
-            // failure occurs we forcibly re-validate its contents before logging.
-            (unsafe { crate::json::from_str(payload.as_mut_str()) })
-                .map_err(|e| {
-                    let safe_payload = String::from_utf8_lossy(payload.as_bytes());
-                    debug!("Unexpected JSON: {e}. Payload: {safe_payload}");
-                    e
-                })
-                .ok()
-        } else if message.is_binary() {
+    let text = match message {
+        Some(ref message) if message.is_text() =>
+            if let Some(text) = message.as_text() {
+                text
+            } else {
+                return Ok(None);
+            },
+        Some(message) if message.is_binary() => {
             return Err(Error::UnexpectedBinaryMessage(
                 message.into_payload().to_vec(),
             ));
-        } else if message.is_close() {
+        },
+        Some(message) if message.is_close() => {
             return Err(Error::WsClosed(message.as_close().map(|(c, _)| c)));
-        } else {
-            // ping/pong; will also be internally handled by tokio-websockets
-            None
-        }
-    } else {
-        None
-    });
+        },
+        // ping/pong; will also be internally handled by tokio-websockets.
+        _ => return Ok(None),
+    };
+
+    Ok(serde_json::from_str(text)
+        .map_err(|e| {
+            debug!("Unexpected JSON: {e}. Payload: {text}");
+            e
+        })
+        .ok())
 }

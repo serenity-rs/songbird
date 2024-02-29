@@ -130,7 +130,7 @@ impl<'a> YoutubeDl<'a> {
             "--no-playlist",
         ];
 
-        let mut output = Command::new(self.program)
+        let output = Command::new(self.program)
             .args(ytdl_args)
             .output()
             .await
@@ -153,11 +153,11 @@ impl<'a> YoutubeDl<'a> {
             ));
         }
 
-        // NOTE: must be split_mut for simd-json.
         let out = output
             .stdout
-            .split_mut(|&b| b == b'\n')
-            .filter_map(|x| (!x.is_empty()).then(|| crate::json::from_slice(x)))
+            .split(|&b| b == b'\n')
+            .filter(|&x| (!x.is_empty()))
+            .map(|x| serde_json::from_slice(x))
             .collect::<Result<Vec<Output>, _>>()
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 

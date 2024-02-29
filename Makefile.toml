@@ -8,12 +8,6 @@ args = ["fmt", "--all"]
 args = ["build", "--features", "full-doc"]
 dependencies = ["format"]
 
-[tasks.build-simd]
-args = ["build", "--features", "full-doc,simd-json,serenity?/simd_json,twilight-gateway?/simd-json"]
-command = "cargo"
-dependencies = ["format"]
-env = { "RUSTFLAGS" = "-C target-cpu=native" }
-
 [tasks.build-examples]
 args = ["build", "--manifest-path", "./examples/Cargo.toml", "--workspace"]
 command = "cargo"
@@ -42,11 +36,6 @@ dependencies = ["format"]
 
 [tasks.test]
 args = ["test", "--features", "full-doc", "--", "--include-ignored"]
-
-[tasks.test-simd]
-args = ["test", "--features", "full-doc,simd-json,serenity?/simd_json,twilight-gateway?/simd-json"]
-command = "cargo"
-env = { "RUSTFLAGS" = "-C target-cpu=native" }
 
 [tasks.bench]
 description = "Runs performance benchmarks."
