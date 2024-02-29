@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/ws.rs`."><title>ws.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (ef324565d 2024-02-27)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-12cf3b4f4f9dc36d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/ws.rs`."><title>ws.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e935ef01ae1c1829.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.78.0-nightly (c475e2303 2024-02-28)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-12cf3b4f4f9dc36d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
     <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../songbird/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
@@ -170,20 +170,6 @@
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{error::JsonError, model::Event};
 
 <span class="kw">use </span>futures::{SinkExt, StreamExt, TryStreamExt};
@@ -314,22 +300,10 @@
 }
 
 <span class="attr">#[inline]
-#[allow(unused_unsafe)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>convert_ws_message(message: <span class="prelude-ty">Option</span>&lt;Message&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Event&gt;&gt; {
     <span class="attr">#[cfg(feature = <span class="string">"tungstenite"</span>)]
-    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>message {
-        <span class="comment">// SAFETY:
-        // simd-json::serde::from_str may leave an &amp;mut str in a non-UTF state on failure.
-        // The below is safe as we have taken ownership of the inner `String`, and if
-        // failure occurs we forcibly re-validate its contents before logging.
-        </span><span class="prelude-val">Some</span>(Message::Text(<span class="kw-2">mut </span>payload)) =&gt;
-            (<span class="kw">unsafe </span>{ <span class="kw">crate</span>::json::from_str(payload.as_mut_str()) })
-                .map_err(|e| {
-                    <span class="kw">let </span>safe_payload = String::from_utf8_lossy(payload.as_bytes());
-                    <span class="macro">debug!</span>(<span class="string">"Unexpected JSON: {e}. Payload: {safe_payload}"</span>);
-                    e
-                })
-                .ok(),
+    </span><span class="kw">let </span>text = <span class="kw">match </span>message {
+        <span class="prelude-val">Some</span>(Message::Text(<span class="kw-2">ref </span>payload)) =&gt; payload,
         <span class="prelude-val">Some</span>(Message::Binary(bytes)) =&gt; {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedBinaryMessage(bytes));
         },
@@ -337,35 +311,33 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::WsClosed(<span class="prelude-val">Some</span>(frame)));
         },
         <span class="comment">// Ping/Pong message behaviour is internally handled by tungstenite.
-        </span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-    });
+        </span><span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+    };
     <span class="attr">#[cfg(feature = <span class="string">"tws"</span>)]
-    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(message) = message {
-        <span class="kw">if </span>message.is_text() {
-            <span class="kw">let </span><span class="kw-2">mut </span>payload = message.as_text().unwrap().to_owned();
-            <span class="comment">// SAFETY:
-            // simd-json::serde::from_str may leave an &amp;mut str in a non-UTF state on failure.
-            // The below is safe as we have created an owned copy of the payload `&amp;str`, and if
-            // failure occurs we forcibly re-validate its contents before logging.
-            </span>(<span class="kw">unsafe </span>{ <span class="kw">crate</span>::json::from_str(payload.as_mut_str()) })
-                .map_err(|e| {
-                    <span class="kw">let </span>safe_payload = String::from_utf8_lossy(payload.as_bytes());
-                    <span class="macro">debug!</span>(<span class="string">"Unexpected JSON: {e}. Payload: {safe_payload}"</span>);
-                    e
-                })
-                .ok()
-        } <span class="kw">else if </span>message.is_binary() {
+    </span><span class="kw">let </span>text = <span class="kw">match </span>message {
+        <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>message) <span class="kw">if </span>message.is_text() =&gt;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = message.as_text() {
+                text
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            },
+        <span class="prelude-val">Some</span>(message) <span class="kw">if </span>message.is_binary() =&gt; {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnexpectedBinaryMessage(
                 message.into_payload().to_vec(),
             ));
-        } <span class="kw">else if </span>message.is_close() {
+        },
+        <span class="prelude-val">Some</span>(message) <span class="kw">if </span>message.is_close() =&gt; {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::WsClosed(message.as_close().map(|(c, <span class="kw">_</span>)| c)));
-        } <span class="kw">else </span>{
-            <span class="comment">// ping/pong; will also be internally handled by tokio-websockets
-            </span><span class="prelude-val">None
-        </span>}
-    } <span class="kw">else </span>{
-        <span class="prelude-val">None
-    </span>});
+        },
+        <span class="comment">// ping/pong; will also be internally handled by tokio-websockets.
+        </span><span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+    };
+
+    <span class="prelude-val">Ok</span>(serde_json::from_str(text)
+        .map_err(|e| {
+            <span class="macro">debug!</span>(<span class="string">"Unexpected JSON: {e}. Payload: {text}"</span>);
+            e
+        })
+        .ok())
 }
 </code></pre></div></section></main></body></html>
