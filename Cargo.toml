@@ -11,7 +11,7 @@ name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
 rust-version = "1.74"
-version = "0.4.0"
+version = "0.4.1"
 
 [dependencies]
 async-trait = { optional = true, version = "0.1" }

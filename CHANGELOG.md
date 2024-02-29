@@ -1,6 +1,29 @@
 # Changelog
 
-## [0.4.0] — 2023-11-27 — **Nightingale**
+## [v0.4.1] — 2024-02-29
+
+This patch release includes several fixes to how audio tasks behave when moved between channels, and prevents a crash on zero-length packets in 48kHz Ogg Vorbis files.
+We've also added to `YoutubeDl` so you can now make use of ytdl's built-in search functionality.
+
+Thanks to the following for their contributions:
+
+- [@FelixMcFelix]
+- [@GnomedDev]
+- [@cycle-five]
+
+### Added
+- Input: Add ytdl search ([@cycle-five]) [c:d681b71]
+
+### Changed
+- Chore: Initial git-cliff config ([@FelixMcFelix]) [c:cdb2df6]
+- Chore: update tokio-tungstenite ([@FelixMcFelix]) [c:4d67a73]
+
+### Fixed
+- Move empty packet check to also cover 48kHz audio ([@FelixMcFelix]) [c:873fb68]
+- Driver: Fix transition to Live on connect ([@FelixMcFelix]) [c:087e5f2]
+- Fix clippy warnings ([@GnomedDev]) [c:1b98c30]
+
+## [v0.4.0] — 2023-11-27 — **Nightingale**
 
 Possessing a beautiful, creative, and evocative song through both night and day, the humble Nightingale has long been seen as a symbol of poetry and love.
 
@@ -138,7 +161,7 @@ Thanks to the following for their contributions:
 - [docs] Events: Fix typo in docs for VoiceData (#142) ([@tazz4843]) [c:6769131]
 - [docs] Docs: Fix module docs for `songbird::tracks`. ([@FelixMcFelix]) [c:c1d93f7]
 
-## [0.3.2] — 2023-04-09
+## [v0.3.2] — 2023-04-09
 
 This patch release fixes a WS disconnection that would occur when receiving a
 new opcode, which was happening due to Discord sending such an opcode upon
@@ -154,7 +177,7 @@ Thanks to the following for their contributions:
 - [gateway] Songbird would fail if it could not deserialize ws payload ([@Erk-]) [c:752cae7]
 - [docs] Fix compilation due to ambiguous reference ([@FelixMcFelix]) [c:e5d3feb]
 
-## [0.3.1] — 2023-03-02
+## [v0.3.1] — 2023-03-02
 
 This patch release applies some minor fixes, while correcting documentation errors and adjusting some organisaation in the repository.
 
@@ -176,7 +199,7 @@ Thanks to the following for their contributions:
 - [docs] Docs: Fix wrong docstring for Track::volume (#152) ([@btoschek]) [c:a2f55b7]
 - [docs] Events: Fix typo in docs for VoiceData (#142) ([@tazz4843]) [c:dc53087]
 
-## [0.3.0] — 2022-07-22 — **Chaffinch**
+## [v0.3.0] — 2022-07-22 — **Chaffinch**
 
 Abundant and ever-curious, chaffinches are a vibrant and welcome visitor in these spring and summer months.
 
@@ -231,7 +254,7 @@ Thanks to the following for their contributions:
 - [driver] Driver, Gateway: Remove tokio 0.2 support (#118) ([@GnomedDev]) [c:f2cd8a0]
 - [events] Events: Remove deprecated events. (#115) ([@FelixMcFelix]) [c:ac20764]
 
-## [0.2.2] — 2022-02-13
+## [v0.2.2] — 2022-02-13
 
 This patch release makes it easier to create new `ChildContainer`s, and deprecates the `ClientConnect` event. Users should instead make use of `SpeakingStateUpdate` events and Discord gateway events.
 
@@ -254,7 +277,7 @@ Thanks to the following for their contributions:
 - [docs] Docs: fix ClientConnect to recommend `SpeakingStateUpdate` ([@FelixMcFelix]) [c:652ec1f]
 - [repo] Chore: Fix typo in CHANGELOG.md (#111) ([@reiyw]) [c:2feadc7]
 
-## [0.2.1] — 2022-01-05
+## [v0.2.1] — 2022-01-05
 
 This patch release adds support for the `yt-dlp` fork of `youtube-dl`, and fixes track events to correctly fire events when multiple timed handlers are present on a track.
 
@@ -275,7 +298,7 @@ Thanks to the following for their contributions:
 - [docs] Examples: Fix unmatched quotation mark in comment. (#101) ([@lajp]) [c:62ecfe6]
 - [events] Events: fix handling of multiple timed events on a single track (#96) ([@FelixMcFelix]) [c:e25cc14]
 
-## [0.2.0] — 2021-08-17 — **Magpie**
+## [v0.2.0] — 2021-08-17 — **Magpie**
 
 Magpies are a common sight year-round; strong, intelligent, industrious, and loyal.
 
@@ -339,7 +362,7 @@ Thanks to the following for their contributions:
 - [fmt] Chore: Fix clippy warnings (useless clones). ([@FelixMcFelix]) [c:21b8383]
 - [gateway] Gateway: Fix repeat joins on same channel from stalling (#47) ([@FelixMcFelix]) [c:95dd19e]
 
-## [0.1.8] — 2021-07-01
+## [v0.1.8] — 2021-07-01
 
 This release patches a metadata parsing panic caused by Ogg files with negative start times.
 
@@ -351,7 +374,7 @@ Thanks to the following for their contributions:
 
 - [input] Input: Fix Duration underflow on negative start time (#83) ([@JellyWX]) [c:e58cadb]
 
-## [0.1.7] — 2021-06-14
+## [v0.1.7] — 2021-06-14
 
 This release mainly patches an occasionally spinning task, due to a critical WebSocket read error.
 
@@ -370,7 +393,7 @@ And special thanks to [@jtscuba] and [@JellyWX] for their efforts in reproducing
 
 - [driver] Driver: Fix for busy-wait in WS thread. (#78) ([@FelixMcFelix]) [c:b925309]
 
-## [0.1.6] — 2021-04-11
+## [v0.1.6] — 2021-04-11
 
 This patch release fixes a driver crash on leaving a channel, adds a utility method for requesting the current channel ID, and limits a sub-dependency to ensure compatibility with Rust v1.48.0.
 
@@ -388,7 +411,7 @@ Thanks to the following for their contributions:
 - [deps] Deps: Prevent MSRV breakage via `spinning_top` (#64) ([@FelixMcFelix]) [c:a88b185]
 - [driver] Driver: Fix crash on `.leave()` (#63) ([@FelixMcFelix]) [c:24d8da6]
 
-## [0.1.5] — 2021-03-23
+## [v0.1.5] — 2021-03-23
 
 This patch release adds bugfixes for incorrect seeking in Restartable sources and resource usage of inactive `Driver`s, as well as some utility methods and reduced logging.
 
@@ -413,7 +436,7 @@ Thanks to the following for their contributions:
 - [input] Fix input source timestamp pre-input argument decimal formatting (#45) ([@DasEtwas]) [c:c488ce3]
 - [examples] Break reference cycle in voice storage example (#44) ([@FelixMcFelix]) [c:b9a926c]
 
-## [0.1.4] — 2021-02-10
+## [v0.1.4] — 2021-02-10
 
 This patch release updates introduces a new event type, to expose a driver's SSRC externally on connect.
 
@@ -430,7 +453,7 @@ Thanks to the following for their contributions:
 
 - [deps] Deps: Update async-tungstenite -> 0.12 ([@FelixMcFelix]) [c:a40fac3]
 
-## [0.1.3] — 2021-02-04
+## [v0.1.3] — 2021-02-04
 
 This patch release corrects the process drop logic to cleanup *all* chained child processes, and for `Input`s to be safe to drop in async contexts. Additionally, this adds backwards-compatibility for Tokio 0.2 in serenity-based bots.
 
@@ -447,7 +470,7 @@ Thanks to the following for their contributions:
 
 - [input] Fix: hand off process killing to blocking thread, await all children. ([@FelixMcFelix]) [c:b245309]
 
-## [0.1.2] — 2021-01-26
+## [v0.1.2] — 2021-01-26
 
 This patch release fixes a PID/zombie process leak affecting bots running on Linux/Mac, and prevents youtube-dl warnings from being converted into fatal errors.
 
@@ -467,7 +490,7 @@ Thanks to the following for their contributions:
 - [driver] Input & Driver: Fix zombie processes on Unix (#39) ([@FelixMcFelix]) [c:fe2282c]
 - [input] Fix: Prevent ytdl treating warnings as errors. ([@FelixMcFelix]) [c:658fd83]
 
-## [0.1.1] — 2021-01-17
+## [v0.1.1] — 2021-01-17
 
 This is a short patch release, fixing some error message spam under network failures, adding some new convenience event classes, as well as making it easier to cancel many event handlers.
 
@@ -485,7 +508,7 @@ Thanks to the following for their contributions:
 
 - [driver] Driver: Fix noisy errors, UDP message send failure spam. ([@FelixMcFelix]) [c:dcb6ad9]
 
-## [0.1.0] — 2021-01-08 — **Robin**
+## [v0.1.0] — 2021-01-08 — **Robin**
 
 We're very excited to publish and announce the first release of Songbird, an async Rust voice library for Discord!
 It's been a long time coming, but all the hard work has paid off in bringing the first version of this library to completion.
@@ -574,22 +597,23 @@ We'd also like to thank all users who have contributed to this module in the pas
 - [driver] Handle Voice close codes, prevent Songbird spinning WS threads (#1068) ([@FelixMcFelix]) [c:26c9c91]
 
 <!-- COMPARISONS -->
-[0.4.0]: https://github.com/serenity-rs/songbird/compare/v0.3.2...v0.4.0
-[0.3.2]: https://github.com/serenity-rs/songbird/compare/v0.3.1...v0.3.2
-[0.3.1]: https://github.com/serenity-rs/songbird/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/serenity-rs/songbird/compare/v0.2.2...v0.3.0
-[0.2.2]: https://github.com/serenity-rs/songbird/compare/v0.2.1...v0.2.2
-[0.2.1]: https://github.com/serenity-rs/songbird/compare/v0.2.0...v0.2.1
-[0.2.0]: https://github.com/serenity-rs/songbird/compare/v0.1.8...v0.2.0
-[0.1.8]: https://github.com/serenity-rs/songbird/compare/v0.1.7...v0.1.8
-[0.1.7]: https://github.com/serenity-rs/songbird/compare/v0.1.6...v0.1.7
-[0.1.6]: https://github.com/serenity-rs/songbird/compare/v0.1.5...v0.1.6
-[0.1.5]: https://github.com/serenity-rs/songbird/compare/v0.1.4...v0.1.5
-[0.1.4]: https://github.com/serenity-rs/songbird/compare/v0.1.3...v0.1.4
-[0.1.3]: https://github.com/serenity-rs/songbird/compare/v0.1.2...v0.1.3
-[0.1.2]: https://github.com/serenity-rs/songbird/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/serenity-rs/songbird/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/serenity-rs/songbird/compare/v0.0.1...v0.1.0
+[v0.4.1]: https://github.com/serenity-rs/songbird/compare/v0.4.0...v0.4.1
+[v0.4.0]: https://github.com/serenity-rs/songbird/compare/v0.3.2...v0.4.0
+[v0.3.2]: https://github.com/serenity-rs/songbird/compare/v0.3.1...v0.3.2
+[v0.3.1]: https://github.com/serenity-rs/songbird/compare/v0.3.0...v0.3.1
+[v0.3.0]: https://github.com/serenity-rs/songbird/compare/v0.2.2...v0.3.0
+[v0.2.2]: https://github.com/serenity-rs/songbird/compare/v0.2.1...v0.2.2
+[v0.2.1]: https://github.com/serenity-rs/songbird/compare/v0.2.0...v0.2.1
+[v0.2.0]: https://github.com/serenity-rs/songbird/compare/v0.1.8...v0.2.0
+[v0.1.8]: https://github.com/serenity-rs/songbird/compare/v0.1.7...v0.1.8
+[v0.1.7]: https://github.com/serenity-rs/songbird/compare/v0.1.6...v0.1.7
+[v0.1.6]: https://github.com/serenity-rs/songbird/compare/v0.1.5...v0.1.6
+[v0.1.5]: https://github.com/serenity-rs/songbird/compare/v0.1.4...v0.1.5
+[v0.1.4]: https://github.com/serenity-rs/songbird/compare/v0.1.3...v0.1.4
+[v0.1.3]: https://github.com/serenity-rs/songbird/compare/v0.1.2...v0.1.3
+[v0.1.2]: https://github.com/serenity-rs/songbird/compare/v0.1.1...v0.1.2
+[v0.1.1]: https://github.com/serenity-rs/songbird/compare/v0.1.0...v0.1.1
+[v0.1.0]: https://github.com/serenity-rs/songbird/compare/v0.0.1...v0.1.0
 
 <!-- AUTHORS -->
 [@acdenisSK]: https://github.com/acdenisSK
@@ -597,6 +621,7 @@ We'd also like to thank all users who have contributed to this module in the pas
 [@asg051]: https://github.com/asg051
 [@btoschek]: https://github.com/btoschek
 [@clarity0]: https://github.com/clarity0
+[@cycle-five]: https://github.com/cycle-five
 [@DasEtwas]: https://github.com/DasEtwas
 [@DoumanAsh]: https://github.com/DoumanAsh
 [@Elinvynia]: https://github.com/Elinvynia
@@ -843,3 +868,10 @@ We'd also like to thank all users who have contributed to this module in the pas
 [c:26c9c91]: https://github.com/serenity-rs/songbird/commit/26c9c9117c5c71fc0a3d654ad4cef70f60beb878
 [c:38a55da]: https://github.com/serenity-rs/songbird/commit/38a55da88bb61d862fa471e2d7b9a222c230f1cb
 [c:7e4392a]: https://github.com/serenity-rs/songbird/commit/7e4392ae68f97311f2389fdf8835e70a25912ff3
+[c:8ead154]: https://github.com/serenity-rs/songbird/commit/8ead154a6957fc50819db1a9b9191d231f4ba9f5
+[c:cdb2df6]: https://github.com/serenity-rs/songbird/commit/cdb2df69c72728cf41999f10ae9d944720b41022
+[c:4d67a73]: https://github.com/serenity-rs/songbird/commit/4d67a7385142a8a195afe22e694f9e2d563c034c
+[c:873fb68]: https://github.com/serenity-rs/songbird/commit/873fb68726b6f35a053d173511ec1150e797b97f
+[c:087e5f2]: https://github.com/serenity-rs/songbird/commit/087e5f2292b2c82249f579e1286a1c985654222d
+[c:1b98c30]: https://github.com/serenity-rs/songbird/commit/1b98c307466875cb72306d71c97abb38afd50a48
+[c:d681b71]: https://github.com/serenity-rs/songbird/commit/d681b71b1f29dba7a8ac4fc6257529325763992b
