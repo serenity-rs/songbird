@@ -112,7 +112,6 @@ impl FormatReader for DcaReader {
 
             let raw_json = source.read_boxed_slice_exact(size as usize)?;
 
-            #[allow(clippy::unnecessary_mut_passed)]
             let metadata: DcaMetadata = serde_json::from_slice::<DcaMetadata>(&raw_json)
                 .map_err(|_| SymphError::DecodeError("malformed DCA1 metadata block"))?;
 
