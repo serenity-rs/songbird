@@ -29,7 +29,7 @@ use twilight_model::gateway::payload::outgoing::update_voice_state::UpdateVoiceS
 #[cfg(feature = "twilight")]
 #[derive(Debug)]
 pub struct TwilightMap {
-    map: std::collections::HashMap<u64, MessageSender>,
+    map: std::collections::HashMap<u32, MessageSender>,
 }
 
 #[cfg(feature = "twilight")]
@@ -38,13 +38,13 @@ impl TwilightMap {
     ///
     /// For correctness all shards should be in the map.
     #[must_use]
-    pub fn new(map: std::collections::HashMap<u64, MessageSender>) -> Self {
+    pub fn new(map: std::collections::HashMap<u32, MessageSender>) -> Self {
         TwilightMap { map }
     }
 
     /// Get the message sender for `shard_id`.
     #[must_use]
-    pub fn get(&self, shard_id: u64) -> Option<&MessageSender> {
+    pub fn get(&self, shard_id: u32) -> Option<&MessageSender> {
         self.map.get(&shard_id)
     }
 
@@ -90,7 +90,7 @@ impl Sharder {
                 s.get_or_insert_shard_handle(shard_id as u32),
             )),
             #[cfg(feature = "twilight")]
-            Sharder::Twilight(t) => Some(Shard::Twilight(t.clone(), shard_id)),
+            Sharder::Twilight(t) => Some(Shard::Twilight(t.clone(), shard_id as u32)),
             Sharder::Generic(src) => src.get_shard(shard_id).map(Shard::Generic),
         }
     }
@@ -156,7 +156,7 @@ pub enum Shard {
     Serenity(Arc<SerenityShardHandle>),
     #[cfg(feature = "twilight")]
     /// Handle to a map of twilight command senders.
-    Twilight(Arc<TwilightMap>, u64),
+    Twilight(Arc<TwilightMap>, u32),
     /// Handle to a generic shard instance.
     Generic(#[derivative(Debug = "ignore")] Arc<dyn VoiceUpdate + Send + Sync>),
 }

@@ -9,7 +9,7 @@ use serenity::gateway::ShardRunnerMessage;
 #[cfg(feature = "gateway")]
 use std::{error::Error, fmt};
 #[cfg(feature = "twilight")]
-use twilight_gateway::error::SendError;
+use twilight_gateway::error::ChannelError;
 
 #[cfg(feature = "gateway")]
 #[derive(Debug)]
@@ -49,7 +49,7 @@ pub enum JoinError {
     Serenity(Box<TrySendError<ShardRunnerMessage>>),
     #[cfg(feature = "twilight")]
     /// Twilight-specific WebSocket send error when a message fails to send over websocket.
-    Twilight(SendError),
+    Twilight(ChannelError),
 }
 
 #[cfg(feature = "gateway")]
@@ -122,8 +122,8 @@ impl From<Box<TrySendError<ShardRunnerMessage>>> for JoinError {
 }
 
 #[cfg(all(feature = "twilight", feature = "gateway"))]
-impl From<SendError> for JoinError {
-    fn from(e: SendError) -> Self {
+impl From<ChannelError> for JoinError {
+    fn from(e: ChannelError) -> Self {
         JoinError::Twilight(e)
     }
 }
