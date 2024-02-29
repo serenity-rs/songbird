@@ -48,7 +48,7 @@ symphonia = { default-features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tokio-tungstenite = { optional = true, version = "0.21" }
-tokio-websockets = { optional = true, version = "0.5", features = ["client", "fastrand", "sha1_smol", "simd"] }
+tokio-websockets = { optional = true, version = "0.7", features = ["client", "fastrand", "sha1_smol", "simd"] }
 tokio-util = { features = ["io"], optional = true, version = "0.7" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
