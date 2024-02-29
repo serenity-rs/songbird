@@ -35,7 +35,6 @@ jobs:
           - Windows
           - driver only
           - gateway only
-          - simd json
         include:
           - name: beta
             toolchain: beta
@@ -52,10 +51,6 @@ jobs:
             dont-test: true
           - name: gateway only
             features: gateway serenity tungstenite rustls
-            dont-test: true
-          - name: simd json
-            features: simd-json serenity tungstenite rustls driver gateway serenity?/simd_json
-            rustflags: -C target-cpu=native
             dont-test: true
     steps:
       - name: Checkout sources

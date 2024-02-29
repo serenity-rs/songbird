@@ -13,7 +13,6 @@ The library offers:
  a `ConnectionInfo` using any other gateway, or language for your bot, then you
  can run the songbird voice driver.
  * Voice receive and RT(C)P packet handling via the `"receive"` feature.
- * SIMD-accelerated JSON decoding via the `"simd-json"` feature.
  * And, by default, a fully featured voice system featuring events, queues,
  seeking on compatible streams, shared multithreaded audio stream caches,
  and direct Opus data passthrough from DCA files.
