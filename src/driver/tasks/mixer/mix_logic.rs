@@ -77,7 +77,7 @@ pub fn mix_symph_indiv(
                     // seen. The main one is that most Opus tracks end on a sub-20ms
                     // frame, particularly on Youtube.
                     // However, a frame that's bigger than the target buffer is an instant block.
-                    let buf_size_fatal = buf.len() <= slot.len();
+                    let buf_size_fatal = buf.len() >= slot.len();
 
                     if match sample_ct {
                         Ok(MONO_FRAME_SIZE) => true,
