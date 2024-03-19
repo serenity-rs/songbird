@@ -109,7 +109,7 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                     drop(interconnect.events.send(EventMessage::FireCoreEvent(
                         CoreContext::DriverDisconnect(InternalDisconnect {
                             kind: DisconnectKind::Runtime,
-                            reason: None,
+                            reason: Some(DisconnectReason::Requested),
                             info: conn.info.clone(),
                         }),
                     )));
@@ -120,21 +120,26 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
                 // (i.e., prevent users from mistakenly trying to reconnect for an *old* dead conn).
                 // if it *is* a match, the conn needs to die!
                 // (as the WS channel has truly given up the ghost).
-                if ws_idx == attempt_idx {
-                    connection = None;
+                let conn = if ws_idx == attempt_idx {
                     drop(interconnect.mixer.send(MixerMessage::DropConn));
                     drop(interconnect.mixer.send(MixerMessage::RebuildEncoder));
+                    connection.take()
                 } else {
                     reason = None;
-                }
+                    None
+                };
 
-                drop(interconnect.events.send(EventMessage::FireCoreEvent(
-                    CoreContext::DriverDisconnect(InternalDisconnect {
-                        kind: DisconnectKind::Runtime,
-                        reason,
-                        info: ws_info,
-                    }),
-                )));
+                // Conn may have been unset earlier (i.e., in a deliberate disconnect).
+                // If so, do not repropagate/repeat the disconnect event.
+                if conn.is_some() {
+                    drop(interconnect.events.send(EventMessage::FireCoreEvent(
+                        CoreContext::DriverDisconnect(InternalDisconnect {
+                            kind: DisconnectKind::Runtime,
+                            reason,
+                            info: ws_info,
+                        }),
+                    )));
+                }
             },
             CoreMessage::SetTrack(s) => {
                 drop(interconnect.mixer.send(MixerMessage::SetTrack(s)));

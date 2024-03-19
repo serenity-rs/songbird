@@ -75,6 +75,10 @@ pub enum DisconnectReason {
     ProtocolViolation,
     /// A voice connection was not established in the specified time.
     TimedOut,
+    /// The call was manually disconnected by a user command, e.g. [`Driver::leave`].
+    ///
+    /// [`Driver::leave`]: crate::driver::Driver::leave
+    Requested,
     /// The Websocket connection was closed by Discord.
     ///
     /// This typically indicates that the voice session has expired,
