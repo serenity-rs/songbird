@@ -18,7 +18,7 @@ mod decode_mode;
 mod mix_mode;
 pub mod retry;
 mod scheduler;
-pub mod tasks;
+pub(crate) mod tasks;
 #[cfg(test)]
 pub(crate) mod test_config;
 #[cfg(any(test, feature = "internals"))]
