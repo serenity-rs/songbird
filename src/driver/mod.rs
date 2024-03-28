@@ -64,6 +64,8 @@ use core::{
 use flume::{r#async::RecvFut, SendError, Sender};
 #[cfg(feature = "builtin-queue")]
 use std::time::Duration;
+#[allow(unused_imports)]
+pub use tasks::disposal::DisposalThread;
 use tasks::message::CoreMessage;
 use tracing::instrument;
 
