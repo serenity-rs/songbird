@@ -12,6 +12,7 @@ impl Default for DisposalThread {
 }
 
 impl DisposalThread {
+    #[must_use]
     pub fn run() -> Self {
         let (mix_tx, mix_rx) = flume::unbounded();
         std::thread::spawn(move || {
