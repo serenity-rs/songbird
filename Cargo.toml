@@ -29,9 +29,9 @@ nohash-hasher = { optional = true, version = "0.2.0" }
 parking_lot = { optional = true, version = "0.12" }
 pin-project = "1"
 rand = { optional = true, version = "0.8" }
-reqwest = { default-features = false, features = ["stream"], optional = true, version = "0.11" }
+reqwest = { default-features = false, features = ["stream"], optional = true, version = "0.12.2" }
 ringbuf = { optional = true, version = "0.3" }
-rubato = { optional = true, version = "0.14.1" }
+rubato = { optional = true, version = "0.15.0" }
 rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
 serde-aux = { optional = true, version = "4"}
