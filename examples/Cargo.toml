@@ -9,7 +9,7 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-reqwest = "0.11"
+reqwest = "0.12"
 serenity = { features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"], version = "0.12" }
 songbird = { path = "../", version = "0.4" }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac"], version = "0.5.2" }

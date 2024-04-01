@@ -24,7 +24,11 @@ chacha20poly1305 = { optional = true, version = "0.10.1" }
 crypto_secretbox = { optional = true, features = ["std"], version = "0.1" }
 dashmap = { optional = true, version = "5" }
 derivative = "2"
-discortp = { default-features = false, features = ["discord", "pnet", "rtp"], optional = true, version = "0.6" }
+discortp = { default-features = false, features = [
+    "discord",
+    "pnet",
+    "rtp",
+], optional = true, version = "0.6" }
 either = "1.9.0"
 flume = { optional = true, version = "0.11" }
 futures = "0.3"
@@ -32,23 +36,33 @@ nohash-hasher = { optional = true, version = "0.2.0" }
 parking_lot = { optional = true, version = "0.12" }
 pin-project = "1"
 rand = { optional = true, version = "0.8" }
-reqwest = { default-features = false, features = ["stream"], optional = true, version = "0.11" }
+reqwest = { default-features = false, features = [
+    "stream",
+], optional = true, version = "0.12.2" }
 ringbuf = { optional = true, version = "0.4" }
 rubato = { optional = true, version = "0.15" }
 rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
-serde-aux = { optional = true, version = "4"}
+serde-aux = { optional = true, version = "4" }
 serde_json = "1"
-serenity = { default-features = false, optional = true, version = "0.12.0", features = ["voice", "gateway"] }
+serenity = { default-features = false, optional = true, version = "0.12.0", features = [
+    "voice",
+    "gateway",
+] }
 serenity-voice-model = { optional = true, version = "0.2" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
-stream_lib = { default-features = false, optional = true, version = "0.4.2" }
+stream_lib = { default-features = false, optional = true, version = "0.5.2" }
 symphonia = { default-features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tokio-tungstenite = { optional = true, version = "0.21" }
-tokio-websockets = { optional = true, version = "0.7", features = ["client", "fastrand", "sha1_smol", "simd"] }
+tokio-websockets = { optional = true, version = "0.7", features = [
+    "client",
+    "fastrand",
+    "sha1_smol",
+    "simd",
+] }
 tokio-util = { features = ["io"], optional = true, version = "0.7" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
@@ -67,13 +81,7 @@ tokio = { version = "1", features = ["rt", "rt-multi-thread", "test-util"] }
 
 [features]
 # Core features
-default = [
-    "driver",
-    "gateway",
-    "rustls",
-    "serenity",
-    "tungstenite"
-]
+default = ["driver", "gateway", "rustls", "serenity", "tungstenite"]
 gateway = [
     "dep:async-trait",
     "dep:dashmap",
@@ -141,7 +149,7 @@ native = [
 ]
 tungstenite = ["dep:tokio-tungstenite"]
 tws = ["dep:tokio-websockets"]
-twilight = ["dep:twilight-gateway","dep:twilight-model"]
+twilight = ["dep:twilight-gateway", "dep:twilight-model"]
 
 # Behaviour altering features.
 builtin-queue = []
