@@ -1,5 +1,3 @@
-use std::num::NonZeroUsize;
-
 use super::*;
 
 /// Configuration for how a [`Scheduler`] handles tasks.

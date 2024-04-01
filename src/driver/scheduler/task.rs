@@ -38,6 +38,7 @@ impl<T> IsEnabled for ResId<T> {}
 
 #[allow(missing_docs)]
 impl<T: Copy> ResId<T> {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -49,6 +50,7 @@ impl<T: Copy> ResId<T> {
     }
 
     #[cfg(any(test, feature = "internals"))]
+    #[must_use]
     pub fn get(self) -> u64 {
         self.0
     }
@@ -88,6 +90,7 @@ pub struct ParkedMixer {
 #[allow(missing_docs)]
 impl ParkedMixer {
     /// Create a new `Mixer` in a parked state.
+    #[must_use]
     pub fn new(mix_rx: Receiver<MixerMessage>, interconnect: Interconnect, config: Config) -> Self {
         Self {
             mixer: Box::new(Mixer::new(mix_rx, Handle::current(), interconnect, config)),

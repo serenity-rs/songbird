@@ -3,11 +3,9 @@ use crate::{
     constants::*,
     driver::{
         tasks::error::{Error, Result},
-        CryptoMode,
         DecodeMode,
     },
     events::context_data::{RtpData, VoiceData},
-    Config,
 };
 use audiopus::{
     coder::Decoder as OpusDecoder,
@@ -15,13 +13,7 @@ use audiopus::{
     packet::Packet as OpusPacket,
     Channels,
 };
-use discortp::{
-    rtp::{RtpExtensionPacket, RtpPacket},
-    Packet,
-    PacketSize,
-};
-use std::{convert::TryInto, time::Duration};
-use tokio::time::Instant;
+use discortp::{rtp::RtpExtensionPacket, Packet, PacketSize};
 use tracing::{error, warn};
 
 #[derive(Debug)]

@@ -1,10 +1,9 @@
 use super::*;
 use crate::events::{Event, EventData, EventHandler};
 use flume::{Receiver, Sender};
-use std::{fmt, sync::Arc, time::Duration};
+use std::{fmt, sync::Arc};
 use tokio::sync::RwLock;
 use typemap_rev::TypeMap;
-use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 /// Handle for safe control of a [`Track`] from other threads, outside
@@ -264,13 +263,7 @@ impl<T> TrackCallback<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        constants::test_data::FILE_WAV_TARGET,
-        driver::Driver,
-        input::File,
-        tracks::Track,
-        Config,
-    };
+    use crate::{constants::test_data::FILE_WAV_TARGET, driver::Driver, input::File, Config};
 
     #[tokio::test]
     #[ntest::timeout(10_000)]

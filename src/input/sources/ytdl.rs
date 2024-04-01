@@ -225,8 +225,6 @@ impl Compose for YoutubeDl {
 
 #[cfg(test)]
 mod tests {
-    use reqwest::Client;
-
     use super::*;
     use crate::constants::test_data::*;
     use crate::input::input_tests::*;

@@ -23,6 +23,7 @@ impl InputState {
         }
     }
 
+    #[must_use]
     pub fn ready_state(&self) -> ReadyState {
         match self {
             Self::NotReady(_) => ReadyState::Uninitialised,

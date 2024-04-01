@@ -12,7 +12,7 @@ use crate::{
     tracks::LoopState,
 };
 use crypto_secretbox::{KeyInit, XSalsa20Poly1305 as Cipher};
-use flume::{Receiver, Sender};
+use flume::Receiver;
 use std::{io::Cursor, net::UdpSocket, sync::Arc};
 use tokio::runtime::Handle;
 
@@ -38,6 +38,7 @@ pub type Listeners = (Receiver<CoreMessage>, Receiver<EventMessage>);
 pub type DummyMixer = (Mixer, Listeners);
 
 impl Mixer {
+    #[must_use]
     pub fn mock(handle: Handle, softclip: bool) -> DummyMixer {
         let (mix_tx, mix_rx) = flume::unbounded();
         let (core_tx, core_rx) = flume::unbounded();
@@ -88,6 +89,7 @@ impl Mixer {
         return (out, (core_rx, event_rx));
     }
 
+    #[must_use]
     pub fn test_with_float(num_tracks: usize, handle: Handle, softclip: bool) -> DummyMixer {
         let mut out = Self::mock(handle, softclip);
 
@@ -106,6 +108,7 @@ impl Mixer {
         out
     }
 
+    #[must_use]
     pub fn test_with_float_unending(handle: Handle, softclip: bool) -> (DummyMixer, TrackHandle) {
         let mut out = Self::mock(handle, softclip);
 
@@ -125,6 +128,7 @@ impl Mixer {
         (out, handle)
     }
 
+    #[must_use]
     pub fn test_with_float_drop(num_tracks: usize, handle: Handle) -> DummyMixer {
         let mut out = Self::mock(handle, true);
 
@@ -142,6 +146,7 @@ impl Mixer {
         out
     }
 
+    #[must_use]
     pub fn test_with_opus(handle: &Handle) -> DummyMixer {
         // should add a single opus-based track.
         // make this fully loaded to prevent any perf cost there.

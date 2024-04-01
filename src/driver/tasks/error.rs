@@ -25,8 +25,7 @@ pub enum Error {
     IllegalVoicePacket,
     InterconnectFailure(Recipient),
     Io(IoError),
-    Opus(OpusError),
-    Ws(WsError),
+    Other,
 }
 
 impl Error {
@@ -66,8 +65,8 @@ impl From<IoError> for Error {
 }
 
 impl From<OpusError> for Error {
-    fn from(e: OpusError) -> Error {
-        Error::Opus(e)
+    fn from(_: OpusError) -> Error {
+        Error::Other
     }
 }
 
@@ -97,7 +96,7 @@ impl From<SendError<UdpRxMessage>> for Error {
 }
 
 impl From<WsError> for Error {
-    fn from(e: WsError) -> Error {
-        Error::Ws(e)
+    fn from(_: WsError) -> Error {
+        Error::Other
     }
 }

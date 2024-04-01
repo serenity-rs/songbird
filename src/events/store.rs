@@ -3,10 +3,7 @@ use crate::{
     constants::*,
     tracks::{ReadyState, TrackHandle, TrackState},
 };
-use std::{
-    collections::{BinaryHeap, HashMap},
-    time::Duration,
-};
+use std::collections::{BinaryHeap, HashMap};
 use tracing::info;
 
 #[derive(Debug, Default)]

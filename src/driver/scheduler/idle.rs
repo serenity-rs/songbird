@@ -1,6 +1,5 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
-use flume::{Receiver, Sender};
 use nohash_hasher::{BuildNoHashHasher, IntMap};
 use tokio::time::{Instant as TokInstant, Interval};
 use tracing::info;

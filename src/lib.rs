@@ -77,6 +77,7 @@
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::doc_link_with_quotes,
+    clippy::doc_markdown,
 )]
 
 mod config;

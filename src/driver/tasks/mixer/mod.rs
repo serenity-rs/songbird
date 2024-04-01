@@ -64,7 +64,6 @@ pub struct Mixer {
     pub bitrate: Bitrate,
     pub config: Arc<Config>,
     pub conn_active: Option<MixerConnection>,
-    pub content_prep_sequence: u64,
     pub deadline: Instant,
     pub disposer: DisposalThread,
     pub encoder: OpusEncoder,
@@ -103,6 +102,7 @@ fn new_encoder(bitrate: Bitrate, mix_mode: MixMode) -> Result<OpusEncoder> {
 }
 
 impl Mixer {
+    #[must_use]
     pub fn new(
         mix_rx: Receiver<MixerMessage>,
         async_handle: Handle,
@@ -151,7 +151,6 @@ impl Mixer {
             bitrate,
             config,
             conn_active: None,
-            content_prep_sequence: 0,
             deadline,
             disposer,
             encoder,

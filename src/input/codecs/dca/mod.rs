@@ -12,7 +12,6 @@ use symphonia::core::{
     meta::{Metadata as SymphMetadata, MetadataBuilder, MetadataLog, StandardTagKey, Tag, Value},
     probe::{Descriptor, Instantiate, QueryDescriptor},
     sample::SampleFormat,
-    units::TimeStamp,
 };
 
 impl QueryDescriptor for DcaReader {

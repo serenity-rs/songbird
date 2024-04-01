@@ -9,7 +9,6 @@ use crate::{
 use core::{
     convert,
     future::Future,
-    marker::Unpin,
     pin::Pin,
     task::{Context, Poll},
     time::Duration,

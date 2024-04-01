@@ -390,8 +390,8 @@ impl Config {
 
 // Test only attributes
 #[cfg(all(test, feature = "driver"))]
+#[allow(missing_docs)]
 impl Config {
-    #![allow(missing_docs)]
     #[must_use]
     pub fn tick_style(mut self, tick_style: TickStyle) -> Self {
         self.tick_style = tick_style;

@@ -232,8 +232,6 @@ impl From<HttpRequest> for Input {
 
 #[cfg(test)]
 mod tests {
-    use reqwest::Client;
-
     use super::*;
     use crate::{
         constants::test_data::{HTTP_OPUS_TARGET, HTTP_TARGET, HTTP_WEBM_TARGET},

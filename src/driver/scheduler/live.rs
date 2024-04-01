@@ -1,10 +1,7 @@
-use std::{
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 use discortp::rtp::{MutableRtpPacket, RtpPacket};
-use flume::{Receiver, SendError, Sender, TryRecvError};
+use flume::{SendError, TryRecvError};
 use tokio::time::Instant as TokInstant;
 
 use crate::{
@@ -86,12 +83,14 @@ impl Worker {
     /// Return whether this thread has enough room (task count, spare cycles)
     /// for the given task.
     #[inline]
+    #[must_use]
     pub fn can_schedule(&self, task: &ParkedMixer, avoid: Option<WorkerId>) -> bool {
         avoid.map_or(true, |id| !self.has_id(id))
             && self.stats.has_room(&self.config.strategy, task)
     }
 
     #[inline]
+    #[must_use]
     pub fn stats(&self) -> Arc<LiveStatBlock> {
         self.stats.clone()
     }
@@ -108,6 +107,7 @@ impl Worker {
         self.tx.send((id, task))
     }
 
+    #[must_use]
     pub fn has_id(&self, id: WorkerId) -> bool {
         self.id == id
     }

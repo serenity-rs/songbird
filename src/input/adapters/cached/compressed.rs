@@ -19,7 +19,6 @@ use audiopus::{
 };
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::{
-    convert::TryInto,
     io::{
         Cursor,
         Error as IoError,

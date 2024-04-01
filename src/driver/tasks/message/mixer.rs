@@ -40,6 +40,7 @@ pub enum MixerMessage {
 }
 
 impl MixerMessage {
+    #[must_use]
     pub fn is_mixer_maybe_live(&self) -> bool {
         matches!(
             self,

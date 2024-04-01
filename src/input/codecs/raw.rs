@@ -7,7 +7,6 @@ use symphonia::core::{
     io::{MediaSource, MediaSourceStream, ReadBytes, SeekBuffered},
     meta::{Metadata as SymphMetadata, MetadataLog},
     probe::{Descriptor, Instantiate, QueryDescriptor},
-    units::TimeStamp,
 };
 
 impl QueryDescriptor for RawReader {

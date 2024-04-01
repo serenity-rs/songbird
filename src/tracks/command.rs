@@ -1,10 +1,7 @@
 use super::*;
 use crate::events::EventData;
 use flume::Sender;
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    time::Duration,
-};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// A request from external code using a [`TrackHandle`] to modify
 /// or act upon an [`Track`] object.

@@ -1,6 +1,5 @@
 use super::*;
 use crate::input::Metadata;
-use std::time::Duration;
 
 /// Live track and input state exposed during [`TrackHandle::action`].
 ///

@@ -14,6 +14,7 @@ use crate::{
     tracks::{Track, TrackHandle},
 };
 
+#[must_use]
 pub fn track_context(t: Track) -> (TrackHandle, TrackContext) {
     t.into_context()
 }

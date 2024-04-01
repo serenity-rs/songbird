@@ -1,6 +1,5 @@
 use super::*;
 use bytes::Bytes;
-use discortp::rtp::RtpPacket;
 use std::collections::VecDeque;
 use tracing::trace;
 

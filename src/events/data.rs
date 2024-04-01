@@ -1,5 +1,5 @@
 use super::*;
-use std::{cmp::Ordering, time::Duration};
+use std::cmp::Ordering;
 
 /// Internal representation of an event, as handled by the audio context.
 pub struct EventData {
