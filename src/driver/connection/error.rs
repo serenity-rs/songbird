@@ -101,8 +101,9 @@ impl fmt::Display for Error {
             Self::CryptoModeInvalid => write!(f, "server changed negotiated encryption mode"),
             Self::CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode"),
             Self::EndpointUrl => write!(f, "endpoint URL received from gateway was invalid"),
-            Self::IllegalDiscoveryResponse =>
-                write!(f, "IP discovery/NAT punching response was invalid"),
+            Self::IllegalDiscoveryResponse => {
+                write!(f, "IP discovery/NAT punching response was invalid")
+            },
             Self::IllegalIp => write!(f, "IP discovery/NAT punching response had bad IP value"),
             Self::Io(e) => e.fmt(f),
             Self::Json(e) => e.fmt(f),

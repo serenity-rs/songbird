@@ -15,7 +15,12 @@ use tokio::io::{AsyncRead, AsyncSeek, ReadBuf};
 use tokio_util::io::StreamReader;
 
 use crate::input::{
-    AsyncAdapterStream, AsyncMediaSource, AudioStream, AudioStreamError, Compose, Input,
+    AsyncAdapterStream,
+    AsyncMediaSource,
+    AudioStream,
+    AudioStreamError,
+    Compose,
+    Input,
 };
 
 /// Lazy HLS stream
