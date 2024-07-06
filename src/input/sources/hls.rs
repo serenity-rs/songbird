@@ -33,14 +33,14 @@ pub struct HlsRequest {
 impl HlsRequest {
     #[must_use]
     /// Create a lazy HLS request.
-    pub fn new(client: Client, request: String) -> Self {
+    pub fn new(client: Client, request: &str) -> Self {
         Self::new_with_headers(client, request, HeaderMap::default())
     }
 
     #[must_use]
     /// Create a lazy HTTP request.
-    pub fn new_with_headers(client: Client, request: String, headers: HeaderMap) -> Self {
-        let request = client.get(&request).headers(headers).build().unwrap();
+    pub fn new_with_headers(client: Client, request: &str, headers: HeaderMap) -> Self {
+        let request = client.get(request).headers(headers).build().unwrap();
         let hls = stream_lib::download_hls(client, request, None);
 
         HlsRequest { hls: Some(hls) }
