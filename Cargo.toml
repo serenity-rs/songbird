@@ -17,7 +17,7 @@ version = "0.4.1"
 async-trait = { optional = true, version = "0.1" }
 audiopus = { optional = true, version = "0.3.0-rc.0" }
 byteorder = { optional = true, version = "1" }
-bytes = { optional = true, version = "1" }
+bytes = { version = "1" }
 crypto_secretbox = { optional = true, features = ["std"], version = "0.1" }
 dashmap = { optional = true, version = "5" }
 derivative = "2"
@@ -41,6 +41,7 @@ serenity-voice-model = { optional = true, version = "0.2" }
 simd-json = { features = ["serde_impl"], optional = true, version = "0.13" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
+stream_lib = { version = "0.4.1" }
 symphonia = { default_features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
@@ -131,7 +132,7 @@ twilight = ["dep:twilight-gateway","dep:twilight-model"]
 
 # Behaviour altering features.
 builtin-queue = []
-receive = ["dep:bytes", "discortp?/demux", "discortp?/rtcp"]
+receive = ["discortp?/demux", "discortp?/rtcp"]
 
 # Used for docgen/testing/benchmarking.
 full-doc = ["default", "twilight", "builtin-queue", "receive"]

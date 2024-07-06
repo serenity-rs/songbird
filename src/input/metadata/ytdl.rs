@@ -19,6 +19,7 @@ pub struct Output {
     pub uploader: Option<String>,
     pub url: String,
     pub webpage_url: Option<String>,
+    pub protocol: Option<String>,
 }
 
 impl Output {
