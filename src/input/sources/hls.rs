@@ -4,11 +4,11 @@ use std::{
     task::{Context, Poll},
 };
 
+use async_trait::async_trait;
 use bytes::Bytes;
 use futures::StreamExt;
 use pin_project::pin_project;
 use reqwest::{header::HeaderMap, Client};
-use serenity::async_trait;
 use stream_lib::{DownloadStream, Event};
 use symphonia_core::io::MediaSource;
 use tokio::io::{AsyncRead, AsyncSeek, ReadBuf};
