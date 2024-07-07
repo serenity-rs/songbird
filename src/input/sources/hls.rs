@@ -9,7 +9,7 @@ use bytes::Bytes;
 use futures::StreamExt;
 use pin_project::pin_project;
 use reqwest::{header::HeaderMap, Client};
-use stream_lib::{DownloadStream, Event};
+use stream_lib::Event;
 use symphonia_core::io::MediaSource;
 use tokio::io::{AsyncRead, AsyncSeek, ReadBuf};
 use tokio_util::io::StreamReader;
@@ -26,30 +26,40 @@ use crate::input::{
 /// Lazy HLS stream
 #[derive(Debug)]
 pub struct HlsRequest {
-    /// HLS downloader
-    pub hls: Option<DownloadStream>,
+    /// HTTP client
+    client: Client,
+    /// URL of hls playlist
+    request: String,
+    /// Headers of the request
+    headers: HeaderMap,
 }
 
 impl HlsRequest {
     #[must_use]
     /// Create a lazy HLS request.
-    pub fn new(client: Client, request: &str) -> Self {
+    pub fn new(client: Client, request: String) -> Self {
         Self::new_with_headers(client, request, HeaderMap::default())
     }
 
     #[must_use]
     /// Create a lazy HTTP request.
-    pub fn new_with_headers(client: Client, request: &str, headers: HeaderMap) -> Self {
-        let request = client.get(request).headers(headers).build().unwrap();
-        let hls = stream_lib::download_hls(client, request, None);
-
-        HlsRequest { hls: Some(hls) }
+    pub fn new_with_headers(client: Client, request: String, headers: HeaderMap) -> Self {
+        HlsRequest {
+            client,
+            request,
+            headers,
+        }
     }
 
     fn create_stream(&mut self) -> Result<HlsStream, AudioStreamError> {
-        let Some(hls) = self.hls.take() else {
-            return Err(AudioStreamError::Fail("hls can only be used once".into()));
-        };
+        let request = self
+            .client
+            .get(&self.request)
+            .headers(self.headers.clone())
+            .build()
+            .map_err(|why| AudioStreamError::Fail(why.into()))?;
+
+        let hls = stream_lib::download_hls(self.client.clone(), request, None);
 
         let stream = Box::new(StreamReader::new(hls.map(|ev| match ev {
             Event::Bytes { bytes } => Ok(bytes),

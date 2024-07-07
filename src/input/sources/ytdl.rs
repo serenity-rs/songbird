@@ -200,7 +200,7 @@ impl Compose for YoutubeDl {
         match result.protocol.as_deref() {
             Some("m3u8_native") => {
                 let mut req =
-                    HlsRequest::new_with_headers(self.client.clone(), &result.url, headers);
+                    HlsRequest::new_with_headers(self.client.clone(), result.url, headers);
                 req.create()
             },
             _ => {

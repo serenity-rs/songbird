@@ -17,7 +17,7 @@ version = "0.4.1"
 async-trait = { optional = true, version = "0.1" }
 audiopus = { optional = true, version = "0.3.0-rc.0" }
 byteorder = { optional = true, version = "1" }
-bytes = { version = "1" }
+bytes = { optional = true, version = "1" }
 crypto_secretbox = { optional = true, features = ["std"], version = "0.1" }
 dashmap = { optional = true, version = "5" }
 derivative = "2"
@@ -84,22 +84,23 @@ driver = [
     "dep:async-trait",
     "dep:audiopus",
     "dep:byteorder",
+    "dep:bytes",
     "dep:crypto_secretbox",
     "dep:discortp",
-    "dep:reqwest",
     "dep:flume",
     "dep:nohash-hasher",
     "dep:once_cell",
     "dep:parking_lot",
     "dep:rand",
+    "dep:reqwest",
     "dep:ringbuf",
     "dep:rubato",
     "dep:rusty_pool",
     "dep:serde-aux",
     "dep:serenity-voice-model",
     "dep:socket2",
-    "dep:streamcatcher",
     "dep:stream_lib",
+    "dep:streamcatcher",
     "dep:symphonia",
     "dep:symphonia-core",
     "dep:tokio",
@@ -133,7 +134,7 @@ twilight = ["dep:twilight-gateway","dep:twilight-model"]
 
 # Behaviour altering features.
 builtin-queue = []
-receive = ["discortp?/demux", "discortp?/rtcp"]
+receive = ["dep:bytes", "discortp?/demux", "discortp?/rtcp"]
 
 # Used for docgen/testing/benchmarking.
 full-doc = ["default", "twilight", "builtin-queue", "receive"]
