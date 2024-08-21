@@ -42,7 +42,7 @@ simd-json = { features = ["serde_impl"], optional = true, version = "0.13" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
 stream_lib = { default-features = false, optional = true, version = "0.4.2" }
-symphonia = { default_features = false, optional = true, version = "0.5.2" }
+symphonia = { default-features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tokio-tungstenite = { optional = true, version = "0.21" }

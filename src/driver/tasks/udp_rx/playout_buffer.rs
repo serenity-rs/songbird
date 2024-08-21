@@ -77,7 +77,7 @@ impl PlayoutBuffer {
         if desired_index < 0 {
             trace!("Missed packet arrived late, discarding from playout.");
         } else if desired_index >= 64 {
-            trace!("Packet arrived beyond playout max length.");
+            trace!("Packet arrived beyond playout max length: wanted slot {desired_index}.");
         } else {
             let index = desired_index as usize;
             while self.buffer.len() <= index {
@@ -101,10 +101,15 @@ impl PlayoutBuffer {
                 let rtp = RtpPacket::new(&pkt.packet)
                     .expect("FATAL: earlier valid packet now invalid (fetch)");
 
+                // The curr_ts captures the current playout point; we want to
+                // be able to emit *all* packets with a smaller timestamp.
+                // However, we need to handle this in a wrap-safe way.
+                // ts_diff shows where the current time lies if we treat packet_ts
+                // as 0, s.t. ts_diff >= 0 (equiv) packet_time <= curr_time.
                 let curr_ts = self.current_timestamp.unwrap();
-                let ts_diff = curr_ts - rtp.get_timestamp().0;
+                let ts_diff = (curr_ts - rtp.get_timestamp().0).0 as i32;
 
-                if (ts_diff.0 as i32) <= 0 {
+                if ts_diff >= 0 {
                     self.next_seq = (rtp.get_sequence() + 1).0;
 
                     PacketLookup::Packet(pkt)
@@ -142,5 +147,5 @@ impl PlayoutBuffer {
 #[inline]
 fn reset_timeout(packet: &RtpPacket<'_>, config: &Config) -> RtpTimestamp {
     let t_shift = MONO_FRAME_SIZE * config.playout_buffer_length.get();
-    (packet.get_timestamp() - (t_shift as u32)).0
+    (packet.get_timestamp() + (t_shift as u32)).0
 }
