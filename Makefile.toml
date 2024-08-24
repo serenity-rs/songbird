@@ -41,7 +41,7 @@ args = ["clippy", "--features", "full-doc", "--", "-D", "warnings"]
 dependencies = ["format"]
 
 [tasks.test]
-args = ["test", "--features", "full-doc"]
+args = ["test", "--features", "full-doc", "--", "--include-ignored"]
 
 [tasks.test-simd]
 args = ["test", "--features", "full-doc,simd-json,serenity?/simd_json,twilight-gateway?/simd-json"]
