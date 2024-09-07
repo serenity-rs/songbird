@@ -4,7 +4,8 @@ use super::*;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
-/// Telemetry/statistics packet, received from another stream (detailed in `packet`).
+/// Telemetry/statistics packet, received from another stream
+///
 /// `payload_offset` contains the true payload location within the raw packet's `payload()`,
 /// to allow manual decoding of `Rtcp` packet bodies.
 pub struct RtcpData {

@@ -53,7 +53,7 @@ impl OpusDecoder {
                 Err(OpusError::Opus(ErrorCode::BufferTooSmall)) => {
                     // double the buffer size
                     // correct behav would be to mirror the decoder logic in the udp_rx set.
-                    let new_size = (self.rawbuf.len() * 2).min(std::i32::MAX as usize);
+                    let new_size = (self.rawbuf.len() * 2).min(i32::MAX as usize);
                     if new_size == self.rawbuf.len() {
                         return decode_error("Opus frame too big: cannot expand opus frame decode buffer any further.");
                     }

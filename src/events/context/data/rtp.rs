@@ -4,7 +4,8 @@ use super::*;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
-/// Opus audio packet, received from another stream (detailed in `packet`).
+/// Opus audio packet, received from another stream
+///
 /// `payload_offset` contains the true payload location within the raw packet's `payload()`,
 /// if extensions or raw packet data are required.
 pub struct RtpData {

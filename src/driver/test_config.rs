@@ -178,10 +178,10 @@ impl DriverTestHandle {
                 OutputPacket::Rtp(p) => eprintln!("pkt: RTP[{}B]", p.len()),
                 OutputPacket::Raw(OutputMessage::Silent) => eprintln!("pkt: Raw-Silent"),
                 OutputPacket::Raw(OutputMessage::Passthrough(p)) => {
-                    eprintln!("pkt: Raw-Passthrough[{}B]", p.len())
+                    eprintln!("pkt: Raw-Passthrough[{}B]", p.len());
                 },
                 OutputPacket::Raw(OutputMessage::Mixed(p)) => {
-                    eprintln!("pkt: Raw-Mixed[{}B]", p.len())
+                    eprintln!("pkt: Raw-Mixed[{}B]", p.len());
                 },
             }
         }
