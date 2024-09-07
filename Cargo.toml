@@ -19,7 +19,7 @@ audiopus = { optional = true, version = "0.3.0-rc.0" }
 byteorder = { optional = true, version = "1" }
 bytes = { optional = true, version = "1" }
 crypto_secretbox = { optional = true, features = ["std"], version = "0.1" }
-dashmap = { optional = true, version = "5" }
+dashmap = { optional = true, version = "6.1.0" }
 derivative = "2"
 discortp = { default-features = false, features = [
     "discord",
