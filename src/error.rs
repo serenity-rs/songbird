@@ -2,7 +2,6 @@
 
 #[cfg(feature = "serenity")]
 use futures::channel::mpsc::TrySendError;
-#[cfg(not(feature = "simd-json"))]
 pub use serde_json::Error as JsonError;
 #[cfg(feature = "serenity")]
 use serenity::gateway::ShardRunnerMessage;

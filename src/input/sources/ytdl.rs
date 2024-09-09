@@ -157,7 +157,7 @@ impl<'a> YoutubeDl<'a> {
             .stdout
             .split(|&b| b == b'\n')
             .filter(|&x| (!x.is_empty()))
-            .map(|x| serde_json::from_slice(x))
+            .map(serde_json::from_slice)
             .collect::<Result<Vec<Output>, _>>()
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
