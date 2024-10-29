@@ -16,6 +16,11 @@ use crate::input::{
 };
 
 /// Lazy HLS stream
+///
+/// # Note:
+///
+/// `Compose::create` for this struct panics if called outside of a
+/// tokio executor since it uses background tasks.
 #[derive(Debug)]
 pub struct HlsRequest {
     /// HTTP client
@@ -82,11 +87,11 @@ impl Compose for HlsRequest {
     async fn create_async(
         &mut self,
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-        Err(AudioStreamError::Unsupported)
+        self.create()
     }
 
     fn should_create_async(&self) -> bool {
-        false
+        true
     }
 }
 
