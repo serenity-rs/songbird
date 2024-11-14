@@ -35,7 +35,7 @@ pub enum Channels {
     Mono,
     /// Decode received audio packets into two interleaved channels.
     ///
-    /// Received mono packets will automatically be duplicated across
+    /// Received mono packets' samples will automatically be duplicated across
     /// both channels.
     ///
     /// The default choice.
@@ -44,7 +44,7 @@ pub enum Channels {
 }
 
 impl Channels {
-    pub(crate) fn n_channels(self) -> usize {
+    pub(crate) fn channels(self) -> usize {
         match self {
             Channels::Mono => 1,
             Channels::Stereo => 2,
@@ -69,7 +69,7 @@ pub enum SampleRate {
     Hz8000,
     /// Decode to a sample rate of 12kHz.
     Hz12000,
-    /// Decode to a sample rate of 46kHz.
+    /// Decode to a sample rate of 16kHz.
     Hz16000,
     /// Decode to a sample rate of 24kHz.
     Hz24000,

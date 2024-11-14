@@ -173,7 +173,7 @@ impl SsrcState {
                     Ok(audio_len) => {
                         // Decoding to stereo: audio_len refers to sample count irrespective of channel count.
                         // => multiply by number of channels.
-                        out.truncate(self.channels.n_channels() * audio_len);
+                        out.truncate(self.channels.channels() * audio_len);
 
                         break;
                     },
