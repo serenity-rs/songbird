@@ -1,5 +1,5 @@
-#[cfg(feature = "receive")]
-use crate::driver::DecodeMode;
+#[cfg(all(feature = "driver", feature = "receive"))]
+use crate::driver::{Channels, DecodeMode, SampleRate};
 #[cfg(feature = "driver")]
 use crate::{
     driver::{
@@ -60,6 +60,18 @@ pub struct Config {
     /// [`DecodeMode::Pass`]: DecodeMode::Pass
     /// [User speaking state]: crate::events::CoreEvent::VoiceTick
     pub decode_mode: DecodeMode,
+
+    #[cfg(all(feature = "driver", feature = "receive"))]
+    /// Configures the channel layout for output audio when using [`DecodeMode::Decode`].
+    ///
+    /// Defaults to [`Channels::Stereo`].
+    pub decode_channels: Channels,
+
+    #[cfg(all(feature = "driver", feature = "receive"))]
+    /// Configures the sample rate for output audio when using [`DecodeMode::Decode`].
+    ///
+    /// Defaults to [`SampleRate::Hz48000`].
+    pub decode_sample_rate: SampleRate,
 
     #[cfg(all(feature = "driver", feature = "receive"))]
     /// Configures the amount of time after a user/SSRC is inactive before their decoder state
@@ -215,6 +227,10 @@ impl Default for Config {
             #[cfg(all(feature = "driver", feature = "receive"))]
             decode_mode: DecodeMode::Decrypt,
             #[cfg(all(feature = "driver", feature = "receive"))]
+            decode_channels: Channels::Stereo,
+            #[cfg(all(feature = "driver", feature = "receive"))]
+            decode_sample_rate: SampleRate::Hz48000,
+            #[cfg(all(feature = "driver", feature = "receive"))]
             decode_state_timeout: Duration::from_secs(60),
             #[cfg(all(feature = "driver", feature = "receive"))]
             playout_buffer_length: NonZeroUsize::new(5).unwrap(),
@@ -264,6 +280,22 @@ impl Config {
     #[must_use]
     pub fn decode_mode(mut self, decode_mode: DecodeMode) -> Self {
         self.decode_mode = decode_mode;
+        self
+    }
+
+    #[cfg(feature = "receive")]
+    /// Sets this `Config`'s channel layout for output audio when using [`DecodeMode::Decode`]
+    #[must_use]
+    pub fn decode_channels(mut self, decode_channels: Channels) -> Self {
+        self.decode_channels = decode_channels;
+        self
+    }
+
+    #[cfg(feature = "receive")]
+    /// Sets this `Config`'s sample rate for output audio when using [`DecodeMode::Decode`]
+    #[must_use]
+    pub fn decode_sample_rate(mut self, decode_sample_rate: SampleRate) -> Self {
+        self.decode_sample_rate = decode_sample_rate;
         self
     }
 

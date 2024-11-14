@@ -28,7 +28,7 @@ use connection::error::{Error, Result};
 pub use crypto::CryptoMode;
 pub(crate) use crypto::CryptoState;
 #[cfg(feature = "receive")]
-pub use decode_mode::DecodeMode;
+pub use decode_mode::*;
 pub use mix_mode::MixMode;
 pub use scheduler::{
     Config as SchedulerConfig,

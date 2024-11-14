@@ -66,7 +66,13 @@ impl UdpRx {
                             *interconnect = i;
                         },
                         Ok(UdpRxMessage::SetConfig(c)) => {
+                            let old_coder = (self.config.decode_channels, self.config.decode_sample_rate);
+                            let new_coder = (c.decode_channels, c.decode_sample_rate);
                             self.config = c;
+
+                            if old_coder != new_coder {
+                                self.decoder_map.values_mut().for_each(|v| v.reconfigure_decoder(&self.config));
+                            }
                         },
                         Err(flume::RecvError::Disconnected) => break,
                     }

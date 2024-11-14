@@ -1,8 +1,8 @@
 use super::*;
 use crate::{
-    constants::*,
     driver::{
         tasks::error::{Error, Result},
+        Channels,
         DecodeMode,
     },
     events::context_data::{RtpData, VoiceData},
@@ -11,7 +11,6 @@ use audiopus::{
     coder::Decoder as OpusDecoder,
     error::{Error as OpusError, ErrorCode},
     packet::Packet as OpusPacket,
-    Channels,
 };
 use discortp::{rtp::RtpExtensionPacket, Packet, PacketSize};
 use tracing::{error, warn};
@@ -24,6 +23,7 @@ pub struct SsrcState {
     decode_size: PacketDecodeSize,
     pub(crate) prune_time: Instant,
     pub(crate) disconnected: bool,
+    channels: Channels,
 }
 
 impl SsrcState {
@@ -33,12 +33,25 @@ impl SsrcState {
         Self {
             playout_buffer: PlayoutBuffer::new(playout_capacity, pkt.get_sequence().0),
             crypto_mode,
-            decoder: OpusDecoder::new(SAMPLE_RATE, Channels::Stereo)
-                .expect("Failed to create new Opus decoder for source."),
+            decoder: OpusDecoder::new(
+                config.decode_sample_rate.into(),
+                config.decode_channels.into(),
+            )
+            .expect("Failed to create new Opus decoder for source."),
             decode_size: PacketDecodeSize::TwentyMillis,
             prune_time: Instant::now() + config.decode_state_timeout,
             disconnected: false,
+            channels: config.decode_channels,
         }
+    }
+
+    pub fn reconfigure_decoder(&mut self, config: &Config) {
+        self.decoder = OpusDecoder::new(
+            config.decode_sample_rate.into(),
+            config.decode_channels.into(),
+        )
+        .expect("Failed to create new Opus decoder for source.");
+        self.channels = config.decode_channels;
     }
 
     pub fn store_packet(&mut self, packet: StoredPacket, config: &Config) {
@@ -160,7 +173,7 @@ impl SsrcState {
                     Ok(audio_len) => {
                         // Decoding to stereo: audio_len refers to sample count irrespective of channel count.
                         // => multiply by number of channels.
-                        out.truncate(2 * audio_len);
+                        out.truncate(self.channels.n_channels() * audio_len);
 
                         break;
                     },
