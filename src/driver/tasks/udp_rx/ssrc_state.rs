@@ -68,7 +68,7 @@ impl SsrcState {
         // Acquire a packet from the playout buffer:
         // Update nexts, lasts...
         // different cases: null packet who we want to decode as a miss, and packet who we must ignore temporarily.
-        let m_pkt = self.playout_buffer.fetch_packet();
+        let m_pkt = self.playout_buffer.fetch_packet(config);
         let pkt = match m_pkt {
             PacketLookup::Packet(StoredPacket { packet, decrypted }) => Some((packet, decrypted)),
             PacketLookup::MissedPacket => None,

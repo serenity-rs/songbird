@@ -91,7 +91,7 @@ impl PlayoutBuffer {
         }
     }
 
-    pub fn fetch_packet(&mut self) -> PacketLookup {
+    pub fn fetch_packet(&mut self, config: &Config) -> PacketLookup {
         if self.playout_mode == PlayoutMode::Fill {
             return PacketLookup::Filling;
         }
@@ -106,12 +106,37 @@ impl PlayoutBuffer {
                 // However, we need to handle this in a wrap-safe way.
                 // ts_diff shows where the current time lies if we treat packet_ts
                 // as 0, s.t. ts_diff >= 0 (equiv) packet_time <= curr_time.
-                let curr_ts = self.current_timestamp.unwrap();
-                let ts_diff = (curr_ts - rtp.get_timestamp().0).0 as i32;
+                let curr_ts = self.current_timestamp.as_mut().unwrap();
+                let pkt_ts = rtp.get_timestamp().0;
+                let ts_diff = (*curr_ts - pkt_ts).0 as i32;
+
+                // At least one client in the wild has seen unusual timestamp behaviour: the
+                // first packet sent out in a run of audio may have an older timestamp.
+                // This could be badly timestamped, or could conceivably be an orphaned packet
+                // from a prior run, or e.g.:
+                //  (n x RTP) -> [>100ms delay] -> (RTP) -> [long O(s) delay] -> (m x RTP)
+                // This leaves us with two adjacent packets in the same playout with wildly varying
+                // timestamps. We have a slightly tricky situation -- we need to preserve accurate
+                // timing to correctly drain/refill/recreate very small pauses in audio, but don't
+                // want to block indefinitely.
+                //
+                // We have a compromise here -- if an adjacent (Drain) packet has a ts gap
+                // larger than it would take to go through multiple Fill/Drain cycles, then
+                // treat its TS as the next expected value to avoid jamming the buffer and losing
+                // later audio.
+                let skip_after =
+                    i32::try_from(config.playout_buffer_length.get() * 5 * MONO_FRAME_SIZE)
+                        .unwrap_or((AUDIO_FRAME_RATE * 2 * MONO_FRAME_SIZE) as i32);
 
                 if ts_diff >= 0 {
+                    // At or before expected timestamp.
                     self.next_seq = (rtp.get_sequence() + 1).0;
 
+                    PacketLookup::Packet(pkt)
+                } else if ts_diff <= -skip_after {
+                    // >5 playouts ahead.
+                    self.next_seq = (rtp.get_sequence() + 1).0;
+                    *curr_ts = pkt_ts;
                     PacketLookup::Packet(pkt)
                 } else {
                     trace!("Witholding packet: ts_diff is {ts_diff}");
