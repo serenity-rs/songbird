@@ -45,6 +45,7 @@ pub struct PlayoutBuffer {
     playout_mode: PlayoutMode,
     next_seq: RtpSequence,
     current_timestamp: Option<RtpTimestamp>,
+    consecutive_store_fails: usize,
 }
 
 impl PlayoutBuffer {
@@ -54,6 +55,7 @@ impl PlayoutBuffer {
             playout_mode: PlayoutMode::Fill,
             next_seq,
             current_timestamp: None,
+            consecutive_store_fails: 0,
         }
     }
 
@@ -70,20 +72,45 @@ impl PlayoutBuffer {
         }
 
         // compute index by taking wrapping difference between both seq numbers.
-        // If the difference is *too big*, or in the past [also 'too big, in a way],
+        // If the difference is *too big*, or in the past [also too big, in a way],
         // ignore the packet
-        let desired_index = (rtp.get_sequence().0 - self.next_seq).0 as i16;
+        let pkt_seq = rtp.get_sequence().0;
+        let desired_index = (pkt_seq - self.next_seq).0 as i16;
+
+        // Similar concept to fetch_packet -- if there's a critical desync, and we're unwilling
+        // to slot this packet into an empty/stuck buffer then behave as though this packet is the next
+        // sequence number we're releasing.
+        let err_threshold = i16::try_from(config.playout_buffer_length.get() * 5).unwrap_or(32);
+        let handling_desync = (self.buffer.is_empty()
+            || self.consecutive_store_fails >= (err_threshold as usize))
+            && desired_index >= err_threshold;
 
         if desired_index < 0 {
             trace!("Missed packet arrived late, discarding from playout.");
-        } else if desired_index >= 64 {
-            trace!("Packet arrived beyond playout max length: wanted slot {desired_index}.");
+        } else if !handling_desync && desired_index >= 64 {
+            trace!(
+                "Packet arrived beyond playout max length({}): wanted slot {desired_index}.\
+                ts {}, seq {}, next_out_seq {}",
+                rtp.get_ssrc(),
+                rtp.get_timestamp().0,
+                rtp.get_sequence().0,
+                self.next_seq,
+            );
+            self.consecutive_store_fails += 1;
         } else {
-            let index = desired_index as usize;
+            let index = if handling_desync {
+                self.buffer.clear();
+                self.next_seq = pkt_seq;
+
+                0
+            } else {
+                desired_index as usize
+            };
             while self.buffer.len() <= index {
                 self.buffer.push_back(None);
             }
             self.buffer[index] = Some(packet);
+            self.consecutive_store_fails = 0;
         }
 
         if self.buffer.len() >= config.playout_buffer_length.get() {
