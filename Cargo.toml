@@ -56,7 +56,7 @@ stream_lib = { default-features = false, optional = true, version = "0.5.2" }
 symphonia = { default-features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
-tokio-tungstenite = { optional = true, version = "0.21" }
+tokio-tungstenite = { optional = true, version = "0.24", features = ["url"] }
 tokio-websockets = { optional = true, version = "0.7", features = [
     "client",
     "fastrand",
