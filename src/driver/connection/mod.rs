@@ -61,6 +61,7 @@ impl Connection {
         let url = generate_url(&mut info.endpoint)?;
 
         let mut client = WsStream::connect(url).await?;
+        let (ws_msg_tx, ws_msg_rx) = flume::unbounded();
 
         let mut hello = None;
         let mut ready = None;
@@ -93,7 +94,11 @@ impl Connection {
                     }
                 },
                 other => {
+                    // Discord hold back per-user connection state until after this handshake.
+                    // There's no guarantee that will remain the case, so buffer it like all
+                    // subsequent steps where we know they *do* send these packets.
                     debug!("Expected ready/hello; got: {:?}", other);
+                    ws_msg_tx.send(WsMessage::Deliver(other))?;
                 },
             }
         }
@@ -176,13 +181,12 @@ impl Connection {
                 .await?;
         }
 
-        let cipher = init_cipher(&mut client, chosen_crypto).await?;
+        let cipher = init_cipher(&mut client, chosen_crypto, &ws_msg_tx).await?;
 
         info!("Connected to: {}", info.endpoint);
 
         info!("WS heartbeat duration {}ms.", hello.heartbeat_interval);
 
-        let (ws_msg_tx, ws_msg_rx) = flume::unbounded();
         #[cfg(feature = "receive")]
         let (udp_receiver_msg_tx, udp_receiver_msg_rx) = flume::unbounded();
 
@@ -304,7 +308,7 @@ impl Connection {
                     }
                 },
                 other => {
-                    debug!("Expected resumed/hello; got: {:?}", other);
+                    self.ws.send(WsMessage::Deliver(other))?;
                 },
             }
         }
@@ -338,7 +342,11 @@ fn generate_url(endpoint: &mut String) -> Result<Url> {
 }
 
 #[inline]
-async fn init_cipher(client: &mut WsStream, mode: CryptoMode) -> Result<Cipher> {
+async fn init_cipher(
+    client: &mut WsStream,
+    mode: CryptoMode,
+    tx: &Sender<WsMessage>,
+) -> Result<Cipher> {
     loop {
         let Some(value) = client.recv_json().await? else {
             continue;
@@ -355,11 +363,9 @@ async fn init_cipher(client: &mut WsStream, mode: CryptoMode) -> Result<Cipher> 
                     .map_err(|_| Error::CryptoInvalidLength);
             },
             other => {
-                debug!(
-                    "Expected ready for key; got: op{}/v{:?}",
-                    other.kind() as u8,
-                    other
-                );
+                // Discord can and will send user-specific payload packets during this time
+                // which are needed to map SSRCs to `UserId`s.
+                tx.send(WsMessage::Deliver(other))?;
             },
         }
     }

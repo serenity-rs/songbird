@@ -251,8 +251,10 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
-    if let Ok(handler_lock) = manager.join(guild_id, connect_to).await {
-        // NOTE: this skips listening for the actual connection result.
+    // Some events relating to voice receive fire *while joining*.
+    // We must make sure that any event handlers are installed before we attempt to join.
+    {
+        let handler_lock = manager.get_or_insert(guild_id);
         let mut handler = handler_lock.lock().await;
 
         let evt_receiver = Receiver::new();
@@ -262,13 +264,18 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         handler.add_global_event(CoreEvent::RtcpPacket.into(), evt_receiver.clone());
         handler.add_global_event(CoreEvent::ClientDisconnect.into(), evt_receiver.clone());
         handler.add_global_event(CoreEvent::VoiceTick.into(), evt_receiver);
+    }
 
+    if let Ok(handler_lock) = manager.join(guild_id, connect_to).await {
         check_msg(
             msg.channel_id
                 .say(&ctx.http, &format!("Joined {}", connect_to.mention()))
                 .await,
         );
     } else {
+        // Although we failed to join, we need to clear out existing event handlers on the call.
+        _ = manager.remove(guild_id).await;
+
         check_msg(
             msg.channel_id
                 .say(&ctx.http, "Error joining the channel")

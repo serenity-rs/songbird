@@ -145,6 +145,9 @@ impl AuxNetwork {
                                 }
                             }
                         },
+                        Ok(WsMessage::Deliver(msg)) => {
+                            self.process_ws(interconnect, msg);
+                        },
                         Err(flume::RecvError::Disconnected) => {
                             break;
                         },
