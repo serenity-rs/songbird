@@ -1,71 +1,35 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/track.rs`."><title>track.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.86.0-nightly (48a426eca 2025-01-12)" data-channel="nightly" data-search-js="search-75f5ac3e.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">songbird/events/</div>track.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
-<a href="#1" id="1">1</a>
-<a href="#2" id="2">2</a>
-<a href="#3" id="3">3</a>
-<a href="#4" id="4">4</a>
-<a href="#5" id="5">5</a>
-<a href="#6" id="6">6</a>
-<a href="#7" id="7">7</a>
-<a href="#8" id="8">8</a>
-<a href="#9" id="9">9</a>
-<a href="#10" id="10">10</a>
-<a href="#11" id="11">11</a>
-<a href="#12" id="12">12</a>
-<a href="#13" id="13">13</a>
-<a href="#14" id="14">14</a>
-<a href="#15" id="15">15</a>
-<a href="#16" id="16">16</a>
-<a href="#17" id="17">17</a>
-<a href="#18" id="18">18</a>
-<a href="#19" id="19">19</a>
-<a href="#20" id="20">20</a>
-<a href="#21" id="21">21</a>
-<a href="#22" id="22">22</a>
-<a href="#23" id="23">23</a>
-<a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
-<a href="#26" id="26">26</a>
-<a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a>
-<a href="#33" id="33">33</a>
-<a href="#34" id="34">34</a>
-<a href="#35" id="35">35</a></pre></div><pre class="rust"><code><span class="comment">// TODO: Could this be a bitset? Could accelerate lookups,
-// allow easy joint subscription &amp; remove Vecs for related evt handling?
-
-</span><span class="doccomment">/// Track events correspond to certain actions or changes
-/// of state, such as a track finishing, looping, or being
-/// manually stopped. Voice core events occur on receipt of
-/// voice packets and telemetry.
-///
-/// Track events persist while the `action` in [`EventData`]
-/// returns `None`.
-///
-/// [`EventData`]: super::EventData
-</span><span class="attr">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[non_exhaustive]
-</span><span class="kw">pub enum </span>TrackEvent {
-    <span class="doccomment">/// The attached track has resumed playing.
-    ///
-    /// This event will not fire when a track first starts,
-    /// but will fire when a track changes from, e.g., paused to playing.
-    /// This is most relevant for queue users: queued tracks placed into a
-    /// non-empty queue are initlally paused, and are later moved to `Play`.
-    </span>Play,
-    <span class="doccomment">/// The attached track has been paused.
-    </span>Pause,
-    <span class="doccomment">/// The attached track has ended.
-    </span>End,
-    <span class="doccomment">/// The attached track has looped.
-    </span>Loop,
-    <span class="doccomment">/// The attached track is being readied or recreated.
-    </span>Preparing,
-    <span class="doccomment">/// The attached track has become playable.
-    </span>Playable,
-    <span class="doccomment">/// The attached track has encountered a runtime or initialisation error.
-    </span>Error,
-}
-</code></pre></div></section></main></body></html>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/events/track.rs`."><title>track.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6c3ea77c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0-nightly (f04bbc60f 2025-02-20)" data-channel="nightly" data-search-js="search-f7327375.js" data-settings-js="settings-6dad6058.js" ><script src="../../../static.files/storage-3a5871a4.js"></script><script defer src="../../../static.files/src-script-b8d3f215.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5332ae0c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">songbird/events/</div>track.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-2"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// TODO: Could this be a bitset? Could accelerate lookups,
+<a href=#2 id=2 data-nosnippet>2</a>// allow easy joint subscription &amp; remove Vecs for related evt handling?
+<a href=#3 id=3 data-nosnippet>3</a>
+<a href=#4 id=4 data-nosnippet>4</a></span><span class="doccomment">/// Track events correspond to certain actions or changes
+<a href=#5 id=5 data-nosnippet>5</a>/// of state, such as a track finishing, looping, or being
+<a href=#6 id=6 data-nosnippet>6</a>/// manually stopped. Voice core events occur on receipt of
+<a href=#7 id=7 data-nosnippet>7</a>/// voice packets and telemetry.
+<a href=#8 id=8 data-nosnippet>8</a>///
+<a href=#9 id=9 data-nosnippet>9</a>/// Track events persist while the `action` in [`EventData`]
+<a href=#10 id=10 data-nosnippet>10</a>/// returns `None`.
+<a href=#11 id=11 data-nosnippet>11</a>///
+<a href=#12 id=12 data-nosnippet>12</a>/// [`EventData`]: super::EventData
+<a href=#13 id=13 data-nosnippet>13</a></span><span class="attr">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+<a href=#14 id=14 data-nosnippet>14</a>#[non_exhaustive]
+<a href=#15 id=15 data-nosnippet>15</a></span><span class="kw">pub enum </span>TrackEvent {
+<a href=#16 id=16 data-nosnippet>16</a>    <span class="doccomment">/// The attached track has resumed playing.
+<a href=#17 id=17 data-nosnippet>17</a>    ///
+<a href=#18 id=18 data-nosnippet>18</a>    /// This event will not fire when a track first starts,
+<a href=#19 id=19 data-nosnippet>19</a>    /// but will fire when a track changes from, e.g., paused to playing.
+<a href=#20 id=20 data-nosnippet>20</a>    /// This is most relevant for queue users: queued tracks placed into a
+<a href=#21 id=21 data-nosnippet>21</a>    /// non-empty queue are initlally paused, and are later moved to `Play`.
+<a href=#22 id=22 data-nosnippet>22</a>    </span>Play,
+<a href=#23 id=23 data-nosnippet>23</a>    <span class="doccomment">/// The attached track has been paused.
+<a href=#24 id=24 data-nosnippet>24</a>    </span>Pause,
+<a href=#25 id=25 data-nosnippet>25</a>    <span class="doccomment">/// The attached track has ended.
+<a href=#26 id=26 data-nosnippet>26</a>    </span>End,
+<a href=#27 id=27 data-nosnippet>27</a>    <span class="doccomment">/// The attached track has looped.
+<a href=#28 id=28 data-nosnippet>28</a>    </span>Loop,
+<a href=#29 id=29 data-nosnippet>29</a>    <span class="doccomment">/// The attached track is being readied or recreated.
+<a href=#30 id=30 data-nosnippet>30</a>    </span>Preparing,
+<a href=#31 id=31 data-nosnippet>31</a>    <span class="doccomment">/// The attached track has become playable.
+<a href=#32 id=32 data-nosnippet>32</a>    </span>Playable,
+<a href=#33 id=33 data-nosnippet>33</a>    <span class="doccomment">/// The attached track has encountered a runtime or initialisation error.
+<a href=#34 id=34 data-nosnippet>34</a>    </span>Error,
+<a href=#35 id=35 data-nosnippet>35</a>}</code></pre></div></section></main></body></html>
