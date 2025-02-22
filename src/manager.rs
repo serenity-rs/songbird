@@ -158,32 +158,30 @@ impl Songbird {
     }
 
     fn get_or_insert_inner(&self, guild_id: GuildId) -> Arc<Mutex<Call>> {
-        self.get(guild_id).unwrap_or_else(|| {
-            self.calls
-                .entry(guild_id)
-                .or_insert_with(|| {
-                    let info = self
-                        .client_data
-                        .get()
-                        .expect("Manager has not been initialised");
+        self.calls
+            .entry(guild_id)
+            .or_insert_with(|| {
+                let info = self
+                    .client_data
+                    .get()
+                    .expect("Manager has not been initialised");
 
-                    let shard = shard_id(guild_id.0.get(), info.shard_count);
-                    let shard_handle = self
-                        .sharder
-                        .get_shard(shard)
-                        .expect("Failed to get shard handle: shard_count incorrect?");
+                let shard = shard_id(guild_id.0.get(), info.shard_count);
+                let shard_handle = self
+                    .sharder
+                    .get_shard(shard)
+                    .expect("Failed to get shard handle: shard_count incorrect?");
 
-                    let call = Call::from_config(
-                        guild_id,
-                        shard_handle,
-                        info.user_id,
-                        self.config.read().clone(),
-                    );
+                let call = Call::from_config(
+                    guild_id,
+                    shard_handle,
+                    info.user_id,
+                    self.config.read().clone(),
+                );
 
-                    Arc::new(Mutex::new(call))
-                })
-                .clone()
-        })
+                Arc::new(Mutex::new(call))
+            })
+            .clone()
     }
 
     /// Creates an iterator for all [`Call`]s currently managed.
