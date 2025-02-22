@@ -1,12 +1,12 @@
 #![allow(missing_docs)]
 
 use super::Interconnect;
-use crate::driver::Config;
+use crate::driver::DecodeConfig;
 use dashmap::{DashMap, DashSet};
 use serenity_voice_model::id::UserId;
 
 pub enum UdpRxMessage {
-    SetConfig(Config),
+    SetConfig(DecodeConfig),
     ReplaceInterconnect(Interconnect),
 }
 

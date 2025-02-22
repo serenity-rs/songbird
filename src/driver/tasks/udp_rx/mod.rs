@@ -5,7 +5,7 @@ mod ssrc_state;
 use self::{decode_sizes::*, playout_buffer::*, ssrc_state::*};
 
 use super::message::*;
-use crate::driver::CryptoMode;
+use crate::driver::{CryptoMode, DecodeMode};
 use crate::{
     constants::*,
     driver::crypto::Cipher,
@@ -65,13 +65,12 @@ impl UdpRx {
                         Ok(UdpRxMessage::ReplaceInterconnect(i)) => {
                             *interconnect = i;
                         },
-                        Ok(UdpRxMessage::SetConfig(c)) => {
-                            let old_coder = (self.config.decode_channels, self.config.decode_sample_rate);
-                            let new_coder = (c.decode_channels, c.decode_sample_rate);
-                            self.config = c;
-
-                            if old_coder != new_coder {
-                                self.decoder_map.values_mut().for_each(|v| v.reconfigure_decoder(&self.config));
+                        Ok(UdpRxMessage::SetConfig(new_config)) => {
+                            if let DecodeMode::Decode(old_config) = &mut self.config.decode_mode {
+                                if *old_config != new_config {
+                                    *old_config = new_config;
+                                    self.decoder_map.values_mut().for_each(|v| v.reconfigure_decoder(new_config));
+                                }
                             }
                         },
                         Err(flume::RecvError::Disconnected) => break,

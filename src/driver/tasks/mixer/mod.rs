@@ -329,10 +329,11 @@ impl Mixer {
 
                 #[cfg(feature = "receive")]
                 if let Some(conn) = &self.conn_active {
-                    conn_failure |= conn
-                        .udp_rx
-                        .send(UdpRxMessage::SetConfig(new_config))
-                        .is_err();
+                    if let crate::driver::DecodeMode::Decode(decode_config) = new_config.decode_mode
+                    {
+                        let msg = UdpRxMessage::SetConfig(decode_config);
+                        conn_failure |= conn.udp_rx.send(msg).is_err();
+                    }
                 }
 
                 Ok(())

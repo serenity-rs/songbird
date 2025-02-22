@@ -34,7 +34,7 @@ use serenity::{
 };
 
 use songbird::{
-    driver::DecodeMode,
+    driver::{DecodeConfig, DecodeMode},
     model::{
         id::UserId,
         payload::{ClientDisconnect, Speaking},
@@ -217,7 +217,8 @@ async fn main() {
     // Here, we need to configure Songbird to decode all incoming voice packets.
     // If you want, you can do this on a per-call basis---here, we need it to
     // read the audio data that other people are sending us!
-    let songbird_config = Config::default().decode_mode(DecodeMode::Decode);
+    let songbird_config =
+        Config::default().decode_mode(DecodeMode::Decode(DecodeConfig::default()));
 
     let mut client = Client::builder(&token, intents)
         .event_handler(Handler)

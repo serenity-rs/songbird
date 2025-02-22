@@ -32,12 +32,12 @@ pub struct VoiceData {
     ///
     /// Valid audio data (`Some(audio)` where `audio.len >= 0`) typically contains 20ms of 16-bit PCM audio
     /// using native endianness. This defaults to stereo audio at 48kHz, and can be configured via
-    /// [`Config::decode_channels`] and [`Config::decode_sample_rate`] -- channels are interleaved
+    /// [`DecodeConfig::sample_rate`] and [`DecodeConfig::sample_rate`] -- channels are interleaved
     /// (i.e., `L, R, L, R, ...`) if stereo.
     ///
     /// This value will be `None` if Songbird is not configured to decode audio.
     ///
-    /// [`Config::decode_channels`]: crate::Config::decode_channels
-    /// [`Config::decode_sample_rate`]: crate::Config::decode_sample_rate
+    /// [`DecodeConfig::decode_channels`]: crate::driver::DecodeConfig::channels
+    /// [`DecodeConfig::sample_rate`]: crate::driver::DecodeConfig::sample_rate
     pub decoded_voice: Option<Vec<i16>>,
 }
