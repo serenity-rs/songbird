@@ -173,17 +173,14 @@ impl VoiceUpdate for Shard {
         match self {
             #[cfg(feature = "serenity")]
             Shard::Serenity(handle) => {
-                let map = json!({
-                    "op": 4,
-                    "d": {
-                        "channel_id": channel_id.map(ChannelId::get),
-                        "guild_id": guild_id.get(),
-                        "self_deaf": self_deaf,
-                        "self_mute": self_mute,
-                    }
-                });
-
-                handle.send(ShardRunnerMessage::Message(map.to_string().into()))?;
+                handle.send(ShardRunnerMessage::UpdateVoiceState {
+                    guild_id: guild_id.get().into(),
+                    channel_id: channel_id
+                        .map(ChannelId::get)
+                        .map(serenity::all::ChannelId::from),
+                    self_mute,
+                    self_deaf,
+                })?;
                 Ok(())
             },
             #[cfg(feature = "twilight")]
