@@ -6,7 +6,7 @@ use super::*;
 /// returns `None`.
 ///
 /// [`EventData`]: EventData
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, enum_map::Enum)]
 #[non_exhaustive]
 pub enum UntimedEvent {
     /// Untimed events belonging to a track, such as state changes, end, or loops.

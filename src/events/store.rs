@@ -3,6 +3,7 @@ use crate::{
     constants::*,
     tracks::{ReadyState, TrackHandle, TrackState},
 };
+use enum_map::EnumMap;
 use std::collections::{BinaryHeap, HashMap};
 use tracing::info;
 
@@ -15,7 +16,7 @@ use tracing::info;
 /// [`EventData`]: EventData
 pub struct EventStore {
     timed: BinaryHeap<EventData>,
-    untimed: HashMap<UntimedEvent, Vec<EventData>>,
+    untimed: Box<EnumMap<UntimedEvent, Vec<EventData>>>,
     local_only: bool,
 }
 
@@ -54,10 +55,10 @@ impl EventStore {
 
         match evt.event {
             Event::Core(c) => {
-                self.untimed.entry(c.into()).or_default().push(evt);
+                self.untimed[c.into()].push(evt);
             },
             Event::Track(t) => {
-                self.untimed.entry(t.into()).or_default().push(evt);
+                self.untimed[t.into()].push(evt);
             },
             Event::Delayed(_) | Event::Periodic(_, _) => {
                 self.timed.push(evt);
@@ -117,8 +118,8 @@ impl EventStore {
         // another necessitates that they be different event types, thus entries,
         // convincing the compiler of this is non-trivial without making them dedicated
         // fields.
-        let events = self.untimed.remove(&untimed_event);
-        if let Some(mut events) = events {
+        let mut events = std::mem::take(&mut self.untimed[untimed_event]);
+        if !events.is_empty() {
             // TODO: Possibly use tombstones to prevent realloc/memcpys?
             // i.e., never shrink array, replace ended tracks with <DEAD>,
             // maintain a "first-track" stack and freelist alongside.
@@ -139,7 +140,7 @@ impl EventStore {
                     i += 1;
                 };
             }
-            self.untimed.insert(untimed_event, events);
+            self.untimed[untimed_event] = events;
         }
     }
 }
@@ -233,7 +234,7 @@ impl GlobalEvents {
             }
 
             // Global untimed track events.
-            if self.store.untimed.contains_key(&untimed) && !indices.is_empty() {
+            if !self.store.untimed[untimed].is_empty() && !indices.is_empty() {
                 let global_ctx: Vec<(&TrackState, &TrackHandle)> = indices
                     .iter()
                     .map(|i| {
