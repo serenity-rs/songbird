@@ -374,7 +374,6 @@ impl<T: AsRef<[u8]> + Send + Sync + 'static> From<T> for Input {
     fn from(val: T) -> Self {
         let raw_src = LiveInput::Raw(AudioStream {
             input: Box::new(Cursor::new(val)),
-            hint: None,
         });
 
         Input::Live(raw_src, None)

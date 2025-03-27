@@ -1,6 +1,6 @@
 use crate::input::{AudioStream, AudioStreamError, Compose, Input};
-use std::{error::Error, ffi::OsStr, path::Path};
-use symphonia_core::{io::MediaSource, probe::Hint};
+use std::{error::Error, path::Path};
+use symphonia_core::io::MediaSource;
 
 /// A lazily instantiated local file.
 #[derive(Clone, Debug)]
@@ -39,16 +39,7 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
             .map_err(|io| AudioStreamError::Fail(Box::new(io)))?;
 
         let input = Box::new(file.into_std().await);
-
-        let mut hint = Hint::default();
-        if let Some(ext) = self.path.as_ref().extension().and_then(OsStr::to_str) {
-            hint.with_extension(ext);
-        }
-
-        Ok(AudioStream {
-            input,
-            hint: Some(hint),
-        })
+        Ok(AudioStream { input })
     }
 
     fn should_create_async(&self) -> bool {

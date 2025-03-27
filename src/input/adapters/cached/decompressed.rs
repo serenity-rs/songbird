@@ -135,6 +135,6 @@ impl MediaSource for Decompressed {
 impl From<Decompressed> for Input {
     fn from(val: Decompressed) -> Input {
         let input = Box::new(val);
-        Input::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
+        Input::Live(LiveInput::Raw(AudioStream { input }), None)
     }
 }

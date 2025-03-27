@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use futures::TryStreamExt;
 use pin_project::pin_project;
 use reqwest::{
-    header::{HeaderMap, ACCEPT_RANGES, CONTENT_LENGTH, CONTENT_TYPE, RANGE, RETRY_AFTER},
+    header::{HeaderMap, ACCEPT_RANGES, CONTENT_LENGTH, RANGE, RETRY_AFTER},
     Client,
 };
 use std::{
@@ -19,7 +19,7 @@ use std::{
     task::{Context, Poll},
     time::Duration,
 };
-use symphonia_core::{io::MediaSource, probe::Hint};
+use symphonia_core::io::MediaSource;
 use tokio::io::{AsyncRead, AsyncSeek, ReadBuf};
 use tokio_util::io::StreamReader;
 
@@ -58,10 +58,7 @@ impl HttpRequest {
         }
     }
 
-    async fn create_stream(
-        &mut self,
-        offset: Option<u64>,
-    ) -> Result<(HttpStream, Option<Hint>), AudioStreamError> {
+    async fn create_stream(&mut self, offset: Option<u64>) -> Result<HttpStream, AudioStreamError> {
         let mut resp = self.client.get(&self.request).headers(self.headers.clone());
 
         match (offset, self.content_length) {
@@ -106,15 +103,6 @@ impl HttpRequest {
         } else {
             let headers = resp.headers();
 
-            let hint = headers
-                .get(CONTENT_TYPE)
-                .and_then(|val| val.to_str().ok())
-                .map(|val| {
-                    let mut out = Hint::default();
-                    out.mime_type(val);
-                    out
-                });
-
             let len = headers
                 .get(CONTENT_LENGTH)
                 .and_then(|val| val.to_str().ok())
@@ -135,13 +123,11 @@ impl HttpRequest {
                 resp.bytes_stream().map_err(IoError::other),
             ));
 
-            let input = HttpStream {
+            Ok(HttpStream {
                 stream,
                 len,
                 resume,
-            };
-
-            Ok((input, hint))
+            })
         }
     }
 }
@@ -192,7 +178,7 @@ impl AsyncMediaSource for HttpStream {
             resume
                 .create_stream(Some(offset))
                 .await
-                .map(|a| Box::new(a.0) as Box<dyn AsyncMediaSource>)
+                .map(|a| Box::new(a) as Box<dyn AsyncMediaSource>)
         } else {
             Err(AudioStreamError::Unsupported)
         }
@@ -208,12 +194,11 @@ impl Compose for HttpRequest {
     async fn create_async(
         &mut self,
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
-        self.create_stream(None).await.map(|(input, hint)| {
+        self.create_stream(None).await.map(|input| {
             let stream = AsyncAdapterStream::new(Box::new(input), 64 * 1024);
 
             AudioStream {
                 input: Box::new(stream) as Box<dyn MediaSource>,
-                hint,
             }
         })
     }

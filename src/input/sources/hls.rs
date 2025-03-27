@@ -79,7 +79,6 @@ impl Compose for HlsRequest {
 
             AudioStream {
                 input: Box::new(stream) as Box<dyn MediaSource>,
-                hint: None,
             }
         })
     }

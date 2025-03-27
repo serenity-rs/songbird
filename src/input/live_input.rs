@@ -6,7 +6,7 @@ use symphonia_core::{
     formats::FormatOptions,
     io::{MediaSource, MediaSourceStream, MediaSourceStreamOptions},
     meta::MetadataOptions,
-    probe::Probe,
+    probe::{Hint, Probe},
 };
 
 /// An initialised audio source.
@@ -46,19 +46,16 @@ impl LiveInput {
         if let LiveInput::Raw(r) = out {
             // TODO: allow passing in of MSS options?
             let mss = MediaSourceStream::new(r.input, MediaSourceStreamOptions::default());
-            out = LiveInput::Wrapped(AudioStream {
-                input: mss,
-                hint: r.hint,
-            });
+            out = LiveInput::Wrapped(AudioStream { input: mss });
         }
 
         if let LiveInput::Wrapped(w) = out {
-            let hint = w.hint.unwrap_or_default();
             let input = w.input;
             let supports_backseek = input.is_seekable();
 
             let probe_data = probe.format(
-                &hint,
+                // Hint is ignored
+                &Hint::new(),
                 input,
                 &FormatOptions::default(),
                 &MetadataOptions::default(),
