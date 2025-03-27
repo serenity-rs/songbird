@@ -77,9 +77,6 @@
     clippy::missing_panics_doc,
     clippy::doc_link_with_quotes,
     clippy::doc_markdown,
-    // Allowed as they cannot be fixed without breaking
-    clippy::result_large_err,
-    clippy::large_enum_variant,
 )]
 
 mod config;

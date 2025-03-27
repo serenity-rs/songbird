@@ -228,7 +228,7 @@ impl Mixer {
         let mut should_exit = false;
 
         let error = match msg {
-            MixerMessage::AddTrack(t) => self.add_track(t),
+            MixerMessage::AddTrack(t) => self.add_track(*t),
             MixerMessage::SetTrack(t) => {
                 self.tracks.clear();
                 self.track_handles.clear();
@@ -238,7 +238,7 @@ impl Mixer {
                 if let Some(t) = t {
                     // Do this unconditionally: this affects local state infallibly,
                     // with the event installation being the remote part.
-                    if let Err(e) = self.add_track(t) {
+                    if let Err(e) = self.add_track(*t) {
                         out = Err(e);
                     }
                 }
