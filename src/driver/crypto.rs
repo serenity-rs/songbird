@@ -589,7 +589,7 @@ mod test {
 
         // If there is no mutual intelligibility, return an error.
         let bad_modes = ["not_real", "des", "rc5"];
-        assert!(CryptoMode::negotiate(&bad_modes, None).is_err());
-        assert!(CryptoMode::negotiate(&bad_modes, Some(CryptoMode::Aes256Gcm)).is_err());
+        assert!(CryptoMode::negotiate(bad_modes, None).is_err());
+        assert!(CryptoMode::negotiate(bad_modes, Some(CryptoMode::Aes256Gcm)).is_err());
     }
 }

@@ -246,7 +246,7 @@ pub fn mix_symph_indiv(
                     resample_in_progress = true;
                     continue;
                 }
-            };
+            }
 
             let samples_marched = mix_resampled(rs_out_buf, symph_mix, samples_written, volume);
 

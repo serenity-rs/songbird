@@ -679,12 +679,11 @@ impl Mixer {
 
             Ok(())
         } else {
-            self._send_packet(packet)
+            self.send_packet_(packet)
         };
 
         #[cfg(not(test))]
-        #[allow(clippy::used_underscore_items)]
-        let send_status = self._send_packet(packet);
+        let send_status = self.send_packet_(packet);
 
         send_status.or_else(Error::disarm_would_block)?;
 
@@ -692,7 +691,7 @@ impl Mixer {
     }
 
     #[inline]
-    fn _send_packet(&self, packet: &[u8]) -> Result<()> {
+    fn send_packet_(&self, packet: &[u8]) -> Result<()> {
         let conn = self
             .conn_active
             .as_ref()
