@@ -140,7 +140,7 @@ impl Track {
             volume: 1.0,
             input,
             events: EventStore::new_local(),
-            loops: LoopState::Finite(0),
+            loops: LoopState::Finite(nonmax::NonMaxU32::ZERO),
             uuid,
             user_data,
         }

@@ -1,3 +1,5 @@
+use nonmax::NonMaxU32;
+
 /// Looping behaviour for a [`Track`].
 ///
 /// [`Track`]: struct.Track.html
@@ -12,12 +14,12 @@ pub enum LoopState {
     /// `Finite(0)` is the `Default`, stopping the track once its [`Input`] ends.
     ///
     /// [`Input`]: crate::input::Input
-    Finite(usize),
+    Finite(NonMaxU32),
 }
 
 impl Default for LoopState {
     fn default() -> Self {
-        Self::Finite(0)
+        Self::Finite(NonMaxU32::ZERO)
     }
 }
 
@@ -59,7 +61,8 @@ mod tests {
         let mut driver = Driver::new(config.clone());
 
         let file = File::new(FILE_WAV_TARGET);
-        let handle = driver.play(Track::from(file).loops(LoopState::Finite(2)));
+        let handle = driver
+            .play(Track::from(file).loops(LoopState::Finite(const { NonMaxU32::new(2).unwrap() })));
 
         let (l_tx, l_rx) = flume::unbounded();
         let (e_tx, e_rx) = flume::unbounded();
@@ -74,11 +77,11 @@ mod tests {
         // 3) Playtime >> Position
         assert_eq!(
             l_rx.recv_async().await.map(|v| v.loops),
-            Ok(LoopState::Finite(1))
+            Ok(LoopState::Finite(NonMaxU32::ONE))
         );
         assert_eq!(
             l_rx.recv_async().await.map(|v| v.loops),
-            Ok(LoopState::Finite(0))
+            Ok(LoopState::Finite(NonMaxU32::ZERO))
         );
         let ended = e_rx.recv_async().await;
 
