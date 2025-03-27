@@ -71,6 +71,7 @@ twilight-model = { default-features = false, optional = true, version = "0.16.0"
 typenum = { optional = true, version = "1.17.0" }
 url = { optional = true, version = "2" }
 uuid = { features = ["v4"], optional = true, version = "1" }
+nonmax = "0.5.5"
 
 [dev-dependencies]
 byteorder = "1"

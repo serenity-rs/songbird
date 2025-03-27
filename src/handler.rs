@@ -237,7 +237,7 @@ impl Call {
                 Return::Conn(gw_tx, tx),
             ));
 
-            let timeout = self.config().gateway_timeout;
+            let timeout = self.config().gateway_timeout.map(Into::into);
 
             self.update()
                 .await
@@ -300,7 +300,7 @@ impl Call {
                 Return::Info(tx),
             ));
 
-            let timeout = self.config().gateway_timeout;
+            let timeout = self.config().gateway_timeout.map(Into::into);
 
             self.update()
                 .await

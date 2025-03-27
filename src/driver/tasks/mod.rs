@@ -9,8 +9,6 @@ pub mod mixer;
 pub(crate) mod udp_rx;
 pub(crate) mod ws;
 
-use std::time::Duration;
-
 use super::connection::{error::Error as ConnectionError, Connection};
 use crate::{
     events::{
@@ -20,6 +18,7 @@ use crate::{
     },
     Config,
     ConnectionInfo,
+    FloatDuration,
 };
 use flume::{Receiver, Sender};
 use message::*;
@@ -226,8 +225,8 @@ async fn runner(mut config: Config, rx: Receiver<CoreMessage>, tx: Sender<CoreMe
 
 struct ConnectionRetryData {
     flavour: ConnectionFlavour,
-    attempts: usize,
-    last_wait: Option<Duration>,
+    attempts: u8,
+    last_wait: Option<FloatDuration>,
     info: ConnectionInfo,
     idx: usize,
 }
@@ -296,7 +295,7 @@ impl ConnectionRetryData {
                     let idx = self.idx;
 
                     spawn(async move {
-                        tsleep(t).await;
+                        tsleep(t.into()).await;
                         drop(remote_ic.core.send(CoreMessage::RetryConnect(idx)));
                     });
 

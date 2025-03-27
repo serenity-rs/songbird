@@ -1,5 +1,6 @@
 #[cfg(all(feature = "driver", feature = "receive"))]
 use crate::driver::DecodeMode;
+use crate::FloatDuration;
 #[cfg(feature = "driver")]
 use crate::{
     driver::{
@@ -22,9 +23,7 @@ use crate::driver::SchedulerConfig;
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
 use derivative::Derivative;
-#[cfg(feature = "receive")]
-use std::num::NonZeroUsize;
-use std::time::Duration;
+use std::{num::NonZeroU8, time::Duration};
 
 /// Configuration for drivers and calls.
 #[derive(Clone, Derivative)]
@@ -66,7 +65,7 @@ pub struct Config {
     /// should be removed.
     ///
     /// Defaults to 1 minute.
-    pub decode_state_timeout: Duration,
+    pub decode_state_timeout: FloatDuration,
 
     #[cfg(all(feature = "driver", feature = "receive"))]
     /// Configures the number of audio packets to buffer for each user before playout.
@@ -77,7 +76,7 @@ pub struct Config {
     /// This does not affect the arrival of raw packet events.
     ///
     /// Defaults to 5 packets (100ms).
-    pub playout_buffer_length: NonZeroUsize,
+    pub playout_buffer_length: NonZeroU8,
 
     #[cfg(all(feature = "driver", feature = "receive"))]
     /// Configures the initial amount of extra space allocated to handle packet bursts.
@@ -86,7 +85,7 @@ pub struct Config {
     /// playout_spike_length`, up to a maximum 64 packets.
     ///
     /// Defaults to 3 packets (thus capacity defaults to 8).
-    pub playout_spike_length: usize,
+    pub playout_spike_length: u8,
 
     #[cfg(feature = "gateway")]
     /// Configures the amount of time to wait for Discord to reply with connection information
@@ -100,7 +99,7 @@ pub struct Config {
     ///
     /// [`Call::join`]: crate::Call::join
     /// [`join_gateway`]: crate::Call::join_gateway
-    pub gateway_timeout: Option<Duration>,
+    pub gateway_timeout: Option<FloatDuration>,
 
     #[cfg(feature = "driver")]
     /// Configures whether the driver will mix and output stereo or mono Opus data
@@ -123,7 +122,7 @@ pub struct Config {
     ///
     /// Changes to this field in a running driver will only ever increase
     /// the capacity of the track store.
-    pub preallocated_tracks: usize,
+    pub preallocated_tracks: u8,
 
     #[cfg(feature = "driver")]
     /// Connection retry logic for the [`Driver`].
@@ -154,7 +153,7 @@ pub struct Config {
     /// connection to Discord.
     ///
     /// Defaults to 10 seconds. If set to `None`, connections will never time out.
-    pub driver_timeout: Option<Duration>,
+    pub driver_timeout: Option<FloatDuration>,
 
     #[cfg(feature = "driver")]
     #[derivative(Debug = "ignore")]
@@ -211,13 +210,13 @@ impl Default for Config {
             #[cfg(all(feature = "driver", feature = "receive"))]
             decode_mode: DecodeMode::Decrypt,
             #[cfg(all(feature = "driver", feature = "receive"))]
-            decode_state_timeout: Duration::from_secs(60),
+            decode_state_timeout: Duration::from_secs(60).into(),
             #[cfg(all(feature = "driver", feature = "receive"))]
-            playout_buffer_length: NonZeroUsize::new(5).unwrap(),
+            playout_buffer_length: NonZeroU8::new(5).unwrap(),
             #[cfg(all(feature = "driver", feature = "receive"))]
             playout_spike_length: 3,
             #[cfg(feature = "gateway")]
-            gateway_timeout: Some(Duration::from_secs(10)),
+            gateway_timeout: Some(Duration::from_secs(10).into()),
             #[cfg(feature = "driver")]
             mix_mode: MixMode::Stereo,
             #[cfg(feature = "driver")]
@@ -227,7 +226,7 @@ impl Default for Config {
             #[cfg(feature = "driver")]
             driver_retry: Retry::default(),
             #[cfg(feature = "driver")]
-            driver_timeout: Some(Duration::from_secs(10)),
+            driver_timeout: Some(Duration::from_secs(10).into()),
             #[cfg(feature = "driver")]
             codec_registry: get_codec_registry(),
             #[cfg(feature = "driver")]
@@ -267,14 +266,14 @@ impl Config {
     /// Sets this `Config`'s received packet decoder cleanup timer.
     #[must_use]
     pub fn decode_state_timeout(mut self, decode_state_timeout: Duration) -> Self {
-        self.decode_state_timeout = decode_state_timeout;
+        self.decode_state_timeout = decode_state_timeout.into();
         self
     }
 
     #[cfg(feature = "receive")]
     /// Sets this `Config`'s playout buffer length, in packets.
     #[must_use]
-    pub fn playout_buffer_length(mut self, playout_buffer_length: NonZeroUsize) -> Self {
+    pub fn playout_buffer_length(mut self, playout_buffer_length: NonZeroU8) -> Self {
         self.playout_buffer_length = playout_buffer_length;
         self
     }
@@ -282,7 +281,7 @@ impl Config {
     #[cfg(feature = "receive")]
     /// Sets this `Config`'s additional pre-allocated space to handle bursty audio packets.
     #[must_use]
-    pub fn playout_spike_length(mut self, playout_spike_length: usize) -> Self {
+    pub fn playout_spike_length(mut self, playout_spike_length: u8) -> Self {
         self.playout_spike_length = playout_spike_length;
         self
     }
@@ -296,7 +295,7 @@ impl Config {
 
     /// Sets this `Config`'s number of tracks to preallocate.
     #[must_use]
-    pub fn preallocated_tracks(mut self, preallocated_tracks: usize) -> Self {
+    pub fn preallocated_tracks(mut self, preallocated_tracks: u8) -> Self {
         self.preallocated_tracks = preallocated_tracks;
         self
     }
@@ -311,7 +310,7 @@ impl Config {
     /// Sets this `Config`'s timeout for establishing a voice connection.
     #[must_use]
     pub fn driver_timeout(mut self, driver_timeout: Option<Duration>) -> Self {
-        self.driver_timeout = driver_timeout;
+        self.driver_timeout = driver_timeout.map(Into::into);
         self
     }
 
@@ -437,7 +436,7 @@ impl Config {
     /// Sets this `Config`'s timeout for joining a voice channel.
     #[must_use]
     pub fn gateway_timeout(mut self, gateway_timeout: Option<Duration>) -> Self {
-        self.gateway_timeout = gateway_timeout;
+        self.gateway_timeout = gateway_timeout.map(Into::into);
         self
     }
 }

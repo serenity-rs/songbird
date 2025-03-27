@@ -89,6 +89,7 @@ pub mod driver;
 pub mod error;
 #[cfg(feature = "driver")]
 pub mod events;
+mod float_duration;
 #[cfg(feature = "gateway")]
 mod handler;
 pub mod id;
@@ -130,4 +131,5 @@ pub use crate::{handler::*, manager::*};
 pub use crate::serenity::*;
 
 pub use config::Config;
+pub use float_duration::FloatDuration;
 pub use info::ConnectionInfo;
