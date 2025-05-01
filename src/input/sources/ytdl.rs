@@ -8,7 +8,6 @@ use crate::input::{
     Input,
 };
 use async_trait::async_trait;
-use either::Either;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
@@ -118,16 +117,10 @@ impl<'a> YoutubeDl<'a> {
     ) -> Result<impl Iterator<Item = AuxMetadata>, AudioStreamError> {
         let n_results = n_results.unwrap_or(5);
 
-        Ok(match &self.query {
-            // Safer to just return the metadata for the pointee if possible
-            QueryType::Url(_) => Either::Left(std::iter::once(self.aux_metadata().await?)),
-            QueryType::Search(_) => Either::Right(
-                self.query(n_results)
-                    .await?
-                    .into_iter()
-                    .map(|v| v.as_aux_metadata()),
-            ),
-        })
+        Ok(self.query(n_results)
+            .await?
+            .into_iter()
+            .map(|v| v.as_aux_metadata()))
     }
 
     async fn query(&mut self, n_results: usize) -> Result<Vec<Output>, AudioStreamError> {
