@@ -123,7 +123,9 @@ impl<'a> YoutubeDl<'a> {
             .map(|v| v.as_aux_metadata()))
     }
 
-    async fn query(&mut self, n_results: usize) -> Result<Vec<Output>, AudioStreamError> {
+    /// Runs a search for the given query, returning a list of up to `n_results`
+    /// possible matches which are [`Output`] objects containing a valid URL.
+    pub async fn query(&mut self, n_results: usize) -> Result<Vec<Output>, AudioStreamError> {
         let query_str = self.query.as_cow_str(n_results);
         let ytdl_args = [
             "-j",
