@@ -178,6 +178,60 @@ impl<'a> YoutubeDl<'a> {
 
         Ok(out)
     }
+
+    /// Get the audio stream from an [`Output`].
+    pub async fn get_stream(&self, result: &Output) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
+        let mut headers = HeaderMap::default();
+
+        if let Some(map) = &result.http_headers {
+            headers.extend(map.iter().filter_map(|(k, v)| {
+                Some((
+                    HeaderName::from_bytes(k.as_bytes()).ok()?,
+                    HeaderValue::from_str(v).ok()?,
+                ))
+            }));
+        }
+
+        #[allow(clippy::single_match_else)]
+        match result.protocol.as_deref() {
+            Some("m3u8_native") => {
+                let mut req =
+                    HlsRequest::new_with_headers(self.client.clone(), result.url.clone(), headers);
+                req.create()
+            },
+            _ => {
+                let mut req = HttpRequest {
+                    client: self.client.clone(),
+                    request: result.url.clone(),
+                    headers,
+                    content_length: result.filesize,
+                };
+                req.create_async().await
+            },
+        }
+    }
+    /// Returns all audio streams from a list of [`Output`]s.
+    pub async fn get_streams(&self, outputs: Vec<Output>) -> Result<Vec<AudioStream<Box<dyn MediaSource>>>, AudioStreamError> {
+        Ok(
+            futures::future::join_all(outputs
+                .iter()
+                .map(|o| self.get_stream(o))
+            )
+            .await
+            .into_iter()
+            .filter_map(|res| {
+                match res {
+                    Ok(stream) => Some(stream),
+                    Err(e) => {
+                        tracing::error!("Error when fetching a yt-dlp stream: {}", e);
+                        None
+                    }
+                }
+            })
+            .collect()
+        )
+    }
+
 }
 
 impl From<YoutubeDl<'static>> for Input {
@@ -199,34 +253,7 @@ impl Compose for YoutubeDl<'_> {
         let mut results = self.query(1).await?;
         let result = results.swap_remove(0);
 
-        let mut headers = HeaderMap::default();
-
-        if let Some(map) = result.http_headers {
-            headers.extend(map.iter().filter_map(|(k, v)| {
-                Some((
-                    HeaderName::from_bytes(k.as_bytes()).ok()?,
-                    HeaderValue::from_str(v).ok()?,
-                ))
-            }));
-        }
-
-        #[allow(clippy::single_match_else)]
-        match result.protocol.as_deref() {
-            Some("m3u8_native") => {
-                let mut req =
-                    HlsRequest::new_with_headers(self.client.clone(), result.url, headers);
-                req.create()
-            },
-            _ => {
-                let mut req = HttpRequest {
-                    client: self.client.clone(),
-                    request: result.url,
-                    headers,
-                    content_length: result.filesize,
-                };
-                req.create_async().await
-            },
-        }
+        self.get_stream(&result).await
     }
 
     fn should_create_async(&self) -> bool {
