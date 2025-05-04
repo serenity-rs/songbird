@@ -412,8 +412,8 @@ impl Cipher {
         // Update the start estimate to account for bytes occupied by extension headers.
         let payload_offset = if has_extension {
             let payload = packet.payload();
-            let extension = RtpExtensionPacket::new(payload)
-                .ok_or(InternalError::IllegalVoicePacket)?;
+            let extension =
+                RtpExtensionPacket::new(payload).ok_or(InternalError::IllegalVoicePacket)?;
             extension.packet().len() - extension.payload().len()
         } else {
             0
@@ -484,7 +484,10 @@ impl Cipher {
             },
         }
 
-        Ok((plaintext_end + pre_payload.len(), post_payload.len() + slice_to_use.len()))
+        Ok((
+            plaintext_end + pre_payload.len(),
+            post_payload.len() + slice_to_use.len(),
+        ))
     }
 }
 
