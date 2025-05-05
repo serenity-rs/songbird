@@ -5,9 +5,9 @@ use crate::constants::SAMPLE_RATE_RAW;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::Duration};
 
-/// Information returned by yt-dlp about a URL. 
-/// 
-/// Returned by [`YoutubeDl::query`].
+/// Information returned by yt-dlp about a URL.
+///
+/// Returned by [`crate::input::YoutubeDl::query`].
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Output {
     /// The main artist.
