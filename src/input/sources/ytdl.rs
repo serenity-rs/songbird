@@ -117,7 +117,8 @@ impl<'a> YoutubeDl<'a> {
     ) -> Result<impl Iterator<Item = AuxMetadata>, AudioStreamError> {
         let n_results = n_results.unwrap_or(5);
 
-        Ok(self.query(n_results)
+        Ok(self
+            .query(n_results)
             .await?
             .into_iter()
             .map(|v| v.as_aux_metadata()))
@@ -180,7 +181,10 @@ impl<'a> YoutubeDl<'a> {
     }
 
     /// Get the audio stream from an [`Output`].
-    pub async fn get_stream(&self, result: &Output) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
+    pub async fn get_stream(
+        &self,
+        result: &Output,
+    ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
         let mut headers = HeaderMap::default();
 
         if let Some(map) = &result.http_headers {
@@ -210,28 +214,6 @@ impl<'a> YoutubeDl<'a> {
             },
         }
     }
-    /// Returns all audio streams from a list of [`Output`]s.
-    pub async fn get_streams(&self, outputs: Vec<Output>) -> Result<Vec<AudioStream<Box<dyn MediaSource>>>, AudioStreamError> {
-        Ok(
-            futures::future::join_all(outputs
-                .iter()
-                .map(|o| self.get_stream(o))
-            )
-            .await
-            .into_iter()
-            .filter_map(|res| {
-                match res {
-                    Ok(stream) => Some(stream),
-                    Err(e) => {
-                        tracing::error!("Error when fetching a yt-dlp stream: {}", e);
-                        None
-                    }
-                }
-            })
-            .collect()
-        )
-    }
-
 }
 
 impl From<YoutubeDl<'static>> for Input {
