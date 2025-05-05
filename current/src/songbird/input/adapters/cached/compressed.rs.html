@@ -434,7 +434,7 @@
 <a href=#434 id=434 data-nosnippet>434</a>                        },
 <a href=#435 id=435 data-nosnippet>435</a>                        <span class="prelude-val">Err</span>(e) =&gt; {
 <a href=#436 id=436 data-nosnippet>436</a>                            <span class="macro">debug!</span>(<span class="string">"Read error {:?} {:?} {:?}."</span>, e, out, raw_len);
-<a href=#437 id=437 data-nosnippet>437</a>                            out = <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(IoError::new(IoErrorKind::Other, e)));
+<a href=#437 id=437 data-nosnippet>437</a>                            out = <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(IoError::other(e)));
 <a href=#438 id=438 data-nosnippet>438</a>                            <span class="kw">break</span>;
 <a href=#439 id=439 data-nosnippet>439</a>                        },
 <a href=#440 id=440 data-nosnippet>440</a>                    }
@@ -472,7 +472,7 @@
 <a href=#472 id=472 data-nosnippet>472</a>
 <a href=#473 id=473 data-nosnippet>473</a>        <span class="comment">// NOTE: use of raw_len here preserves true sample length even if
 <a href=#474 id=474 data-nosnippet>474</a>        // stream is extended to 20ms boundary.
-<a href=#475 id=475 data-nosnippet>475</a>        </span>out.unwrap_or_else(|| <span class="prelude-val">Err</span>(IoError::new(IoErrorKind::Other, <span class="string">"Unclear."</span>)))
+<a href=#475 id=475 data-nosnippet>475</a>        </span>out.unwrap_or_else(|| <span class="prelude-val">Err</span>(IoError::other(<span class="string">"Unclear."</span>)))
 <a href=#476 id=476 data-nosnippet>476</a>            .map(|compressed_sz| {
 <a href=#477 id=477 data-nosnippet>477</a>                <span class="self">self</span>.audio_bytes
 <a href=#478 id=478 data-nosnippet>478</a>                    .fetch_add(raw_len * mem::size_of::&lt;f32&gt;(), Ordering::Release);
