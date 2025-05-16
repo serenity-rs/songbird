@@ -1,11 +1,12 @@
-//! Metadata about outputs - currently only [`ytdl::Output`] is publicly exported.
+//! Metadata formats specific to [`Compose`] types.
 
 use crate::error::JsonError;
 use std::time::Duration;
 use symphonia_core::{meta::Metadata as ContainerMetadata, probe::ProbedMetadata};
 
 pub(crate) mod ffprobe;
-pub mod ytdl;
+mod ytdl;
+pub use ytdl::Output as YoutubeDlOutput;
 
 use super::Parsed;
 

@@ -1,4 +1,4 @@
-//! YoutubeDl track metadata - see [`Output`].
+//! `YoutubeDl` track metadata.
 
 use super::AuxMetadata;
 use crate::constants::SAMPLE_RATE_RAW;
@@ -16,7 +16,7 @@ pub struct Output {
     pub album: Option<String>,
     /// The channel name.
     pub channel: Option<String>,
-    /// The duration of the stream.
+    /// The duration of the stream in seconds.
     pub duration: Option<f64>,
     /// The size of the stream.
     pub filesize: Option<u64>,
@@ -24,9 +24,9 @@ pub struct Output {
     pub http_headers: Option<HashMap<String, String>>,
     /// Release date of this track.
     pub release_date: Option<String>,
-    /// The track thumbnail.
+    /// The thumbnail URL for this track.
     pub thumbnail: Option<String>,
-    /// The title of the track.
+    /// The title of this track.
     pub title: Option<String>,
     /// The track name.
     pub track: Option<String>,

@@ -1,5 +1,5 @@
 use crate::input::{
-    metadata::ytdl::Output,
+    metadata::YoutubeDlOutput,
     AudioStream,
     AudioStreamError,
     AuxMetadata,
@@ -125,8 +125,8 @@ impl<'a> YoutubeDl<'a> {
     }
 
     /// Runs a search for the given query, returning a list of up to `n_results`
-    /// possible matches which are [`Output`] objects containing a valid URL.
-    pub async fn query(&mut self, n_results: usize) -> Result<Vec<Output>, AudioStreamError> {
+    /// possible matches.
+    pub async fn query(&mut self, n_results: usize) -> Result<Vec<YoutubeDlOutput>, AudioStreamError> {
         let query_str = self.query.as_cow_str(n_results);
         let ytdl_args = [
             "-j",
@@ -165,7 +165,7 @@ impl<'a> YoutubeDl<'a> {
             .split(|&b| b == b'\n')
             .filter(|&x| (!x.is_empty()))
             .map(serde_json::from_slice)
-            .collect::<Result<Vec<Output>, _>>()
+            .collect::<Result<Vec<YoutubeDlOutput>, _>>()
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
         let meta = out
@@ -180,10 +180,10 @@ impl<'a> YoutubeDl<'a> {
         Ok(out)
     }
 
-    /// Get the audio stream from an [`Output`].
+    /// Get the audio stream from a [`YoutubeDlOutput`].
     pub async fn get_stream(
         &self,
-        result: &Output,
+        result: &YoutubeDlOutput,
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
         let mut headers = HeaderMap::default();
 
