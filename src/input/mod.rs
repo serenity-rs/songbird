@@ -59,7 +59,7 @@ mod error;
 #[cfg(test)]
 pub mod input_tests;
 mod live_input;
-mod metadata;
+pub mod metadata;
 mod parsed;
 mod sources;
 pub mod utils;
@@ -70,7 +70,7 @@ pub use self::{
     compose::*,
     error::*,
     live_input::*,
-    metadata::{AuxMetadata, Metadata, YoutubeDlOutput},
+    metadata::{AuxMetadata, Metadata},
     parsed::*,
     sources::*,
 };
