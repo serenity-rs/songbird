@@ -126,7 +126,10 @@ impl<'a> YoutubeDl<'a> {
 
     /// Runs a search for the given query, returning a list of up to `n_results`
     /// possible matches.
-    pub async fn query(&mut self, n_results: usize) -> Result<Vec<YoutubeDlOutput>, AudioStreamError> {
+    pub async fn query(
+        &mut self,
+        n_results: usize,
+    ) -> Result<Vec<YoutubeDlOutput>, AudioStreamError> {
         let query_str = self.query.as_cow_str(n_results);
         let ytdl_args = [
             "-j",
