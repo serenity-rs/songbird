@@ -1,4 +1,4 @@
-//! Metadata formats specific to [`Compose`] types.
+//! Metadata formats specific to [`crate::input::Compose`] types.
 
 use crate::error::JsonError;
 use std::time::Duration;
