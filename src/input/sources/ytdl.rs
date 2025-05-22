@@ -1,11 +1,5 @@
 use crate::input::{
-    metadata::ytdl::Output,
-    AudioStream,
-    AudioStreamError,
-    AuxMetadata,
-    Compose,
-    HttpRequest,
-    Input,
+    metadata::ytdl::Output, AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input,
 };
 use async_trait::async_trait;
 use either::Either;
@@ -136,7 +130,7 @@ impl<'a> YoutubeDl<'a> {
             "-j",
             &query_str,
             "-f",
-            "ba[abr>0][vcodec=none]/best",
+            "bestaudio[abr>0][vcodec=none]/bestaudio/best",
             "--no-playlist",
         ];
 
