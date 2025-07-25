@@ -53,12 +53,12 @@ impl Connection {
     }
 
     pub(crate) async fn new_inner(
-        mut info: ConnectionInfo,
+        info: ConnectionInfo,
         interconnect: &Interconnect,
         config: &Config,
         idx: usize,
     ) -> Result<Connection> {
-        let url = generate_url(&mut info.endpoint)?;
+        let url = generate_url(&info.endpoint)?;
 
         let mut client = WsStream::connect(url).await?;
         let (ws_msg_tx, ws_msg_rx) = flume::unbounded();
@@ -272,7 +272,7 @@ impl Connection {
 
     #[instrument(skip(self))]
     pub async fn reconnect_inner(&mut self) -> Result<()> {
-        let url = generate_url(&mut self.info.endpoint)?;
+        let url = generate_url(&self.info.endpoint)?;
 
         // Thread may have died, we want to send to prompt a clean exit
         // (if at all possible) and then proceed as normal.
@@ -331,13 +331,7 @@ impl Drop for Connection {
     }
 }
 
-fn generate_url(endpoint: &mut String) -> Result<Url> {
-    if endpoint.ends_with(":80") {
-        let len = endpoint.len();
-
-        endpoint.truncate(len - 3);
-    }
-
+fn generate_url(endpoint: &str) -> Result<Url> {
     Url::parse(&format!("wss://{endpoint}/?v={VOICE_GATEWAY_VERSION}")).or(Err(Error::EndpointUrl))
 }
 
