@@ -15,7 +15,7 @@ symphonia = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, default-features = true }
 tokio = { workspace = true }
-twilight-gateway = "0.16.0"
-twilight-http = "0.16.0"
-twilight-model = "0.16.0"
-twilight-standby = "0.16.0"
+twilight-gateway = "0.17.0"
+twilight-http = "0.17.0"
+twilight-model = "0.17.0"
+twilight-standby = "0.17.0"
