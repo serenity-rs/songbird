@@ -23,6 +23,7 @@ bytes = { optional = true, version = "1" }
 chacha20poly1305 = { optional = true, version = "0.10.1" }
 crypto-common = { optional = true, features = ["std"], version = "0.1" }
 dashmap = { optional = true, version = "6.1.0" }
+davey = { optional = true, version = "0.1.1" }
 derivative = "2"
 discortp = { default-features = false, features = [
     "discord",
@@ -49,7 +50,7 @@ serenity = { default-features = false, optional = true, version = "0.12.0", feat
     "voice",
     "gateway",
 ] }
-serenity-voice-model = { optional = true, version = "0.2" }
+serenity-voice-model = { optional = true, path = "../serenity/voice-model" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
 stream_lib = { default-features = false, optional = true, version = "0.5.2" }
@@ -100,6 +101,7 @@ driver = [
     "dep:bytes",
     "dep:chacha20poly1305",
     "dep:crypto-common",
+    "dep:davey",
     "dep:discortp",
     "dep:flume",
     "dep:nohash-hasher",

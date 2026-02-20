@@ -94,6 +94,8 @@ impl From<&ConnectionError> for DisconnectReason {
             ConnectionError::CryptoInvalidLength
             | ConnectionError::CryptoModeInvalid
             | ConnectionError::CryptoModeUnavailable
+            | ConnectionError::DaveCreateKeyPackageError(_)
+            | ConnectionError::DaveInitializationError(_)
             | ConnectionError::EndpointUrl
             | ConnectionError::IllegalDiscoveryResponse
             | ConnectionError::IllegalIp

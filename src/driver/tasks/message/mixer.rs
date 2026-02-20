@@ -11,10 +11,12 @@ use crate::{
 use flume::Sender;
 use std::{net::UdpSocket, sync::Arc};
 use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
+use tokio::sync::RwLock;
 
 pub struct MixerConnection {
     pub cipher: Cipher,
     pub crypto_state: CryptoState,
+    pub dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
     #[cfg(feature = "receive")]
     pub udp_rx: Sender<UdpRxMessage>,
     pub udp_tx: UdpSocket,

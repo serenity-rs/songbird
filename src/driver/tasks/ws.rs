@@ -3,21 +3,23 @@ use crate::{
     events::CoreContext,
     model::{
         payload::{Heartbeat, Speaking},
-        CloseCode as VoiceCloseCode,
-        Event as GatewayEvent,
-        FromPrimitive,
-        SpeakingState,
+        CloseCode as VoiceCloseCode, Event as GatewayEvent, FromPrimitive, SpeakingState,
     },
     ws::{Error as WsError, WsStream},
     ConnectionInfo,
 };
 use flume::Receiver;
 use rand::{distr::Uniform, Rng};
+use serenity_voice_model::payload::{
+    DaveMlsInvalidCommitWelcome, DaveMlsKeyPackage, DaveMlsProposalsOperationType,
+    DaveTransitionReady,
+};
 #[cfg(feature = "receive")]
 use std::sync::Arc;
-use std::time::Duration;
+use std::{collections::HashMap, num::NonZeroU16, sync::Arc, time::Duration};
 use tokio::{
     select,
+    sync::RwLock,
     time::{sleep_until, Instant},
 };
 #[cfg(feature = "tungstenite")]
@@ -38,6 +40,11 @@ pub(crate) struct AuxNetwork {
     attempt_idx: usize,
     info: ConnectionInfo,
 
+    dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
+    dave_protocol_version: Option<NonZeroU16>,
+    dave_pending_transitions: HashMap<u16, u16>,
+    dave_downgraded: bool,
+
     #[cfg(feature = "receive")]
     ssrc_signalling: Arc<SsrcTracker>,
 }
@@ -50,6 +57,8 @@ impl AuxNetwork {
         heartbeat_interval: f64,
         attempt_idx: usize,
         info: ConnectionInfo,
+        dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
+        dave_protocol_version: Option<NonZeroU16>,
         #[cfg(feature = "receive")] ssrc_signalling: Arc<SsrcTracker>,
     ) -> Self {
         Self {
@@ -65,6 +74,11 @@ impl AuxNetwork {
 
             attempt_idx,
             info,
+
+            dave_session,
+            dave_protocol_version,
+            dave_pending_transitions: HashMap::new(),
+            dave_downgraded: false,
 
             #[cfg(feature = "receive")]
             ssrc_signalling,
@@ -94,7 +108,7 @@ impl AuxNetwork {
                     };
                     next_heartbeat = self.next_heartbeat();
                 }
-                ws_msg = self.ws_client.recv_json_no_timeout(), if !self.dont_send => {
+                ws_msg = self.ws_client.recv_event_no_timeout(), if !self.dont_send => {
                     ws_error = match ws_msg {
                         Err(e) => {
                             should_reconnect = ws_error_is_not_final(&e);
@@ -102,7 +116,7 @@ impl AuxNetwork {
                             true
                         },
                         Ok(Some(msg)) => {
-                            self.process_ws(interconnect, msg);
+                            self.process_ws(interconnect, msg).await.expect("TODO");
                             false
                         },
                         _ => false,
@@ -147,7 +161,7 @@ impl AuxNetwork {
                             }
                         },
                         Ok(WsMessage::Deliver(msg)) => {
-                            self.process_ws(interconnect, msg);
+                            self.process_ws(interconnect, msg).await.expect("TODO");
                         },
                         Err(flume::RecvError::Disconnected) => {
                             break;
@@ -197,7 +211,11 @@ impl AuxNetwork {
         Ok(())
     }
 
-    fn process_ws(&mut self, interconnect: &Interconnect, value: GatewayEvent) {
+    async fn process_ws(
+        &mut self,
+        interconnect: &Interconnect,
+        value: GatewayEvent,
+    ) -> Result<(), WsError> {
         match value {
             GatewayEvent::Speaking(ev) => {
                 #[cfg(feature = "receive")]
@@ -234,10 +252,180 @@ impl AuxNetwork {
                     }
                 }
             },
+            GatewayEvent::DavePrepareTransition(ev) => {
+                self.dave_pending_transitions
+                    .insert(ev.transition_id, ev.protocol_version);
+
+                if ev.transition_id == 0 {
+                    self.execute_dave_transition(ev.transition_id).await;
+                } else {
+                    if ev.protocol_version == 0 {
+                        if let Some(ref mut dave_session) = *self.dave_session.write().await {
+                            dave_session.set_passthrough_mode(true, Some(120));
+                        }
+
+                        self.ws_client
+                            .send_json(&GatewayEvent::DaveTransitionReady(DaveTransitionReady {
+                                transition_id: ev.transition_id,
+                                protocol_version: ev.protocol_version,
+                            }))
+                            .await?;
+                    }
+                }
+            },
+            GatewayEvent::DaveExecuteTransition(ev) => {
+                self.execute_dave_transition(ev.transition_id).await;
+            },
+            GatewayEvent::DavePrepareEpoch(ev) if ev.epoch == 1 => {
+                self.dave_protocol_version = NonZeroU16::new(ev.protocol_version);
+                self.reinit_dave_session().await;
+            },
+            GatewayEvent::DaveMlsExternalSender(ev) => {
+                if let Some(ref mut dave_session) = *self.dave_session.write().await {
+                    dave_session
+                        .set_external_sender(&ev.external_sender)
+                        .expect("TODO");
+                }
+            },
+            GatewayEvent::DaveMlsProposals(ev) => {
+                let operation_type = match ev.operation_type {
+                    DaveMlsProposalsOperationType::Append => davey::ProposalsOperationType::APPEND,
+                    DaveMlsProposalsOperationType::Revoke => davey::ProposalsOperationType::REVOKE,
+                };
+                if let Some(ref mut dave_session) = *self.dave_session.write().await {
+                    dave_session
+                        .process_proposals(operation_type, &ev.proposals, None)
+                        .expect("TODO");
+                }
+            },
+            GatewayEvent::DaveMlsAnnounceCommitTransition(ev) => {
+                let mut lock = self.dave_session.write().await;
+
+                if let Some(ref mut dave_session) = *lock {
+                    match dave_session.process_commit(&ev.commit_message) {
+                        Ok(_) => {
+                            if ev.transition_id != 0 {
+                                self.dave_pending_transitions.insert(
+                                    ev.transition_id,
+                                    dave_session.protocol_version().into(),
+                                );
+                                self.ws_client
+                                    .send_json(&GatewayEvent::DaveTransitionReady(
+                                        DaveTransitionReady {
+                                            transition_id: ev.transition_id,
+                                            protocol_version: dave_session
+                                                .protocol_version()
+                                                .into(),
+                                        },
+                                    ))
+                                    .await?;
+                            }
+                        },
+                        Err(e) => {
+                            warn!("MLS commit errored: {e:?}");
+                            self.ws_client
+                                .send_json(&GatewayEvent::DaveMlsInvalidCommitWelcome(
+                                    DaveMlsInvalidCommitWelcome {
+                                        transition_id: ev.transition_id,
+                                    },
+                                ))
+                                .await?;
+                            drop(lock);
+                            self.reinit_dave_session().await;
+                        },
+                    }
+                }
+            },
+            GatewayEvent::DaveMlsWelcome(ev) => {
+                let mut lock = self.dave_session.write().await;
+
+                if let Some(ref mut dave_session) = *lock {
+                    match dave_session.process_welcome(&ev.welcome) {
+                        Ok(_) => {},
+                        Err(e) => {
+                            warn!("MLS welcome errored: {e:?}");
+                            self.ws_client
+                                .send_json(&GatewayEvent::DaveMlsInvalidCommitWelcome(
+                                    DaveMlsInvalidCommitWelcome {
+                                        transition_id: ev.transition_id,
+                                    },
+                                ))
+                                .await?;
+                            drop(lock);
+                            self.reinit_dave_session().await;
+                        },
+                    }
+                }
+            },
             other => {
                 trace!("Received other websocket data: {:?}", other);
             },
         }
+
+        Ok(())
+    }
+
+    async fn reinit_dave_session(&mut self) {
+        if let Some(dave_protocol_version) = self.dave_protocol_version {
+            let key_package = if let Some(ref mut dave_session) = *self.dave_session.write().await {
+                dave_session
+                    .reinit(
+                        dave_protocol_version,
+                        self.info.user_id.0.into(),
+                        self.info.channel_id.expect("TODO").0.into(),
+                        None,
+                    )
+                    .expect("TODO");
+                dave_session.create_key_package().expect("TODO")
+            } else {
+                let mut dave_session = davey::DaveSession::new(
+                    dave_protocol_version,
+                    self.info.user_id.0.into(),
+                    self.info.channel_id.expect("TODO").0.into(),
+                    None,
+                )
+                .expect("TODO");
+                let key_package = dave_session.create_key_package().expect("TODO");
+
+                *self.dave_session.write().await = Some(dave_session);
+
+                key_package
+            };
+
+            self.ws_client
+                .send_binary(&GatewayEvent::DaveMlsKeyPackage(DaveMlsKeyPackage {
+                    key_package,
+                }))
+                .await
+                .expect("TODO");
+        } else if let Some(ref mut dave_session) = *self.dave_session.write().await {
+            dave_session.reset().expect("TODO");
+            dave_session.set_passthrough_mode(true, Some(10));
+        }
+    }
+
+    async fn execute_dave_transition(&mut self, transition_id: u16) {
+        let Some(new_version) = self.dave_pending_transitions.get(&transition_id) else {
+            warn!("Received DaveExecuteTransition for unknown transition ID {transition_id}");
+            return;
+        };
+        let old_version = if let Some(ref dave_session) = *self.dave_session.read().await {
+            dave_session.protocol_version().into()
+        } else {
+            0u16
+        };
+
+        if old_version != *new_version && *new_version == 0 {
+            self.dave_downgraded = true;
+        } else if transition_id > 0 && self.dave_downgraded {
+            self.dave_downgraded = false;
+
+            if let Some(ref mut dave_session) = *self.dave_session.write().await {
+                dave_session.set_passthrough_mode(true, Some(10));
+            }
+        }
+
+        self.dave_pending_transitions.remove(&transition_id);
     }
 }
 
@@ -252,22 +440,24 @@ fn ws_error_is_not_final(err: &WsError) -> bool {
     match err {
         #[cfg(feature = "tungstenite")]
         WsError::WsClosed(Some(frame)) => match frame.code {
-            CloseCode::Library(l) =>
+            CloseCode::Library(l) => {
                 if let Some(code) = VoiceCloseCode::from_u16(l) {
                     code.should_resume()
                 } else {
                     true
-                },
+                }
+            },
             _ => true,
         },
         #[cfg(feature = "tws")]
         WsError::WsClosed(Some(code)) => match (*code).into() {
-            code @ 4000..=4999_u16 =>
+            code @ 4000..=4999_u16 => {
                 if let Some(code) = VoiceCloseCode::from_u16(code) {
                     code.should_resume()
                 } else {
                     true
-                },
+                }
+            },
             _ => true,
         },
         e => {
