@@ -654,11 +654,14 @@ impl Mixer {
             if let Some(ref mut dave_session) = *conn.dave_session.write() {
                 if dave_session.is_ready() {
                     let encrypted = dave_session
-                        .encrypt_opus(&payload[first_payload_byte..payload_len])?
+                        .encrypt_opus(
+                            &payload[first_payload_byte..first_payload_byte + payload_len],
+                        )?
                         .into_owned();
                     payload_len = encrypted.len();
 
-                    payload[first_payload_byte..payload_len].copy_from_slice(&encrypted);
+                    payload[first_payload_byte..first_payload_byte + payload_len]
+                        .copy_from_slice(&encrypted);
                 }
             }
         }
