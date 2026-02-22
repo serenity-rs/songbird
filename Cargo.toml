@@ -50,7 +50,7 @@ serenity = { default-features = false, optional = true, version = "0.12.0", feat
     "voice",
     "gateway",
 ] }
-serenity-voice-model = { optional = true, path = "../serenity/voice-model" }
+serenity-voice-model = { optional = true, git = "https://github.com/serenity-rs/serenity.git", branch = "next" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
 stream_lib = { default-features = false, optional = true, version = "0.5.2" }
