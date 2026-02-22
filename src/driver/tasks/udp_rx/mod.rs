@@ -16,10 +16,11 @@ use bytes::BytesMut;
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::RtpPacket,
+    MutablePacket,
 };
 use flume::Receiver;
 use parking_lot::RwLock as PRwLock;
-use std::sync::atomic::AtomicU16;
+use std::sync::atomic::{AtomicU16, Ordering};
 use std::{
     collections::{HashMap, HashSet},
     num::Wrapping,
@@ -126,6 +127,8 @@ impl UdpRx {
 
                         _ = self.ssrc_signalling.disconnected_users.remove(&id);
                         if let Some((_, ssrc)) = self.ssrc_signalling.user_ssrc_map.remove(&id) {
+                            let _ = self.ssrc_signalling.ssrc_user_map.remove(&ssrc);
+
                             if let Some(state) = self.decoder_map.get_mut(&ssrc) {
                                 // don't cleanup immediately: leave for later cycle
                                 // this is key with reorder/jitter buffers where we may
@@ -176,6 +179,57 @@ impl UdpRx {
                 } else {
                     None
                 };
+
+                // If transport encryption was decrypted, DAVE is used
+                // and we know who this voice packet came from
+                if let Some((rtp_body_start, rtp_body_tail, decrypted)) = packet_data {
+                    if decrypted && self.dave_protocol_version.load(Ordering::Relaxed) != 0 {
+                        if let Some(ref mut dave_session) = *self.dave_session.write() {
+                            if dave_session.is_ready() {
+                                if let Some(user_id) =
+                                    self.ssrc_signalling.ssrc_user_map.get(&rtp.get_ssrc())
+                                {
+                                    let payload = rtp.payload_mut();
+                                    let payload_length = payload.len();
+                                    let mut body = &mut payload
+                                        [rtp_body_start..payload_length - rtp_body_tail];
+
+                                    // HACK: Discord sometimes include PKCS7 padding in the payload
+                                    // for no inexplicable reason. This doesn't consistently happen.
+                                    if !body.ends_with(b"\xfa\xfa") {
+                                        if let Some(padding_byte) = body.last().copied() {
+                                            let padding_byte = padding_byte as usize;
+                                            let body_length = body.len();
+
+                                            if padding_byte < body_length
+                                                && body[..body_length - padding_byte]
+                                                    .ends_with(b"\xfa\xfa")
+                                            {
+                                                body = &mut body[..body_length - padding_byte];
+                                            }
+                                        }
+                                    }
+
+                                    let result = dave_session.decrypt(
+                                        user_id.0,
+                                        davey::MediaType::AUDIO,
+                                        body,
+                                    );
+
+                                    match result {
+                                        Ok(decrypted_payload) => {
+                                            body[..decrypted_payload.len()]
+                                                .copy_from_slice(&decrypted_payload);
+                                        },
+                                        Err(e) => {
+                                            warn!(error = ?e, "DAVE decryption failed");
+                                        },
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 let rtp = rtp.to_immutable();
                 let (rtp_body_start, rtp_body_tail, decrypted) = packet_data.unwrap_or_else(|| {

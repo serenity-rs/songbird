@@ -241,6 +241,7 @@ impl AuxNetwork {
                 #[cfg(feature = "receive")]
                 if let Some(user_id) = &ev.user_id {
                     self.ssrc_signalling.user_ssrc_map.insert(*user_id, ev.ssrc);
+                    self.ssrc_signalling.ssrc_user_map.insert(ev.ssrc, *user_id);
                 }
 
                 drop(interconnect.events.send(EventMessage::FireCoreEvent(
@@ -299,7 +300,9 @@ impl AuxNetwork {
             GatewayEvent::DavePrepareEpoch(ev) if ev.epoch == 1 => {
                 self.dave_protocol_version
                     .store(ev.protocol_version, Ordering::Relaxed);
-                self.reinit_dave_session().await;
+                if let Err(e) = self.reinit_dave_session().await {
+                    warn!(error = ?e, "failed to reinitialize DAVE session");
+                }
             },
             GatewayEvent::DaveMlsExternalSender(ev) => {
                 if let Some(ref mut dave_session) = *self.dave_session.write() {
@@ -358,7 +361,9 @@ impl AuxNetwork {
                                 transition_id: ev.transition_id,
                             }))
                             .await?;
-                        self.reinit_dave_session().await;
+                        if let Err(e) = self.reinit_dave_session().await {
+                            warn!(error = ?e, "failed to reinitialize DAVE session");
+                        }
                     },
                     None => {},
                 };
@@ -371,7 +376,9 @@ impl AuxNetwork {
                             transition_id: ev.transition_id,
                         }))
                         .await?;
-                    self.reinit_dave_session().await;
+                    if let Err(e) = self.reinit_dave_session().await {
+                        warn!(error = ?e, "failed to reinitialize DAVE session");
+                    }
                 }
             },
             other => {
