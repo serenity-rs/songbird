@@ -16,7 +16,13 @@ use crate::{
     tracks::LoopState,
 };
 use flume::Receiver;
-use std::{io::Cursor, net::UdpSocket, sync::Arc};
+use parking_lot::RwLock as PRwLock;
+use std::{
+    io::Cursor,
+    net::UdpSocket,
+    num::NonZeroU16,
+    sync::{atomic::AtomicU16, Arc},
+};
 use tokio::runtime::Handle;
 
 // create a dummied task + interconnect.
@@ -65,11 +71,23 @@ impl Mixer {
         let mode = CryptoMode::Aes256Gcm;
         let cipher = mode.cipher_from_key(&[0u8; 32]).unwrap();
         let crypto_state = mode.into();
+        let dave_protocol_version = Arc::new(AtomicU16::new(davey::DAVE_PROTOCOL_VERSION));
+        let dave_session = Arc::new(PRwLock::new(Some(
+            davey::DaveSession::new(
+                NonZeroU16::new(1).expect("failed to initialize NonZeroU16 from static value"),
+                1,
+                1,
+                None,
+            )
+            .expect("failed to initialize davey::DaveSession"),
+        )));
 
         #[cfg(feature = "receive")]
         let fake_conn = MixerConnection {
             cipher,
             crypto_state,
+            dave_session,
+            dave_protocol_version,
             udp_rx: udp_receiver_tx,
             udp_tx,
         };
@@ -78,6 +96,8 @@ impl Mixer {
         let fake_conn = MixerConnection {
             cipher,
             crypto_state,
+            dave_session,
+            dave_protocol_version,
             udp_tx,
         };
 

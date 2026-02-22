@@ -9,14 +9,18 @@ use crate::{
     input::{AudioStreamError, Compose, Parsed},
 };
 use flume::Sender;
-use std::{net::UdpSocket, sync::Arc};
+use parking_lot::RwLock as PRwLock;
+use std::{
+    net::UdpSocket,
+    sync::{atomic::AtomicU16, Arc},
+};
 use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
-use tokio::sync::RwLock;
 
 pub struct MixerConnection {
     pub cipher: Cipher,
     pub crypto_state: CryptoState,
-    pub dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
+    pub dave_session: Arc<PRwLock<Option<davey::DaveSession>>>,
+    pub dave_protocol_version: Arc<AtomicU16>,
     #[cfg(feature = "receive")]
     pub udp_rx: Sender<UdpRxMessage>,
     pub udp_tx: UdpSocket,

@@ -18,6 +18,8 @@ use discortp::{
     rtp::RtpPacket,
 };
 use flume::Receiver;
+use parking_lot::RwLock as PRwLock;
+use std::sync::atomic::AtomicU16;
 use std::{
     collections::{HashMap, HashSet},
     num::Wrapping,
@@ -39,6 +41,8 @@ struct UdpRx {
     rx: Receiver<UdpRxMessage>,
     ssrc_signalling: Arc<SsrcTracker>,
     udp_socket: UdpSocket,
+    dave_session: Arc<PRwLock<Option<davey::DaveSession>>>,
+    dave_protocol_version: Arc<AtomicU16>,
 }
 
 impl UdpRx {
@@ -253,6 +257,8 @@ pub(crate) async fn runner(
     config: Config,
     udp_socket: UdpSocket,
     ssrc_signalling: Arc<SsrcTracker>,
+    dave_session: Arc<PRwLock<Option<davey::DaveSession>>>,
+    dave_protocol_version: Arc<AtomicU16>,
 ) {
     trace!("UDP receive handle started.");
 
@@ -264,6 +270,8 @@ pub(crate) async fn runner(
         rx,
         ssrc_signalling,
         udp_socket,
+        dave_session,
+        dave_protocol_version,
     };
 
     state.run(&mut interconnect).await;

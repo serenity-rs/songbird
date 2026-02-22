@@ -22,11 +22,12 @@ use crate::{
 use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
 use error::{Error, Result};
 use flume::Sender;
+use parking_lot::RwLock as PRwLock;
 use serenity_voice_model::payload::DaveMlsKeyPackage;
 use socket2::Socket;
-use std::sync::Arc;
+use std::sync::{atomic::AtomicU16, Arc};
 use std::{net::IpAddr, num::NonZeroU16, str::FromStr};
-use tokio::{net::UdpSocket, spawn, sync::RwLock, time::timeout};
+use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
 
@@ -182,7 +183,8 @@ impl Connection {
 
         let (cipher, dave_session, dave_protocol_version) =
             init_cipher(&mut client, &info, chosen_crypto, &ws_msg_tx).await?;
-        let dave_session = Arc::new(RwLock::new(dave_session));
+        let dave_session = Arc::new(PRwLock::new(dave_session));
+        let dave_protocol_version = Arc::new(dave_protocol_version);
 
         info!("Connected to: {}", info.endpoint);
 
@@ -215,6 +217,7 @@ impl Connection {
             #[cfg(not(feature = "receive"))]
             cipher,
             dave_session: dave_session.clone(),
+            dave_protocol_version: dave_protocol_version.clone(),
             crypto_state: chosen_crypto.into(),
             #[cfg(feature = "receive")]
             udp_rx: udp_receiver_msg_tx,
@@ -239,8 +242,14 @@ impl Connection {
             hello.heartbeat_interval,
             idx,
             info.clone(),
+            #[cfg(not(feature = "receive"))]
             dave_session,
+            #[cfg(not(feature = "receive"))]
             dave_protocol_version,
+            #[cfg(feature = "receive")]
+            dave_session.clone(),
+            #[cfg(feature = "receive")]
+            dave_protocol_version.clone(),
             #[cfg(feature = "receive")]
             ssrc_tracker.clone(),
         );
@@ -257,6 +266,8 @@ impl Connection {
             config.clone(),
             udp_rx,
             ssrc_tracker,
+            dave_session,
+            dave_protocol_version,
         ));
 
         Ok(Connection {
@@ -352,7 +363,7 @@ async fn init_cipher(
     info: &ConnectionInfo,
     mode: CryptoMode,
     tx: &Sender<WsMessage>,
-) -> Result<(Cipher, Option<davey::DaveSession>, Option<NonZeroU16>)> {
+) -> Result<(Cipher, Option<davey::DaveSession>, AtomicU16)> {
     loop {
         let Some(value) = client.recv_event().await? else {
             continue;
@@ -369,7 +380,10 @@ async fn init_cipher(
                         let mut session = davey::DaveSession::new(
                             version,
                             info.user_id.0.into(),
-                            info.channel_id.expect("TODO").0.into(),
+                            info.channel_id
+                                .expect("channel ID must be set in connection info")
+                                .0
+                                .into(),
                             None,
                         )
                         .map_err(|e| Error::DaveInitializationError(e))?;
@@ -391,7 +405,7 @@ async fn init_cipher(
                     mode.cipher_from_key(&desc.secret_key)
                         .map_err(|_| Error::CryptoInvalidLength)?,
                     dave_session,
-                    NonZeroU16::new(desc.dave_protocol_version),
+                    AtomicU16::new(desc.dave_protocol_version),
                 ));
             },
             other => {
