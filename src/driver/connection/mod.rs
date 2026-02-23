@@ -256,7 +256,6 @@ impl Connection {
 
         spawn(ws_task::runner(interconnect.clone(), ws_state));
 
-        // TODO: Implement DAVE for receive
         #[cfg(feature = "receive")]
         spawn(udp_rx::runner(
             interconnect.clone(),
