@@ -10,7 +10,6 @@ use crate::{
     ConnectionInfo,
 };
 use flume::Receiver;
-use parking_lot::RwLock as PRwLock;
 use rand::{distr::Uniform, Rng};
 use serenity_voice_model::payload::{
     DaveMlsCommitWelcome, DaveMlsInvalidCommitWelcome, DaveMlsKeyPackage,
@@ -27,6 +26,7 @@ use std::{
 };
 use tokio::{
     select,
+    sync::RwLock,
     time::{sleep_until, Instant},
 };
 #[cfg(feature = "tungstenite")]
@@ -47,7 +47,7 @@ pub(crate) struct AuxNetwork {
     attempt_idx: usize,
     info: ConnectionInfo,
 
-    dave_session: Arc<PRwLock<Option<davey::DaveSession>>>,
+    dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
     dave_protocol_version: Arc<AtomicU16>,
     dave_pending_transitions: HashMap<u16, u16>,
     dave_downgraded: bool,
@@ -64,7 +64,7 @@ impl AuxNetwork {
         heartbeat_interval: f64,
         attempt_idx: usize,
         info: ConnectionInfo,
-        dave_session: Arc<PRwLock<Option<davey::DaveSession>>>,
+        dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
         dave_protocol_version: Arc<AtomicU16>,
         #[cfg(feature = "receive")] ssrc_signalling: Arc<SsrcTracker>,
     ) -> Self {
@@ -281,7 +281,7 @@ impl AuxNetwork {
                     self.execute_dave_transition(ev.transition_id).await;
                 } else {
                     if ev.protocol_version == 0 {
-                        if let Some(ref mut dave_session) = *self.dave_session.write() {
+                        if let Some(ref mut dave_session) = *self.dave_session.write().await {
                             dave_session.set_passthrough_mode(true, Some(120));
                         }
 
@@ -305,7 +305,7 @@ impl AuxNetwork {
                 }
             },
             GatewayEvent::DaveMlsExternalSender(ev) => {
-                if let Some(ref mut dave_session) = *self.dave_session.write() {
+                if let Some(ref mut dave_session) = *self.dave_session.write().await {
                     if let Err(e) = dave_session.set_external_sender(&ev.external_sender) {
                         warn!(error = ?e, "error setting MLS external sender");
                     }
@@ -316,7 +316,7 @@ impl AuxNetwork {
                     DaveMlsProposalsOperationType::Append => davey::ProposalsOperationType::APPEND,
                     DaveMlsProposalsOperationType::Revoke => davey::ProposalsOperationType::REVOKE,
                 };
-                let result = if let Some(ref mut dave_session) = *self.dave_session.write() {
+                let result = if let Some(ref mut dave_session) = *self.dave_session.write().await {
                     match dave_session.process_proposals(operation_type, &ev.proposals, None) {
                         Ok(result) => result,
                         Err(e) => {
@@ -338,7 +338,7 @@ impl AuxNetwork {
                 }
             },
             GatewayEvent::DaveMlsAnnounceCommitTransition(ev) => {
-                match self.dave_process_commit(&ev.commit_message) {
+                match self.dave_process_commit(&ev.commit_message).await {
                     Some(Ok(_)) => {
                         if ev.transition_id != 0 {
                             let protocol_version =
@@ -369,7 +369,7 @@ impl AuxNetwork {
                 };
             },
             GatewayEvent::DaveMlsWelcome(ev) => {
-                if let Some(Err(e)) = self.dave_process_welcome(&ev.welcome) {
+                if let Some(Err(e)) = self.dave_process_welcome(&ev.welcome).await {
                     warn!("MLS welcome errored: {e:?}");
                     self.ws_client
                         .send_json(&GatewayEvent::from(DaveMlsInvalidCommitWelcome {
@@ -389,22 +389,22 @@ impl AuxNetwork {
         Ok(())
     }
 
-    fn dave_process_commit(
+    async fn dave_process_commit(
         &mut self,
         commit_message: &[u8],
     ) -> Option<Result<(), davey::errors::ProcessCommitError>> {
-        let Some(ref mut dave_session) = *self.dave_session.write() else {
+        let Some(ref mut dave_session) = *self.dave_session.write().await else {
             return None;
         };
 
         Some(dave_session.process_commit(commit_message))
     }
 
-    fn dave_process_welcome(
+    async fn dave_process_welcome(
         &mut self,
         welcome: &[u8],
     ) -> Option<Result<(), davey::errors::ProcessWelcomeError>> {
-        let Some(ref mut dave_session) = *self.dave_session.write() else {
+        let Some(ref mut dave_session) = *self.dave_session.write().await else {
             return None;
         };
 
@@ -423,7 +423,7 @@ impl AuxNetwork {
                 .0
                 .into();
 
-            let key_package = if let Some(ref mut dave_session) = *self.dave_session.write() {
+            let key_package = if let Some(ref mut dave_session) = *self.dave_session.write().await {
                 dave_session.reinit(dave_protocol_version, user_id, channel_id, None)?;
                 dave_session.create_key_package()?
             } else {
@@ -431,7 +431,7 @@ impl AuxNetwork {
                     davey::DaveSession::new(dave_protocol_version, user_id, channel_id, None)?;
                 let key_package = dave_session.create_key_package()?;
 
-                *self.dave_session.write() = Some(dave_session);
+                *self.dave_session.write().await = Some(dave_session);
 
                 key_package
             };
@@ -441,7 +441,7 @@ impl AuxNetwork {
                     key_package,
                 }))
                 .await?;
-        } else if let Some(ref mut dave_session) = *self.dave_session.write() {
+        } else if let Some(ref mut dave_session) = *self.dave_session.write().await {
             dave_session.reset()?;
             dave_session.set_passthrough_mode(true, Some(10));
         }
@@ -464,7 +464,7 @@ impl AuxNetwork {
         } else if transition_id > 0 && self.dave_downgraded {
             self.dave_downgraded = false;
 
-            if let Some(ref mut dave_session) = *self.dave_session.write() {
+            if let Some(ref mut dave_session) = *self.dave_session.write().await {
                 dave_session.set_passthrough_mode(true, Some(10));
             }
         }

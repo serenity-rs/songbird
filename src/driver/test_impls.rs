@@ -16,14 +16,13 @@ use crate::{
     tracks::LoopState,
 };
 use flume::Receiver;
-use parking_lot::RwLock as PRwLock;
 use std::{
     io::Cursor,
     net::UdpSocket,
     num::NonZeroU16,
     sync::{atomic::AtomicU16, Arc},
 };
-use tokio::runtime::Handle;
+use tokio::{runtime::Handle, sync::RwLock};
 
 // create a dummied task + interconnect.
 // measure perf at varying numbers of sources (binary 1--64) without passthrough support.
@@ -72,7 +71,7 @@ impl Mixer {
         let cipher = mode.cipher_from_key(&[0u8; 32]).unwrap();
         let crypto_state = mode.into();
         let dave_protocol_version = Arc::new(AtomicU16::new(davey::DAVE_PROTOCOL_VERSION));
-        let dave_session = Arc::new(PRwLock::new(Some(
+        let dave_session = Arc::new(RwLock::new(Some(
             davey::DaveSession::new(
                 NonZeroU16::new(1).expect("failed to initialize NonZeroU16 from static value"),
                 1,

@@ -19,7 +19,6 @@ use discortp::{
     MutablePacket,
 };
 use flume::Receiver;
-use parking_lot::RwLock as PRwLock;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::{
     collections::{HashMap, HashSet},
@@ -27,7 +26,7 @@ use std::{
     sync::Arc,
     time::Duration,
 };
-use tokio::{net::UdpSocket, select, time::Instant};
+use tokio::{net::UdpSocket, select, sync::RwLock, time::Instant};
 use tracing::{error, instrument, trace, warn};
 
 type RtpSequence = Wrapping<u16>;
@@ -42,7 +41,7 @@ struct UdpRx {
     rx: Receiver<UdpRxMessage>,
     ssrc_signalling: Arc<SsrcTracker>,
     udp_socket: UdpSocket,
-    dave_session: Arc<PRwLock<Option<davey::DaveSession>>>,
+    dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
     dave_protocol_version: Arc<AtomicU16>,
 }
 
@@ -184,7 +183,7 @@ impl UdpRx {
                 // and we know who this voice packet came from
                 if let Some((rtp_body_start, rtp_body_tail, decrypted)) = packet_data {
                     if decrypted && self.dave_protocol_version.load(Ordering::Relaxed) != 0 {
-                        if let Some(ref mut dave_session) = *self.dave_session.write() {
+                        if let Some(ref mut dave_session) = *self.dave_session.blocking_write() {
                             if dave_session.is_ready() {
                                 if let Some(user_id) =
                                     self.ssrc_signalling.ssrc_user_map.get(&rtp.get_ssrc())
@@ -311,7 +310,7 @@ pub(crate) async fn runner(
     config: Config,
     udp_socket: UdpSocket,
     ssrc_signalling: Arc<SsrcTracker>,
-    dave_session: Arc<PRwLock<Option<davey::DaveSession>>>,
+    dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
     dave_protocol_version: Arc<AtomicU16>,
 ) {
     trace!("UDP receive handle started.");

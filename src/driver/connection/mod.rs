@@ -22,12 +22,11 @@ use crate::{
 use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
 use error::{Error, Result};
 use flume::Sender;
-use parking_lot::RwLock as PRwLock;
 use serenity_voice_model::payload::DaveMlsKeyPackage;
 use socket2::Socket;
 use std::sync::{atomic::AtomicU16, Arc};
 use std::{net::IpAddr, num::NonZeroU16, str::FromStr};
-use tokio::{net::UdpSocket, spawn, time::timeout};
+use tokio::{net::UdpSocket, spawn, sync::RwLock, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
 
@@ -183,7 +182,7 @@ impl Connection {
 
         let (cipher, dave_session, dave_protocol_version) =
             init_cipher(&mut client, &info, chosen_crypto, &ws_msg_tx).await?;
-        let dave_session = Arc::new(PRwLock::new(dave_session));
+        let dave_session = Arc::new(RwLock::new(dave_session));
         let dave_protocol_version = Arc::new(dave_protocol_version);
 
         info!("Connected to: {}", info.endpoint);

@@ -651,7 +651,7 @@ impl Mixer {
         };
 
         if conn.dave_protocol_version.load(Ordering::Relaxed) != 0 {
-            if let Some(ref mut dave_session) = *conn.dave_session.write() {
+            if let Some(ref mut dave_session) = *conn.dave_session.blocking_write() {
                 if dave_session.is_ready() {
                     let encrypted = dave_session
                         .encrypt_opus(
