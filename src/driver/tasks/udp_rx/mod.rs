@@ -62,7 +62,7 @@ impl UdpRx {
                     let mut pkt = byte_dest.take().unwrap();
                     pkt.truncate(len);
 
-                    self.process_udp_message(interconnect, pkt);
+                    self.process_udp_message(interconnect, pkt).await;
                 },
                 msg = self.rx.recv_async() => {
                     match msg {
@@ -147,7 +147,7 @@ impl UdpRx {
         }
     }
 
-    fn process_udp_message(&mut self, interconnect: &Interconnect, mut packet: BytesMut) {
+    async fn process_udp_message(&mut self, interconnect: &Interconnect, mut packet: BytesMut) {
         // NOTE: errors here (and in general for UDP) are not fatal to the connection.
         // Panics should be avoided due to adversarial nature of rx'd packets,
         // but correct handling should not prompt a reconnect.
@@ -183,7 +183,7 @@ impl UdpRx {
                 // and we know who this voice packet came from
                 if let Some((rtp_body_start, rtp_body_tail, decrypted)) = packet_data {
                     if decrypted && self.dave_protocol_version.load(Ordering::Relaxed) != 0 {
-                        if let Some(ref mut dave_session) = *self.dave_session.blocking_write() {
+                        if let Some(ref mut dave_session) = *self.dave_session.write().await {
                             if dave_session.is_ready() {
                                 if let Some(user_id) =
                                     self.ssrc_signalling.ssrc_user_map.get(&rtp.get_ssrc())
