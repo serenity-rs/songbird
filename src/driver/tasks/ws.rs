@@ -11,12 +11,15 @@ use crate::{
 };
 use flume::Receiver;
 use rand::{distr::Uniform, Rng};
-use serenity_voice_model::payload::{
-    DaveMlsCommitWelcome, DaveMlsInvalidCommitWelcome, DaveMlsKeyPackage,
-    DaveMlsProposalsOperationType, DaveTransitionReady,
+use serenity_voice_model::{
+    id::UserId,
+    payload::{
+        DaveMlsCommitWelcome, DaveMlsInvalidCommitWelcome, DaveMlsKeyPackage,
+        DaveMlsProposalsOperationType, DaveTransitionReady,
+    },
 };
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     num::NonZeroU16,
     sync::{
         atomic::{AtomicU16, Ordering},
@@ -50,7 +53,7 @@ pub(crate) struct AuxNetwork {
     dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
     dave_protocol_version: Arc<AtomicU16>,
     dave_pending_transitions: HashMap<u16, u16>,
-    dave_downgraded: bool,
+    recognized_user_ids: HashSet<UserId>,
 
     #[cfg(feature = "receive")]
     ssrc_signalling: Arc<SsrcTracker>,
@@ -68,6 +71,10 @@ impl AuxNetwork {
         dave_protocol_version: Arc<AtomicU16>,
         #[cfg(feature = "receive")] ssrc_signalling: Arc<SsrcTracker>,
     ) -> Self {
+        let mut recognized_user_ids = HashSet::new();
+
+        recognized_user_ids.insert(info.user_id.into());
+
         Self {
             rx: evt_rx,
             ws_client,
@@ -85,7 +92,7 @@ impl AuxNetwork {
             dave_session,
             dave_protocol_version,
             dave_pending_transitions: HashMap::new(),
-            dave_downgraded: false,
+            recognized_user_ids,
 
             #[cfg(feature = "receive")]
             ssrc_signalling,
@@ -257,9 +264,14 @@ impl AuxNetwork {
                     self.ssrc_signalling.disconnected_users.insert(ev.user_id);
                 }
 
+                self.recognized_user_ids.remove(&ev.user_id);
+
                 drop(interconnect.events.send(EventMessage::FireCoreEvent(
                     CoreContext::ClientDisconnect(ev),
                 )));
+            },
+            GatewayEvent::ClientsConnect(ev) => {
+                self.recognized_user_ids.extend(&ev.user_ids);
             },
             GatewayEvent::HeartbeatAck(ev) => {
                 if let Some(nonce) = self.last_heartbeat_nonce.take() {
@@ -317,7 +329,17 @@ impl AuxNetwork {
                     DaveMlsProposalsOperationType::Revoke => davey::ProposalsOperationType::REVOKE,
                 };
                 let result = if let Some(ref mut dave_session) = *self.dave_session.write().await {
-                    match dave_session.process_proposals(operation_type, &ev.proposals, None) {
+                    match dave_session.process_proposals(
+                        operation_type,
+                        &ev.proposals,
+                        Some(
+                            &self
+                                .recognized_user_ids
+                                .iter()
+                                .map(|u| u.0)
+                                .collect::<Vec<_>>(),
+                        ),
+                    ) {
                         Ok(result) => result,
                         Err(e) => {
                             warn!(error = ?e, "error processing MLS proposals");
@@ -450,20 +472,17 @@ impl AuxNetwork {
     }
 
     async fn execute_dave_transition(&mut self, transition_id: u16) {
-        let Some(new_version) = self.dave_pending_transitions.get(&transition_id) else {
+        let Some(new_version) = self.dave_pending_transitions.get(&transition_id).copied() else {
             warn!("Received DaveExecuteTransition for unknown transition ID {transition_id}");
             return;
         };
         let old_version = self.dave_protocol_version.load(Ordering::Relaxed);
 
         self.dave_protocol_version
-            .store(*new_version, Ordering::Relaxed);
+            .store(new_version, Ordering::Relaxed);
 
-        if old_version != *new_version && *new_version == 0 {
-            self.dave_downgraded = true;
-        } else if transition_id > 0 && self.dave_downgraded {
-            self.dave_downgraded = false;
-
+        // Upgraded from transport-only encryption
+        if transition_id > 0 && old_version == 0 && new_version != 0 {
             if let Some(ref mut dave_session) = *self.dave_session.write().await {
                 dave_session.set_passthrough_mode(true, Some(10));
             }
