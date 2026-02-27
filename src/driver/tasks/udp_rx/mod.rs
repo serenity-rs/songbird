@@ -223,8 +223,12 @@ impl UdpRx {
                                             body[..decrypted_payload.len()]
                                                 .copy_from_slice(&decrypted_payload);
                                         },
-                                        Err(e) => {
-                                            warn!(error = ?e, "DAVE decryption failed");
+                                        Err(e) if body.ends_with(b"\xfa\xfa") => {
+                                            error!(error = ?e, "DAVE decryption failed");
+                                        },
+                                        _ => {
+                                            // Let packets that failed to decrypt but does not look like
+                                            // a DAVE frame to pass through normally.
                                         },
                                     }
                                 }
