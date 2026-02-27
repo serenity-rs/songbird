@@ -391,16 +391,34 @@ impl AuxNetwork {
                 };
             },
             GatewayEvent::DaveMlsWelcome(ev) => {
-                if let Some(Err(e)) = self.dave_process_welcome(&ev.welcome).await {
-                    warn!("MLS welcome errored: {e:?}");
-                    self.ws_client
-                        .send_json(&GatewayEvent::from(DaveMlsInvalidCommitWelcome {
-                            transition_id: ev.transition_id,
-                        }))
-                        .await?;
-                    if let Err(e) = self.reinit_dave_session().await {
-                        warn!(error = ?e, "failed to reinitialize DAVE session");
-                    }
+                match self.dave_process_welcome(&ev.welcome).await {
+                    Some(Ok(_)) => {
+                        if ev.transition_id != 0 {
+                            let protocol_version =
+                                self.dave_protocol_version.load(Ordering::Relaxed);
+
+                            self.dave_pending_transitions
+                                .insert(ev.transition_id, protocol_version);
+                            self.ws_client
+                                .send_json(&GatewayEvent::from(DaveTransitionReady {
+                                    transition_id: ev.transition_id,
+                                    protocol_version,
+                                }))
+                                .await?;
+                        }
+                    },
+                    Some(Err(e)) => {
+                        warn!("MLS welcome errored: {e:?}");
+                        self.ws_client
+                            .send_json(&GatewayEvent::from(DaveMlsInvalidCommitWelcome {
+                                transition_id: ev.transition_id,
+                            }))
+                            .await?;
+                        if let Err(e) = self.reinit_dave_session().await {
+                            warn!(error = ?e, "failed to reinitialize DAVE session");
+                        }
+                    },
+                    None => {},
                 }
             },
             other => {
