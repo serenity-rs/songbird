@@ -111,6 +111,12 @@ impl AuxNetwork {
             let hb = sleep_until(next_heartbeat);
 
             select! {
+                // Biased polling (polling from top to bottom) is needed to process WebSocket events
+                // queued in the initial handshake (messages before SessionDescription). One of the
+                // events queued is ClientsConnect, which is needed to correctly keep track of
+                // recognized_user_ids and to correctly process DaveMlsProposals.
+                biased;
+
                 () = hb => {
                     ws_error = match self.send_heartbeat().await {
                         Err(e) => {
@@ -121,26 +127,6 @@ impl AuxNetwork {
                         _ => false,
                     };
                     next_heartbeat = self.next_heartbeat();
-                }
-                ws_msg = self.ws_client.recv_event_no_timeout(), if !self.dont_send => {
-                    ws_error = match ws_msg {
-                        Err(e) => {
-                            should_reconnect = ws_error_is_not_final(&e);
-                            ws_reason = Some((&e).into());
-                            true
-                        },
-                        Ok(Some(msg)) => {
-                            match self.process_ws(interconnect, msg).await {
-                                Err(e) => {
-                                    should_reconnect = ws_error_is_not_final(&e);
-                                    ws_reason = Some((&e).into());
-                                    true
-                                },
-                                _ => false
-                            }
-                        },
-                        _ => false,
-                    };
                 }
                 inner_msg = self.rx.recv_async() => {
                     match inner_msg {
@@ -194,6 +180,26 @@ impl AuxNetwork {
                             break;
                         },
                     }
+                }
+                ws_msg = self.ws_client.recv_event_no_timeout(), if !self.dont_send => {
+                    ws_error = match ws_msg {
+                        Err(e) => {
+                            should_reconnect = ws_error_is_not_final(&e);
+                            ws_reason = Some((&e).into());
+                            true
+                        },
+                        Ok(Some(msg)) => {
+                            match self.process_ws(interconnect, msg).await {
+                                Err(e) => {
+                                    should_reconnect = ws_error_is_not_final(&e);
+                                    ws_reason = Some((&e).into());
+                                    true
+                                },
+                                _ => false
+                            }
+                        },
+                        _ => false,
+                    };
                 }
             }
 
