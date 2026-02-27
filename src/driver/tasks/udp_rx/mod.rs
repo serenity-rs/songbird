@@ -203,6 +203,9 @@ impl UdpRx {
                                             if padding_byte < body_length
                                                 && body[..body_length - padding_byte]
                                                     .ends_with(b"\xfa\xfa")
+                                                && body[body_length - padding_byte..]
+                                                    .iter()
+                                                    .all(|b| (*b as usize) == padding_byte)
                                             {
                                                 body = &mut body[..body_length - padding_byte];
                                             }
