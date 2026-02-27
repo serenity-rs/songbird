@@ -178,12 +178,14 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
             };
         },
         Some(message) if message.is_binary() => {
-            return Ok(deserialize_binary_event(&message.into_payload())
-                .map_err(|e| {
-                    debug!("Unexpected binary: {e}");
-                    e
-                })
-                .ok());
+            return Ok(deserialize_binary_event(
+                &[&[0u8, 0u8] as &[_], &message.into_payload()].concat(),
+            )
+            .map_err(|e| {
+                debug!("Unexpected binary: {e}");
+                e
+            })
+            .ok());
         },
         Some(message) if message.is_close() => {
             return Err(Error::WsClosed(message.as_close().map(|(c, _)| c)));
