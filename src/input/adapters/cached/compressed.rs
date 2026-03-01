@@ -434,7 +434,7 @@ where
                         },
                         Err(e) => {
                             debug!("Read error {:?} {:?} {:?}.", e, out, raw_len);
-                            out = Some(Err(IoError::new(IoErrorKind::Other, e)));
+                            out = Some(Err(IoError::other(e)));
                             break;
                         },
                     }
@@ -472,7 +472,7 @@ where
 
         // NOTE: use of raw_len here preserves true sample length even if
         // stream is extended to 20ms boundary.
-        out.unwrap_or_else(|| Err(IoError::new(IoErrorKind::Other, "Unclear.")))
+        out.unwrap_or_else(|| Err(IoError::other("Unclear.")))
             .map(|compressed_sz| {
                 self.audio_bytes
                     .fetch_add(raw_len * mem::size_of::<f32>(), Ordering::Release);

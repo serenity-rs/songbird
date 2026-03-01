@@ -20,6 +20,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[non_exhaustive]
 pub enum Error {
     Crypto(CryptoError),
+    DaveEncrypt(davey::errors::EncryptError),
     #[cfg(any(feature = "receive", test))]
     /// Received an illegal voice packet on the voice UDP socket.
     IllegalVoicePacket,
@@ -55,6 +56,12 @@ impl Error {
 impl From<CryptoError> for Error {
     fn from(e: CryptoError) -> Self {
         Error::Crypto(e)
+    }
+}
+
+impl From<davey::errors::EncryptError> for Error {
+    fn from(value: davey::errors::EncryptError) -> Self {
+        Self::DaveEncrypt(value)
     }
 }
 
@@ -98,5 +105,45 @@ impl From<SendError<UdpRxMessage>> for Error {
 impl From<WsError> for Error {
     fn from(_: WsError) -> Error {
         Error::Other
+    }
+}
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum DaveReinitError {
+    Init(davey::errors::InitError),
+    Reinit(davey::errors::ReinitError),
+    Reset(davey::errors::ResetError),
+    CreateKeyPackage(davey::errors::CreateKeyPackageError),
+    Ws(WsError),
+}
+
+impl From<davey::errors::InitError> for DaveReinitError {
+    fn from(value: davey::errors::InitError) -> Self {
+        Self::Init(value)
+    }
+}
+
+impl From<davey::errors::ReinitError> for DaveReinitError {
+    fn from(value: davey::errors::ReinitError) -> Self {
+        Self::Reinit(value)
+    }
+}
+
+impl From<davey::errors::ResetError> for DaveReinitError {
+    fn from(value: davey::errors::ResetError) -> Self {
+        Self::Reset(value)
+    }
+}
+
+impl From<davey::errors::CreateKeyPackageError> for DaveReinitError {
+    fn from(value: davey::errors::CreateKeyPackageError) -> Self {
+        Self::CreateKeyPackage(value)
+    }
+}
+
+impl From<WsError> for DaveReinitError {
+    fn from(value: WsError) -> Self {
+        Self::Ws(value)
     }
 }

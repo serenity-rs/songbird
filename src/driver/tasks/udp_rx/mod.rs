@@ -5,7 +5,7 @@ mod ssrc_state;
 use self::{decode_sizes::*, playout_buffer::*, ssrc_state::*};
 
 use super::message::*;
-use crate::driver::CryptoMode;
+use crate::driver::{CryptoMode, DecodeMode};
 use crate::{
     constants::*,
     driver::crypto::Cipher,
@@ -16,15 +16,17 @@ use bytes::BytesMut;
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::RtpPacket,
+    MutablePacket,
 };
 use flume::Receiver;
+use std::sync::atomic::{AtomicU16, Ordering};
 use std::{
     collections::{HashMap, HashSet},
     num::Wrapping,
     sync::Arc,
     time::Duration,
 };
-use tokio::{net::UdpSocket, select, time::Instant};
+use tokio::{net::UdpSocket, select, sync::RwLock, time::Instant};
 use tracing::{error, instrument, trace, warn};
 
 type RtpSequence = Wrapping<u16>;
@@ -39,6 +41,8 @@ struct UdpRx {
     rx: Receiver<UdpRxMessage>,
     ssrc_signalling: Arc<SsrcTracker>,
     udp_socket: UdpSocket,
+    dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
+    dave_protocol_version: Arc<AtomicU16>,
 }
 
 impl UdpRx {
@@ -58,20 +62,19 @@ impl UdpRx {
                     let mut pkt = byte_dest.take().unwrap();
                     pkt.truncate(len);
 
-                    self.process_udp_message(interconnect, pkt);
+                    self.process_udp_message(interconnect, pkt).await;
                 },
                 msg = self.rx.recv_async() => {
                     match msg {
                         Ok(UdpRxMessage::ReplaceInterconnect(i)) => {
                             *interconnect = i;
                         },
-                        Ok(UdpRxMessage::SetConfig(c)) => {
-                            let old_coder = (self.config.decode_channels, self.config.decode_sample_rate);
-                            let new_coder = (c.decode_channels, c.decode_sample_rate);
-                            self.config = c;
-
-                            if old_coder != new_coder {
-                                self.decoder_map.values_mut().for_each(|v| v.reconfigure_decoder(&self.config));
+                        Ok(UdpRxMessage::SetConfig(new_config)) => {
+                            if let DecodeMode::Decode(old_config) = &mut self.config.decode_mode {
+                                if *old_config != new_config {
+                                    *old_config = new_config;
+                                    self.decoder_map.values_mut().for_each(|v| v.reconfigure_decoder(new_config));
+                                }
                             }
                         },
                         Err(flume::RecvError::Disconnected) => break,
@@ -123,6 +126,8 @@ impl UdpRx {
 
                         _ = self.ssrc_signalling.disconnected_users.remove(&id);
                         if let Some((_, ssrc)) = self.ssrc_signalling.user_ssrc_map.remove(&id) {
+                            let _ = self.ssrc_signalling.ssrc_user_map.remove(&ssrc);
+
                             if let Some(state) = self.decoder_map.get_mut(&ssrc) {
                                 // don't cleanup immediately: leave for later cycle
                                 // this is key with reorder/jitter buffers where we may
@@ -142,7 +147,7 @@ impl UdpRx {
         }
     }
 
-    fn process_udp_message(&mut self, interconnect: &Interconnect, mut packet: BytesMut) {
+    async fn process_udp_message(&mut self, interconnect: &Interconnect, mut packet: BytesMut) {
         // NOTE: errors here (and in general for UDP) are not fatal to the connection.
         // Panics should be avoided due to adversarial nature of rx'd packets,
         // but correct handling should not prompt a reconnect.
@@ -173,6 +178,64 @@ impl UdpRx {
                 } else {
                     None
                 };
+
+                // If transport encryption was decrypted, DAVE is used
+                // and we know who this voice packet came from
+                if let Some((rtp_body_start, rtp_body_tail, decrypted)) = packet_data {
+                    if decrypted && self.dave_protocol_version.load(Ordering::Relaxed) != 0 {
+                        if let Some(ref mut dave_session) = *self.dave_session.write().await {
+                            if dave_session.is_ready() {
+                                if let Some(user_id) =
+                                    self.ssrc_signalling.ssrc_user_map.get(&rtp.get_ssrc())
+                                {
+                                    let payload = rtp.payload_mut();
+                                    let payload_length = payload.len();
+                                    let mut body = &mut payload
+                                        [rtp_body_start..payload_length - rtp_body_tail];
+
+                                    // HACK: Discord sometimes include PKCS7 padding in the payload
+                                    // for no inexplicable reason. This doesn't consistently happen.
+                                    if !body.ends_with(b"\xfa\xfa") {
+                                        if let Some(padding_byte) = body.last().copied() {
+                                            let padding_byte = padding_byte as usize;
+                                            let body_length = body.len();
+
+                                            if padding_byte < body_length
+                                                && body[..body_length - padding_byte]
+                                                    .ends_with(b"\xfa\xfa")
+                                                && body[body_length - padding_byte..]
+                                                    .iter()
+                                                    .all(|b| (*b as usize) == padding_byte)
+                                            {
+                                                body = &mut body[..body_length - padding_byte];
+                                            }
+                                        }
+                                    }
+
+                                    let result = dave_session.decrypt(
+                                        user_id.0,
+                                        davey::MediaType::AUDIO,
+                                        body,
+                                    );
+
+                                    match result {
+                                        Ok(decrypted_payload) => {
+                                            body[..decrypted_payload.len()]
+                                                .copy_from_slice(&decrypted_payload);
+                                        },
+                                        Err(e) if body.ends_with(b"\xfa\xfa") => {
+                                            warn!(error = ?e, "DAVE decryption failed");
+                                        },
+                                        _ => {
+                                            // Let packets that failed to decrypt but does not look like
+                                            // a DAVE frame to pass through normally.
+                                        },
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 let rtp = rtp.to_immutable();
                 let (rtp_body_start, rtp_body_tail, decrypted) = packet_data.unwrap_or_else(|| {
@@ -254,6 +317,8 @@ pub(crate) async fn runner(
     config: Config,
     udp_socket: UdpSocket,
     ssrc_signalling: Arc<SsrcTracker>,
+    dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
+    dave_protocol_version: Arc<AtomicU16>,
 ) {
     trace!("UDP receive handle started.");
 
@@ -265,6 +330,8 @@ pub(crate) async fn runner(
         rx,
         ssrc_signalling,
         udp_socket,
+        dave_session,
+        dave_protocol_version,
     };
 
     state.run(&mut interconnect).await;

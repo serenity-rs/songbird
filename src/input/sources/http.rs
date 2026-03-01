@@ -132,8 +132,7 @@ impl HttpRequest {
                 });
 
             let stream = Box::new(StreamReader::new(
-                resp.bytes_stream()
-                    .map_err(|e| IoError::new(IoErrorKind::Other, e)),
+                resp.bytes_stream().map_err(IoError::other),
             ));
 
             let input = HttpStream {

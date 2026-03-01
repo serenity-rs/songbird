@@ -1,7 +1,11 @@
-use crate::{error::JsonError, model::Event};
+use crate::{
+    error::JsonError,
+    model::{deserialize_binary_event, Event},
+};
 
 use bytes::Bytes;
 use futures::{SinkExt, StreamExt, TryStreamExt};
+use serenity_voice_model::{serialize_binary_event, BinaryError};
 use tokio::{
     net::TcpStream,
     time::{timeout, Duration},
@@ -13,17 +17,11 @@ use tokio_tungstenite::{
         protocol::{CloseFrame, WebSocketConfig as Config},
         Message,
     },
-    MaybeTlsStream,
-    WebSocketStream,
+    MaybeTlsStream, WebSocketStream,
 };
 #[cfg(feature = "tws")]
 use tokio_websockets::{
-    CloseCode,
-    Error as TwsError,
-    Limits,
-    MaybeTlsStream,
-    Message,
-    WebSocketStream,
+    CloseCode, Error as TwsError, Limits, MaybeTlsStream, Message, WebSocketStream,
 };
 use tracing::{debug, instrument};
 use url::Url;
@@ -55,7 +53,7 @@ impl WsStream {
         Ok(Self(stream))
     }
 
-    pub(crate) async fn recv_json(&mut self) -> Result<Option<Event>> {
+    pub(crate) async fn recv_event(&mut self) -> Result<Option<Event>> {
         const TIMEOUT: Duration = Duration::from_millis(500);
 
         let ws_message = match timeout(TIMEOUT, self.0.next()).await {
@@ -67,13 +65,20 @@ impl WsStream {
         convert_ws_message(ws_message)
     }
 
-    pub(crate) async fn recv_json_no_timeout(&mut self) -> Result<Option<Event>> {
+    pub(crate) async fn recv_event_no_timeout(&mut self) -> Result<Option<Event>> {
         convert_ws_message(self.0.try_next().await?)
     }
 
     pub(crate) async fn send_json(&mut self, value: &Event) -> Result<()> {
         let res = crate::json::to_string(value);
         let res = res.map(Message::text);
+        Ok(res.map_err(Error::from).map(|m| self.0.send(m))?.await?)
+    }
+
+    pub(crate) async fn send_binary(&mut self, value: &Event) -> Result<()> {
+        let res = serialize_binary_event(value);
+        let res = res.map(Message::binary);
+
         Ok(res.map_err(Error::from).map(|m| self.0.send(m))?.await?)
     }
 }
@@ -97,6 +102,8 @@ pub enum Error {
     WsClosed(Option<CloseFrame>),
     #[cfg(feature = "tws")]
     WsClosed(Option<CloseCode>),
+
+    Binary(BinaryError),
 }
 
 impl From<JsonError> for Error {
@@ -119,13 +126,31 @@ impl From<TwsError> for Error {
     }
 }
 
+impl From<BinaryError> for Error {
+    fn from(value: BinaryError) -> Self {
+        Error::Binary(value)
+    }
+}
+
 #[inline]
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     #[cfg(feature = "tungstenite")]
-    let text = match message {
-        Some(Message::Text(ref payload)) => payload,
+    match message {
+        Some(Message::Text(ref payload)) => {
+            return Ok(serde_json::from_str(payload)
+                .map_err(|e| {
+                    debug!("Unexpected JSON: {e}. Payload: {payload}");
+                    e
+                })
+                .ok())
+        },
         Some(Message::Binary(bytes)) => {
-            return Err(Error::UnexpectedBinaryMessage(bytes));
+            return Ok(deserialize_binary_event(&bytes)
+                .map_err(|e| {
+                    debug!("Unexpected binary: {e}");
+                    e
+                })
+                .ok());
         },
         Some(Message::Close(Some(frame))) => {
             return Err(Error::WsClosed(Some(frame)));
@@ -133,18 +158,28 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
         // Ping/Pong message behaviour is internally handled by tungstenite.
         _ => return Ok(None),
     };
+
     #[cfg(feature = "tws")]
-    let text = match message {
-        Some(ref message) if message.is_text() =>
-            if let Some(text) = message.as_text() {
-                text
+    match message {
+        Some(ref message) if message.is_text() => {
+            return if let Some(text) = message.as_text() {
+                Ok(serde_json::from_str(text)
+                    .map_err(|e| {
+                        debug!("Unexpected JSON: {e}. Payload: {text}");
+                        e
+                    })
+                    .ok())
             } else {
-                return Ok(None);
-            },
+                Ok(None)
+            };
+        },
         Some(message) if message.is_binary() => {
-            return Err(Error::UnexpectedBinaryMessage(
-                message.into_payload().into(),
-            ));
+            return Ok(deserialize_binary_event(&message.into_payload())
+                .map_err(|e| {
+                    debug!("Unexpected binary: {e}");
+                    e
+                })
+                .ok());
         },
         Some(message) if message.is_close() => {
             return Err(Error::WsClosed(message.as_close().map(|(c, _)| c)));
@@ -152,11 +187,4 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
         // ping/pong; will also be internally handled by tokio-websockets.
         _ => return Ok(None),
     };
-
-    Ok(serde_json::from_str(text)
-        .map_err(|e| {
-            debug!("Unexpected JSON: {e}. Payload: {text}");
-            e
-        })
-        .ok())
 }

@@ -407,19 +407,19 @@ impl Cipher {
             0
         };
 
-        let (mut start_estimate, end) = self.decrypt_pkt_in_place(packet, plain_bytes)?;
+        let (_, end) = self.decrypt_pkt_in_place(packet, plain_bytes)?;
 
         // Update the start estimate to account for bytes occupied by extension headers.
-        if has_extension {
-            let packet = packet.packet();
-            if let Some((_, exts_and_opus)) = split_at_checked(packet, start_estimate) {
-                let extension = RtpExtensionPacket::new(exts_and_opus)
-                    .ok_or(InternalError::IllegalVoicePacket)?;
-                start_estimate += extension.packet().len() - extension.payload().len();
-            }
-        }
+        let payload_offset = if has_extension {
+            let payload = packet.payload();
+            let extension =
+                RtpExtensionPacket::new(payload).ok_or(InternalError::IllegalVoicePacket)?;
+            extension.packet().len() - extension.payload().len()
+        } else {
+            0
+        };
 
-        Ok((start_estimate, end))
+        Ok((payload_offset, end))
     }
 
     #[cfg(feature = "receive")]
@@ -484,23 +484,15 @@ impl Cipher {
             },
         }
 
-        Ok((plaintext_end + pre_payload.len(), post_payload.len()))
+        Ok((
+            plaintext_end + pre_payload.len(),
+            post_payload.len() + slice_to_use.len(),
+        ))
     }
 }
 
 // Temporary functions -- MSRV is ostensibly 1.74, slice::split_at(_mut)_checked is 1.80+.
 // TODO: Remove in v0.5+ with MSRV bump to 1.81+.
-#[cfg(any(feature = "receive", test))]
-#[inline]
-#[must_use]
-const fn split_at_checked(els: &[u8], mid: usize) -> Option<(&[u8], &[u8])> {
-    if mid <= els.len() {
-        Some(els.split_at(mid))
-    } else {
-        None
-    }
-}
-
 #[cfg(any(feature = "receive", test))]
 #[inline]
 #[must_use]
@@ -589,7 +581,7 @@ mod test {
 
         // If there is no mutual intelligibility, return an error.
         let bad_modes = ["not_real", "des", "rc5"];
-        assert!(CryptoMode::negotiate(&bad_modes, None).is_err());
-        assert!(CryptoMode::negotiate(&bad_modes, Some(CryptoMode::Aes256Gcm)).is_err());
+        assert!(CryptoMode::negotiate(bad_modes, None).is_err());
+        assert!(CryptoMode::negotiate(bad_modes, Some(CryptoMode::Aes256Gcm)).is_err());
     }
 }

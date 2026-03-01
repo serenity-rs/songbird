@@ -25,6 +25,12 @@ pub enum Error {
     CryptoModeInvalid,
     /// Selected crypto mode was not offered by server.
     CryptoModeUnavailable,
+    /// Failed to create a DAVE key package.
+    #[cfg(feature = "driver")]
+    DaveCreateKeyPackageError(davey::errors::CreateKeyPackageError),
+    /// An error occured during initialization of the DAVE session.
+    #[cfg(feature = "driver")]
+    DaveInitializationError(davey::errors::InitError),
     /// An indicator that an endpoint URL was invalid.
     EndpointUrl,
     /// Discord failed to correctly respond to IP discovery.
@@ -100,6 +106,8 @@ impl fmt::Display for Error {
             Self::CryptoInvalidLength => write!(f, "server supplied key of wrong length"),
             Self::CryptoModeInvalid => write!(f, "server changed negotiated encryption mode"),
             Self::CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode"),
+            Self::DaveCreateKeyPackageError(e) => e.fmt(f),
+            Self::DaveInitializationError(e) => e.fmt(f),
             Self::EndpointUrl => write!(f, "endpoint URL received from gateway was invalid"),
             Self::IllegalDiscoveryResponse => {
                 write!(f, "IP discovery/NAT punching response was invalid")
@@ -122,6 +130,8 @@ impl StdError for Error {
             | Error::CryptoInvalidLength
             | Error::CryptoModeInvalid
             | Error::CryptoModeUnavailable
+            | Error::DaveCreateKeyPackageError(_)
+            | Error::DaveInitializationError(_)
             | Error::EndpointUrl
             | Error::IllegalDiscoveryResponse
             | Error::IllegalIp

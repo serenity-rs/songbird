@@ -3,6 +3,7 @@ use crate::{
     driver::{
         tasks::error::{Error, Result},
         Channels,
+        DecodeConfig,
         DecodeMode,
     },
     events::context_data::{RtpData, VoiceData},
@@ -29,29 +30,28 @@ pub struct SsrcState {
 impl SsrcState {
     pub fn new(pkt: &RtpPacket<'_>, crypto_mode: CryptoMode, config: &Config) -> Self {
         let playout_capacity = config.playout_buffer_length.get() + config.playout_spike_length;
+        let (sample_rate, channels) = match config.decode_mode {
+            DecodeMode::Decode(config) => (config.sample_rate, config.channels),
+            DecodeMode::Decrypt | DecodeMode::Pass => Default::default(),
+        };
 
         Self {
             playout_buffer: PlayoutBuffer::new(playout_capacity, pkt.get_sequence().0),
             crypto_mode,
-            decoder: OpusDecoder::new(
-                config.decode_sample_rate.into(),
-                config.decode_channels.into(),
-            )
-            .expect("Failed to create new Opus decoder for source."),
+            decoder: OpusDecoder::new(sample_rate.into(), channels.into())
+                .expect("Failed to create new Opus decoder for source."),
             decode_size: PacketDecodeSize::TwentyMillis,
             prune_time: Instant::now() + config.decode_state_timeout,
             disconnected: false,
-            channels: config.decode_channels,
+            channels,
         }
     }
 
-    pub fn reconfigure_decoder(&mut self, config: &Config) {
-        self.decoder = OpusDecoder::new(
-            config.decode_sample_rate.into(),
-            config.decode_channels.into(),
-        )
-        .expect("Failed to create new Opus decoder for source.");
-        self.channels = config.decode_channels;
+    pub fn reconfigure_decoder(&mut self, config: DecodeConfig) {
+        self.decoder = OpusDecoder::new(config.sample_rate.into(), config.channels.into())
+            .expect("Failed to create new Opus decoder for source.");
+
+        self.channels = config.channels;
     }
 
     pub fn store_packet(&mut self, packet: StoredPacket, config: &Config) {
@@ -80,8 +80,7 @@ impl SsrcState {
             decoded_voice: None,
         };
 
-        let should_decode = config.decode_mode == DecodeMode::Decode;
-
+        let should_decode = config.decode_mode.should_decode();
         if let Some((packet, decrypted)) = pkt {
             let rtp = RtpPacket::new(&packet).unwrap();
             let extensions = rtp.get_extension() != 0;
