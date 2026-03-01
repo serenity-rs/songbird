@@ -145,16 +145,12 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
                 .ok())
         },
         Some(Message::Binary(bytes)) => {
-            return Ok(
-                // HACK: empty bytes as placeholder for the sequence number, remove
-                // when upgrading to voice v8
-                deserialize_binary_event(&[&[0u8, 0u8] as &[_], &bytes].concat())
-                    .map_err(|e| {
-                        debug!("Unexpected binary: {e}");
-                        e
-                    })
-                    .ok(),
-            );
+            return Ok(deserialize_binary_event(&bytes)
+                .map_err(|e| {
+                    debug!("Unexpected binary: {e}");
+                    e
+                })
+                .ok());
         },
         Some(Message::Close(Some(frame))) => {
             return Err(Error::WsClosed(Some(frame)));
@@ -178,14 +174,12 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
             };
         },
         Some(message) if message.is_binary() => {
-            return Ok(deserialize_binary_event(
-                &[&[0u8, 0u8] as &[_], &message.into_payload()].concat(),
-            )
-            .map_err(|e| {
-                debug!("Unexpected binary: {e}");
-                e
-            })
-            .ok());
+            return Ok(deserialize_binary_event(&message.into_payload())
+                .map_err(|e| {
+                    debug!("Unexpected binary: {e}");
+                    e
+                })
+                .ok());
         },
         Some(message) if message.is_close() => {
             return Err(Error::WsClosed(message.as_close().map(|(c, _)| c)));
