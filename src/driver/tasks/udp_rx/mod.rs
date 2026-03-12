@@ -16,8 +16,8 @@ use bytes::BytesMut;
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::RtpPacket,
-    MutablePacket,
 };
+use discortp::{MutablePacket, Packet};
 use flume::Receiver;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::{
@@ -164,11 +164,18 @@ impl UdpRx {
                     return;
                 }
 
-                let packet_data = if self.config.decode_mode.should_decrypt() {
-                    let out = self
-                        .cipher
-                        .decrypt_rtp_in_place(&mut rtp)
-                        .map(|(s, t)| (s, t, true));
+                let mut packet_data = if self.config.decode_mode.should_decrypt() {
+                    let out = self.cipher.decrypt_rtp_in_place(&mut rtp).map(|(s, t)| {
+                        if rtp.get_padding() != 0 {
+                            let payload = rtp.payload();
+                            let payload_length = payload.len();
+                            let padding_count = payload[payload_length - t - 1] as usize;
+
+                            (s, t + padding_count, true)
+                        } else {
+                            (s, t, true)
+                        }
+                    });
 
                     if let Err(ref e) = out {
                         warn!("RTP decryption failed: {:?}", e);
@@ -179,39 +186,22 @@ impl UdpRx {
                     None
                 };
 
-                // If transport encryption was decrypted, DAVE is used
-                // and we know who this voice packet came from
                 if let Some((rtp_body_start, rtp_body_tail, decrypted)) = packet_data {
-                    if decrypted && self.dave_protocol_version.load(Ordering::Relaxed) != 0 {
-                        if let Some(ref mut dave_session) = *self.dave_session.write().await {
-                            if dave_session.is_ready() {
-                                if let Some(user_id) =
-                                    self.ssrc_signalling.ssrc_user_map.get(&rtp.get_ssrc())
-                                {
-                                    let payload = rtp.payload_mut();
-                                    let payload_length = payload.len();
-                                    let mut body = &mut payload
-                                        [rtp_body_start..payload_length - rtp_body_tail];
+                    let ssrc = rtp.get_ssrc();
+                    let payload = rtp.payload_mut();
+                    let payload_length = payload.len();
+                    let body = &mut payload[rtp_body_start..payload_length - rtp_body_tail];
 
-                                    // HACK: Discord sometimes include PKCS7 padding in the payload
-                                    // for no inexplicable reason. This doesn't consistently happen.
-                                    if !body.ends_with(b"\xfa\xfa") {
-                                        if let Some(padding_byte) = body.last().copied() {
-                                            let padding_byte = padding_byte as usize;
-                                            let body_length = body.len();
-
-                                            if padding_byte < body_length
-                                                && body[..body_length - padding_byte]
-                                                    .ends_with(b"\xfa\xfa")
-                                                && body[body_length - padding_byte..]
-                                                    .iter()
-                                                    .all(|b| (*b as usize) == padding_byte)
-                                            {
-                                                body = &mut body[..body_length - padding_byte];
-                                            }
-                                        }
-                                    }
-
+                    // If the packet is decrypted, DAVE is active, and the packet is actually
+                    // encrypted (magic marker 0xFAFA). Need to check for encryption because
+                    // davey spits out error logs if you feed it an unencrypted packet.
+                    if decrypted
+                        && self.dave_protocol_version.load(Ordering::Relaxed) != 0
+                        && body.ends_with(b"\xfa\xfa")
+                    {
+                        if let Some(user_id) = self.ssrc_signalling.ssrc_user_map.get(&ssrc) {
+                            if let Some(ref mut dave_session) = *self.dave_session.write().await {
+                                if dave_session.is_ready() {
                                     let result = dave_session.decrypt(
                                         user_id.0,
                                         davey::MediaType::AUDIO,
@@ -219,16 +209,22 @@ impl UdpRx {
                                     );
 
                                     match result {
-                                        Ok(decrypted_payload) => {
-                                            body[..decrypted_payload.len()]
-                                                .copy_from_slice(&decrypted_payload);
+                                        Ok(decrypted_body) => {
+                                            packet_data = Some((
+                                                rtp_body_start,
+                                                rtp_body_tail + (body.len() - decrypted_body.len()),
+                                                decrypted,
+                                            ));
+                                            body[..decrypted_body.len()]
+                                                .copy_from_slice(&decrypted_body);
                                         },
-                                        Err(e) if body.ends_with(b"\xfa\xfa") => {
-                                            warn!(error = ?e, "DAVE decryption failed");
+                                        Err(davey::errors::DecryptError::NoDecryptorForUser) => {
+                                            // Silently drop encrypted packets for users whose ratchets are not configured yet.
+                                            return;
                                         },
-                                        _ => {
-                                            // Let packets that failed to decrypt but does not look like
-                                            // a DAVE frame to pass through normally.
+                                        Err(e) => {
+                                            error!(error = ?e, "DAVE decryption failed");
+                                            return;
                                         },
                                     }
                                 }
