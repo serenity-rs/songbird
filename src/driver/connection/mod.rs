@@ -386,13 +386,13 @@ async fn init_cipher(
                                 .into(),
                             None,
                         )
-                        .map_err(|e| Error::DaveInitializationError(e))?;
+                        .map_err(Error::DaveInitializationError)?;
 
                         client
                             .send_binary(&GatewayEvent::DaveMlsKeyPackage(DaveMlsKeyPackage {
                                 key_package: session
                                     .create_key_package()
-                                    .map_err(|e| Error::DaveCreateKeyPackageError(e))?,
+                                    .map_err(Error::DaveCreateKeyPackageError)?,
                             }))
                             .await?;
 

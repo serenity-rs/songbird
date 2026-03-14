@@ -303,19 +303,17 @@ impl AuxNetwork {
 
                 if ev.transition_id == 0 {
                     self.execute_dave_transition(ev.transition_id).await;
-                } else {
-                    if ev.protocol_version == 0 {
-                        if let Some(ref mut dave_session) = *self.dave_session.write().await {
-                            dave_session.set_passthrough_mode(true, Some(120));
-                        }
-
-                        self.ws_client
-                            .send_json(&GatewayEvent::from(DaveTransitionReady {
-                                transition_id: ev.transition_id,
-                                protocol_version: ev.protocol_version,
-                            }))
-                            .await?;
+                } else if ev.protocol_version == 0 {
+                    if let Some(ref mut dave_session) = *self.dave_session.write().await {
+                        dave_session.set_passthrough_mode(true, Some(120));
                     }
+
+                    self.ws_client
+                        .send_json(&GatewayEvent::from(DaveTransitionReady {
+                            transition_id: ev.transition_id,
+                            protocol_version: ev.protocol_version,
+                        }))
+                        .await?;
                 }
             },
             GatewayEvent::DaveExecuteTransition(ev) => {
@@ -377,7 +375,7 @@ impl AuxNetwork {
             },
             GatewayEvent::DaveMlsAnnounceCommitTransition(ev) => {
                 match self.dave_process_commit(&ev.commit_message).await {
-                    Some(Ok(_)) =>
+                    Some(Ok(())) =>
                         if ev.transition_id != 0 {
                             let protocol_version =
                                 self.dave_protocol_version.load(Ordering::Relaxed);
@@ -411,7 +409,7 @@ impl AuxNetwork {
             },
             GatewayEvent::DaveMlsWelcome(ev) =>
                 match self.dave_process_welcome(&ev.welcome).await {
-                    Some(Ok(_)) =>
+                    Some(Ok(())) =>
                         if ev.transition_id != 0 {
                             let protocol_version =
                                 self.dave_protocol_version.load(Ordering::Relaxed);
