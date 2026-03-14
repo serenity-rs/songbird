@@ -199,36 +199,44 @@ impl UdpRx {
                         && self.dave_protocol_version.load(Ordering::Relaxed) != 0
                         && body.ends_with(b"\xfa\xfa")
                     {
-                        if let Some(user_id) = self.ssrc_signalling.ssrc_user_map.get(&ssrc) {
-                            if let Some(ref mut dave_session) = *self.dave_session.write().await {
-                                if dave_session.is_ready() {
-                                    let result = dave_session.decrypt(
-                                        user_id.0,
-                                        davey::MediaType::AUDIO,
-                                        body,
-                                    );
+                        // Silently drop encrypted packets if it's not possible to decrypt them for
+                        // one reason or another; otherwise there'd be error logs for trying to decode
+                        // Opus
+                        let Some(user_id) = self.ssrc_signalling.ssrc_user_map.get(&ssrc) else {
+                            return;
+                        };
+                        let Some(ref mut dave_session) = *self.dave_session.write().await else {
+                            return;
+                        };
 
-                                    match result {
-                                        Ok(decrypted_body) => {
-                                            packet_data = Some((
-                                                rtp_body_start,
-                                                rtp_body_tail + (body.len() - decrypted_body.len()),
-                                                decrypted,
-                                            ));
-                                            body[..decrypted_body.len()]
-                                                .copy_from_slice(&decrypted_body);
-                                        },
-                                        Err(davey::errors::DecryptError::NoDecryptorForUser) => {
-                                            // Silently drop encrypted packets for users whose ratchets are not configured yet.
-                                            return;
-                                        },
-                                        Err(e) => {
-                                            error!(error = ?e, "DAVE decryption failed");
-                                            return;
-                                        },
-                                    }
-                                }
-                            }
+                        if !dave_session.is_ready() {
+                            return;
+                        }
+
+                        let result = dave_session.decrypt(user_id.0, davey::MediaType::AUDIO, body);
+
+                        match result {
+                            Ok(decrypted_body) => {
+                                packet_data = Some((
+                                    rtp_body_start,
+                                    rtp_body_tail + (body.len() - decrypted_body.len()),
+                                    decrypted,
+                                ));
+                                body[..decrypted_body.len()].copy_from_slice(&decrypted_body);
+                            },
+                            Err(davey::errors::DecryptError::NoDecryptorForUser)
+                            | Err(davey::errors::DecryptError::DecryptionFailed(
+                                davey::errors::DecryptorDecryptError::NoValidCryptorFound {
+                                    ..
+                                },
+                            )) => {
+                                // Silently drop encrypted packets for users whose ratchets are not configured yet.
+                                return;
+                            },
+                            Err(e) => {
+                                error!(error = ?e, "DAVE decryption failed");
+                                return;
+                            },
                         }
                     }
                 }
