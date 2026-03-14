@@ -40,7 +40,7 @@ use rubato::{FftFixedOut, Resampler};
 use std::{
     io::Write,
     result::Result as StdResult,
-    sync::{atomic::Ordering, Arc},
+    sync::Arc,
     time::{Duration, Instant},
 };
 use symphonia_core::{
@@ -58,6 +58,8 @@ use tracing::error;
 use crate::driver::test_config::{OutputMessage, OutputMode};
 #[cfg(test)]
 use discortp::Packet as _;
+#[cfg(not(test))]
+use std::sync::atomic::Ordering;
 
 pub struct Mixer {
     pub bitrate: Bitrate,
@@ -643,14 +645,20 @@ impl Mixer {
 
         // If passthrough, Opus payload in place already.
         // Else encode into buffer with space for AEAD encryption headers.
-        let mut payload_len = match mix_len {
+        let payload_len = match mix_len {
             MixType::Passthrough(opus_len) => opus_len,
             MixType::MixedPcm(_samples) => self.encoder.encode_float(
                 &send_buffer[..self.config.mix_mode.sample_count_in_frame()],
                 &mut payload[first_payload_byte..total_payload_space],
             )?,
         };
+        #[cfg(not(test))]
+        let mut payload_len = payload_len;
 
+        // DAVE encryption ignored in test mode. On test mode, this code is run
+        // on the Tokio main thread, causing RwLock::blocking_write to panic.
+        // In non-test scenarios this is run on a regular thread.
+        #[cfg(not(test))]
         if conn.dave_protocol_version.load(Ordering::Relaxed) != 0 {
             if let Some(ref mut dave_session) = *conn.dave_session.blocking_write() {
                 if dave_session.is_ready() {
