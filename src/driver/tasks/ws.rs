@@ -318,8 +318,12 @@ impl AuxNetwork {
             GatewayEvent::DavePrepareEpoch(ev) if ev.epoch == 1 => {
                 self.dave_protocol_version
                     .store(ev.protocol_version, Ordering::Relaxed);
-                if let Err(e) = self.reinit_dave_session().await {
-                    warn!(error = ?e, "failed to reinitialize DAVE session");
+                match self.reinit_dave_session().await {
+                    Err(DaveReinitError::Ws(e)) => return Err(e),
+                    Err(e) => {
+                        warn!(error = ?e, "failed to reinitialize DAVE session");
+                    },
+                    _ => {},
                 }
             },
             GatewayEvent::DaveMlsExternalSender(ev) => {
@@ -389,8 +393,12 @@ impl AuxNetwork {
                                 transition_id: ev.transition_id,
                             }))
                             .await?;
-                        if let Err(e) = self.reinit_dave_session().await {
-                            warn!(error = ?e, "failed to reinitialize DAVE session");
+                        match self.reinit_dave_session().await {
+                            Err(DaveReinitError::Ws(e)) => return Err(e),
+                            Err(e) => {
+                                warn!(error = ?e, "failed to reinitialize DAVE session");
+                            },
+                            _ => {},
                         }
                     },
                     None => {},
@@ -420,8 +428,12 @@ impl AuxNetwork {
                                 transition_id: ev.transition_id,
                             }))
                             .await?;
-                        if let Err(e) = self.reinit_dave_session().await {
-                            warn!(error = ?e, "failed to reinitialize DAVE session");
+                        match self.reinit_dave_session().await {
+                            Err(DaveReinitError::Ws(e)) => return Err(e),
+                            Err(e) => {
+                                warn!(error = ?e, "failed to reinitialize DAVE session");
+                            },
+                            _ => {},
                         }
                     },
                     None => {},

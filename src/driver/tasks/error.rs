@@ -2,6 +2,7 @@ use super::message::*;
 use crate::ws::Error as WsError;
 use aes_gcm::Error as CryptoError;
 use audiopus::Error as OpusError;
+use davey::errors::EncryptError as DaveyEncryptError;
 use flume::SendError;
 use std::io::{Error as IoError, ErrorKind as IoErrorKind};
 
@@ -20,7 +21,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[non_exhaustive]
 pub enum Error {
     Crypto(CryptoError),
-    DaveEncrypt(davey::errors::EncryptError),
+    DaveEncrypt,
     #[cfg(any(feature = "receive", test))]
     /// Received an illegal voice packet on the voice UDP socket.
     IllegalVoicePacket,
@@ -59,9 +60,9 @@ impl From<CryptoError> for Error {
     }
 }
 
-impl From<davey::errors::EncryptError> for Error {
-    fn from(value: davey::errors::EncryptError) -> Self {
-        Self::DaveEncrypt(value)
+impl From<DaveyEncryptError> for Error {
+    fn from(_e: DaveyEncryptError) -> Self {
+        Self::DaveEncrypt
     }
 }
 
@@ -111,39 +112,39 @@ impl From<WsError> for Error {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum DaveReinitError {
-    Init(davey::errors::InitError),
-    Reinit(davey::errors::ReinitError),
-    Reset(davey::errors::ResetError),
-    CreateKeyPackage(davey::errors::CreateKeyPackageError),
+    Init,
+    Reinit,
+    Reset,
+    CreateKeyPackage,
     Ws(WsError),
 }
 
 impl From<davey::errors::InitError> for DaveReinitError {
-    fn from(value: davey::errors::InitError) -> Self {
-        Self::Init(value)
+    fn from(_e: davey::errors::InitError) -> Self {
+        Self::Init
     }
 }
 
 impl From<davey::errors::ReinitError> for DaveReinitError {
-    fn from(value: davey::errors::ReinitError) -> Self {
-        Self::Reinit(value)
+    fn from(_e: davey::errors::ReinitError) -> Self {
+        Self::Reinit
     }
 }
 
 impl From<davey::errors::ResetError> for DaveReinitError {
-    fn from(value: davey::errors::ResetError) -> Self {
-        Self::Reset(value)
+    fn from(_e: davey::errors::ResetError) -> Self {
+        Self::Reset
     }
 }
 
 impl From<davey::errors::CreateKeyPackageError> for DaveReinitError {
-    fn from(value: davey::errors::CreateKeyPackageError) -> Self {
-        Self::CreateKeyPackage(value)
+    fn from(_e: davey::errors::CreateKeyPackageError) -> Self {
+        Self::CreateKeyPackage
     }
 }
 
 impl From<WsError> for DaveReinitError {
-    fn from(value: WsError) -> Self {
-        Self::Ws(value)
+    fn from(e: WsError) -> Self {
+        Self::Ws(e)
     }
 }

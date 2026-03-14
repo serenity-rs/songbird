@@ -5,6 +5,9 @@ use crate::{
     ws::Error as WsError,
 };
 use aes_gcm::Error as CryptoError;
+use davey::errors::{
+    CreateKeyPackageError as DaveyCreateKeyPackageError, InitError as DaveyInitError,
+};
 use flume::SendError;
 use serde_json::Error as JsonError;
 use std::{error::Error as StdError, fmt, io::Error as IoError};
@@ -27,10 +30,10 @@ pub enum Error {
     CryptoModeUnavailable,
     /// Failed to create a DAVE key package.
     #[cfg(feature = "driver")]
-    DaveCreateKeyPackageError(davey::errors::CreateKeyPackageError),
+    DaveCreateKeyPackageError(DaveyCreateKeyPackageError),
     /// An error occured during initialization of the DAVE session.
     #[cfg(feature = "driver")]
-    DaveInitializationError(davey::errors::InitError),
+    DaveInitializationError(DaveyInitError),
     /// An indicator that an endpoint URL was invalid.
     EndpointUrl,
     /// Discord failed to correctly respond to IP discovery.

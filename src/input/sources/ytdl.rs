@@ -1,11 +1,5 @@
 use crate::input::{
-    metadata::ytdl::Output,
-    AudioStream,
-    AudioStreamError,
-    AuxMetadata,
-    Compose,
-    HttpRequest,
-    Input,
+    metadata::ytdl::Output, AudioStream, AudioStreamError, AuxMetadata, Compose, HttpRequest, Input,
 };
 use async_trait::async_trait;
 use either::Either;
@@ -167,7 +161,7 @@ impl<'a> YoutubeDl<'a> {
         let out = output
             .stdout
             .split(|&b| b == b'\n')
-            .filter(|&x| (!x.is_empty()))
+            .filter(|&x| !x.is_empty())
             .map(serde_json::from_slice)
             .collect::<Result<Vec<Output>, _>>()
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
