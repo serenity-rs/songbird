@@ -191,13 +191,19 @@ impl UdpRx {
                     let payload = rtp.payload_mut();
                     let payload_length = payload.len();
                     let body = &mut payload[rtp_body_start..payload_length - rtp_body_tail];
+                    let body_length = body.len();
 
-                    // If the packet is decrypted, DAVE is active, and the packet is actually
-                    // encrypted (magic marker 0xFAFA). Need to check for encryption because
-                    // davey spits out error logs if you feed it an unencrypted packet.
+                    // If the packet is transport-decrypted, DAVE is enabled, and the packet
+                    // looks encrypted: https://daveprotocol.com/#protocol-frame-check
+                    // The packet must be at least 11 bytes consisting of:
+                    // - 8 byte truncated AES128-GCM authentication tag
+                    // - 1 byte protocol supplemental data size
+                    // - 2 byte magic marker
                     if decrypted
                         && self.dave_protocol_version.load(Ordering::Relaxed) != 0
-                        && body.ends_with(b"\xfa\xfa")
+                        && body_length >= 11
+                        && body[body_length - DAVE_MAGIC_MARKER.len()..body_length]
+                            == DAVE_MAGIC_MARKER
                     {
                         // Silently drop encrypted packets if it's not possible to decrypt them for
                         // one reason or another; otherwise there'd be error logs for trying to decode

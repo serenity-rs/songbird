@@ -80,6 +80,11 @@ pub const RTP_VERSION: u8 = 2;
 /// Profile type used by Discord's Opus audio traffic.
 pub const RTP_PROFILE_TYPE: RtpType = RtpType::Dynamic(120);
 
+#[cfg(feature = "receive")]
+/// The magic marker appended to the end of DAVE encrypted payloads, used to determine
+/// whether the voice packet is encrypted.
+pub const DAVE_MAGIC_MARKER: [u8; 2] = [0xfa, 0xfa];
+
 #[cfg(test)]
 #[allow(clippy::doc_markdown, missing_docs)]
 pub mod test_data {
