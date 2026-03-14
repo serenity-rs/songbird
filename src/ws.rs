@@ -17,11 +17,17 @@ use tokio_tungstenite::{
         protocol::{CloseFrame, WebSocketConfig as Config},
         Message,
     },
-    MaybeTlsStream, WebSocketStream,
+    MaybeTlsStream,
+    WebSocketStream,
 };
 #[cfg(feature = "tws")]
 use tokio_websockets::{
-    CloseCode, Error as TwsError, Limits, MaybeTlsStream, Message, WebSocketStream,
+    CloseCode,
+    Error as TwsError,
+    Limits,
+    MaybeTlsStream,
+    Message,
+    WebSocketStream,
 };
 use tracing::{debug, instrument};
 use url::Url;
@@ -136,14 +142,13 @@ impl From<BinaryError> for Error {
 pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Event>> {
     #[cfg(feature = "tungstenite")]
     match message {
-        Some(Message::Text(ref payload)) => {
+        Some(Message::Text(ref payload)) =>
             return Ok(serde_json::from_str(payload)
                 .map_err(|e| {
                     debug!("Unexpected JSON: {e}. Payload: {payload}");
                     e
                 })
-                .ok())
-        },
+                .ok()),
         Some(Message::Binary(bytes)) => {
             return Ok(deserialize_binary_event(&bytes)
                 .map_err(|e| {

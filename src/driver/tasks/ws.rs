@@ -4,7 +4,10 @@ use crate::{
     events::CoreContext,
     model::{
         payload::{Heartbeat, Speaking},
-        CloseCode as VoiceCloseCode, Event as GatewayEvent, FromPrimitive, SpeakingState,
+        CloseCode as VoiceCloseCode,
+        Event as GatewayEvent,
+        FromPrimitive,
+        SpeakingState,
     },
     ws::{Error as WsError, WsStream},
     ConnectionInfo,
@@ -14,8 +17,11 @@ use rand::{distr::Uniform, Rng};
 use serenity_voice_model::{
     id::UserId,
     payload::{
-        DaveMlsCommitWelcome, DaveMlsInvalidCommitWelcome, DaveMlsKeyPackage,
-        DaveMlsProposalsOperationType, DaveTransitionReady,
+        DaveMlsCommitWelcome,
+        DaveMlsInvalidCommitWelcome,
+        DaveMlsKeyPackage,
+        DaveMlsProposalsOperationType,
+        DaveTransitionReady,
     },
 };
 use std::{
@@ -371,7 +377,7 @@ impl AuxNetwork {
             },
             GatewayEvent::DaveMlsAnnounceCommitTransition(ev) => {
                 match self.dave_process_commit(&ev.commit_message).await {
-                    Some(Ok(_)) => {
+                    Some(Ok(_)) =>
                         if ev.transition_id != 0 {
                             let protocol_version =
                                 self.dave_protocol_version.load(Ordering::Relaxed);
@@ -384,8 +390,7 @@ impl AuxNetwork {
                                     protocol_version,
                                 }))
                                 .await?;
-                        }
-                    },
+                        },
                     Some(Err(e)) => {
                         warn!("MLS commit errored: {e:?}");
                         self.ws_client
@@ -404,9 +409,9 @@ impl AuxNetwork {
                     None => {},
                 };
             },
-            GatewayEvent::DaveMlsWelcome(ev) => {
+            GatewayEvent::DaveMlsWelcome(ev) =>
                 match self.dave_process_welcome(&ev.welcome).await {
-                    Some(Ok(_)) => {
+                    Some(Ok(_)) =>
                         if ev.transition_id != 0 {
                             let protocol_version =
                                 self.dave_protocol_version.load(Ordering::Relaxed);
@@ -419,8 +424,7 @@ impl AuxNetwork {
                                     protocol_version,
                                 }))
                                 .await?;
-                        }
-                    },
+                        },
                     Some(Err(e)) => {
                         warn!("MLS welcome errored: {e:?}");
                         self.ws_client
@@ -437,8 +441,7 @@ impl AuxNetwork {
                         }
                     },
                     None => {},
-                }
-            },
+                },
             other => {
                 trace!("Received other websocket data: {:?}", other);
             },
@@ -539,24 +542,22 @@ fn ws_error_is_not_final(err: &WsError) -> bool {
     match err {
         #[cfg(feature = "tungstenite")]
         WsError::WsClosed(Some(frame)) => match frame.code {
-            CloseCode::Library(l) => {
+            CloseCode::Library(l) =>
                 if let Some(code) = VoiceCloseCode::from_u16(l) {
                     code.should_resume()
                 } else {
                     true
-                }
-            },
+                },
             _ => true,
         },
         #[cfg(feature = "tws")]
         WsError::WsClosed(Some(code)) => match (*code).into() {
-            code @ 4000..=4999_u16 => {
+            code @ 4000..=4999_u16 =>
                 if let Some(code) = VoiceCloseCode::from_u16(code) {
                     code.should_resume()
                 } else {
                     true
-                }
-            },
+                },
             _ => true,
         },
         e => {

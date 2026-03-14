@@ -6,7 +6,8 @@ use crate::{
 };
 use aes_gcm::Error as CryptoError;
 use davey::errors::{
-    CreateKeyPackageError as DaveyCreateKeyPackageError, InitError as DaveyInitError,
+    CreateKeyPackageError as DaveyCreateKeyPackageError,
+    InitError as DaveyInitError,
 };
 use flume::SendError;
 use serde_json::Error as JsonError;

@@ -8,13 +8,15 @@ use super::{
         message::*,
         ws::{self as ws_task, AuxNetwork},
     },
-    Config, CryptoMode,
+    Config,
+    CryptoMode,
 };
 use crate::{
     constants::*,
     model::{
         payload::{Identify, Resume, SelectProtocol},
-        Event as GatewayEvent, ProtocolData,
+        Event as GatewayEvent,
+        ProtocolData,
     },
     ws::WsStream,
     ConnectionInfo,
