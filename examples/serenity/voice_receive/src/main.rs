@@ -38,7 +38,12 @@ use songbird::{
         payload::{ClientDisconnect, Speaking},
     },
     packet::Packet,
-    Config, CoreEvent, Event, EventContext, EventHandler as VoiceEventHandler, SerenityInit,
+    Config,
+    CoreEvent,
+    Event,
+    EventContext,
+    EventHandler as VoiceEventHandler,
+    SerenityInit,
 };
 
 struct Handler;
@@ -159,14 +164,14 @@ impl VoiceEventHandler for Receiver {
             Ctx::RtpPacket(packet) => {
                 // An event which fires for every received audio packet,
                 // containing the decoded data.
-                // let rtp = packet.rtp();
-                // println!(
-                //     "Received voice packet from SSRC {}, sequence {}, timestamp {} -- {}B long",
-                //     rtp.get_ssrc(),
-                //     rtp.get_sequence().0,
-                //     rtp.get_timestamp().0,
-                //     rtp.payload().len()
-                // );
+                let rtp = packet.rtp();
+                println!(
+                    "Received voice packet from SSRC {}, sequence {}, timestamp {} -- {}B long",
+                    rtp.get_ssrc(),
+                    rtp.get_sequence().0,
+                    rtp.get_timestamp().0,
+                    rtp.payload().len()
+                );
             },
             Ctx::RtcpPacket(data) => {
                 // An event which fires for every received rtcp packet,
