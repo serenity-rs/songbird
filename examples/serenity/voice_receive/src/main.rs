@@ -22,7 +22,9 @@ use serenity::{
     framework::{
         standard::{
             macros::{command, group},
-            Args, CommandResult, Configuration,
+            Args,
+            CommandResult,
+            Configuration,
         },
         StandardFramework,
     },
