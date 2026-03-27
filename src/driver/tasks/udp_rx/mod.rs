@@ -19,14 +19,17 @@ use discortp::{
 };
 use discortp::{MutablePacket, Packet};
 use flume::Receiver;
-use std::sync::atomic::{AtomicU16, Ordering};
+use std::sync::{
+    atomic::{AtomicU16, Ordering},
+    RwLock,
+};
 use std::{
     collections::{HashMap, HashSet},
     num::Wrapping,
     sync::Arc,
     time::Duration,
 };
-use tokio::{net::UdpSocket, select, sync::RwLock, time::Instant};
+use tokio::{net::UdpSocket, select, time::Instant};
 use tracing::{error, instrument, trace, warn};
 
 type RtpSequence = Wrapping<u16>;
@@ -211,7 +214,7 @@ impl UdpRx {
                         let Some(user_id) = self.ssrc_signalling.ssrc_user_map.get(&ssrc) else {
                             return;
                         };
-                        let Some(ref mut dave_session) = *self.dave_session.write().await else {
+                        let Some(ref mut dave_session) = *self.dave_session.write().unwrap() else {
                             return;
                         };
 

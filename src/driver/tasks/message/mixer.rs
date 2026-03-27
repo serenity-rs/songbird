@@ -11,10 +11,9 @@ use crate::{
 use flume::Sender;
 use std::{
     net::UdpSocket,
-    sync::{atomic::AtomicU16, Arc},
+    sync::{atomic::AtomicU16, Arc, RwLock},
 };
 use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
-use tokio::sync::RwLock;
 
 pub struct MixerConnection {
     pub cipher: Cipher,

@@ -20,9 +20,9 @@ use std::{
     io::Cursor,
     net::UdpSocket,
     num::NonZeroU16,
-    sync::{atomic::AtomicU16, Arc},
+    sync::{atomic::AtomicU16, Arc, RwLock},
 };
-use tokio::{runtime::Handle, sync::RwLock};
+use tokio::runtime::Handle;
 
 // create a dummied task + interconnect.
 // measure perf at varying numbers of sources (binary 1--64) without passthrough support.
