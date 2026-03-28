@@ -158,7 +158,7 @@ pub struct Config {
 
     #[cfg(feature = "driver")]
     #[derivative(Debug = "ignore")]
-    /// Registry of the inner codecs supported by the driver, adding audiopus-based
+    /// Registry of the inner codecs supported by the driver, adding opus2-based
     /// Opus codec support to all of Symphonia's default codecs.
     ///
     /// Defaults to [`get_codec_registry`].

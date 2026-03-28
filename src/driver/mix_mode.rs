@@ -1,4 +1,4 @@
-use audiopus::Channels;
+use opus2::Channels;
 use symphonia_core::audio::Layout;
 
 use crate::constants::{MONO_FRAME_SIZE, STEREO_FRAME_SIZE};

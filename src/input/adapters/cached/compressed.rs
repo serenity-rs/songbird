@@ -8,16 +8,8 @@ use crate::{
         LiveInput,
     },
 };
-use audiopus::{
-    coder::{Encoder as OpusEncoder, GenericCtl},
-    Application,
-    Bitrate,
-    Channels,
-    Error as OpusError,
-    ErrorCode as OpusErrorCode,
-    SampleRate,
-};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use opus2::{Application, Bitrate, Channels, Encoder as OpusEncoder, ErrorCode as OpusErrorCode};
 use std::{
     io::{
         Cursor,
@@ -52,7 +44,7 @@ use tracing::{debug, trace};
 pub struct Config {
     /// Registry of audio codecs supported by the driver.
     ///
-    /// Defaults to [`get_codec_registry`], which adds audiopus-based Opus codec support
+    /// Defaults to [`get_codec_registry`], which adds opus2-based Opus codec support
     /// to all of Symphonia's default codecs.
     pub codec_registry: &'static CodecRegistry,
     /// Registry of the muxers and container formats supported by the driver.
@@ -175,7 +167,7 @@ impl Compressed {
             (Channels::Mono, false)
         };
 
-        let mut encoder = OpusEncoder::new(SampleRate::Hz48000, channels, Application::Audio)?;
+        let mut encoder = OpusEncoder::new(48000, channels, Application::Audio)?;
         encoder.set_bitrate(bitrate)?;
 
         let codec_type = parsed.decoder.codec_params().codec;
@@ -190,7 +182,7 @@ impl Compressed {
         let metadata = create_metadata(
             &mut parsed.meta,
             format_meta,
-            &encoder,
+            &mut encoder,
             chan_count as u8,
             encoding,
         )?;
@@ -227,7 +219,7 @@ impl Compressed {
 fn create_metadata(
     probe_metadata: &mut ProbedMetadata,
     track_metadata: Option<&MetadataRevision>,
-    opus: &OpusEncoder,
+    opus: &mut OpusEncoder,
     channels: u8,
     encoding: Option<String>,
 ) -> Result<DcaMetadata, CodecCacheError> {
@@ -241,27 +233,27 @@ fn create_metadata(
         },
     };
 
-    let abr = match opus.bitrate()? {
-        Bitrate::BitsPerSecond(i) => Some(i as u64),
+    let abr = match opus.get_bitrate()? {
+        Bitrate::Bits(i) => Some(i as u64),
         Bitrate::Auto => None,
         Bitrate::Max => Some(510_000),
     };
 
-    let mode = match opus.application()? {
+    let mode = match opus.get_application()? {
         Application::Voip => "voip",
         Application::Audio => "music",
         Application::LowDelay => "lowdelay",
     }
     .to_string();
 
-    let sample_rate = opus.sample_rate()? as u32;
+    let sample_rate = opus.get_sample_rate()?;
 
     let opus = Opus {
         mode,
         sample_rate,
         frame_size: MONO_FRAME_BYTE_SIZE as u64,
         abr,
-        vbr: opus.vbr()?,
+        vbr: opus.get_vbr()?,
         channels: channels.min(2),
     };
 
@@ -427,7 +419,7 @@ where
                             self.last_frame.truncate(pkt_len);
                             break;
                         },
-                        Err(OpusError::Opus(OpusErrorCode::BufferTooSmall)) => {
+                        Err(e) if e.code() == OpusErrorCode::BufferTooSmall => {
                             // If we need more capacity to encode this frame, then take it.
                             trace!("Resizing inner buffer (+256).");
                             self.last_frame.resize(self.last_frame.len() + 256, 0);

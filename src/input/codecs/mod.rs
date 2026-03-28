@@ -12,7 +12,7 @@ use symphonia::{
     default::*,
 };
 
-/// Default Symphonia [`CodecRegistry`], including the (audiopus-backed) Opus codec.
+/// Default Symphonia [`CodecRegistry`], including the (opus2-backed) Opus codec.
 pub fn get_codec_registry() -> &'static CodecRegistry {
     static CODEC_REGISTRY: OnceLock<CodecRegistry> = OnceLock::new();
     CODEC_REGISTRY.get_or_init(|| {

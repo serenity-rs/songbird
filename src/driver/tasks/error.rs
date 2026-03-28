@@ -1,9 +1,9 @@
 use super::message::*;
 use crate::ws::Error as WsError;
 use aes_gcm::Error as CryptoError;
-use audiopus::Error as OpusError;
 use davey::errors::EncryptError as DaveyEncryptError;
 use flume::SendError;
+use opus2::Error as OpusError;
 use std::io::{Error as IoError, ErrorKind as IoErrorKind};
 
 #[derive(Debug)]

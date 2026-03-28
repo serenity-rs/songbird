@@ -23,18 +23,13 @@ use crate::{
     tracks::{Action, LoopState, PlayError, PlayMode, TrackCommand, TrackHandle, TrackState, View},
     Config,
 };
-use audiopus::{
-    coder::Encoder as OpusEncoder,
-    softclip::SoftClip,
-    Application as CodingMode,
-    Bitrate,
-};
 use discortp::{
     discord::MutableKeepalivePacket,
     rtp::{MutableRtpPacket, RtpPacket},
     MutablePacket,
 };
 use flume::{Receiver, SendError, Sender, TryRecvError};
+use opus2::{Application as CodingMode, Bitrate, Encoder as OpusEncoder, SoftClip};
 use rand::random;
 use rubato::{FftFixedOut, Resampler};
 use std::{
@@ -574,7 +569,7 @@ impl Mixer {
                             [..n * self.config.mix_mode.channels()])
                             .try_into()
                             .expect("Mix buffer is known to have a valid sample count (softclip)."),
-                    )?;
+                    );
                 }
             }
         }

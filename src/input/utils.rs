@@ -1,7 +1,7 @@
 //! Utility methods for seeking or decoding.
 
 use crate::constants::*;
-use audiopus::{coder::Decoder, Channels, Result as OpusResult, SampleRate};
+use opus2::{Channels, Decoder, Result as OpusResult};
 use std::{mem, time::Duration};
 
 /// Calculates the sample position in a `FloatPCM` stream from a timestamp.
@@ -35,7 +35,7 @@ pub fn byte_count_to_timestamp(amt: usize, stereo: bool) -> Duration {
 /// Create an Opus decoder outputting at a sample rate of 48kHz.
 pub fn decoder(stereo: bool) -> OpusResult<Decoder> {
     Decoder::new(
-        SampleRate::Hz48000,
+        48000,
         if stereo {
             Channels::Stereo
         } else {

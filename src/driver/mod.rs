@@ -54,14 +54,14 @@ use crate::{
     Event,
     EventHandler,
 };
-/// Opus encoder bitrate settings.
-pub use audiopus::{self as opus, Bitrate};
 use core::{
     future::Future,
     pin::Pin,
     task::{Context, Poll},
 };
 use flume::{r#async::RecvFut, SendError, Sender};
+/// Opus encoder bitrate settings.
+pub use opus2::{self as opus, Bitrate};
 #[cfg(feature = "builtin-queue")]
 use std::time::Duration;
 #[allow(unused_imports)]

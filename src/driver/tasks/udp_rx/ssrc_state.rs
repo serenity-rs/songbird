@@ -8,12 +8,8 @@ use crate::{
     },
     events::context_data::{RtpData, VoiceData},
 };
-use audiopus::{
-    coder::Decoder as OpusDecoder,
-    error::{Error as OpusError, ErrorCode},
-    packet::Packet as OpusPacket,
-};
 use discortp::{rtp::RtpExtensionPacket, Packet, PacketSize};
+use opus2::{Decoder as OpusDecoder, ErrorCode};
 use tracing::{error, warn};
 
 #[derive(Debug)]
@@ -116,7 +112,7 @@ impl SsrcState {
             let dest_samples = (&mut audio[..])
                 .try_into()
                 .expect("Decode logic will cap decode buffer size at i32::MAX.");
-            let len = self.decoder.decode(None, dest_samples, false)?;
+            let len = self.decoder.decode(&[], dest_samples, false)?;
             audio.truncate(2 * len);
 
             out.decoded_voice = Some(audio);
@@ -147,11 +143,10 @@ impl SsrcState {
             let mut out = vec![0; self.decode_size.len()];
 
             for _ in 0..missed_packets {
-                let missing_frame: Option<OpusPacket<'_>> = None;
                 let dest_samples = (&mut out[..])
                     .try_into()
                     .expect("Decode logic will cap decode buffer size at i32::MAX.");
-                if let Err(e) = self.decoder.decode(missing_frame, dest_samples, false) {
+                if let Err(e) = self.decoder.decode(&[], dest_samples, false) {
                     warn!("Issue while decoding for missed packet: {:?}.", e);
                 }
             }
@@ -163,11 +158,7 @@ impl SsrcState {
             // This should scan up to find the "correct" size that a source is using,
             // and then remember that.
             loop {
-                let tried_audio_len = self.decoder.decode(
-                    Some(data[start..].try_into()?),
-                    (&mut out[..]).try_into()?,
-                    false,
-                );
+                let tried_audio_len = self.decoder.decode(&data[start..], &mut out, false);
                 match tried_audio_len {
                     Ok(audio_len) => {
                         // Decoding to stereo: audio_len refers to sample count irrespective of channel count.
@@ -176,7 +167,7 @@ impl SsrcState {
 
                         break;
                     },
-                    Err(OpusError::Opus(ErrorCode::BufferTooSmall)) => {
+                    Err(e) if e.code() == ErrorCode::BufferTooSmall => {
                         if self.decode_size.can_bump_up() {
                             self.decode_size = self.decode_size.bump_up();
                             out = vec![0; self.decode_size.len()];

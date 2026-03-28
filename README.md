@@ -22,7 +22,7 @@ Songbird's gateway functionality requires you to specify the `GUILD_VOICE_STATES
 
 ## Codec support
 Songbird supports all [codecs and formats provided by Symphonia] (pure-Rust), with Opus support
-provided by [audiopus] (an FFI wrapper for libopus).
+provided by [opus2] (an FFI wrapper for libopus).
 
 **By default, *Songbird will not request any codecs from Symphonia*.** To change this, in your own
 project you will need to depend on Symphonia as well.
@@ -44,7 +44,7 @@ features = ["aac", "mp3", "isomp4", "alac"] # ...as well as any extras you need!
 Songbird needs a few system dependencies before you can use it.
 
 - Opus - Audio codec that Discord uses.
-[audiopus] will use installed libopus binaries if available via pkgconf on Linux/MacOS, otherwise you will need to install cmake to build opus from source.
+[opus2] will use installed libopus binaries if available via pkgconf on Linux/MacOS, otherwise you will need to install cmake to build opus from source.
 This is always the case on Windows.
 For Unix systems, you can install the library with `apt install libopus-dev` on Ubuntu or `pacman -S opus` on Arch Linux.
 If you do not have it installed it will be built for you. However, you will need a C compiler and the GNU autotools installed.
@@ -75,7 +75,7 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [this crate's examples directory]: https://github.com/serenity-rs/songbird/tree/current/examples
 [our contributor guidelines]: CONTRIBUTING.md
 [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
-[audiopus]: https://github.com/lakelezz/audiopus
+[opus2]: https://github.com/cijiugechu/opus2
 [according to the installation instructions on the main repo]: https://github.com/yt-dlp/yt-dlp#installation
 
 [build badge]: https://img.shields.io/github/actions/workflow/status/serenity-rs/songbird/ci.yml?branch=current&style=flat-square

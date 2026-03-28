@@ -29,7 +29,7 @@
 //!
 //! ## Codec support
 //! Songbird supports all [codecs and formats provided by Symphonia] (pure-Rust), with Opus support
-//! provided by [audiopus] (an FFI wrapper for libopus).
+//! provided by [opus2] (an FFI wrapper for libopus).
 //!
 //! **By default, *Songbird will not request any codecs from Symphonia*.** To change this, in your own
 //! project you will need to depend on Symphonia as well.
@@ -59,7 +59,7 @@
 //! [`ConnectionInfo`]: struct@ConnectionInfo
 //! [lavalink]: https://github.com/freyacodes/Lavalink
 //! [codecs and formats provided by Symphonia]: https://github.com/pdeljanov/Symphonia#formats-demuxers
-//! [audiopus]: https://github.com/lakelezz/audiopus
+//! [opus2]: https://github.com/cijiugechu/opus2
 
 #![warn(clippy::pedantic, rust_2018_idioms)]
 #![allow(

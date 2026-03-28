@@ -1,4 +1,4 @@
-use audiopus::{Channels as OpusChannels, SampleRate as OpusRate};
+use opus2::Channels as OpusChannels;
 
 /// Decode behaviour for received RTP packets within the driver.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -112,14 +112,14 @@ pub enum SampleRate {
     Hz48000,
 }
 
-impl From<SampleRate> for OpusRate {
+impl From<SampleRate> for u32 {
     fn from(value: SampleRate) -> Self {
         match value {
-            SampleRate::Hz8000 => OpusRate::Hz8000,
-            SampleRate::Hz12000 => OpusRate::Hz12000,
-            SampleRate::Hz16000 => OpusRate::Hz16000,
-            SampleRate::Hz24000 => OpusRate::Hz24000,
-            SampleRate::Hz48000 => OpusRate::Hz48000,
+            SampleRate::Hz8000 => 8000,
+            SampleRate::Hz12000 => 12000,
+            SampleRate::Hz16000 => 16000,
+            SampleRate::Hz24000 => 24000,
+            SampleRate::Hz48000 => 48000,
         }
     }
 }

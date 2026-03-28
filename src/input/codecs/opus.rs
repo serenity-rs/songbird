@@ -1,10 +1,5 @@
 use crate::constants::*;
-use audiopus::{
-    coder::{Decoder as AudiopusDecoder, GenericCtl},
-    Channels,
-    Error as OpusError,
-    ErrorCode,
-};
+use opus2::{Channels, Decoder as Opus2Decoder, ErrorCode};
 use symphonia_core::{
     audio::{AsAudioBufferRef, AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec},
     codecs::{
@@ -19,9 +14,9 @@ use symphonia_core::{
     formats::Packet,
 };
 
-/// Opus decoder for symphonia, based on libopus v1.3 (via [`audiopus`]).
+/// Opus decoder for symphonia, based on libopus v1.5 (via [`opus2`]).
 pub struct OpusDecoder {
-    inner: AudiopusDecoder,
+    inner: Opus2Decoder,
     params: CodecParameters,
     buf: AudioBuffer<f32>,
     rawbuf: Vec<f32>,
@@ -39,18 +34,15 @@ unsafe impl Sync for OpusDecoder {}
 impl OpusDecoder {
     fn decode_inner(&mut self, packet: &Packet) -> SymphResult<()> {
         let s_ct = loop {
-            let pkt = if packet.buf().is_empty() {
-                None
-            } else if let Ok(checked_pkt) = packet.buf().try_into() {
-                Some(checked_pkt)
-            } else {
+            if packet.buf().len() > i32::MAX as usize {
                 return decode_error("Opus packet was too large (greater than i32::MAX bytes).");
             };
+
             let out_space = (&mut self.rawbuf[..]).try_into().expect("The following logic expands this buffer safely below i32::MAX, and we throw our own error.");
 
-            match self.inner.decode_float(pkt, out_space, false) {
+            match self.inner.decode_float(packet.buf(), out_space, false) {
                 Ok(v) => break v,
-                Err(OpusError::Opus(ErrorCode::BufferTooSmall)) => {
+                Err(e) if e.code() == ErrorCode::BufferTooSmall => {
                     // double the buffer size
                     // correct behav would be to mirror the decoder logic in the udp_rx set.
                     let new_size = (self.rawbuf.len() * 2).min(i32::MAX as usize);
@@ -88,7 +80,7 @@ impl OpusDecoder {
 
 impl Decoder for OpusDecoder {
     fn try_new(params: &CodecParameters, _options: &DecoderOptions) -> SymphResult<Self> {
-        let inner = AudiopusDecoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
+        let inner = Opus2Decoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
 
         let mut params = params.clone();
         params.with_sample_rate(SAMPLE_RATE_RAW as u32);
@@ -108,7 +100,7 @@ impl Decoder for OpusDecoder {
         &[symphonia_core::support_codec!(
             CODEC_TYPE_OPUS,
             "opus",
-            "libopus (1.3+, audiopus)"
+            "libopus (1.5+, opus2)"
         )]
     }
 

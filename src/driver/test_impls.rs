@@ -177,7 +177,7 @@ impl Mixer {
         let input: Input = RawAdapter::new(Cursor::new(floats), 48_000, 2).into();
 
         let mut src = handle.block_on(async move {
-            Compressed::new(input, Bitrate::BitsPerSecond(128_000))
+            Compressed::new(input, Bitrate::Bits(128_000))
                 .await
                 .expect("These parameters are well-defined.")
         });

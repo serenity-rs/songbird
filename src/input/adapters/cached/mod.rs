@@ -13,7 +13,7 @@ pub use self::{compressed::*, decompressed::*, error::*, hint::*, memory::*};
 
 use crate::constants::*;
 use crate::input::utils;
-use audiopus::Bitrate;
+use opus2::Bitrate;
 use std::{mem, time::Duration};
 use streamcatcher::{Config as ScConfig, GrowthStrategy};
 
@@ -23,7 +23,7 @@ pub fn compressed_cost_per_sec(bitrate: Bitrate) -> usize {
     let framing_cost_per_sec = AUDIO_FRAME_RATE * mem::size_of::<u16>();
 
     let bitrate_raw = match bitrate {
-        Bitrate::BitsPerSecond(i) => i,
+        Bitrate::Bits(i) => i,
         Bitrate::Auto => 64_000,
         Bitrate::Max => 512_000,
     } as usize;
