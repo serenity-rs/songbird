@@ -302,7 +302,7 @@ impl AuxNetwork {
                     .insert(ev.transition_id, ev.protocol_version);
 
                 if ev.transition_id == 0 {
-                    self.execute_dave_transition(ev.transition_id).await;
+                    self.execute_dave_transition(ev.transition_id);
                 } else if ev.protocol_version == 0 {
                     if let Some(ref mut dave_session) = *self.dave_session.write().unwrap() {
                         dave_session.set_passthrough_mode(true, Some(120));
@@ -317,7 +317,7 @@ impl AuxNetwork {
                 }
             },
             GatewayEvent::DaveExecuteTransition(ev) => {
-                self.execute_dave_transition(ev.transition_id).await;
+                self.execute_dave_transition(ev.transition_id);
             },
             GatewayEvent::DavePrepareEpoch(ev) if ev.epoch == 1 => {
                 self.dave_protocol_version
@@ -375,7 +375,7 @@ impl AuxNetwork {
                 }
             },
             GatewayEvent::DaveMlsAnnounceCommitTransition(ev) => {
-                match self.dave_process_commit(&ev.commit_message).await {
+                match self.dave_process_commit(&ev.commit_message) {
                     Some(Ok(())) =>
                         if ev.transition_id != 0 {
                             let protocol_version =
@@ -408,39 +408,37 @@ impl AuxNetwork {
                     None => {},
                 };
             },
-            GatewayEvent::DaveMlsWelcome(ev) =>
-                match self.dave_process_welcome(&ev.welcome).await {
-                    Some(Ok(())) =>
-                        if ev.transition_id != 0 {
-                            let protocol_version =
-                                self.dave_protocol_version.load(Ordering::Relaxed);
+            GatewayEvent::DaveMlsWelcome(ev) => match self.dave_process_welcome(&ev.welcome) {
+                Some(Ok(())) =>
+                    if ev.transition_id != 0 {
+                        let protocol_version = self.dave_protocol_version.load(Ordering::Relaxed);
 
-                            self.dave_pending_transitions
-                                .insert(ev.transition_id, protocol_version);
-                            self.ws_client
-                                .send_json(&GatewayEvent::from(DaveTransitionReady {
-                                    transition_id: ev.transition_id,
-                                    protocol_version,
-                                }))
-                                .await?;
-                        },
-                    Some(Err(e)) => {
-                        warn!("MLS welcome errored: {e:?}");
+                        self.dave_pending_transitions
+                            .insert(ev.transition_id, protocol_version);
                         self.ws_client
-                            .send_json(&GatewayEvent::from(DaveMlsInvalidCommitWelcome {
+                            .send_json(&GatewayEvent::from(DaveTransitionReady {
                                 transition_id: ev.transition_id,
+                                protocol_version,
                             }))
                             .await?;
-                        match self.reinit_dave_session().await {
-                            Err(DaveReinitError::Ws(e)) => return Err(e),
-                            Err(e) => {
-                                warn!(error = ?e, "failed to reinitialize DAVE session");
-                            },
-                            _ => {},
-                        }
                     },
-                    None => {},
+                Some(Err(e)) => {
+                    warn!("MLS welcome errored: {e:?}");
+                    self.ws_client
+                        .send_json(&GatewayEvent::from(DaveMlsInvalidCommitWelcome {
+                            transition_id: ev.transition_id,
+                        }))
+                        .await?;
+                    match self.reinit_dave_session().await {
+                        Err(DaveReinitError::Ws(e)) => return Err(e),
+                        Err(e) => {
+                            warn!(error = ?e, "failed to reinitialize DAVE session");
+                        },
+                        _ => {},
+                    }
                 },
+                None => {},
+            },
             other => {
                 trace!("Received other websocket data: {:?}", other);
             },
@@ -449,7 +447,7 @@ impl AuxNetwork {
         Ok(())
     }
 
-    async fn dave_process_commit(
+    fn dave_process_commit(
         &mut self,
         commit_message: &[u8],
     ) -> Option<Result<(), davey::errors::ProcessCommitError>> {
@@ -460,7 +458,7 @@ impl AuxNetwork {
         Some(dave_session.process_commit(commit_message))
     }
 
-    async fn dave_process_welcome(
+    fn dave_process_welcome(
         &mut self,
         welcome: &[u8],
     ) -> Option<Result<(), davey::errors::ProcessWelcomeError>> {
@@ -510,7 +508,7 @@ impl AuxNetwork {
         Ok(())
     }
 
-    async fn execute_dave_transition(&mut self, transition_id: u16) {
+    fn execute_dave_transition(&mut self, transition_id: u16) {
         let Some(new_version) = self.dave_pending_transitions.get(&transition_id).copied() else {
             warn!("Received DaveExecuteTransition for unknown transition ID {transition_id}");
             return;
