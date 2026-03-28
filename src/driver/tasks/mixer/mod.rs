@@ -565,10 +565,8 @@ impl Mixer {
             if let MixType::MixedPcm(n) = mix_len {
                 if self.config.use_softclip {
                     self.soft_clip.apply(
-                        (&mut self.sample_buffer.samples_mut()
-                            [..n * self.config.mix_mode.channels()])
-                            .try_into()
-                            .expect("Mix buffer is known to have a valid sample count (softclip)."),
+                        &mut self.sample_buffer.samples_mut()
+                            [..n * self.config.mix_mode.channels()],
                     );
                 }
             }
