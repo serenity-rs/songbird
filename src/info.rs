@@ -101,10 +101,7 @@ impl ConnectionProgress {
 /// with the Songbird driver, lavalink, or other system.
 #[derive(Clone, Eq, Hash, PartialEq)]
 pub struct ConnectionInfo {
-    /// ID of the voice channel being joined, if it is known.
-    ///
-    /// This is not needed to establish a connection, but can be useful
-    /// for book-keeping.
+    /// ID of the voice channel being joined.
     pub channel_id: ChannelId,
     /// URL of the voice websocket gateway server assigned to this call.
     pub endpoint: String,

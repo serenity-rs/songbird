@@ -4,10 +4,9 @@ use crate::id::*;
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub struct ConnectData<'a> {
-    /// ID of the voice channel being joined, if it is known.
+    /// ID of the voice channel being joined.
     ///
-    /// If this is available, then this can be used to reconnect/renew
-    /// a voice session via the gateway.
+    /// This can be used to reconnect/renew a voice session via the gateway.
     pub channel_id: ChannelId,
     /// ID of the target voice channel's parent guild.
     pub guild_id: GuildId,
