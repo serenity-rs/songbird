@@ -317,7 +317,7 @@ impl AuxNetwork {
                 }
             },
             GatewayEvent::DaveExecuteTransition(ev) => {
-                self.execute_dave_transition(ev.transition_id).await;
+                self.execute_dave_transition(ev.transition_id);
             },
             GatewayEvent::DavePrepareEpoch(ev) if ev.epoch == 1 => {
                 self.dave_protocol_version
