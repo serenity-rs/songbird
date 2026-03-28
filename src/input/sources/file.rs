@@ -1,6 +1,12 @@
-use crate::input::{AudioStream, AudioStreamError, Compose, Input};
-use std::{error::Error, ffi::OsStr, path::Path};
-use symphonia_core::{io::MediaSource, probe::Hint};
+use crate::input::{AudioStream, AudioStreamError, AuxMetadata, Compose, Input};
+use std::{error::Error, ffi::OsStr, path::Path, time::Duration};
+use symphonia_core::{
+    codecs::CODEC_TYPE_NULL,
+    formats::FormatOptions,
+    io::{MediaSource, MediaSourceStream},
+    meta::MetadataOptions,
+    probe::Hint,
+};
 
 /// A lazily instantiated local file.
 #[derive(Clone, Debug)]
@@ -55,32 +61,42 @@ impl<P: AsRef<Path> + Send + Sync> Compose for File<P> {
         true
     }
 
-    // SEE: issue #186
-    // Below is removed due to issues with:
-    // 1) deadlocks on small files.
-    // 2) serde_aux poorly handles missing field names.
-    //
+    // Probes for metadata about this audio file using symphonia probe
+    async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
+        let file = self.create_async().await?;
+        let mss = MediaSourceStream::new(file.input, Default::default());
 
-    // Probes for metadata about this audio file using `ffprobe`.
-    // async fn aux_metadata(&mut self) -> Result<AuxMetadata, AudioStreamError> {
-    //     let args = [
-    //         "-v",
-    //         "quiet",
-    //         "-of",
-    //         "json",
-    //         "-show_format",
-    //         "-show_streams",
-    //         "-i",
-    //     ];
+        // Probe for metadata about the audio file
+        let probe = symphonia::default::get_probe()
+            .format(
+                &file.hint.unwrap_or_default(),
+                mss,
+                &FormatOptions::default(),
+                &MetadataOptions::default(),
+            )
+            .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
-    //     let mut output = Command::new("ffprobe")
-    //         .args(args)
-    //         .arg(self.path.as_ref().as_os_str())
-    //         .output()
-    //         .await
-    //         .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
+        // Find the first track with a valid codec
+        let track = probe
+            .format
+            .tracks()
+            .iter()
+            .find(|t| t.codec_params.codec != CODEC_TYPE_NULL)
+            .ok_or(AudioStreamError::Unsupported)?;
 
-    //     AuxMetadata::from_ffprobe_json(&mut output.stdout[..])
-    //         .map_err(|e| AudioStreamError::Fail(Box::new(e)))
-    // }
+        // Gather channels, frame count, sample rate, and calculate duration based on frame count and sample rate.
+        let channels = track.codec_params.channels.map(|c| c.count() as u8);
+        let frame_count: usize = track.codec_params.n_frames.map(|n| n as usize).unwrap_or(0);
+        let sample_rate = track.codec_params.sample_rate;
+        let duration = sample_rate
+            .map(|rate| Duration::from_millis((frame_count as f64 / rate as f64 * 1000.0) as u64));
+
+        // Return the metadata
+        Ok(AuxMetadata {
+            channels,
+            duration,
+            sample_rate,
+            ..Default::default()
+        })
+    }
 }
