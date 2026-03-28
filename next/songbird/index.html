@@ -20,7 +20,7 @@ and direct Opus data passthrough from DCA files.</li>
 in <a href="https://github.com/serenity-rs/songbird/tree/current/examples">this crate’s examples directory</a>.</p>
 <h3 id="codec-support"><a class="doc-anchor" href="#codec-support">§</a>Codec support</h3>
 <p>Songbird supports all <a href="https://github.com/pdeljanov/Symphonia#formats-demuxers">codecs and formats provided by Symphonia</a> (pure-Rust), with Opus support
-provided by <a href="https://github.com/lakelezz/audiopus">audiopus</a> (an FFI wrapper for libopus).</p>
+provided by <a href="https://github.com/cijiugechu/opus2">opus2</a> (an FFI wrapper for libopus).</p>
 <p><strong>By default, <em>Songbird will not request any codecs from Symphonia</em>.</strong> To change this, in your own
 project you will need to depend on Symphonia as well.</p>
 <div class="example-wrap"><pre class="language-toml"><code># Including songbird alone gives you support for Opus via the DCA file format.
