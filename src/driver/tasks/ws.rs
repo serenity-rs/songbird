@@ -302,7 +302,7 @@ impl AuxNetwork {
                     .insert(ev.transition_id, ev.protocol_version);
 
                 if ev.transition_id == 0 {
-                    self.execute_dave_transition(ev.transition_id).await;
+                    self.execute_dave_transition(ev.transition_id);
                 } else if ev.protocol_version == 0 {
                     if let Some(ref mut dave_session) = *self.dave_session.write().unwrap() {
                         dave_session.set_passthrough_mode(true, Some(120));
@@ -375,7 +375,7 @@ impl AuxNetwork {
                 }
             },
             GatewayEvent::DaveMlsAnnounceCommitTransition(ev) => {
-                match self.dave_process_commit(&ev.commit_message).await {
+                match self.dave_process_commit(&ev.commit_message) {
                     Some(Ok(())) =>
                         if ev.transition_id != 0 {
                             let protocol_version =
@@ -409,7 +409,7 @@ impl AuxNetwork {
                 };
             },
             GatewayEvent::DaveMlsWelcome(ev) =>
-                match self.dave_process_welcome(&ev.welcome).await {
+                match self.dave_process_welcome(&ev.welcome) {
                     Some(Ok(())) =>
                         if ev.transition_id != 0 {
                             let protocol_version =
@@ -449,7 +449,7 @@ impl AuxNetwork {
         Ok(())
     }
 
-    async fn dave_process_commit(
+    fn dave_process_commit(
         &mut self,
         commit_message: &[u8],
     ) -> Option<Result<(), davey::errors::ProcessCommitError>> {
@@ -460,7 +460,7 @@ impl AuxNetwork {
         Some(dave_session.process_commit(commit_message))
     }
 
-    async fn dave_process_welcome(
+    fn dave_process_welcome(
         &mut self,
         welcome: &[u8],
     ) -> Option<Result<(), davey::errors::ProcessWelcomeError>> {
@@ -510,7 +510,7 @@ impl AuxNetwork {
         Ok(())
     }
 
-    async fn execute_dave_transition(&mut self, transition_id: u16) {
+    fn execute_dave_transition(&mut self, transition_id: u16) {
         let Some(new_version) = self.dave_pending_transitions.get(&transition_id).copied() else {
             warn!("Received DaveExecuteTransition for unknown transition ID {transition_id}");
             return;
