@@ -408,39 +408,37 @@ impl AuxNetwork {
                     None => {},
                 };
             },
-            GatewayEvent::DaveMlsWelcome(ev) =>
-                match self.dave_process_welcome(&ev.welcome) {
-                    Some(Ok(())) =>
-                        if ev.transition_id != 0 {
-                            let protocol_version =
-                                self.dave_protocol_version.load(Ordering::Relaxed);
+            GatewayEvent::DaveMlsWelcome(ev) => match self.dave_process_welcome(&ev.welcome) {
+                Some(Ok(())) =>
+                    if ev.transition_id != 0 {
+                        let protocol_version = self.dave_protocol_version.load(Ordering::Relaxed);
 
-                            self.dave_pending_transitions
-                                .insert(ev.transition_id, protocol_version);
-                            self.ws_client
-                                .send_json(&GatewayEvent::from(DaveTransitionReady {
-                                    transition_id: ev.transition_id,
-                                    protocol_version,
-                                }))
-                                .await?;
-                        },
-                    Some(Err(e)) => {
-                        warn!("MLS welcome errored: {e:?}");
+                        self.dave_pending_transitions
+                            .insert(ev.transition_id, protocol_version);
                         self.ws_client
-                            .send_json(&GatewayEvent::from(DaveMlsInvalidCommitWelcome {
+                            .send_json(&GatewayEvent::from(DaveTransitionReady {
                                 transition_id: ev.transition_id,
+                                protocol_version,
                             }))
                             .await?;
-                        match self.reinit_dave_session().await {
-                            Err(DaveReinitError::Ws(e)) => return Err(e),
-                            Err(e) => {
-                                warn!(error = ?e, "failed to reinitialize DAVE session");
-                            },
-                            _ => {},
-                        }
                     },
-                    None => {},
+                Some(Err(e)) => {
+                    warn!("MLS welcome errored: {e:?}");
+                    self.ws_client
+                        .send_json(&GatewayEvent::from(DaveMlsInvalidCommitWelcome {
+                            transition_id: ev.transition_id,
+                        }))
+                        .await?;
+                    match self.reinit_dave_session().await {
+                        Err(DaveReinitError::Ws(e)) => return Err(e),
+                        Err(e) => {
+                            warn!(error = ?e, "failed to reinitialize DAVE session");
+                        },
+                        _ => {},
+                    }
                 },
+                None => {},
+            },
             other => {
                 trace!("Received other websocket data: {:?}", other);
             },
