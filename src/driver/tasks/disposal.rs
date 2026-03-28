@@ -35,6 +35,10 @@ impl DisposalThread {
 /// The mixer uses this to offload heavy and expensive drop operations
 /// to prevent deadline misses.
 #[instrument(skip(mix_rx))]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "spawned on background thread, must take by value"
+)]
 fn runner(mix_rx: Receiver<DisposalMessage>) {
     while mix_rx.recv().is_ok() {}
 }

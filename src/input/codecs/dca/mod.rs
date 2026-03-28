@@ -195,10 +195,8 @@ impl FormatReader for DcaReader {
     fn seek(&mut self, _mode: SeekMode, to: SeekTo) -> SymphResult<SeekedTo> {
         let can_backseek = self.source.is_seekable();
 
-        let track = if self.track.is_none() {
+        let Some(track) = &self.track else {
             return symph_err::seek_error(SeekErrorKind::Unseekable);
-        } else {
-            self.track.as_ref().unwrap()
         };
 
         let rate = track.codec_params.sample_rate;
