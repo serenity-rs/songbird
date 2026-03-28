@@ -143,7 +143,7 @@ async fn main() {
         // Music by Cloudkicker, used under CC BY-SC-SA 3.0 (https://creativecommons.org/licenses/by-nc-sa/3.0/).
         let song_src = Compressed::new(
             File::new("../../../resources/Cloudkicker - 2011 07.mp3").into(),
-            Bitrate::BitsPerSecond(128_000),
+            Bitrate::Bits(128_000),
         )
         .await
         .expect("These parameters are well-defined.");
