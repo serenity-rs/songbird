@@ -7,8 +7,8 @@ pub struct ConnectData<'a> {
     /// ID of the voice channel being joined, if it is known.
     ///
     /// If this is available, then this can be used to reconnect/renew
-    /// a voice session via thew gateway.
-    pub channel_id: Option<ChannelId>,
+    /// a voice session via the gateway.
+    pub channel_id: ChannelId,
     /// ID of the target voice channel's parent guild.
     pub guild_id: GuildId,
     /// Unique string describing this session for validation/authentication purposes.

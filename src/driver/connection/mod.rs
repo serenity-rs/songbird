@@ -381,7 +381,6 @@ async fn init_cipher(
                             version,
                             info.user_id.0.into(),
                             info.channel_id
-                                .expect("channel ID must be set in connection info")
                                 .0
                                 .into(),
                             None,

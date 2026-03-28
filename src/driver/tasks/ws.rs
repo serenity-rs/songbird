@@ -477,7 +477,6 @@ impl AuxNetwork {
             let channel_id = self
                 .info
                 .channel_id
-                .expect("channel ID must be set")
                 .0
                 .into();
 

@@ -34,8 +34,7 @@ impl ConnectionProgress {
     pub(crate) fn channel_id(&self) -> ChannelId {
         match self {
             ConnectionProgress::Complete(conn_info) => conn_info
-                .channel_id
-                .expect("All code paths MUST set channel_id for local tracking."),
+                .channel_id,
             ConnectionProgress::Incomplete(part) => part.channel_id,
         }
     }
@@ -107,7 +106,7 @@ pub struct ConnectionInfo {
     ///
     /// This is not needed to establish a connection, but can be useful
     /// for book-keeping.
-    pub channel_id: Option<ChannelId>,
+    pub channel_id: ChannelId,
     /// URL of the voice websocket gateway server assigned to this call.
     pub endpoint: String,
     /// ID of the target voice channel's parent guild.
@@ -166,7 +165,7 @@ impl Partial {
             let token = self.token.take().unwrap();
 
             Some(ConnectionInfo {
-                channel_id: Some(self.channel_id),
+                channel_id: self.channel_id,
                 endpoint,
                 session_id,
                 token,
