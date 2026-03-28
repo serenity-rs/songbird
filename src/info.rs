@@ -33,8 +33,7 @@ impl ConnectionProgress {
 
     pub(crate) fn channel_id(&self) -> ChannelId {
         match self {
-            ConnectionProgress::Complete(conn_info) => conn_info
-                .channel_id,
+            ConnectionProgress::Complete(conn_info) => conn_info.channel_id,
             ConnectionProgress::Incomplete(part) => part.channel_id,
         }
     }
