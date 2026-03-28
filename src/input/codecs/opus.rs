@@ -38,9 +38,7 @@ impl OpusDecoder {
                 return decode_error("Opus packet was too large (greater than i32::MAX bytes).");
             }
 
-            let out_space = (&mut self.rawbuf[..]).try_into().expect("The following logic expands this buffer safely below i32::MAX, and we throw our own error.");
-
-            match self.inner.decode_float(packet.buf(), out_space, false) {
+            match self.inner.decode_float(packet.buf(), &mut self.rawbuf, false) {
                 Ok(v) => break v,
                 Err(e) if e.code() == ErrorCode::BufferTooSmall => {
                     // double the buffer size
