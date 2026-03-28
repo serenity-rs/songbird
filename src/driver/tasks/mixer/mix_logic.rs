@@ -69,7 +69,11 @@ pub fn mix_symph_indiv(
             // Opus packet passthrough special case.
             if codec_type == CODEC_TYPE_OPUS && local_state.passthrough != Passthrough::Block {
                 if let Some(slot) = opus_slot.as_mut() {
-                    let sample_ct = opus2::packet::get_nb_samples(buf, SAMPLE_RATE);
+                    let sample_ct = if buf.is_empty() || buf.len() > i32::MAX as usize {
+                        None
+                    } else {
+                        Some(opus2::packet::get_nb_samples(buf, SAMPLE_RATE))
+                    };
 
                     // We don't actually block passthrough until a few violations are
                     // seen. The main one is that most Opus tracks end on a sub-20ms
@@ -78,7 +82,7 @@ pub fn mix_symph_indiv(
                     let buf_size_fatal = buf.len() >= slot.len();
 
                     if match sample_ct {
-                        Ok(MONO_FRAME_SIZE) => true,
+                        Some(Ok(MONO_FRAME_SIZE)) => true,
                         _ => !local_state.record_and_check_passthrough_strike_final(buf_size_fatal),
                     } {
                         slot.write_all(buf)
