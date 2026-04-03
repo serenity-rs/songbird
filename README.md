@@ -89,8 +89,8 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [current docs badge]: https://img.shields.io/badge/docs-current-4d76ae.svg?style=flat-square
 [next docs]: https://serenity-rs.github.io/songbird/next/songbird/index.html
 [next docs badge]: https://img.shields.io/badge/docs-next-4d76ae.svg?style=flat-square
-[msrv]: https://blog.rust-lang.org/2023/11/16/Rust-1.74.0.html
-[msrv badge]: https://img.shields.io/badge/rust-1.74+-93450a.svg?style=flat-square
+[msrv]: https://blog.rust-lang.org/2024/11/28/Rust-1.83.0.html
+[msrv badge]: https://img.shields.io/badge/rust-1.83+-93450a.svg?style=flat-square
 [license]: LICENSE
 [license badge]: https://img.shields.io/crates/l/songbird.svg?style=flat-square&color=yellow
 [guild]: https://discord.gg/serenity-rs

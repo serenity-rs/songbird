@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-rust-version = "1.74.1"
+rust-version = "1.83.0"
 version = "0.5.0"
 
 [dependencies]
