@@ -123,9 +123,9 @@ impl LiveStatBlock {
     pub(crate) fn has_room(&self, strategy: &Mode, task: &ParkedMixer) -> bool {
         let task_room = strategy
             .task_limit()
-            .map_or(true, |limit| self.live_mixers() < limit as u64);
+            .is_none_or(|limit| self.live_mixers() < limit as u64);
 
-        let exec_room = task.last_cost.map_or(true, |cost| {
+        let exec_room = task.last_cost.is_none_or(|cost| {
             cost.as_nanos() as u64 + self.last_compute_cost_ns() < RESCHEDULE_THRESHOLD
         });
 
