@@ -447,18 +447,24 @@ impl Cipher {
         let header_len = packet.packet().len() - packet.payload().len();
         let plaintext_end = header_len + n_plaintext_body_bytes;
 
-        let (plaintext, ciphertext) = packet.packet_mut().split_at_mut_checked(plaintext_end).ok_or(CryptoError)?;
+        let (plaintext, ciphertext) = packet
+            .packet_mut()
+            .split_at_mut_checked(plaintext_end)
+            .ok_or(CryptoError)?;
         let (slice_to_use, body_remaining) = mode.nonce_slice(plaintext, ciphertext)?;
 
-        let (pre_payload, body_remaining) = body_remaining.split_at_mut_checked( mode.payload_prefix_len()).ok_or(CryptoError)?;
+        let (pre_payload, body_remaining) = body_remaining
+            .split_at_mut_checked(mode.payload_prefix_len())
+            .ok_or(CryptoError)?;
 
         let suffix_split_point = body_remaining
             .len()
             .checked_sub(mode.tag_suffix_len())
             .ok_or(CryptoError)?;
 
-        let (body, post_payload) =
-            body_remaining.split_at_mut_checked(suffix_split_point).ok_or(CryptoError)?;
+        let (body, post_payload) = body_remaining
+            .split_at_mut_checked(suffix_split_point)
+            .ok_or(CryptoError)?;
 
         let tag_size = self.encryption_tag_len();
 
