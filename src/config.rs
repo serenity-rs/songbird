@@ -23,7 +23,9 @@ use crate::driver::SchedulerConfig;
 use symphonia::core::{codecs::CodecRegistry, probe::Probe};
 
 use derivative::Derivative;
-use std::{num::NonZeroU8, time::Duration};
+#[cfg(all(feature = "driver", feature = "receive"))]
+use std::num::NonZeroU8;
+use std::time::Duration;
 
 /// Configuration for drivers and calls.
 #[derive(Clone, Derivative)]
