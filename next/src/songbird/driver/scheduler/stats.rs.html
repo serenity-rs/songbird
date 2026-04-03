@@ -123,9 +123,9 @@
 <a href=#123 id=123 data-nosnippet>123</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_room(<span class="kw-2">&amp;</span><span class="self">self</span>, strategy: <span class="kw-2">&amp;</span>Mode, task: <span class="kw-2">&amp;</span>ParkedMixer) -&gt; bool {
 <a href=#124 id=124 data-nosnippet>124</a>        <span class="kw">let </span>task_room = strategy
 <a href=#125 id=125 data-nosnippet>125</a>            .task_limit()
-<a href=#126 id=126 data-nosnippet>126</a>            .map_or(<span class="bool-val">true</span>, |limit| <span class="self">self</span>.live_mixers() &lt; limit <span class="kw">as </span>u64);
+<a href=#126 id=126 data-nosnippet>126</a>            .is_none_or(|limit| <span class="self">self</span>.live_mixers() &lt; limit <span class="kw">as </span>u64);
 <a href=#127 id=127 data-nosnippet>127</a>
-<a href=#128 id=128 data-nosnippet>128</a>        <span class="kw">let </span>exec_room = task.last_cost.map_or(<span class="bool-val">true</span>, |cost| {
+<a href=#128 id=128 data-nosnippet>128</a>        <span class="kw">let </span>exec_room = task.last_cost.is_none_or(|cost| {
 <a href=#129 id=129 data-nosnippet>129</a>            cost.as_nanos() <span class="kw">as </span>u64 + <span class="self">self</span>.last_compute_cost_ns() &lt; RESCHEDULE_THRESHOLD
 <a href=#130 id=130 data-nosnippet>130</a>        });
 <a href=#131 id=131 data-nosnippet>131</a>
