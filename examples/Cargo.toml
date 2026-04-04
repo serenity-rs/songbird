@@ -11,7 +11,7 @@ resolver = "2"
 [workspace.dependencies]
 reqwest = "0.12"
 serenity = { features = ["cache", "framework", "standard_framework", "voice", "http", "rustls_backend"], version = "0.12" }
-songbird = { path = "../", version = "0.5", default-features = false }
+songbird = { path = "../", version = "0.6", default-features = false }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac"], version = "0.5.2" }
 tokio = { features = ["macros", "rt-multi-thread", "signal", "sync"], version = "1" }
 tracing = "0.1"
