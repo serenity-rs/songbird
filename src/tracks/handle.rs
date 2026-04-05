@@ -1,6 +1,7 @@
 use super::*;
 use crate::events::{Event, EventData, EventHandler};
 use flume::{Receiver, Sender};
+use nonmax::NonMaxU32;
 use std::{any::Any, sync::Arc, time::Duration};
 use uuid::Uuid;
 
@@ -173,7 +174,7 @@ impl TrackHandle {
     ///
     /// [`enable_loop`]: Self::enable_loop
     pub fn disable_loop(&self) -> TrackResult<()> {
-        self.send(TrackCommand::Loop(LoopState::Finite(0)))
+        self.send(TrackCommand::Loop(LoopState::Finite(NonMaxU32::ZERO)))
     }
 
     /// Set an audio track to loop a set number of times.
@@ -181,7 +182,7 @@ impl TrackHandle {
     /// This follows the same rules as [`enable_loop`].
     ///
     /// [`enable_loop`]: Self::enable_loop
-    pub fn loop_for(&self, count: usize) -> TrackResult<()> {
+    pub fn loop_for(&self, count: NonMaxU32) -> TrackResult<()> {
         self.send(TrackCommand::Loop(LoopState::Finite(count)))
     }
 

@@ -51,7 +51,6 @@ impl From<ChildContainer> for Input {
     fn from(val: ChildContainer) -> Self {
         let audio_stream = AudioStream {
             input: Box::new(ReadOnlySource::new(val)) as Box<dyn MediaSource>,
-            hint: None,
         };
         Input::Live(LiveInput::Raw(audio_stream), None)
     }

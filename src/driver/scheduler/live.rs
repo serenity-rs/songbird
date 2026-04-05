@@ -85,8 +85,7 @@ impl Worker {
     #[inline]
     #[must_use]
     pub fn can_schedule(&self, task: &ParkedMixer, avoid: Option<WorkerId>) -> bool {
-        avoid.map_or(true, |id| !self.has_id(id))
-            && self.stats.has_room(&self.config.strategy, task)
+        avoid.is_none_or(|id| !self.has_id(id)) && self.stats.has_room(&self.config.strategy, task)
     }
 
     #[inline]

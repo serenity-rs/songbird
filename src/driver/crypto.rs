@@ -447,20 +447,24 @@ impl Cipher {
         let header_len = packet.packet().len() - packet.payload().len();
         let plaintext_end = header_len + n_plaintext_body_bytes;
 
-        let (plaintext, ciphertext) =
-            split_at_mut_checked(packet.packet_mut(), plaintext_end).ok_or(CryptoError)?;
+        let (plaintext, ciphertext) = packet
+            .packet_mut()
+            .split_at_mut_checked(plaintext_end)
+            .ok_or(CryptoError)?;
         let (slice_to_use, body_remaining) = mode.nonce_slice(plaintext, ciphertext)?;
 
-        let (pre_payload, body_remaining) =
-            split_at_mut_checked(body_remaining, mode.payload_prefix_len()).ok_or(CryptoError)?;
+        let (pre_payload, body_remaining) = body_remaining
+            .split_at_mut_checked(mode.payload_prefix_len())
+            .ok_or(CryptoError)?;
 
         let suffix_split_point = body_remaining
             .len()
             .checked_sub(mode.tag_suffix_len())
             .ok_or(CryptoError)?;
 
-        let (body, post_payload) =
-            split_at_mut_checked(body_remaining, suffix_split_point).ok_or(CryptoError)?;
+        let (body, post_payload) = body_remaining
+            .split_at_mut_checked(suffix_split_point)
+            .ok_or(CryptoError)?;
 
         let tag_size = self.encryption_tag_len();
 
@@ -488,19 +492,6 @@ impl Cipher {
             plaintext_end + pre_payload.len(),
             post_payload.len() + slice_to_use.len(),
         ))
-    }
-}
-
-// Temporary functions -- MSRV is ostensibly 1.74, slice::split_at(_mut)_checked is 1.80+.
-// TODO: Remove in v0.5+ with MSRV bump to 1.81+.
-#[cfg(any(feature = "receive", test))]
-#[inline]
-#[must_use]
-fn split_at_mut_checked(els: &mut [u8], mid: usize) -> Option<(&mut [u8], &mut [u8])> {
-    if mid <= els.len() {
-        Some(els.split_at_mut(mid))
-    } else {
-        None
     }
 }
 

@@ -32,12 +32,12 @@ impl SsrcState {
         };
 
         Self {
-            playout_buffer: PlayoutBuffer::new(playout_capacity, pkt.get_sequence().0),
+            playout_buffer: PlayoutBuffer::new(usize::from(playout_capacity), pkt.get_sequence().0),
             crypto_mode,
             decoder: OpusDecoder::new(sample_rate.into(), channels.into())
                 .expect("Failed to create new Opus decoder for source."),
             decode_size: PacketDecodeSize::TwentyMillis,
-            prune_time: Instant::now() + config.decode_state_timeout,
+            prune_time: Instant::now() + config.decode_state_timeout.into(),
             disconnected: false,
             channels,
         }

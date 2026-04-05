@@ -142,13 +142,15 @@ impl<'a> InternalTrack {
     }
 
     pub(crate) fn do_loop(&mut self) -> bool {
-        match self.loops {
+        match &mut self.loops {
             LoopState::Infinite => true,
-            LoopState::Finite(0) => false,
-            LoopState::Finite(ref mut n) => {
-                *n -= 1;
-                true
-            },
+            LoopState::Finite(n) =>
+                if let Some(new_n) = nonmax::NonMaxU32::new(n.get().wrapping_sub(1)) {
+                    *n = new_n;
+                    true
+                } else {
+                    false
+                },
         }
     }
 

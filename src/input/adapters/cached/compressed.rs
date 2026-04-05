@@ -521,6 +521,6 @@ impl MediaSource for Compressed {
 impl From<Compressed> for Input {
     fn from(val: Compressed) -> Input {
         let input = Box::new(val);
-        Input::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
+        Input::Live(LiveInput::Raw(AudioStream { input }), None)
     }
 }

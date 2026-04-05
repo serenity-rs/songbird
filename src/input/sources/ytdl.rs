@@ -1,5 +1,5 @@
 use crate::input::{
-    metadata::ytdl::Output,
+    metadata::YoutubeDlOutput,
     AudioStream,
     AudioStreamError,
     AuxMetadata,
@@ -8,7 +8,6 @@ use crate::input::{
     Input,
 };
 use async_trait::async_trait;
-use either::Either;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
@@ -118,19 +117,19 @@ impl<'a> YoutubeDl<'a> {
     ) -> Result<impl Iterator<Item = AuxMetadata>, AudioStreamError> {
         let n_results = n_results.unwrap_or(5);
 
-        Ok(match &self.query {
-            // Safer to just return the metadata for the pointee if possible
-            QueryType::Url(_) => Either::Left(std::iter::once(self.aux_metadata().await?)),
-            QueryType::Search(_) => Either::Right(
-                self.query(n_results)
-                    .await?
-                    .into_iter()
-                    .map(|v| v.as_aux_metadata()),
-            ),
-        })
+        Ok(self
+            .query(n_results)
+            .await?
+            .into_iter()
+            .map(|v| v.as_aux_metadata()))
     }
 
-    async fn query(&mut self, n_results: usize) -> Result<Vec<Output>, AudioStreamError> {
+    /// Runs a search for the given query, returning a list of up to `n_results`
+    /// possible matches.
+    pub async fn query(
+        &mut self,
+        n_results: usize,
+    ) -> Result<Vec<YoutubeDlOutput>, AudioStreamError> {
         let query_str = self.query.as_cow_str(n_results);
         let ytdl_args = [
             "-j",
@@ -169,7 +168,7 @@ impl<'a> YoutubeDl<'a> {
             .split(|&b| b == b'\n')
             .filter(|&x| !x.is_empty())
             .map(serde_json::from_slice)
-            .collect::<Result<Vec<Output>, _>>()
+            .collect::<Result<Vec<YoutubeDlOutput>, _>>()
             .map_err(|e| AudioStreamError::Fail(Box::new(e)))?;
 
         let meta = out
@@ -182,6 +181,41 @@ impl<'a> YoutubeDl<'a> {
         self.metadata = Some(meta);
 
         Ok(out)
+    }
+
+    /// Get the audio stream from a [`YoutubeDlOutput`].
+    pub async fn get_stream(
+        &self,
+        result: &YoutubeDlOutput,
+    ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
+        let mut headers = HeaderMap::default();
+
+        if let Some(map) = &result.http_headers {
+            headers.extend(map.iter().filter_map(|(k, v)| {
+                Some((
+                    HeaderName::from_bytes(k.as_bytes()).ok()?,
+                    HeaderValue::from_str(v).ok()?,
+                ))
+            }));
+        }
+
+        #[allow(clippy::single_match_else)]
+        match result.protocol.as_deref() {
+            Some("m3u8_native") => {
+                let mut req =
+                    HlsRequest::new_with_headers(self.client.clone(), result.url.clone(), headers);
+                req.create()
+            },
+            _ => {
+                let mut req = HttpRequest {
+                    client: self.client.clone(),
+                    request: result.url.clone(),
+                    headers,
+                    content_length: result.filesize,
+                };
+                req.create_async().await
+            },
+        }
     }
 }
 
@@ -204,34 +238,7 @@ impl Compose for YoutubeDl<'_> {
         let mut results = self.query(1).await?;
         let result = results.swap_remove(0);
 
-        let mut headers = HeaderMap::default();
-
-        if let Some(map) = result.http_headers {
-            headers.extend(map.iter().filter_map(|(k, v)| {
-                Some((
-                    HeaderName::from_bytes(k.as_bytes()).ok()?,
-                    HeaderValue::from_str(v).ok()?,
-                ))
-            }));
-        }
-
-        #[allow(clippy::single_match_else)]
-        match result.protocol.as_deref() {
-            Some("m3u8_native") => {
-                let mut req =
-                    HlsRequest::new_with_headers(self.client.clone(), result.url, headers);
-                req.create()
-            },
-            _ => {
-                let mut req = HttpRequest {
-                    client: self.client.clone(),
-                    request: result.url,
-                    headers,
-                    content_length: result.filesize,
-                };
-                req.create_async().await
-            },
-        }
+        self.get_stream(&result).await
     }
 
     fn should_create_async(&self) -> bool {

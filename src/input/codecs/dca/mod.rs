@@ -251,11 +251,7 @@ impl FormatReader for DcaReader {
         // DCA tracks can hold only one track by design.
         // Of course, a zero-length file is technically allowed,
         // in which case no track.
-        if let Some(track) = self.track.as_ref() {
-            std::slice::from_ref(track)
-        } else {
-            &[]
-        }
+        self.track.as_slice()
     }
 
     fn default_track(&self) -> Option<&Track> {

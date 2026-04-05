@@ -106,6 +106,6 @@ impl MediaSource for Memory {
 impl From<Memory> for Input {
     fn from(val: Memory) -> Input {
         let input = Box::new(val);
-        Input::Live(LiveInput::Raw(AudioStream { input, hint: None }), None)
+        Input::Live(LiveInput::Raw(AudioStream { input }), None)
     }
 }

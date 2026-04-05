@@ -110,8 +110,8 @@ impl Mixer {
 
         let keepalive_packet = [0u8; MutableKeepalivePacket::minimum_packet_size()];
 
-        let tracks = Vec::with_capacity(1.max(config.preallocated_tracks));
-        let track_handles = Vec::with_capacity(1.max(config.preallocated_tracks));
+        let tracks = Vec::with_capacity(usize::from(1.max(config.preallocated_tracks)));
+        let track_handles = Vec::with_capacity(usize::from(1.max(config.preallocated_tracks)));
 
         let thread_pool = BlockyTaskPool::new(async_handle);
 
@@ -223,7 +223,7 @@ impl Mixer {
         let mut should_exit = false;
 
         let error = match msg {
-            MixerMessage::AddTrack(t) => self.add_track(t),
+            MixerMessage::AddTrack(t) => self.add_track(*t),
             MixerMessage::SetTrack(t) => {
                 self.tracks.clear();
                 self.track_handles.clear();
@@ -233,7 +233,7 @@ impl Mixer {
                 if let Some(t) = t {
                     // Do this unconditionally: this affects local state infallibly,
                     // with the event installation being the remote part.
-                    if let Err(e) = self.add_track(t) {
+                    if let Err(e) = self.add_track(*t) {
                         out = Err(e);
                     }
                 }
@@ -317,9 +317,9 @@ impl Mixer {
                     new_config,
                 );
 
-                if self.tracks.capacity() < self.config.preallocated_tracks {
-                    self.tracks
-                        .reserve(self.config.preallocated_tracks - self.tracks.len());
+                let preallocated_tracks = usize::from(self.config.preallocated_tracks);
+                if self.tracks.capacity() < preallocated_tracks {
+                    self.tracks.reserve(preallocated_tracks - self.tracks.len());
                 }
 
                 #[cfg(feature = "receive")]

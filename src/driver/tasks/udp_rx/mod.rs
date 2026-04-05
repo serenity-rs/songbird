@@ -266,7 +266,7 @@ impl UdpRx {
 
                 // Only do this on RTP, rather than RTCP -- this pins decoder state liveness
                 // to *speech* rather than just presence.
-                entry.refresh_timer(self.config.decode_state_timeout);
+                entry.refresh_timer(self.config.decode_state_timeout.into());
 
                 let store_pkt = StoredPacket {
                     packet: packet.freeze(),

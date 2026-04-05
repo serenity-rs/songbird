@@ -10,8 +10,8 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-rust-version = "1.74.1"
-version = "0.5.0"
+rust-version = "1.83.0"
+version = "0.6.0"
 
 [dependencies]
 aead = { optional = true, version = "0.5.2" }
@@ -68,11 +68,13 @@ tokio-websockets = { optional = true, version = "0.11", features = [
 tokio-util = { features = ["io"], optional = true, version = "0.7" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-futures = "0.2"
-twilight-gateway = { default-features = false, optional = true, version = "0.16.0" }
-twilight-model = { default-features = false, optional = true, version = "0.16.0" }
+twilight-gateway = { default-features = false, optional = true, version = ">= 0.16.0, <= 0.17" }
+twilight-model = { default-features = false, optional = true, version = ">= 0.16.0, <= 0.17" }
 typenum = { optional = true, version = "1.17.0" }
 url = { optional = true, version = "2" }
 uuid = { features = ["v4"], optional = true, version = "1" }
+nonmax = "0.5.5"
+enum-map = "2.7.3"
 
 [dev-dependencies]
 byteorder = "1"

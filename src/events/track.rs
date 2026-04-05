@@ -10,7 +10,7 @@
 /// returns `None`.
 ///
 /// [`EventData`]: super::EventData
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, enum_map::Enum)]
 #[non_exhaustive]
 pub enum TrackEvent {
     /// The attached track has resumed playing.

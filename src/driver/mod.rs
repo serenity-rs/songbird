@@ -190,7 +190,7 @@ impl Driver {
     #[instrument(skip(self, track))]
     pub fn play(&mut self, track: Track) -> TrackHandle {
         let (handle, ctx) = track.into_context();
-        self.send(CoreMessage::AddTrack(ctx));
+        self.send(CoreMessage::AddTrack(Box::new(ctx)));
 
         handle
     }
@@ -203,7 +203,7 @@ impl Driver {
     #[instrument(skip(self, track))]
     pub fn play_only(&mut self, track: Track) -> TrackHandle {
         let (handle, ctx) = track.into_context();
-        self.send(CoreMessage::SetTrack(Some(ctx)));
+        self.send(CoreMessage::SetTrack(Some(Box::new(ctx))));
 
         handle
     }

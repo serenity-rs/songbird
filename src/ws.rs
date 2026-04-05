@@ -100,7 +100,7 @@ pub enum Error {
     UnexpectedBinaryMessage(Bytes),
 
     #[cfg(feature = "tungstenite")]
-    Ws(TungsteniteError),
+    Ws(Box<TungsteniteError>),
     #[cfg(feature = "tws")]
     Ws(TwsError),
 
@@ -121,7 +121,7 @@ impl From<JsonError> for Error {
 #[cfg(feature = "tungstenite")]
 impl From<TungsteniteError> for Error {
     fn from(e: TungsteniteError) -> Error {
-        Error::Ws(e)
+        Error::Ws(Box::new(e))
     }
 }
 

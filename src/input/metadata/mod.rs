@@ -1,9 +1,12 @@
+//! Metadata formats specific to [`crate::input::Compose`] types.
+
 use crate::error::JsonError;
 use std::time::Duration;
 use symphonia_core::{meta::Metadata as ContainerMetadata, probe::ProbedMetadata};
 
 pub(crate) mod ffprobe;
-pub(crate) mod ytdl;
+mod ytdl;
+pub use ytdl::Output as YoutubeDlOutput;
 
 use super::Parsed;
 

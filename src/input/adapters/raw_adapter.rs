@@ -106,7 +106,6 @@ impl<A: MediaSource + Send + Sync + 'static> From<RawAdapter<A>> for Input {
     fn from(val: RawAdapter<A>) -> Self {
         let live = LiveInput::Raw(AudioStream {
             input: Box::new(val),
-            hint: None,
         });
 
         Input::Live(live, None)

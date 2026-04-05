@@ -17,7 +17,7 @@ serenity = { features = [
     "http",
     "rustls_backend",
 ], git = "https://github.com/serenity-rs/serenity", branch = "next" }
-songbird = { path = "../", version = "0.5", default-features = false }
+songbird = { path = "../", version = "0.6", default-features = false }
 symphonia = { features = ["aac", "mp3", "isomp4", "alac"], version = "0.5.2" }
 tokio = { features = [
     "macros",

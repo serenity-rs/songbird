@@ -32,7 +32,7 @@
 /// [`EventData`]: super::EventData
 /// [`SpeakingStateUpdate`]: Self::SpeakingStateUpdate
 /// [`ClientDisconnect`]: Self::ClientDisconnect
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, enum_map::Enum)]
 #[non_exhaustive]
 pub enum CoreEvent {
     /// Speaking state update from the WS gateway, typically describing how another voice

@@ -118,9 +118,10 @@ impl ToAudioBytes {
     fn is_done(&self) -> bool {
         self.done
             && self.inner_pos.is_empty()
-            && self.resample.as_ref().map_or(true, |v| {
-                v.scratch.frames() == 0 && v.resample_pos.is_empty()
-            })
+            && self
+                .resample
+                .as_ref()
+                .is_none_or(|v| v.scratch.frames() == 0 && v.resample_pos.is_empty())
             && self.interrupted_byte_pos.is_empty()
     }
 }
@@ -176,9 +177,8 @@ impl Read for ToAudioBytes {
                 self.parsed
                     .decoder
                     .decode(&pkt)
-                    .map(|pkt| {
+                    .inspect(|pkt| {
                         self.inner_pos = 0..pkt.frames();
-                        pkt
                     })
                     .ok()
             } else {

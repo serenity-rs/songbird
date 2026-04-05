@@ -26,8 +26,8 @@ pub struct MixerConnection {
 }
 
 pub enum MixerMessage {
-    AddTrack(TrackContext),
-    SetTrack(Option<TrackContext>),
+    AddTrack(Box<TrackContext>),
+    SetTrack(Option<Box<TrackContext>>),
 
     SetBitrate(Bitrate),
     SetConfig(Config),

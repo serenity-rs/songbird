@@ -80,7 +80,7 @@ impl PlayoutBuffer {
         // Similar concept to fetch_packet -- if there's a critical desync, and we're unwilling
         // to slot this packet into an empty/stuck buffer then behave as though this packet is the next
         // sequence number we're releasing.
-        let err_threshold = i16::try_from(config.playout_buffer_length.get() * 5).unwrap_or(32);
+        let err_threshold = i16::from(config.playout_buffer_length.get() * 5);
         let handling_desync = (self.buffer.is_empty()
             || self.consecutive_store_fails >= (err_threshold as usize))
             && desired_index >= err_threshold;
@@ -113,7 +113,7 @@ impl PlayoutBuffer {
             self.consecutive_store_fails = 0;
         }
 
-        if self.buffer.len() >= config.playout_buffer_length.get() {
+        if self.buffer.len() >= usize::from(config.playout_buffer_length.get()) {
             self.playout_mode = PlayoutMode::Drain;
         }
     }
@@ -151,9 +151,10 @@ impl PlayoutBuffer {
                 // larger than it would take to go through multiple Fill/Drain cycles, then
                 // treat its TS as the next expected value to avoid jamming the buffer and losing
                 // later audio.
-                let skip_after =
-                    i32::try_from(config.playout_buffer_length.get() * 5 * MONO_FRAME_SIZE)
-                        .unwrap_or((AUDIO_FRAME_RATE * 2 * MONO_FRAME_SIZE) as i32);
+                let skip_after = i32::try_from(
+                    usize::from(config.playout_buffer_length.get()) * 5 * MONO_FRAME_SIZE,
+                )
+                .unwrap_or((AUDIO_FRAME_RATE * 2 * MONO_FRAME_SIZE) as i32);
 
                 if ts_diff >= 0 {
                     // At or before expected timestamp.
@@ -198,6 +199,6 @@ impl PlayoutBuffer {
 
 #[inline]
 fn reset_timeout(packet: &RtpPacket<'_>, config: &Config) -> RtpTimestamp {
-    let t_shift = MONO_FRAME_SIZE * config.playout_buffer_length.get();
+    let t_shift = MONO_FRAME_SIZE * usize::from(config.playout_buffer_length.get());
     (packet.get_timestamp() + (t_shift as u32)).0
 }

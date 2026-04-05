@@ -77,9 +77,6 @@
     clippy::missing_panics_doc,
     clippy::doc_link_with_quotes,
     clippy::doc_markdown,
-    // Allowed as they cannot be fixed without breaking
-    clippy::result_large_err,
-    clippy::large_enum_variant,
 )]
 
 mod config;
@@ -89,6 +86,7 @@ pub mod driver;
 pub mod error;
 #[cfg(feature = "driver")]
 pub mod events;
+mod float_duration;
 #[cfg(feature = "gateway")]
 mod handler;
 pub mod id;
@@ -125,4 +123,5 @@ pub use crate::{
 pub use crate::{handler::*, manager::*};
 
 pub use config::Config;
+pub use float_duration::FloatDuration;
 pub use info::ConnectionInfo;
