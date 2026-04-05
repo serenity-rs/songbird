@@ -1,6 +1,6 @@
 # Changelog
 
-## [v0.6.0] — 2026-04-xx - **Hoopoe**
+## [v0.6.0] — 2026-04-05 - **Hoopoe**
 
 The Hoopoes can be found all throughout Eurasia and Africa. They are named after
 their distinctive "hupu" call, and are distinguished by the crust of feathers on
