@@ -10,8 +10,6 @@ use futures::channel::mpsc::{TrySendError, UnboundedSender as Sender};
 #[cfg(feature = "serenity")]
 use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock};
 #[cfg(feature = "serenity")]
-use serde_json::json;
-#[cfg(feature = "serenity")]
 use serenity::gateway::ShardRunnerMessage;
 #[cfg(feature = "serenity")]
 use std::result::Result as StdResult;
