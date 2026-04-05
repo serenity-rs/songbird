@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/crypto.rs`."><title>crypto.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.96.0-nightly (fb27476aa 2026-03-28)" data-channel="nightly" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">songbird/driver/</div>crypto.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Encryption schemes supported by Discord's secure RTP negotiation.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/crypto.rs`."><title>crypto.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.96.0-nightly (e0e95a718 2026-04-04)" data-channel="nightly" data-search-js="search-1c5d44ff.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">songbird/driver/</div>crypto.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Encryption schemes supported by Discord's secure RTP negotiation.
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="attr">#[cfg(any(feature = <span class="string">"receive"</span>, test))]
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span><span class="kw">super</span>::tasks::error::Error <span class="kw">as </span>InternalError;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>aead::AeadCore;
@@ -447,142 +447,133 @@
 <a href=#447 id=447 data-nosnippet>447</a>        <span class="kw">let </span>header_len = packet.packet().len() - packet.payload().len();
 <a href=#448 id=448 data-nosnippet>448</a>        <span class="kw">let </span>plaintext_end = header_len + n_plaintext_body_bytes;
 <a href=#449 id=449 data-nosnippet>449</a>
-<a href=#450 id=450 data-nosnippet>450</a>        <span class="kw">let </span>(plaintext, ciphertext) =
-<a href=#451 id=451 data-nosnippet>451</a>            split_at_mut_checked(packet.packet_mut(), plaintext_end).ok_or(CryptoError)<span class="question-mark">?</span>;
-<a href=#452 id=452 data-nosnippet>452</a>        <span class="kw">let </span>(slice_to_use, body_remaining) = mode.nonce_slice(plaintext, ciphertext)<span class="question-mark">?</span>;
-<a href=#453 id=453 data-nosnippet>453</a>
-<a href=#454 id=454 data-nosnippet>454</a>        <span class="kw">let </span>(pre_payload, body_remaining) =
-<a href=#455 id=455 data-nosnippet>455</a>            split_at_mut_checked(body_remaining, mode.payload_prefix_len()).ok_or(CryptoError)<span class="question-mark">?</span>;
-<a href=#456 id=456 data-nosnippet>456</a>
-<a href=#457 id=457 data-nosnippet>457</a>        <span class="kw">let </span>suffix_split_point = body_remaining
-<a href=#458 id=458 data-nosnippet>458</a>            .len()
-<a href=#459 id=459 data-nosnippet>459</a>            .checked_sub(mode.tag_suffix_len())
-<a href=#460 id=460 data-nosnippet>460</a>            .ok_or(CryptoError)<span class="question-mark">?</span>;
-<a href=#461 id=461 data-nosnippet>461</a>
-<a href=#462 id=462 data-nosnippet>462</a>        <span class="kw">let </span>(body, post_payload) =
-<a href=#463 id=463 data-nosnippet>463</a>            split_at_mut_checked(body_remaining, suffix_split_point).ok_or(CryptoError)<span class="question-mark">?</span>;
+<a href=#450 id=450 data-nosnippet>450</a>        <span class="kw">let </span>(plaintext, ciphertext) = packet
+<a href=#451 id=451 data-nosnippet>451</a>            .packet_mut()
+<a href=#452 id=452 data-nosnippet>452</a>            .split_at_mut_checked(plaintext_end)
+<a href=#453 id=453 data-nosnippet>453</a>            .ok_or(CryptoError)<span class="question-mark">?</span>;
+<a href=#454 id=454 data-nosnippet>454</a>        <span class="kw">let </span>(slice_to_use, body_remaining) = mode.nonce_slice(plaintext, ciphertext)<span class="question-mark">?</span>;
+<a href=#455 id=455 data-nosnippet>455</a>
+<a href=#456 id=456 data-nosnippet>456</a>        <span class="kw">let </span>(pre_payload, body_remaining) = body_remaining
+<a href=#457 id=457 data-nosnippet>457</a>            .split_at_mut_checked(mode.payload_prefix_len())
+<a href=#458 id=458 data-nosnippet>458</a>            .ok_or(CryptoError)<span class="question-mark">?</span>;
+<a href=#459 id=459 data-nosnippet>459</a>
+<a href=#460 id=460 data-nosnippet>460</a>        <span class="kw">let </span>suffix_split_point = body_remaining
+<a href=#461 id=461 data-nosnippet>461</a>            .len()
+<a href=#462 id=462 data-nosnippet>462</a>            .checked_sub(mode.tag_suffix_len())
+<a href=#463 id=463 data-nosnippet>463</a>            .ok_or(CryptoError)<span class="question-mark">?</span>;
 <a href=#464 id=464 data-nosnippet>464</a>
-<a href=#465 id=465 data-nosnippet>465</a>        <span class="kw">let </span>tag_size = <span class="self">self</span>.encryption_tag_len();
-<a href=#466 id=466 data-nosnippet>466</a>
-<a href=#467 id=467 data-nosnippet>467</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#468 id=468 data-nosnippet>468</a>            <span class="comment">// The below variants follow part of the SRTP spec (RFC3711, sec 3.1)
-<a href=#469 id=469 data-nosnippet>469</a>            // by requiring that we include the cleartext header portion as
-<a href=#470 id=470 data-nosnippet>470</a>            // authenticated data.
-<a href=#471 id=471 data-nosnippet>471</a>            </span><span class="self">Self</span>::Aes256Gcm(aes_gcm) =&gt; {
-<a href=#472 id=472 data-nosnippet>472</a>                <span class="kw">let </span><span class="kw-2">mut </span>nonce = aes_gcm::Nonce::default();
-<a href=#473 id=473 data-nosnippet>473</a>                nonce[..mode.nonce_size()].copy_from_slice(slice_to_use);
-<a href=#474 id=474 data-nosnippet>474</a>
-<a href=#475 id=475 data-nosnippet>475</a>                <span class="kw">let </span>tag = aes_gcm::Tag::from_slice(<span class="kw-2">&amp;</span>post_payload[..tag_size]);
-<a href=#476 id=476 data-nosnippet>476</a>                aes_gcm.decrypt_in_place_detached(<span class="kw-2">&amp;</span>nonce, plaintext, body, tag)<span class="question-mark">?</span>;
-<a href=#477 id=477 data-nosnippet>477</a>            },
-<a href=#478 id=478 data-nosnippet>478</a>            <span class="self">Self</span>::XChaCha20Poly1305(cha_cha_poly1305) =&gt; {
-<a href=#479 id=479 data-nosnippet>479</a>                <span class="kw">let </span><span class="kw-2">mut </span>nonce = chacha20poly1305::XNonce::default();
-<a href=#480 id=480 data-nosnippet>480</a>                nonce[..mode.nonce_size()].copy_from_slice(slice_to_use);
-<a href=#481 id=481 data-nosnippet>481</a>
-<a href=#482 id=482 data-nosnippet>482</a>                <span class="kw">let </span>tag = chacha20poly1305::Tag::from_slice(<span class="kw-2">&amp;</span>post_payload[..tag_size]);
-<a href=#483 id=483 data-nosnippet>483</a>                cha_cha_poly1305.decrypt_in_place_detached(<span class="kw-2">&amp;</span>nonce, plaintext, body, tag)<span class="question-mark">?</span>;
-<a href=#484 id=484 data-nosnippet>484</a>            },
-<a href=#485 id=485 data-nosnippet>485</a>        }
-<a href=#486 id=486 data-nosnippet>486</a>
-<a href=#487 id=487 data-nosnippet>487</a>        <span class="prelude-val">Ok</span>((
-<a href=#488 id=488 data-nosnippet>488</a>            plaintext_end + pre_payload.len(),
-<a href=#489 id=489 data-nosnippet>489</a>            post_payload.len() + slice_to_use.len(),
-<a href=#490 id=490 data-nosnippet>490</a>        ))
-<a href=#491 id=491 data-nosnippet>491</a>    }
-<a href=#492 id=492 data-nosnippet>492</a>}
-<a href=#493 id=493 data-nosnippet>493</a>
-<a href=#494 id=494 data-nosnippet>494</a><span class="comment">// Temporary functions -- MSRV is ostensibly 1.74, slice::split_at(_mut)_checked is 1.80+.
-<a href=#495 id=495 data-nosnippet>495</a>// TODO: Remove in v0.5+ with MSRV bump to 1.81+.
-<a href=#496 id=496 data-nosnippet>496</a></span><span class="attr">#[cfg(any(feature = <span class="string">"receive"</span>, test))]
-<a href=#497 id=497 data-nosnippet>497</a>#[inline]
-<a href=#498 id=498 data-nosnippet>498</a>#[must_use]
-<a href=#499 id=499 data-nosnippet>499</a></span><span class="kw">fn </span>split_at_mut_checked(els: <span class="kw-2">&amp;mut </span>[u8], mid: usize) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;mut </span>[u8], <span class="kw-2">&amp;mut </span>[u8])&gt; {
-<a href=#500 id=500 data-nosnippet>500</a>    <span class="kw">if </span>mid &lt;= els.len() {
-<a href=#501 id=501 data-nosnippet>501</a>        <span class="prelude-val">Some</span>(els.split_at_mut(mid))
-<a href=#502 id=502 data-nosnippet>502</a>    } <span class="kw">else </span>{
-<a href=#503 id=503 data-nosnippet>503</a>        <span class="prelude-val">None
-<a href=#504 id=504 data-nosnippet>504</a>    </span>}
-<a href=#505 id=505 data-nosnippet>505</a>}
-<a href=#506 id=506 data-nosnippet>506</a>
-<a href=#507 id=507 data-nosnippet>507</a><span class="attr">#[cfg(test)]
-<a href=#508 id=508 data-nosnippet>508</a></span><span class="kw">mod </span>test {
-<a href=#509 id=509 data-nosnippet>509</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
-<a href=#510 id=510 data-nosnippet>510</a>    <span class="kw">use </span>discortp::rtp::MutableRtpPacket;
-<a href=#511 id=511 data-nosnippet>511</a>
-<a href=#512 id=512 data-nosnippet>512</a>    <span class="attr">#[test]
-<a href=#513 id=513 data-nosnippet>513</a>
-<a href=#514 id=514 data-nosnippet>514</a>    </span><span class="kw">fn </span>small_packet_decrypts_error() {
-<a href=#515 id=515 data-nosnippet>515</a>        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; MutableRtpPacket::minimum_packet_size()];
-<a href=#516 id=516 data-nosnippet>516</a>        <span class="kw">let </span>modes = [CryptoMode::Aes256Gcm, CryptoMode::XChaCha20Poly1305];
-<a href=#517 id=517 data-nosnippet>517</a>        <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
-<a href=#518 id=518 data-nosnippet>518</a>
-<a href=#519 id=519 data-nosnippet>519</a>        <span class="kw">for </span>mode <span class="kw">in </span>modes {
-<a href=#520 id=520 data-nosnippet>520</a>            <span class="comment">// Coincidentally, these are all 32B for now.
-<a href=#521 id=521 data-nosnippet>521</a>            </span><span class="kw">let </span>cipher = mode.cipher_from_key(<span class="kw-2">&amp;</span>[<span class="number">1u8</span>; <span class="number">32</span>]).unwrap();
-<a href=#522 id=522 data-nosnippet>522</a>            <span class="comment">// AIM: should error, and not panic.
-<a href=#523 id=523 data-nosnippet>523</a>            </span><span class="macro">assert!</span>(cipher.decrypt_rtp_in_place(<span class="kw-2">&amp;mut </span>pkt).is_err());
-<a href=#524 id=524 data-nosnippet>524</a>        }
-<a href=#525 id=525 data-nosnippet>525</a>    }
-<a href=#526 id=526 data-nosnippet>526</a>
-<a href=#527 id=527 data-nosnippet>527</a>    <span class="attr">#[test]
-<a href=#528 id=528 data-nosnippet>528</a>    </span><span class="kw">fn </span>symmetric_encrypt_decrypt_tag_after_data() {
-<a href=#529 id=529 data-nosnippet>529</a>        <span class="kw">const </span>TRUE_PAYLOAD: [u8; <span class="number">8</span>] = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
-<a href=#530 id=530 data-nosnippet>530</a>        <span class="kw">for </span>mode <span class="kw">in </span>[CryptoMode::Aes256Gcm, CryptoMode::XChaCha20Poly1305] {
-<a href=#531 id=531 data-nosnippet>531</a>            <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[
-<a href=#532 id=532 data-nosnippet>532</a>                <span class="number">0u8</span>;
-<a href=#533 id=533 data-nosnippet>533</a>                MutableRtpPacket::minimum_packet_size()
-<a href=#534 id=534 data-nosnippet>534</a>                    + TRUE_PAYLOAD.len()
-<a href=#535 id=535 data-nosnippet>535</a>                    + mode.nonce_size()
-<a href=#536 id=536 data-nosnippet>536</a>                    + mode.encryption_tag_len()
-<a href=#537 id=537 data-nosnippet>537</a>            ];
+<a href=#465 id=465 data-nosnippet>465</a>        <span class="kw">let </span>(body, post_payload) = body_remaining
+<a href=#466 id=466 data-nosnippet>466</a>            .split_at_mut_checked(suffix_split_point)
+<a href=#467 id=467 data-nosnippet>467</a>            .ok_or(CryptoError)<span class="question-mark">?</span>;
+<a href=#468 id=468 data-nosnippet>468</a>
+<a href=#469 id=469 data-nosnippet>469</a>        <span class="kw">let </span>tag_size = <span class="self">self</span>.encryption_tag_len();
+<a href=#470 id=470 data-nosnippet>470</a>
+<a href=#471 id=471 data-nosnippet>471</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#472 id=472 data-nosnippet>472</a>            <span class="comment">// The below variants follow part of the SRTP spec (RFC3711, sec 3.1)
+<a href=#473 id=473 data-nosnippet>473</a>            // by requiring that we include the cleartext header portion as
+<a href=#474 id=474 data-nosnippet>474</a>            // authenticated data.
+<a href=#475 id=475 data-nosnippet>475</a>            </span><span class="self">Self</span>::Aes256Gcm(aes_gcm) =&gt; {
+<a href=#476 id=476 data-nosnippet>476</a>                <span class="kw">let </span><span class="kw-2">mut </span>nonce = aes_gcm::Nonce::default();
+<a href=#477 id=477 data-nosnippet>477</a>                nonce[..mode.nonce_size()].copy_from_slice(slice_to_use);
+<a href=#478 id=478 data-nosnippet>478</a>
+<a href=#479 id=479 data-nosnippet>479</a>                <span class="kw">let </span>tag = aes_gcm::Tag::from_slice(<span class="kw-2">&amp;</span>post_payload[..tag_size]);
+<a href=#480 id=480 data-nosnippet>480</a>                aes_gcm.decrypt_in_place_detached(<span class="kw-2">&amp;</span>nonce, plaintext, body, tag)<span class="question-mark">?</span>;
+<a href=#481 id=481 data-nosnippet>481</a>            },
+<a href=#482 id=482 data-nosnippet>482</a>            <span class="self">Self</span>::XChaCha20Poly1305(cha_cha_poly1305) =&gt; {
+<a href=#483 id=483 data-nosnippet>483</a>                <span class="kw">let </span><span class="kw-2">mut </span>nonce = chacha20poly1305::XNonce::default();
+<a href=#484 id=484 data-nosnippet>484</a>                nonce[..mode.nonce_size()].copy_from_slice(slice_to_use);
+<a href=#485 id=485 data-nosnippet>485</a>
+<a href=#486 id=486 data-nosnippet>486</a>                <span class="kw">let </span>tag = chacha20poly1305::Tag::from_slice(<span class="kw-2">&amp;</span>post_payload[..tag_size]);
+<a href=#487 id=487 data-nosnippet>487</a>                cha_cha_poly1305.decrypt_in_place_detached(<span class="kw-2">&amp;</span>nonce, plaintext, body, tag)<span class="question-mark">?</span>;
+<a href=#488 id=488 data-nosnippet>488</a>            },
+<a href=#489 id=489 data-nosnippet>489</a>        }
+<a href=#490 id=490 data-nosnippet>490</a>
+<a href=#491 id=491 data-nosnippet>491</a>        <span class="prelude-val">Ok</span>((
+<a href=#492 id=492 data-nosnippet>492</a>            plaintext_end + pre_payload.len(),
+<a href=#493 id=493 data-nosnippet>493</a>            post_payload.len() + slice_to_use.len(),
+<a href=#494 id=494 data-nosnippet>494</a>        ))
+<a href=#495 id=495 data-nosnippet>495</a>    }
+<a href=#496 id=496 data-nosnippet>496</a>}
+<a href=#497 id=497 data-nosnippet>497</a>
+<a href=#498 id=498 data-nosnippet>498</a><span class="attr">#[cfg(test)]
+<a href=#499 id=499 data-nosnippet>499</a></span><span class="kw">mod </span>test {
+<a href=#500 id=500 data-nosnippet>500</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#501 id=501 data-nosnippet>501</a>    <span class="kw">use </span>discortp::rtp::MutableRtpPacket;
+<a href=#502 id=502 data-nosnippet>502</a>
+<a href=#503 id=503 data-nosnippet>503</a>    <span class="attr">#[test]
+<a href=#504 id=504 data-nosnippet>504</a>
+<a href=#505 id=505 data-nosnippet>505</a>    </span><span class="kw">fn </span>small_packet_decrypts_error() {
+<a href=#506 id=506 data-nosnippet>506</a>        <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; MutableRtpPacket::minimum_packet_size()];
+<a href=#507 id=507 data-nosnippet>507</a>        <span class="kw">let </span>modes = [CryptoMode::Aes256Gcm, CryptoMode::XChaCha20Poly1305];
+<a href=#508 id=508 data-nosnippet>508</a>        <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
+<a href=#509 id=509 data-nosnippet>509</a>
+<a href=#510 id=510 data-nosnippet>510</a>        <span class="kw">for </span>mode <span class="kw">in </span>modes {
+<a href=#511 id=511 data-nosnippet>511</a>            <span class="comment">// Coincidentally, these are all 32B for now.
+<a href=#512 id=512 data-nosnippet>512</a>            </span><span class="kw">let </span>cipher = mode.cipher_from_key(<span class="kw-2">&amp;</span>[<span class="number">1u8</span>; <span class="number">32</span>]).unwrap();
+<a href=#513 id=513 data-nosnippet>513</a>            <span class="comment">// AIM: should error, and not panic.
+<a href=#514 id=514 data-nosnippet>514</a>            </span><span class="macro">assert!</span>(cipher.decrypt_rtp_in_place(<span class="kw-2">&amp;mut </span>pkt).is_err());
+<a href=#515 id=515 data-nosnippet>515</a>        }
+<a href=#516 id=516 data-nosnippet>516</a>    }
+<a href=#517 id=517 data-nosnippet>517</a>
+<a href=#518 id=518 data-nosnippet>518</a>    <span class="attr">#[test]
+<a href=#519 id=519 data-nosnippet>519</a>    </span><span class="kw">fn </span>symmetric_encrypt_decrypt_tag_after_data() {
+<a href=#520 id=520 data-nosnippet>520</a>        <span class="kw">const </span>TRUE_PAYLOAD: [u8; <span class="number">8</span>] = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+<a href=#521 id=521 data-nosnippet>521</a>        <span class="kw">for </span>mode <span class="kw">in </span>[CryptoMode::Aes256Gcm, CryptoMode::XChaCha20Poly1305] {
+<a href=#522 id=522 data-nosnippet>522</a>            <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[
+<a href=#523 id=523 data-nosnippet>523</a>                <span class="number">0u8</span>;
+<a href=#524 id=524 data-nosnippet>524</a>                MutableRtpPacket::minimum_packet_size()
+<a href=#525 id=525 data-nosnippet>525</a>                    + TRUE_PAYLOAD.len()
+<a href=#526 id=526 data-nosnippet>526</a>                    + mode.nonce_size()
+<a href=#527 id=527 data-nosnippet>527</a>                    + mode.encryption_tag_len()
+<a href=#528 id=528 data-nosnippet>528</a>            ];
+<a href=#529 id=529 data-nosnippet>529</a>
+<a href=#530 id=530 data-nosnippet>530</a>            buf.fill(<span class="number">0</span>);
+<a href=#531 id=531 data-nosnippet>531</a>            <span class="kw">let </span>cipher = mode.cipher_from_key(<span class="kw-2">&amp;</span>[<span class="number">7u8</span>; <span class="number">32</span>]).unwrap();
+<a href=#532 id=532 data-nosnippet>532</a>            <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
+<a href=#533 id=533 data-nosnippet>533</a>            <span class="kw">let </span><span class="kw-2">mut </span>crypto_state = CryptoState::from(mode);
+<a href=#534 id=534 data-nosnippet>534</a>            <span class="kw">let </span>payload = pkt.payload_mut();
+<a href=#535 id=535 data-nosnippet>535</a>            payload[mode.payload_prefix_len()..TRUE_PAYLOAD.len()].copy_from_slice(<span class="kw-2">&amp;</span>TRUE_PAYLOAD);
+<a href=#536 id=536 data-nosnippet>536</a>
+<a href=#537 id=537 data-nosnippet>537</a>            <span class="kw">let </span>final_payload_size = crypto_state.write_packet_nonce(<span class="kw-2">&amp;mut </span>pkt, TRUE_PAYLOAD.len());
 <a href=#538 id=538 data-nosnippet>538</a>
-<a href=#539 id=539 data-nosnippet>539</a>            buf.fill(<span class="number">0</span>);
-<a href=#540 id=540 data-nosnippet>540</a>            <span class="kw">let </span>cipher = mode.cipher_from_key(<span class="kw-2">&amp;</span>[<span class="number">7u8</span>; <span class="number">32</span>]).unwrap();
-<a href=#541 id=541 data-nosnippet>541</a>            <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..]).unwrap();
-<a href=#542 id=542 data-nosnippet>542</a>            <span class="kw">let </span><span class="kw-2">mut </span>crypto_state = CryptoState::from(mode);
-<a href=#543 id=543 data-nosnippet>543</a>            <span class="kw">let </span>payload = pkt.payload_mut();
-<a href=#544 id=544 data-nosnippet>544</a>            payload[mode.payload_prefix_len()..TRUE_PAYLOAD.len()].copy_from_slice(<span class="kw-2">&amp;</span>TRUE_PAYLOAD);
+<a href=#539 id=539 data-nosnippet>539</a>            <span class="kw">let </span>enc_succ = cipher.encrypt_pkt_in_place(<span class="kw-2">&amp;mut </span>pkt, final_payload_size);
+<a href=#540 id=540 data-nosnippet>540</a>
+<a href=#541 id=541 data-nosnippet>541</a>            <span class="macro">assert!</span>(enc_succ.is_ok());
+<a href=#542 id=542 data-nosnippet>542</a>
+<a href=#543 id=543 data-nosnippet>543</a>            <span class="kw">let </span>final_pkt_len = MutableRtpPacket::minimum_packet_size() + final_payload_size;
+<a href=#544 id=544 data-nosnippet>544</a>            <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..final_pkt_len]).unwrap();
 <a href=#545 id=545 data-nosnippet>545</a>
-<a href=#546 id=546 data-nosnippet>546</a>            <span class="kw">let </span>final_payload_size = crypto_state.write_packet_nonce(<span class="kw-2">&amp;mut </span>pkt, TRUE_PAYLOAD.len());
-<a href=#547 id=547 data-nosnippet>547</a>
-<a href=#548 id=548 data-nosnippet>548</a>            <span class="kw">let </span>enc_succ = cipher.encrypt_pkt_in_place(<span class="kw-2">&amp;mut </span>pkt, final_payload_size);
+<a href=#546 id=546 data-nosnippet>546</a>            <span class="macro">assert!</span>(cipher.decrypt_rtp_in_place(<span class="kw-2">&amp;mut </span>pkt).is_ok());
+<a href=#547 id=547 data-nosnippet>547</a>        }
+<a href=#548 id=548 data-nosnippet>548</a>    }
 <a href=#549 id=549 data-nosnippet>549</a>
-<a href=#550 id=550 data-nosnippet>550</a>            <span class="macro">assert!</span>(enc_succ.is_ok());
+<a href=#550 id=550 data-nosnippet>550</a>    <span class="attr">#[test]
 <a href=#551 id=551 data-nosnippet>551</a>
-<a href=#552 id=552 data-nosnippet>552</a>            <span class="kw">let </span>final_pkt_len = MutableRtpPacket::minimum_packet_size() + final_payload_size;
-<a href=#553 id=553 data-nosnippet>553</a>            <span class="kw">let </span><span class="kw-2">mut </span>pkt = MutableRtpPacket::new(<span class="kw-2">&amp;mut </span>buf[..final_pkt_len]).unwrap();
-<a href=#554 id=554 data-nosnippet>554</a>
-<a href=#555 id=555 data-nosnippet>555</a>            <span class="macro">assert!</span>(cipher.decrypt_rtp_in_place(<span class="kw-2">&amp;mut </span>pkt).is_ok());
-<a href=#556 id=556 data-nosnippet>556</a>        }
-<a href=#557 id=557 data-nosnippet>557</a>    }
-<a href=#558 id=558 data-nosnippet>558</a>
-<a href=#559 id=559 data-nosnippet>559</a>    <span class="attr">#[test]
+<a href=#552 id=552 data-nosnippet>552</a>    </span><span class="kw">fn </span>negotiate_cryptomode() {
+<a href=#553 id=553 data-nosnippet>553</a>        <span class="comment">// If we have no preference (or our preference is missing), choose the highest available in the set.
+<a href=#554 id=554 data-nosnippet>554</a>        </span><span class="kw">let </span>test_set =
+<a href=#555 id=555 data-nosnippet>555</a>            [CryptoMode::XChaCha20Poly1305, CryptoMode::Aes256Gcm].map(CryptoMode::to_request_str);
+<a href=#556 id=556 data-nosnippet>556</a>        <span class="macro">assert_eq!</span>(
+<a href=#557 id=557 data-nosnippet>557</a>            CryptoMode::negotiate(test_set, <span class="prelude-val">None</span>).unwrap(),
+<a href=#558 id=558 data-nosnippet>558</a>            CryptoMode::Aes256Gcm
+<a href=#559 id=559 data-nosnippet>559</a>        );
 <a href=#560 id=560 data-nosnippet>560</a>
-<a href=#561 id=561 data-nosnippet>561</a>    </span><span class="kw">fn </span>negotiate_cryptomode() {
-<a href=#562 id=562 data-nosnippet>562</a>        <span class="comment">// If we have no preference (or our preference is missing), choose the highest available in the set.
-<a href=#563 id=563 data-nosnippet>563</a>        </span><span class="kw">let </span>test_set =
-<a href=#564 id=564 data-nosnippet>564</a>            [CryptoMode::XChaCha20Poly1305, CryptoMode::Aes256Gcm].map(CryptoMode::to_request_str);
-<a href=#565 id=565 data-nosnippet>565</a>        <span class="macro">assert_eq!</span>(
-<a href=#566 id=566 data-nosnippet>566</a>            CryptoMode::negotiate(test_set, <span class="prelude-val">None</span>).unwrap(),
-<a href=#567 id=567 data-nosnippet>567</a>            CryptoMode::Aes256Gcm
-<a href=#568 id=568 data-nosnippet>568</a>        );
-<a href=#569 id=569 data-nosnippet>569</a>
-<a href=#570 id=570 data-nosnippet>570</a>        <span class="kw">let </span>test_set_missing = [CryptoMode::XChaCha20Poly1305].map(CryptoMode::to_request_str);
-<a href=#571 id=571 data-nosnippet>571</a>        <span class="macro">assert_eq!</span>(
-<a href=#572 id=572 data-nosnippet>572</a>            CryptoMode::negotiate(test_set_missing, <span class="prelude-val">Some</span>(CryptoMode::Aes256Gcm)).unwrap(),
-<a href=#573 id=573 data-nosnippet>573</a>            CryptoMode::XChaCha20Poly1305
-<a href=#574 id=574 data-nosnippet>574</a>        );
-<a href=#575 id=575 data-nosnippet>575</a>
-<a href=#576 id=576 data-nosnippet>576</a>        <span class="comment">// Preference wins in spite of the defined `priority` value.
-<a href=#577 id=577 data-nosnippet>577</a>        </span><span class="macro">assert_eq!</span>(
-<a href=#578 id=578 data-nosnippet>578</a>            CryptoMode::negotiate(test_set, <span class="prelude-val">Some</span>(CryptoMode::XChaCha20Poly1305)).unwrap(),
-<a href=#579 id=579 data-nosnippet>579</a>            CryptoMode::XChaCha20Poly1305
-<a href=#580 id=580 data-nosnippet>580</a>        );
-<a href=#581 id=581 data-nosnippet>581</a>
-<a href=#582 id=582 data-nosnippet>582</a>        <span class="comment">// If there is no mutual intelligibility, return an error.
-<a href=#583 id=583 data-nosnippet>583</a>        </span><span class="kw">let </span>bad_modes = [<span class="string">"not_real"</span>, <span class="string">"des"</span>, <span class="string">"rc5"</span>];
-<a href=#584 id=584 data-nosnippet>584</a>        <span class="macro">assert!</span>(CryptoMode::negotiate(bad_modes, <span class="prelude-val">None</span>).is_err());
-<a href=#585 id=585 data-nosnippet>585</a>        <span class="macro">assert!</span>(CryptoMode::negotiate(bad_modes, <span class="prelude-val">Some</span>(CryptoMode::Aes256Gcm)).is_err());
-<a href=#586 id=586 data-nosnippet>586</a>    }
-<a href=#587 id=587 data-nosnippet>587</a>}
+<a href=#561 id=561 data-nosnippet>561</a>        <span class="kw">let </span>test_set_missing = [CryptoMode::XChaCha20Poly1305].map(CryptoMode::to_request_str);
+<a href=#562 id=562 data-nosnippet>562</a>        <span class="macro">assert_eq!</span>(
+<a href=#563 id=563 data-nosnippet>563</a>            CryptoMode::negotiate(test_set_missing, <span class="prelude-val">Some</span>(CryptoMode::Aes256Gcm)).unwrap(),
+<a href=#564 id=564 data-nosnippet>564</a>            CryptoMode::XChaCha20Poly1305
+<a href=#565 id=565 data-nosnippet>565</a>        );
+<a href=#566 id=566 data-nosnippet>566</a>
+<a href=#567 id=567 data-nosnippet>567</a>        <span class="comment">// Preference wins in spite of the defined `priority` value.
+<a href=#568 id=568 data-nosnippet>568</a>        </span><span class="macro">assert_eq!</span>(
+<a href=#569 id=569 data-nosnippet>569</a>            CryptoMode::negotiate(test_set, <span class="prelude-val">Some</span>(CryptoMode::XChaCha20Poly1305)).unwrap(),
+<a href=#570 id=570 data-nosnippet>570</a>            CryptoMode::XChaCha20Poly1305
+<a href=#571 id=571 data-nosnippet>571</a>        );
+<a href=#572 id=572 data-nosnippet>572</a>
+<a href=#573 id=573 data-nosnippet>573</a>        <span class="comment">// If there is no mutual intelligibility, return an error.
+<a href=#574 id=574 data-nosnippet>574</a>        </span><span class="kw">let </span>bad_modes = [<span class="string">"not_real"</span>, <span class="string">"des"</span>, <span class="string">"rc5"</span>];
+<a href=#575 id=575 data-nosnippet>575</a>        <span class="macro">assert!</span>(CryptoMode::negotiate(bad_modes, <span class="prelude-val">None</span>).is_err());
+<a href=#576 id=576 data-nosnippet>576</a>        <span class="macro">assert!</span>(CryptoMode::negotiate(bad_modes, <span class="prelude-val">Some</span>(CryptoMode::Aes256Gcm)).is_err());
+<a href=#577 id=577 data-nosnippet>577</a>    }
+<a href=#578 id=578 data-nosnippet>578</a>}
 </code></pre></div></section></main></body></html>

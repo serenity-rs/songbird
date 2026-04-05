@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/udp_rx/playout_buffer.rs`."><title>playout_buffer.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.96.0-nightly (fb27476aa 2026-03-28)" data-channel="nightly" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">songbird/driver/tasks/udp_rx/</div>playout_buffer.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>super::<span class="kw-2">*</span>;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/driver/tasks/udp_rx/playout_buffer.rs`."><title>playout_buffer.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="songbird" data-themes="" data-resource-suffix="" data-rustdoc-version="1.96.0-nightly (e0e95a718 2026-04-04)" data-channel="nightly" data-search-js="search-1c5d44ff.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">songbird/driver/tasks/udp_rx/</div>playout_buffer.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>bytes::Bytes;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>std::collections::VecDeque;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>tracing::trace;
@@ -80,7 +80,7 @@
 <a href=#80 id=80 data-nosnippet>80</a>        <span class="comment">// Similar concept to fetch_packet -- if there's a critical desync, and we're unwilling
 <a href=#81 id=81 data-nosnippet>81</a>        // to slot this packet into an empty/stuck buffer then behave as though this packet is the next
 <a href=#82 id=82 data-nosnippet>82</a>        // sequence number we're releasing.
-<a href=#83 id=83 data-nosnippet>83</a>        </span><span class="kw">let </span>err_threshold = i16::try_from(config.playout_buffer_length.get() * <span class="number">5</span>).unwrap_or(<span class="number">32</span>);
+<a href=#83 id=83 data-nosnippet>83</a>        </span><span class="kw">let </span>err_threshold = i16::from(config.playout_buffer_length.get() * <span class="number">5</span>);
 <a href=#84 id=84 data-nosnippet>84</a>        <span class="kw">let </span>handling_desync = (<span class="self">self</span>.buffer.is_empty()
 <a href=#85 id=85 data-nosnippet>85</a>            || <span class="self">self</span>.consecutive_store_fails &gt;= (err_threshold <span class="kw">as </span>usize))
 <a href=#86 id=86 data-nosnippet>86</a>            &amp;&amp; desired_index &gt;= err_threshold;
@@ -113,7 +113,7 @@
 <a href=#113 id=113 data-nosnippet>113</a>            <span class="self">self</span>.consecutive_store_fails = <span class="number">0</span>;
 <a href=#114 id=114 data-nosnippet>114</a>        }
 <a href=#115 id=115 data-nosnippet>115</a>
-<a href=#116 id=116 data-nosnippet>116</a>        <span class="kw">if </span><span class="self">self</span>.buffer.len() &gt;= config.playout_buffer_length.get() {
+<a href=#116 id=116 data-nosnippet>116</a>        <span class="kw">if </span><span class="self">self</span>.buffer.len() &gt;= usize::from(config.playout_buffer_length.get()) {
 <a href=#117 id=117 data-nosnippet>117</a>            <span class="self">self</span>.playout_mode = PlayoutMode::Drain;
 <a href=#118 id=118 data-nosnippet>118</a>        }
 <a href=#119 id=119 data-nosnippet>119</a>    }
@@ -151,54 +151,55 @@
 <a href=#151 id=151 data-nosnippet>151</a>                // larger than it would take to go through multiple Fill/Drain cycles, then
 <a href=#152 id=152 data-nosnippet>152</a>                // treat its TS as the next expected value to avoid jamming the buffer and losing
 <a href=#153 id=153 data-nosnippet>153</a>                // later audio.
-<a href=#154 id=154 data-nosnippet>154</a>                </span><span class="kw">let </span>skip_after =
-<a href=#155 id=155 data-nosnippet>155</a>                    i32::try_from(config.playout_buffer_length.get() * <span class="number">5 </span>* MONO_FRAME_SIZE)
-<a href=#156 id=156 data-nosnippet>156</a>                        .unwrap_or((AUDIO_FRAME_RATE * <span class="number">2 </span>* MONO_FRAME_SIZE) <span class="kw">as </span>i32);
-<a href=#157 id=157 data-nosnippet>157</a>
-<a href=#158 id=158 data-nosnippet>158</a>                <span class="kw">if </span>ts_diff &gt;= <span class="number">0 </span>{
-<a href=#159 id=159 data-nosnippet>159</a>                    <span class="comment">// At or before expected timestamp.
-<a href=#160 id=160 data-nosnippet>160</a>                    </span><span class="self">self</span>.next_seq = (rtp.get_sequence() + <span class="number">1</span>).<span class="number">0</span>;
-<a href=#161 id=161 data-nosnippet>161</a>
-<a href=#162 id=162 data-nosnippet>162</a>                    PacketLookup::Packet(pkt)
-<a href=#163 id=163 data-nosnippet>163</a>                } <span class="kw">else if </span>ts_diff &lt;= -skip_after {
-<a href=#164 id=164 data-nosnippet>164</a>                    <span class="comment">// &gt;5 playouts ahead.
-<a href=#165 id=165 data-nosnippet>165</a>                    </span><span class="self">self</span>.next_seq = (rtp.get_sequence() + <span class="number">1</span>).<span class="number">0</span>;
-<a href=#166 id=166 data-nosnippet>166</a>                    <span class="kw-2">*</span>curr_ts = pkt_ts;
-<a href=#167 id=167 data-nosnippet>167</a>                    PacketLookup::Packet(pkt)
-<a href=#168 id=168 data-nosnippet>168</a>                } <span class="kw">else </span>{
-<a href=#169 id=169 data-nosnippet>169</a>                    <span class="macro">trace!</span>(<span class="string">"Witholding packet: ts_diff is {ts_diff}"</span>);
-<a href=#170 id=170 data-nosnippet>170</a>                    <span class="self">self</span>.buffer.push_front(<span class="prelude-val">Some</span>(pkt));
-<a href=#171 id=171 data-nosnippet>171</a>                    <span class="self">self</span>.playout_mode = PlayoutMode::Fill;
-<a href=#172 id=172 data-nosnippet>172</a>                    PacketLookup::Filling
-<a href=#173 id=173 data-nosnippet>173</a>                }
-<a href=#174 id=174 data-nosnippet>174</a>            },
-<a href=#175 id=175 data-nosnippet>175</a>            <span class="prelude-val">Some</span>(<span class="prelude-val">None</span>) =&gt; {
-<a href=#176 id=176 data-nosnippet>176</a>                <span class="self">self</span>.next_seq += <span class="number">1</span>;
-<a href=#177 id=177 data-nosnippet>177</a>                PacketLookup::MissedPacket
-<a href=#178 id=178 data-nosnippet>178</a>            },
-<a href=#179 id=179 data-nosnippet>179</a>            <span class="prelude-val">None </span>=&gt; PacketLookup::Filling,
-<a href=#180 id=180 data-nosnippet>180</a>        };
-<a href=#181 id=181 data-nosnippet>181</a>
-<a href=#182 id=182 data-nosnippet>182</a>        <span class="kw">if </span><span class="self">self</span>.buffer.is_empty() {
-<a href=#183 id=183 data-nosnippet>183</a>            <span class="self">self</span>.playout_mode = PlayoutMode::Fill;
-<a href=#184 id=184 data-nosnippet>184</a>            <span class="self">self</span>.current_timestamp = <span class="prelude-val">None</span>;
-<a href=#185 id=185 data-nosnippet>185</a>        }
-<a href=#186 id=186 data-nosnippet>186</a>
-<a href=#187 id=187 data-nosnippet>187</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(ts) = <span class="self">self</span>.current_timestamp.as_mut() {
-<a href=#188 id=188 data-nosnippet>188</a>            <span class="kw-2">*</span>ts += <span class="kw-2">&amp;</span>(MONO_FRAME_SIZE <span class="kw">as </span>u32);
-<a href=#189 id=189 data-nosnippet>189</a>        }
-<a href=#190 id=190 data-nosnippet>190</a>
-<a href=#191 id=191 data-nosnippet>191</a>        out
-<a href=#192 id=192 data-nosnippet>192</a>    }
-<a href=#193 id=193 data-nosnippet>193</a>
-<a href=#194 id=194 data-nosnippet>194</a>    <span class="kw">pub fn </span>next_seq(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RtpSequence {
-<a href=#195 id=195 data-nosnippet>195</a>        <span class="self">self</span>.next_seq
-<a href=#196 id=196 data-nosnippet>196</a>    }
-<a href=#197 id=197 data-nosnippet>197</a>}
-<a href=#198 id=198 data-nosnippet>198</a>
-<a href=#199 id=199 data-nosnippet>199</a><span class="attr">#[inline]
-<a href=#200 id=200 data-nosnippet>200</a></span><span class="kw">fn </span>reset_timeout(packet: <span class="kw-2">&amp;</span>RtpPacket&lt;<span class="lifetime">'_</span>&gt;, config: <span class="kw-2">&amp;</span>Config) -&gt; RtpTimestamp {
-<a href=#201 id=201 data-nosnippet>201</a>    <span class="kw">let </span>t_shift = MONO_FRAME_SIZE * config.playout_buffer_length.get();
-<a href=#202 id=202 data-nosnippet>202</a>    (packet.get_timestamp() + (t_shift <span class="kw">as </span>u32)).<span class="number">0
-<a href=#203 id=203 data-nosnippet>203</a></span>}
+<a href=#154 id=154 data-nosnippet>154</a>                </span><span class="kw">let </span>skip_after = i32::try_from(
+<a href=#155 id=155 data-nosnippet>155</a>                    usize::from(config.playout_buffer_length.get()) * <span class="number">5 </span>* MONO_FRAME_SIZE,
+<a href=#156 id=156 data-nosnippet>156</a>                )
+<a href=#157 id=157 data-nosnippet>157</a>                .unwrap_or((AUDIO_FRAME_RATE * <span class="number">2 </span>* MONO_FRAME_SIZE) <span class="kw">as </span>i32);
+<a href=#158 id=158 data-nosnippet>158</a>
+<a href=#159 id=159 data-nosnippet>159</a>                <span class="kw">if </span>ts_diff &gt;= <span class="number">0 </span>{
+<a href=#160 id=160 data-nosnippet>160</a>                    <span class="comment">// At or before expected timestamp.
+<a href=#161 id=161 data-nosnippet>161</a>                    </span><span class="self">self</span>.next_seq = (rtp.get_sequence() + <span class="number">1</span>).<span class="number">0</span>;
+<a href=#162 id=162 data-nosnippet>162</a>
+<a href=#163 id=163 data-nosnippet>163</a>                    PacketLookup::Packet(pkt)
+<a href=#164 id=164 data-nosnippet>164</a>                } <span class="kw">else if </span>ts_diff &lt;= -skip_after {
+<a href=#165 id=165 data-nosnippet>165</a>                    <span class="comment">// &gt;5 playouts ahead.
+<a href=#166 id=166 data-nosnippet>166</a>                    </span><span class="self">self</span>.next_seq = (rtp.get_sequence() + <span class="number">1</span>).<span class="number">0</span>;
+<a href=#167 id=167 data-nosnippet>167</a>                    <span class="kw-2">*</span>curr_ts = pkt_ts;
+<a href=#168 id=168 data-nosnippet>168</a>                    PacketLookup::Packet(pkt)
+<a href=#169 id=169 data-nosnippet>169</a>                } <span class="kw">else </span>{
+<a href=#170 id=170 data-nosnippet>170</a>                    <span class="macro">trace!</span>(<span class="string">"Witholding packet: ts_diff is {ts_diff}"</span>);
+<a href=#171 id=171 data-nosnippet>171</a>                    <span class="self">self</span>.buffer.push_front(<span class="prelude-val">Some</span>(pkt));
+<a href=#172 id=172 data-nosnippet>172</a>                    <span class="self">self</span>.playout_mode = PlayoutMode::Fill;
+<a href=#173 id=173 data-nosnippet>173</a>                    PacketLookup::Filling
+<a href=#174 id=174 data-nosnippet>174</a>                }
+<a href=#175 id=175 data-nosnippet>175</a>            },
+<a href=#176 id=176 data-nosnippet>176</a>            <span class="prelude-val">Some</span>(<span class="prelude-val">None</span>) =&gt; {
+<a href=#177 id=177 data-nosnippet>177</a>                <span class="self">self</span>.next_seq += <span class="number">1</span>;
+<a href=#178 id=178 data-nosnippet>178</a>                PacketLookup::MissedPacket
+<a href=#179 id=179 data-nosnippet>179</a>            },
+<a href=#180 id=180 data-nosnippet>180</a>            <span class="prelude-val">None </span>=&gt; PacketLookup::Filling,
+<a href=#181 id=181 data-nosnippet>181</a>        };
+<a href=#182 id=182 data-nosnippet>182</a>
+<a href=#183 id=183 data-nosnippet>183</a>        <span class="kw">if </span><span class="self">self</span>.buffer.is_empty() {
+<a href=#184 id=184 data-nosnippet>184</a>            <span class="self">self</span>.playout_mode = PlayoutMode::Fill;
+<a href=#185 id=185 data-nosnippet>185</a>            <span class="self">self</span>.current_timestamp = <span class="prelude-val">None</span>;
+<a href=#186 id=186 data-nosnippet>186</a>        }
+<a href=#187 id=187 data-nosnippet>187</a>
+<a href=#188 id=188 data-nosnippet>188</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(ts) = <span class="self">self</span>.current_timestamp.as_mut() {
+<a href=#189 id=189 data-nosnippet>189</a>            <span class="kw-2">*</span>ts += <span class="kw-2">&amp;</span>(MONO_FRAME_SIZE <span class="kw">as </span>u32);
+<a href=#190 id=190 data-nosnippet>190</a>        }
+<a href=#191 id=191 data-nosnippet>191</a>
+<a href=#192 id=192 data-nosnippet>192</a>        out
+<a href=#193 id=193 data-nosnippet>193</a>    }
+<a href=#194 id=194 data-nosnippet>194</a>
+<a href=#195 id=195 data-nosnippet>195</a>    <span class="kw">pub fn </span>next_seq(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RtpSequence {
+<a href=#196 id=196 data-nosnippet>196</a>        <span class="self">self</span>.next_seq
+<a href=#197 id=197 data-nosnippet>197</a>    }
+<a href=#198 id=198 data-nosnippet>198</a>}
+<a href=#199 id=199 data-nosnippet>199</a>
+<a href=#200 id=200 data-nosnippet>200</a><span class="attr">#[inline]
+<a href=#201 id=201 data-nosnippet>201</a></span><span class="kw">fn </span>reset_timeout(packet: <span class="kw-2">&amp;</span>RtpPacket&lt;<span class="lifetime">'_</span>&gt;, config: <span class="kw-2">&amp;</span>Config) -&gt; RtpTimestamp {
+<a href=#202 id=202 data-nosnippet>202</a>    <span class="kw">let </span>t_shift = MONO_FRAME_SIZE * usize::from(config.playout_buffer_length.get());
+<a href=#203 id=203 data-nosnippet>203</a>    (packet.get_timestamp() + (t_shift <span class="kw">as </span>u32)).<span class="number">0
+<a href=#204 id=204 data-nosnippet>204</a></span>}
 </code></pre></div></section></main></body></html>
