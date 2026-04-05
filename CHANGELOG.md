@@ -9,7 +9,7 @@ their heads. They're also fans of music, often moving their heads to the beat.
 This release is major in three ways:
 
 1. Support for Twilight v0.17.0;
-2. Switch to `opus2` for encoding/decoding Opus streams, as `audiopus` is unmaintained and doesn't build anymore;
+2. Switch to `opus2` for encoding/decoding Opus streams, as `audiopus` is unmaintained and doesn't build anymore on some platforms;
 3. Most importantly, support for Discord's Audio & Video End-to-end encryption (DAVE) protocol, which is since 2026 mandatory for all voice connections.
 
 Thanks to the following for their contributions:
