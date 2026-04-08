@@ -40,7 +40,7 @@ impl Retry {
         last_wait: Option<FloatDuration>,
         attempts: u8,
     ) -> Option<FloatDuration> {
-        if self.retry_limit.is_none_or(|a| attempts < a.get()) {
+        if self.retry_limit.is_none_or(|a| attempts < a) {
             Some(self.strategy.retry_in(last_wait))
         } else {
             None
