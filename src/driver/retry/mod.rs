@@ -4,8 +4,6 @@ mod strategy;
 
 pub use self::strategy::*;
 
-use std::num::NonZeroU8;
-
 use crate::FloatDuration;
 
 /// Configuration to be used for retrying driver connection attempts.
@@ -24,14 +22,14 @@ pub struct Retry {
     /// while `Some(0)` will attempt to connect *once* (no retries).
     ///
     /// *Defaults to `Some(5)`.*
-    pub retry_limit: Option<NonZeroU8>,
+    pub retry_limit: Option<u8>,
 }
 
 impl Default for Retry {
     fn default() -> Self {
         Self {
             strategy: Strategy::Backoff(ExponentialBackoff::default()),
-            retry_limit: Some(const { NonZeroU8::new(5).unwrap() }),
+            retry_limit: Some(5),
         }
     }
 }
@@ -42,7 +40,7 @@ impl Retry {
         last_wait: Option<FloatDuration>,
         attempts: u8,
     ) -> Option<FloatDuration> {
-        if self.retry_limit.is_none_or(|a| attempts < a.get()) {
+        if self.retry_limit.is_none_or(|a| attempts < a) {
             Some(self.strategy.retry_in(last_wait))
         } else {
             None
