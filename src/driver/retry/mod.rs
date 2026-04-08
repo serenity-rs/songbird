@@ -2,8 +2,6 @@
 
 mod strategy;
 
-use nonmax::NonMaxU8;
-
 pub use self::strategy::*;
 
 use crate::FloatDuration;
@@ -24,14 +22,14 @@ pub struct Retry {
     /// while `Some(0)` will attempt to connect *once* (no retries).
     ///
     /// *Defaults to `Some(5)`.*
-    pub retry_limit: Option<NonMaxU8>,
+    pub retry_limit: Option<u8>,
 }
 
 impl Default for Retry {
     fn default() -> Self {
         Self {
             strategy: Strategy::Backoff(ExponentialBackoff::default()),
-            retry_limit: Some(const { NonMaxU8::new(5).unwrap() }),
+            retry_limit: Some(5),
         }
     }
 }
