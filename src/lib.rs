@@ -2,7 +2,7 @@
     html_logo_url = "https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird.png",
     html_favicon_url = "https://raw.githubusercontent.com/serenity-rs/songbird/current/songbird-ico.png"
 )]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
 //! ![project logo][logo]
