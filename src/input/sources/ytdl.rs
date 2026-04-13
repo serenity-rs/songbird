@@ -135,7 +135,7 @@ impl<'a> YoutubeDl<'a> {
             "-j",
             &query_str,
             "-f",
-            "ba[abr>0][vcodec=none]/best",
+            "bestaudio[abr>0][vcodec=none]/bestaudio/best",
             "--no-playlist",
         ];
 
