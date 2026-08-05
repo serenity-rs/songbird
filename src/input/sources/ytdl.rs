@@ -140,8 +140,8 @@ impl<'a> YoutubeDl<'a> {
         ];
 
         let output = Command::new(self.program)
-            .args(self.user_args.clone())
             .args(ytdl_args)
+            .args(self.user_args.clone())
             .output()
             .await
             .map_err(|e| {
