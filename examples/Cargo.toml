@@ -9,7 +9,7 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-reqwest = "0.12"
+reqwest = "0.13"
 serenity = { features = [
     "cache",
     "framework",
