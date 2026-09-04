@@ -54,7 +54,7 @@ serenity = { default-features = false, optional = true, git = "https://github.co
 serenity-voice-model = { optional = true, version = "0.3" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
-stream_lib = { default-features = false, optional = true, git = "https://github.com/Erk-/rsget", rev = "6e3a09122ecd584c4d1c5592a05de333c6768dfe" }
+stream_lib = { default-features = false, optional = true, version = "0.6" }
 symphonia = { default-features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
