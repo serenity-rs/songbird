@@ -10,7 +10,7 @@ license = "ISC"
 name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
-rust-version = "1.83.0"
+rust-version = "1.85.0"
 version = "0.6.0"
 
 [dependencies]
@@ -40,7 +40,7 @@ pin-project = "1"
 rand = { optional = true, version = "0.9" }
 reqwest = { default-features = false, features = [
     "stream",
-], optional = true, version = "0.12.2" }
+], optional = true, version = "0.13" }
 ringbuf = { optional = true, version = "0.4" }
 rubato = { optional = true, version = "0.16" }
 rusty_pool = { optional = true, version = "0.7" }
@@ -54,7 +54,7 @@ serenity = { default-features = false, optional = true, git = "https://github.co
 serenity-voice-model = { optional = true, version = "0.3" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
-stream_lib = { default-features = false, optional = true, version = "0.5.2" }
+stream_lib = { default-features = false, optional = true, version = "0.6" }
 symphonia = { default-features = false, optional = true, version = "0.5.2" }
 symphonia-core = { optional = true, version = "0.5.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
@@ -135,9 +135,9 @@ driver = [
     "tokio?/time",
 ]
 rustls = [
-    "reqwest?/rustls-tls",
+    "reqwest?/rustls",
     "serenity?/rustls_backend",
-    "stream_lib?/rustls-tls",
+    "stream_lib?/rustls",
     "tokio-tungstenite?/rustls-tls-webpki-roots",
     "tokio-websockets?/ring",
     "tokio-websockets?/rustls-native-roots",
