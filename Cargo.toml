@@ -41,7 +41,7 @@ rand = { optional = true, version = "0.9" }
 reqwest = { default-features = false, features = [
     "stream",
 ], optional = true, version = "0.13" }
-ringbuf = { optional = true, version = "0.4" }
+ringbuf = { optional = true, version = "0.5.2" }
 rubato = { optional = true, version = "0.16" }
 rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
