@@ -7,11 +7,7 @@
 //! features = ["client", "standard_framework", "voice"]
 //! ```
 use std::env;
-
-// This trait adds the `register_songbird` and `register_songbird_with` methods
-// to the client builder below, making it easy to install this voice client.
-// The voice client can be retrieved in any command using `songbird::get(ctx).await`.
-use songbird::SerenityInit;
+use std::sync::Arc;
 
 // Event related imports to detect track creation failures.
 use songbird::events::{Event, EventContext, EventHandler as VoiceEventHandler, TrackEvent};
@@ -38,14 +34,13 @@ use serenity::{
         StandardFramework,
     },
     model::{channel::Message, gateway::Ready},
-    prelude::{GatewayIntents, TypeMapKey},
+    prelude::GatewayIntents,
     Result as SerenityResult,
 };
 
-struct HttpKey;
-
-impl TypeMapKey for HttpKey {
-    type Value = HttpClient;
+struct UserData {
+    http: HttpClient,
+    songbird: Arc<songbird::Songbird>,
 }
 
 struct Handler;
@@ -73,16 +68,20 @@ async fn main() {
 
     let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
 
+    // We create a global HTTP client here to make use of in
+    // `~play`. If we wanted, we could supply cookies and auth
+    // details ahead of time.
+    let manager = songbird::Songbird::serenity();
+    let user_data = UserData {
+        http: HttpClient::new(),
+        songbird: Arc::clone(&manager),
+    };
+
     let mut client = Client::builder(&token, intents)
+        .voice_manager::<songbird::Songbird>(manager)
+        .data(Arc::new(user_data) as _)
         .event_handler(Handler)
         .framework(framework)
-        .register_songbird()
-        // We insert our own HTTP client here to make use of in
-        // `~play`. If we wanted, we could supply cookies and auth
-        // details ahead of time.
-        //
-        // Generally, we don't want to make a new Client for every request!
-        .type_map_insert::<HttpKey>(HttpClient::new())
         .await
         .expect("Err creating client");
 
@@ -101,11 +100,7 @@ async fn main() {
 #[only_in(guilds)]
 async fn deafen(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
 
     let handler_lock = match manager.get(guild_id) {
         Some(handler) => handler,
@@ -157,11 +152,7 @@ async fn join(ctx: &Context, msg: &Message) -> CommandResult {
         },
     };
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
-
+    let manager = &ctx.data::<UserData>().songbird;
     if let Ok(handler_lock) = manager.join(guild_id, connect_to).await {
         // Attach an event handler to see notifications of all track errors.
         let mut handler = handler_lock.lock().await;
@@ -195,10 +186,7 @@ impl VoiceEventHandler for TrackErrorNotifier {
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
     let has_handler = manager.get(guild_id).is_some();
 
     if has_handler {
@@ -222,11 +210,7 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn mute(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
 
     let handler_lock = match manager.get(guild_id) {
         Some(handler) => handler,
@@ -282,27 +266,16 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let guild_id = msg.guild_id.unwrap();
 
-    let http_client = {
-        let data = ctx.data.read().await;
-        data.get::<HttpKey>()
-            .cloned()
-            .expect("Guaranteed to exist in the typemap.")
-    };
-
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
-
-    if let Some(handler_lock) = manager.get(guild_id) {
+    let data = ctx.data::<UserData>();
+    if let Some(handler_lock) = data.songbird.get(guild_id) {
         let mut handler = handler_lock.lock().await;
 
-        let mut src = if do_search {
-            YoutubeDl::new_search(http_client, url)
+        let src = if do_search {
+            YoutubeDl::new_search(data.http.clone(), url)
         } else {
-            YoutubeDl::new(http_client, url)
+            YoutubeDl::new(data.http.clone(), url)
         };
-        let _ = handler.play_input(src.clone().into());
+        let _ = handler.play_input(src.into());
 
         check_msg(msg.channel_id.say(&ctx.http, "Playing song").await);
     } else {
@@ -320,11 +293,7 @@ async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 #[only_in(guilds)]
 async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;
@@ -352,11 +321,7 @@ async fn undeafen(ctx: &Context, msg: &Message) -> CommandResult {
 #[only_in(guilds)]
 async fn unmute(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = &ctx.data::<UserData>().songbird;
 
     if let Some(handler_lock) = manager.get(guild_id) {
         let mut handler = handler_lock.lock().await;

@@ -10,8 +10,6 @@ use futures::channel::mpsc::{TrySendError, UnboundedSender as Sender};
 #[cfg(feature = "serenity")]
 use parking_lot::{lock_api::RwLockWriteGuard, Mutex as PMutex, RwLock as PRwLock};
 #[cfg(feature = "serenity")]
-use serde_json::json;
-#[cfg(feature = "serenity")]
 use serenity::gateway::ShardRunnerMessage;
 #[cfg(feature = "serenity")]
 use std::result::Result as StdResult;
@@ -87,7 +85,7 @@ impl Sharder {
         match self {
             #[cfg(feature = "serenity")]
             Sharder::Serenity(s) => Some(Shard::Serenity(
-                s.get_or_insert_shard_handle(shard_id as u32),
+                s.get_or_insert_shard_handle(shard_id as u16),
             )),
             #[cfg(feature = "twilight")]
             Sharder::Twilight(t) => Some(Shard::Twilight(t.clone(), shard_id as u32)),
@@ -99,7 +97,7 @@ impl Sharder {
 #[cfg(feature = "serenity")]
 impl Sharder {
     #[allow(unreachable_patterns)]
-    pub(crate) fn register_shard_handle(&self, shard_id: u32, sender: Sender<ShardRunnerMessage>) {
+    pub(crate) fn register_shard_handle(&self, shard_id: u16, sender: Sender<ShardRunnerMessage>) {
         if let Sharder::Serenity(s) = self {
             s.register_shard_handle(shard_id, sender);
         } else {
@@ -108,7 +106,7 @@ impl Sharder {
     }
 
     #[allow(unreachable_patterns)]
-    pub(crate) fn deregister_shard_handle(&self, shard_id: u32) {
+    pub(crate) fn deregister_shard_handle(&self, shard_id: u16) {
         if let Sharder::Serenity(s) = self {
             s.deregister_shard_handle(shard_id);
         } else {
@@ -123,22 +121,22 @@ impl Sharder {
 ///
 /// This is updated and maintained by the library, and is designed to prevent
 /// message loss during rebalances and reconnects.
-pub struct SerenitySharder(DashMap<u32, Arc<SerenityShardHandle>>);
+pub struct SerenitySharder(DashMap<u16, Arc<SerenityShardHandle>>);
 
 #[cfg(feature = "serenity")]
 impl SerenitySharder {
-    fn get_or_insert_shard_handle(&self, shard_id: u32) -> Arc<SerenityShardHandle> {
+    fn get_or_insert_shard_handle(&self, shard_id: u16) -> Arc<SerenityShardHandle> {
         self.0.entry(shard_id).or_default().clone()
     }
 
-    fn register_shard_handle(&self, shard_id: u32, sender: Sender<ShardRunnerMessage>) {
+    fn register_shard_handle(&self, shard_id: u16, sender: Sender<ShardRunnerMessage>) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 
         handle.register(sender);
     }
 
-    fn deregister_shard_handle(&self, shard_id: u32) {
+    fn deregister_shard_handle(&self, shard_id: u16) {
         // Write locks are only used to add new entries to the map.
         let handle = self.get_or_insert_shard_handle(shard_id);
 
@@ -173,23 +171,24 @@ impl VoiceUpdate for Shard {
         match self {
             #[cfg(feature = "serenity")]
             Shard::Serenity(handle) => {
-                let map = json!({
-                    "op": 4,
-                    "d": {
-                        "channel_id": channel_id.map(|c| c.0),
-                        "guild_id": guild_id.0,
-                        "self_deaf": self_deaf,
-                        "self_mute": self_mute,
-                    }
-                });
-
-                handle.send(ShardRunnerMessage::Message(map.to_string().into()))?;
+                handle.send(ShardRunnerMessage::UpdateVoiceState {
+                    guild_id: guild_id.get().into(),
+                    channel_id: channel_id
+                        .map(ChannelId::get)
+                        .map(serenity::all::ChannelId::from),
+                    self_mute,
+                    self_deaf,
+                })?;
                 Ok(())
             },
             #[cfg(feature = "twilight")]
             Shard::Twilight(map, shard_id) => {
-                let channel_id = channel_id.map(|c| c.0).map(From::from);
-                let cmd = TwilightVoiceState::new(guild_id.0, channel_id, self_deaf, self_mute);
+                let guild_id = guild_id.into_nonzero();
+                let channel_id = channel_id
+                    .map(ChannelId::into_nonzero)
+                    .map(twilight_model::id::Id::from);
+
+                let cmd = TwilightVoiceState::new(guild_id, channel_id, self_deaf, self_mute);
                 let sender = map
                     .get(*shard_id)
                     .ok_or(crate::error::JoinError::NoSender)?;
