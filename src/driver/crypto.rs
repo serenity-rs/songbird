@@ -1,8 +1,8 @@
 //! Encryption schemes supported by Discord's secure RTP negotiation.
 #[cfg(any(feature = "receive", test))]
 use super::tasks::error::Error as InternalError;
-use aead::AeadCore;
-use aes_gcm::{AeadInPlace, Aes256Gcm, Error as CryptoError};
+use aead::{AeadCore, AeadInOut};
+use aes_gcm::{Aes256Gcm, Error as CryptoError};
 use byteorder::{NetworkEndian, WriteBytesExt};
 use chacha20poly1305::XChaCha20Poly1305;
 use crypto_common::{InvalidLength, KeyInit};
@@ -372,14 +372,14 @@ impl Cipher {
                 let mut nonce = aes_gcm::Nonce::default();
                 nonce[..mode.nonce_size()].copy_from_slice(slice_to_use);
 
-                let tag = aes_gcm.encrypt_in_place_detached(&nonce, header, body)?;
+                let tag = aes_gcm.encrypt_inout_detached(&nonce, header, body.into())?;
                 post_payload[..tag_size].copy_from_slice(&tag[..]);
             },
             Self::XChaCha20Poly1305(cha_cha_poly1305) => {
                 let mut nonce = chacha20poly1305::XNonce::default();
                 nonce[..mode.nonce_size()].copy_from_slice(slice_to_use);
 
-                let tag = cha_cha_poly1305.encrypt_in_place_detached(&nonce, header, body)?;
+                let tag = cha_cha_poly1305.encrypt_inout_detached(&nonce, header, body.into())?;
                 post_payload[..tag_size].copy_from_slice(&tag[..]);
             },
         }
@@ -476,15 +476,19 @@ impl Cipher {
                 let mut nonce = aes_gcm::Nonce::default();
                 nonce[..mode.nonce_size()].copy_from_slice(slice_to_use);
 
-                let tag = aes_gcm::Tag::from_slice(&post_payload[..tag_size]);
-                aes_gcm.decrypt_in_place_detached(&nonce, plaintext, body, tag)?;
+                let tag: &aes_gcm::Tag = post_payload[..tag_size]
+                    .try_into()
+                    .expect("slice length mismatch");
+                aes_gcm.decrypt_inout_detached(&nonce, plaintext, body.into(), tag)?;
             },
             Self::XChaCha20Poly1305(cha_cha_poly1305) => {
                 let mut nonce = chacha20poly1305::XNonce::default();
                 nonce[..mode.nonce_size()].copy_from_slice(slice_to_use);
 
-                let tag = chacha20poly1305::Tag::from_slice(&post_payload[..tag_size]);
-                cha_cha_poly1305.decrypt_in_place_detached(&nonce, plaintext, body, tag)?;
+                let tag: &chacha20poly1305::Tag = post_payload[..tag_size]
+                    .try_into()
+                    .expect("slice length mismatch");
+                cha_cha_poly1305.decrypt_inout_detached(&nonce, plaintext, body.into(), tag)?;
             },
         }
 
