@@ -2,7 +2,12 @@ use crate::{constants::*, driver::tasks::mixer::mix_logic, input::Parsed};
 use symphonia::core::audio::AudioMut;
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use rubato::{FftFixedOut, Resampler};
+use rubato::{
+    audioadapter_buffers::direct::{SequentialSliceOfSlices, SequentialSliceOfVecs},
+    Fft,
+    FixedSync,
+    Resampler,
+};
 use std::{
     io::{ErrorKind as IoErrorKind, Read, Result as IoResult, Seek, Write},
     mem,
@@ -44,7 +49,7 @@ struct ResampleState {
     /// Used to hold outputs from resampling, *ready to be used*.
     resampled_data: Vec<Vec<f32>>,
     /// The actual resampler.
-    resampler: FftFixedOut<f32>,
+    resampler: Fft<f32>,
     /// Used to hold inputs to resampler across packet boundaries.
     scratch: AudioBuffer<f32>,
     /// The range of floats in `resampled_data` which have not yet
@@ -76,17 +81,17 @@ impl ToAudioBytes {
             let scratch = AudioBuffer::<f32>::new(spec, MONO_FRAME_SIZE);
 
             // TODO: integ. error handling here.
-            let resampler = FftFixedOut::new(
+            let resampler = Fft::new(
                 sample_rate as usize,
                 SAMPLE_RATE_RAW,
                 RESAMPLE_OUTPUT_FRAME_SIZE,
-                4,
                 chan_count,
+                FixedSync::Output,
             )
             .expect("Failed to create resampler.");
 
-            let resampled_data = resampler.output_buffer_allocate(true);
-
+            let max_len = resampler.output_frames_max();
+            let resampled_data = vec![vec![0.0; max_len]; chan_count];
             ResampleState {
                 resampled_data,
                 resampler,
@@ -203,12 +208,17 @@ impl Read for ToAudioBytes {
                         }
 
                         // Luckily, we make use of the WHOLE input buffer here.
+                        let buffer = resample.scratch.iter_planes().collect::<Vec<_>>();
+
+                        let input =
+                            SequentialSliceOfSlices::new(&buffer, num_chans, in_len).unwrap();
+
+                        let output_len = data.first().map_or(0, Vec::len);
+                        let mut output =
+                            SequentialSliceOfVecs::new_mut(data, num_chans, output_len).unwrap();
+
                         resampler
-                            .process_into_buffer(
-                                &resample.scratch.iter_planes().collect::<Vec<_>>(),
-                                data,
-                                None,
-                            )
+                            .process_into_buffer(&input, &mut output, None)
                             .unwrap();
 
                         // Calculate true end position using sample rate math
@@ -255,9 +265,21 @@ impl Read for ToAudioBytes {
 
                         self.inner_pos.start += needed_in_frames;
 
+                        let input =
+                            SequentialSliceOfSlices::new(&refs, num_chans, needed_in_frames)
+                                .unwrap();
+
+                        let output_len = resample.resampled_data.first().map_or(0, Vec::len);
+                        let mut output = SequentialSliceOfVecs::new_mut(
+                            &mut resample.resampled_data,
+                            num_chans,
+                            output_len,
+                        )
+                        .unwrap();
+
                         resample
                             .resampler
-                            .process_into_buffer(&refs, &mut resample.resampled_data, None)
+                            .process_into_buffer(&input, &mut output, None)
                             .unwrap();
                     } else {
                         unreachable!()
@@ -282,14 +304,25 @@ impl Read for ToAudioBytes {
                     self.inner_pos.start += frames_to_take;
 
                     if resample.scratch.frames() == needed_in_frames {
+                        let buffer = resample.scratch.iter_planes().collect::<Vec<_>>();
+
+                        let input_len = buffer.first().map_or(0, |s| s.len());
+                        let input =
+                            SequentialSliceOfSlices::new(&buffer, num_chans, input_len).unwrap();
+
+                        let output_len = resample.resampled_data.first().map_or(0, Vec::len);
+                        let mut output = SequentialSliceOfVecs::new_mut(
+                            &mut resample.resampled_data,
+                            num_chans,
+                            output_len,
+                        )
+                        .unwrap();
+
                         resample
                             .resampler
-                            .process_into_buffer(
-                                &resample.scratch.iter_planes().collect::<Vec<_>>(),
-                                &mut resample.resampled_data,
-                                None,
-                            )
+                            .process_into_buffer(&input, &mut output, None)
                             .unwrap();
+
                         resample.scratch.clear();
                     } else {
                         continue;

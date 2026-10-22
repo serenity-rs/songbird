@@ -32,7 +32,7 @@ use discortp::{
 use flume::{Receiver, SendError, Sender, TryRecvError};
 use opus2::{Application as CodingMode, Bitrate, Encoder as OpusEncoder, SoftClip};
 use rand::random;
-use rubato::{FftFixedOut, Resampler};
+use rubato::Resampler;
 use std::{
     io::Write,
     result::Result as StdResult,

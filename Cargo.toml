@@ -41,7 +41,7 @@ reqwest = { default-features = false, features = [
     "stream",
 ], optional = true, version = "0.13" }
 ringbuf = { optional = true, version = "0.5" }
-rubato = { optional = true, version = "0.16" }
+rubato = { optional = true, version = "5" }
 rusty_pool = { optional = true, version = "0.7" }
 serde = { version = "1", features = ["derive"] }
 serde-aux = { optional = true, version = "4" }

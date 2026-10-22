@@ -1,3 +1,8 @@
+use rubato::{
+    audioadapter_buffers::direct::{SequentialSliceOfSlices, SequentialSliceOfVecs},
+    Fft,
+    FixedSync,
+};
 use symphonia::core::{
     audio::{conv::IntoSample, sample::Sample, Audio, AudioMut, GenericAudioBufferRef},
     codecs::audio::well_known::CODEC_ID_OPUS,
@@ -114,7 +119,8 @@ pub fn mix_symph_indiv(
         if source_packet.is_none() {
             if resample_in_progress {
                 // fill up remainder of buf with zeroes, resample, mix
-                let (chan_c, resampler, rs_out_buf) = local_state.resampler.as_mut().unwrap();
+                let (chan_c, resampler, ref mut rs_out_buf) =
+                    local_state.resampler.as_mut().unwrap();
                 let in_len = resample_scratch.frames();
                 let to_render = resampler.input_frames_next().saturating_sub(in_len);
 
@@ -128,15 +134,20 @@ pub fn mix_symph_indiv(
                 }
 
                 // Luckily, we make use of the WHOLE input buffer here.
+                let buffer = &resample_scratch
+                    .iter_planes()
+                    .take(*chan_c)
+                    .collect::<Vec<_>>();
+
+                let input_len = buffer.first().map_or(0, |s| s.len());
+                let input = SequentialSliceOfSlices::new(buffer, *chan_c, input_len).unwrap();
+
+                let output_len = rs_out_buf.first().map_or(0, Vec::len);
+                let mut output =
+                    SequentialSliceOfVecs::new_mut(rs_out_buf, *chan_c, output_len).unwrap();
+
                 resampler
-                    .process_into_buffer(
-                        &resample_scratch
-                            .iter_planes()
-                            .take(*chan_c)
-                            .collect::<Vec<_>>(),
-                        rs_out_buf,
-                        None,
-                    )
+                    .process_into_buffer(&input, &mut output, None)
                     .unwrap();
 
                 // Calculate true end position using sample rate math
@@ -177,20 +188,23 @@ pub fn mix_symph_indiv(
         } else {
             // NOTE: this should NEVER change in one stream.
             let chan_c = source_packet.spec().channels().count();
-            let (_, resampler, rs_out_buf) = local_state.resampler.get_or_insert_with(|| {
-                // TODO: integ. error handling here.
-                let resampler = FftFixedOut::new(
-                    in_rate as usize,
-                    SAMPLE_RATE_RAW,
-                    RESAMPLE_OUTPUT_FRAME_SIZE,
-                    4,
-                    chan_c,
-                )
-                .expect("Failed to create resampler.");
-                let out_buf = resampler.output_buffer_allocate(true);
+            let (_, resampler, ref mut rs_out_buf) =
+                local_state.resampler.get_or_insert_with(|| {
+                    // TODO: integ. error handling here.
+                    let resampler = Fft::new(
+                        in_rate as usize,
+                        SAMPLE_RATE_RAW,
+                        RESAMPLE_OUTPUT_FRAME_SIZE,
+                        chan_c,
+                        FixedSync::Output,
+                    )
+                    .expect("Failed to create resampler.");
 
-                (chan_c, resampler, out_buf)
-            });
+                    let max_len = resampler.output_frames_max();
+                    let out_buf = vec![vec![0.0; max_len]; chan_c];
+
+                    (chan_c, resampler, out_buf)
+                });
 
             let inner_pos = local_state.inner_pos;
 
@@ -214,8 +228,15 @@ pub fn mix_symph_indiv(
                     local_state.inner_pos += needed_in_frames;
                     local_state.inner_pos %= pkt_frames;
 
+                    let input =
+                        SequentialSliceOfSlices::new(&refs, chan_c, needed_in_frames).unwrap();
+
+                    let output_len = rs_out_buf.first().map_or(0, Vec::len);
+                    let mut output =
+                        SequentialSliceOfVecs::new_mut(rs_out_buf, chan_c, output_len).unwrap();
+
                     resampler
-                        .process_into_buffer(&refs, rs_out_buf, None)
+                        .process_into_buffer(&input, &mut output, None)
                         .unwrap();
                 } else {
                     unreachable!()
@@ -240,16 +261,23 @@ pub fn mix_symph_indiv(
                 local_state.inner_pos %= pkt_frames;
 
                 if resample_scratch.frames() == needed_in_frames {
+                    let buffer = resample_scratch
+                        .iter_planes()
+                        .take(chan_c)
+                        .collect::<Vec<_>>();
+
+                    let input =
+                        SequentialSliceOfSlices::new(&buffer, chan_c, resample_scratch.frames())
+                            .unwrap();
+
+                    let output_len = rs_out_buf.first().map_or(0, std::vec::Vec::len);
+                    let mut output =
+                        SequentialSliceOfVecs::new_mut(rs_out_buf, chan_c, output_len).unwrap();
+
                     resampler
-                        .process_into_buffer(
-                            &resample_scratch
-                                .iter_planes()
-                                .take(chan_c)
-                                .collect::<Vec<_>>(),
-                            rs_out_buf,
-                            None,
-                        )
+                        .process_into_buffer(&input, &mut output, None)
                         .unwrap();
+
                     resample_scratch.clear();
                     resample_in_progress = false;
                 } else {
