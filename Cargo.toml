@@ -134,7 +134,7 @@ rustls = [
     "reqwest?/rustls",
     "serenity?/rustls_backend",
     "stream_lib?/rustls",
-    "tokio-tungstenite?/rustls-tls-webpki-roots",
+    "tokio-tungstenite?/rustls-tls-native-roots",
     "tokio-websockets?/ring",
     "tokio-websockets?/rustls-native-roots",
     "twilight-gateway?/rustls-native-roots",
