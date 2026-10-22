@@ -11,7 +11,7 @@ name = "songbird"
 readme = "README.md"
 repository = "https://github.com/serenity-rs/songbird.git"
 rust-version = "1.85.0"
-version = "0.6.0"
+version = "0.6.1"
 
 [dependencies]
 aead = { optional = true, version = "0.6" }
@@ -30,7 +30,7 @@ discortp = { default-features = false, features = [
     "pnet",
     "rtp",
 ], optional = true, version = "0.6" }
-either = "1.16"
+either = "1.17"
 flume = { optional = true, version = "0.12" }
 futures = "0.3"
 nohash-hasher = { optional = true, version = "0.2.0" }
@@ -54,9 +54,8 @@ serenity-voice-model = { optional = true, version = "0.3" }
 socket2 = { optional = true, version = "0.6" }
 streamcatcher = { optional = true, version = "1" }
 stream_lib = { default-features = false, optional = true, version = "0.6" }
-symphonia = { default-features = false, optional = true, version = "0.5.2" }
-symphonia-core = { optional = true, version = "0.5.2" }
-tokio = { default-features = false, optional = true, version = "1.0" }
+symphonia = { default-features = false, optional = true, version = "0.6" }
+tokio = { default-features = false, optional = true, version = "1.53" }
 tokio-tungstenite = { optional = true, version = "0.30", features = ["url"] }
 tokio-websockets = { optional = true, version = "0.13", features = [
     "client",
@@ -71,13 +70,13 @@ typenum = { optional = true, version = "1.20" }
 url = { optional = true, version = "2" }
 uuid = { features = ["v4"], optional = true, version = "1" }
 nonmax = "0.5"
-enum-map = "2.7"
+enum-map = "3"
 
 [dev-dependencies]
 byteorder = "1"
 criterion = "0.8"
 ntest = "0.9"
-symphonia = { version = "0.5.2", features = ["aac", "isomp4", "mp3"] }
+symphonia = { version = "0.6", features = ["aac", "isomp4", "mp3"] }
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "test-util"] }
 
 [features]
@@ -117,7 +116,6 @@ driver = [
     "dep:stream_lib",
     "dep:streamcatcher",
     "dep:symphonia",
-    "dep:symphonia-core",
     "dep:tokio",
     "dep:tokio-util",
     "dep:typenum",

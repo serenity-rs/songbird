@@ -31,12 +31,12 @@ use streamcatcher::{
     TransformPosition,
     TxCatcher,
 };
-use symphonia_core::{
+use symphonia::core::{
     audio::Channels as SChannels,
-    codecs::CodecRegistry,
+    codecs::registry::CodecRegistry,
+    formats::probe::Probe,
     io::MediaSource,
-    meta::{MetadataRevision, StandardTagKey, Value},
-    probe::{Probe, ProbedMetadata},
+    meta::{MetadataRevision, StandardTag},
 };
 use tracing::{debug, trace};
 
@@ -159,7 +159,7 @@ impl Compressed {
         // }
 
         let track_info = parsed.decoder.codec_params();
-        let chan_count = track_info.channels.map_or(2, SChannels::count);
+        let chan_count = track_info.channels.as_ref().map_or(2, SChannels::count);
 
         let (channels, stereo) = if chan_count >= 2 {
             (Channels::Stereo, true)
@@ -173,19 +173,13 @@ impl Compressed {
         let codec_type = parsed.decoder.codec_params().codec;
         let encoding = config
             .codec_registry
-            .get_codec(codec_type)
-            .map(|v| v.short_name.to_string());
+            .get_audio_decoder(codec_type)
+            .map(|v| v.codec.info.short_name.to_string());
 
-        let format_meta_hold = parsed.format.metadata();
+        let format_meta_hold = parsed.format_reader.metadata();
         let format_meta = format_meta_hold.current();
 
-        let metadata = create_metadata(
-            &mut parsed.meta,
-            format_meta,
-            &mut encoder,
-            chan_count as u8,
-            encoding,
-        )?;
+        let metadata = create_metadata(format_meta, &mut encoder, chan_count as u8, encoding)?;
         let mut metabytes = b"DCA1\0\0\0\0".to_vec();
         let orig_len = metabytes.len();
         serde_json::to_writer(&mut metabytes, &metadata)?;
@@ -217,7 +211,6 @@ impl Compressed {
 }
 
 fn create_metadata(
-    probe_metadata: &mut ProbedMetadata,
     track_metadata: Option<&MetadataRevision>,
     opus: &mut OpusEncoder,
     channels: u8,
@@ -274,10 +267,6 @@ fn create_metadata(
         comments: None,
     };
 
-    if let Some(meta) = probe_metadata.get() {
-        apply_meta_to_dca(&mut info, &mut origin, meta.current());
-    }
-
     apply_meta_to_dca(&mut info, &mut origin, track_metadata);
 
     Ok(DcaMetadata {
@@ -291,38 +280,31 @@ fn create_metadata(
 
 fn apply_meta_to_dca(info: &mut Info, origin: &mut Origin, src_meta: Option<&MetadataRevision>) {
     if let Some(meta) = src_meta {
-        for tag in meta.tags() {
-            match tag.std_key {
-                Some(StandardTagKey::Album) =>
-                    if let Value::String(s) = &tag.value {
-                        info.album = Some(s.clone());
-                    },
-                Some(StandardTagKey::Artist) =>
-                    if let Value::String(s) = &tag.value {
-                        info.artist = Some(s.clone());
-                    },
-                Some(StandardTagKey::Comment) =>
-                    if let Value::String(s) = &tag.value {
-                        info.comments = Some(s.clone());
-                    },
-                Some(StandardTagKey::Genre) =>
-                    if let Value::String(s) = &tag.value {
-                        info.genre = Some(s.clone());
-                    },
-                Some(StandardTagKey::TrackTitle) =>
-                    if let Value::String(s) = &tag.value {
-                        info.title = Some(s.clone());
-                    },
-                Some(StandardTagKey::Url | StandardTagKey::UrlSource) => {
-                    if let Value::String(s) = &tag.value {
-                        origin.url = Some(s.clone());
-                    }
+        for tag in &meta.media.tags {
+            match &tag.std {
+                Some(StandardTag::Album(value)) => {
+                    info.album = Some(String::clone(value));
+                },
+                Some(StandardTag::Artist(value)) => {
+                    info.artist = Some(String::clone(value));
+                },
+                Some(StandardTag::Comment(value)) => {
+                    info.comments = Some(String::clone(value));
+                },
+                Some(StandardTag::Genre(value)) => {
+                    info.genre = Some(String::clone(value));
+                },
+                Some(StandardTag::TrackTitle(value)) => {
+                    info.title = Some(String::clone(value));
+                },
+                Some(StandardTag::Url(value) | StandardTag::UrlSource(value)) => {
+                    origin.url = Some(String::clone(value));
                 },
                 _ => {},
             }
         }
 
-        for _visual in meta.visuals() {
+        for _visual in &meta.media.visuals {
             // FIXME: will require MIME type inspection and Base64 conversion.
         }
     }

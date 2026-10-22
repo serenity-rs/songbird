@@ -1,4 +1,5 @@
 use crate::{constants::*, driver::tasks::mixer::mix_logic, input::Parsed};
+use symphonia::core::audio::AudioMut;
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use rubato::{FftFixedOut, Resampler};
@@ -7,11 +8,17 @@ use std::{
     mem,
     ops::Range,
 };
-use symphonia_core::{
-    audio::{AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec},
-    conv::IntoSample,
+use symphonia::core::{
+    audio::{
+        conv::IntoSample,
+        layouts::CHANNEL_LAYOUT_STEREO,
+        sample::Sample,
+        Audio,
+        AudioBuffer,
+        AudioSpec,
+        GenericAudioBufferRef,
+    },
     io::MediaSource,
-    sample::Sample,
 };
 
 const SAMPLE_LEN: usize = mem::size_of::<f32>();
@@ -49,18 +56,10 @@ impl ToAudioBytes {
     pub fn new(parsed: Parsed, chan_limit: Option<usize>) -> Self {
         let track_info = parsed.decoder.codec_params();
         let sample_rate = track_info.sample_rate.unwrap_or(SAMPLE_RATE_RAW as u32);
-        let maybe_layout = track_info.channel_layout;
-        let maybe_chans = track_info.channels;
+        let maybe_chans = &track_info.channels;
 
         let chan_count = if let Some(chans) = maybe_chans {
             chans.count()
-        } else if let Some(layout) = maybe_layout {
-            match layout {
-                Layout::Mono => 1,
-                Layout::Stereo => 2,
-                Layout::TwoPointOne => 3,
-                Layout::FivePointOne => 6,
-            }
         } else {
             2
         };
@@ -69,14 +68,12 @@ impl ToAudioBytes {
 
         let resample = (sample_rate != SAMPLE_RATE_RAW as u32).then(|| {
             let spec = if let Some(chans) = maybe_chans {
-                SignalSpec::new(SAMPLE_RATE_RAW as u32, chans)
-            } else if let Some(layout) = maybe_layout {
-                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, layout)
+                AudioSpec::new(SAMPLE_RATE_RAW as u32, chans.clone())
             } else {
-                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo)
+                AudioSpec::new(SAMPLE_RATE_RAW as u32, CHANNEL_LAYOUT_STEREO)
             };
 
-            let scratch = AudioBuffer::<f32>::new(MONO_FRAME_SIZE as u64, spec);
+            let scratch = AudioBuffer::<f32>::new(spec, MONO_FRAME_SIZE);
 
             // TODO: integ. error handling here.
             let resampler = FftFixedOut::new(
@@ -169,8 +166,8 @@ impl Read for ToAudioBytes {
             // Now work with new packets.
             let source_packet = if !self.inner_pos.is_empty() {
                 Some(self.parsed.decoder.last_decoded())
-            } else if let Ok(pkt) = self.parsed.format.next_packet() {
-                if pkt.track_id() != self.parsed.track_id {
+            } else if let Ok(Some(pkt)) = self.parsed.format_reader.next_packet() {
+                if pkt.track_id != self.parsed.track_id {
                     continue;
                 }
 
@@ -197,8 +194,8 @@ impl Read for ToAudioBytes {
                         let to_render = resampler.input_frames_next().saturating_sub(in_len);
 
                         if to_render != 0 {
-                            resample.scratch.render_reserved(Some(to_render));
-                            for plane in resample.scratch.planes_mut().planes() {
+                            resample.scratch.render_uninit(Some(to_render));
+                            for plane in resample.scratch.iter_planes_mut() {
                                 for val in &mut plane[in_len..] {
                                     *val = 0.0f32;
                                 }
@@ -207,7 +204,11 @@ impl Read for ToAudioBytes {
 
                         // Luckily, we make use of the WHOLE input buffer here.
                         resampler
-                            .process_into_buffer(resample.scratch.planes().planes(), data, None)
+                            .process_into_buffer(
+                                &resample.scratch.iter_planes().collect::<Vec<_>>(),
+                                data,
+                                None,
+                            )
                             .unwrap();
 
                         // Calculate true end position using sample rate math
@@ -241,16 +242,14 @@ impl Read for ToAudioBytes {
                 let force_copy =
                     resample.scratch.frames() != 0 || needed_in_frames > available_frames;
 
-                if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
+                if (!force_copy) && matches!(source_packet, GenericAudioBufferRef::F32(_)) {
                     // This is the only case where we can pull off a straight resample...
                     // I.e., skip scratch.
 
                     // NOTE: if let needed as if-let && {bool} is nightly only.
-                    if let AudioBufferRef::F32(s_pkt) = source_packet {
+                    if let GenericAudioBufferRef::F32(s_pkt) = source_packet {
                         let refs: Vec<&[f32]> = s_pkt
-                            .planes()
-                            .planes()
-                            .iter()
+                            .iter_planes()
                             .map(|s| &s[self.inner_pos.start..][..needed_in_frames])
                             .collect();
 
@@ -271,7 +270,7 @@ impl Read for ToAudioBytes {
                     let missing_frames = needed_in_frames - old_scratch_len;
                     let frames_to_take = available_frames.min(missing_frames);
 
-                    resample.scratch.render_reserved(Some(frames_to_take));
+                    resample.scratch.render_uninit(Some(frames_to_take));
                     mix_logic::copy_into_resampler(
                         &source_packet,
                         &mut resample.scratch,
@@ -286,7 +285,7 @@ impl Read for ToAudioBytes {
                         resample
                             .resampler
                             .process_into_buffer(
-                                resample.scratch.planes().planes(),
+                                &resample.scratch.iter_planes().collect::<Vec<_>>(),
                                 &mut resample.resampled_data,
                                 None,
                             )
@@ -335,7 +334,7 @@ impl MediaSource for ToAudioBytes {
 
 #[inline]
 fn write_out(
-    source: &AudioBufferRef<'_>,
+    source: &GenericAudioBufferRef<'_>,
     target: &mut [u8],
     source_pos: &mut Range<usize>,
     spillover: &mut Vec<f32>,
@@ -343,25 +342,25 @@ fn write_out(
     num_chans: usize,
 ) -> usize {
     match source {
-        AudioBufferRef::U8(v) =>
+        GenericAudioBufferRef::U8(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::U16(v) =>
+        GenericAudioBufferRef::U16(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::U24(v) =>
+        GenericAudioBufferRef::U24(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::U32(v) =>
+        GenericAudioBufferRef::U32(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::S8(v) =>
+        GenericAudioBufferRef::S8(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::S16(v) =>
+        GenericAudioBufferRef::S16(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::S24(v) =>
+        GenericAudioBufferRef::S24(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::S32(v) =>
+        GenericAudioBufferRef::S32(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::F32(v) =>
+        GenericAudioBufferRef::F32(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
-        AudioBufferRef::F64(v) =>
+        GenericAudioBufferRef::F64(v) =>
             write_symph_buffer(v, target, source_pos, spillover, spill_range, num_chans),
     }
 }
@@ -394,7 +393,7 @@ where
         *spill_range = 0..num_chans * SAMPLE_LEN;
     }
 
-    for (i, plane) in source.planes().planes()[..num_chans].iter().enumerate() {
+    for (i, plane) in source.iter_planes().take(num_chans).enumerate() {
         for (j, sample) in plane[source_pos.start..][..to_write].iter().enumerate() {
             // write this into the correct slot of buf.
             let addr = ((j * num_chans) + i) * SAMPLE_LEN;

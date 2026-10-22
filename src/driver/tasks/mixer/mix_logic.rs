@@ -1,3 +1,8 @@
+use symphonia::core::{
+    audio::{conv::IntoSample, sample::Sample, Audio, AudioMut, GenericAudioBufferRef},
+    codecs::audio::well_known::CODEC_ID_OPUS,
+};
+
 use super::*;
 
 /// Mix a track's audio stream into either the shared mixing buffer, or directly into the output
@@ -59,15 +64,15 @@ pub fn mix_symph_indiv(
         // fetch a packet: either in progress, passthrough (early exit), or
         let source_packet = if local_state.inner_pos != 0 {
             Some(input.decoder.last_decoded())
-        } else if let Ok(pkt) = input.format.next_packet() {
-            if pkt.track_id() != input.track_id {
+        } else if let Ok(Some(pkt)) = input.format_reader.next_packet() {
+            if pkt.track_id != input.track_id {
                 continue;
             }
 
-            let buf = pkt.buf();
+            let buf = &pkt.data;
 
             // Opus packet passthrough special case.
-            if codec_type == CODEC_TYPE_OPUS && local_state.passthrough != Passthrough::Block {
+            if codec_type == CODEC_ID_OPUS && local_state.passthrough != Passthrough::Block {
                 if let Some(slot) = opus_slot.as_mut() {
                     let sample_ct = if buf.is_empty() || buf.len() > i32::MAX as usize {
                         None
@@ -114,8 +119,8 @@ pub fn mix_symph_indiv(
                 let to_render = resampler.input_frames_next().saturating_sub(in_len);
 
                 if to_render != 0 {
-                    resample_scratch.render_reserved(Some(to_render));
-                    for plane in resample_scratch.planes_mut().planes() {
+                    resample_scratch.render_uninit(Some(to_render));
+                    for plane in resample_scratch.iter_planes_mut() {
                         for val in &mut plane[in_len..] {
                             *val = 0.0f32;
                         }
@@ -125,7 +130,10 @@ pub fn mix_symph_indiv(
                 // Luckily, we make use of the WHOLE input buffer here.
                 resampler
                     .process_into_buffer(
-                        &resample_scratch.planes().planes()[..*chan_c],
+                        &resample_scratch
+                            .iter_planes()
+                            .take(*chan_c)
+                            .collect::<Vec<_>>(),
                         rs_out_buf,
                         None,
                     )
@@ -145,7 +153,7 @@ pub fn mix_symph_indiv(
 
         let source_packet = source_packet.unwrap();
 
-        let in_rate = source_packet.spec().rate;
+        let in_rate = source_packet.spec().rate();
         let pkt_frames = source_packet.frames();
 
         if pkt_frames == 0 {
@@ -168,7 +176,7 @@ pub fn mix_symph_indiv(
             local_state.inner_pos %= pkt_frames;
         } else {
             // NOTE: this should NEVER change in one stream.
-            let chan_c = source_packet.spec().channels.count();
+            let chan_c = source_packet.spec().channels().count();
             let (_, resampler, rs_out_buf) = local_state.resampler.get_or_insert_with(|| {
                 // TODO: integ. error handling here.
                 let resampler = FftFixedOut::new(
@@ -190,18 +198,16 @@ pub fn mix_symph_indiv(
             let available_frames = pkt_frames - inner_pos;
 
             let force_copy = resample_in_progress || needed_in_frames > available_frames;
-            if (!force_copy) && matches!(source_packet, AudioBufferRef::F32(_)) {
+            if (!force_copy) && matches!(source_packet, GenericAudioBufferRef::F32(_)) {
                 // This is the only case where we can pull off a straight resample...
                 // I would really like if this could be a slice of slices,
                 // but the technology just isn't there yet. And I don't feel like
                 // writing unsafe transformations to do so.
 
                 // NOTE: if let needed as if-let && {bool} is nightly only.
-                if let AudioBufferRef::F32(s_pkt) = source_packet {
+                if let GenericAudioBufferRef::F32(s_pkt) = source_packet {
                     let refs: Vec<&[f32]> = s_pkt
-                        .planes()
-                        .planes()
-                        .iter()
+                        .iter_planes()
                         .map(|s| &s[inner_pos..][..needed_in_frames])
                         .collect();
 
@@ -221,7 +227,7 @@ pub fn mix_symph_indiv(
                 let missing_frames = needed_in_frames - old_scratch_len;
                 let frames_to_take = available_frames.min(missing_frames);
 
-                resample_scratch.render_reserved(Some(frames_to_take));
+                resample_scratch.render_uninit(Some(frames_to_take));
                 copy_into_resampler(
                     &source_packet,
                     resample_scratch,
@@ -236,7 +242,10 @@ pub fn mix_symph_indiv(
                 if resample_scratch.frames() == needed_in_frames {
                     resampler
                         .process_into_buffer(
-                            &resample_scratch.planes().planes()[..chan_c],
+                            &resample_scratch
+                                .iter_planes()
+                                .take(chan_c)
+                                .collect::<Vec<_>>(),
                             rs_out_buf,
                             None,
                         )
@@ -261,23 +270,23 @@ pub fn mix_symph_indiv(
 
 #[inline]
 fn mix_over_ref(
-    source: &AudioBufferRef<'_>,
+    source: &GenericAudioBufferRef<'_>,
     target: &mut AudioBuffer<f32>,
     source_pos: usize,
     dest_pos: usize,
     volume: f32,
 ) -> usize {
     match source {
-        AudioBufferRef::U8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::U16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::U24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::U32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::S8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::S16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::S24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::S32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::F32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
-        AudioBufferRef::F64(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::U8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::U16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::U24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::U32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::S8(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::S16(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::S24(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::S32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::F32(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
+        GenericAudioBufferRef::F64(v) => mix_symph_buffer(v, target, source_pos, dest_pos, volume),
     }
 }
 
@@ -298,18 +307,15 @@ where
 
     let mix_ct = src_usable.min(tgt_usable);
 
-    let target_chans = target.spec().channels.count();
+    let target_chans = target.spec().channels().count();
     let target_mono = target_chans == 1;
-    let source_chans = source.spec().channels.count();
+    let source_chans = source.spec().channels().count();
     let source_mono = source_chans == 1;
-
-    let source_planes = source.planes();
-    let source_raw_planes = source_planes.planes();
 
     if source_mono {
         // mix this signal into *all* output channels at req'd volume.
-        let source_plane = source_raw_planes[0];
-        for d_plane in &mut (*target.planes_mut().planes()) {
+        let source_plane = source.plane(0).unwrap();
+        for d_plane in target.iter_planes_mut() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane[source_pos..source_pos + mix_ct].iter())
@@ -321,9 +327,9 @@ where
         // mix all signals into the one target channel: reduce aggregate volume
         // by n_channels.
         let vol_adj = 1.0 / (source_chans as f32);
-        let mut t_planes = target.planes_mut();
-        let d_plane = &mut *t_planes.planes()[0];
-        for s_plane in source_raw_planes {
+        let mut t_planes = target.iter_planes_mut();
+        let d_plane = t_planes.next().unwrap();
+        for s_plane in source.iter_planes() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(s_plane[source_pos..source_pos + mix_ct].iter())
@@ -333,10 +339,7 @@ where
         }
     } else {
         // stereo -> stereo: don't change volume, map input -> output channels w/ no duplication
-        for (d_plane, s_plane) in (*target.planes_mut().planes())
-            .iter_mut()
-            .zip(source_raw_planes[..].iter())
-        {
+        for (d_plane, s_plane) in target.iter_planes_mut().zip(source.iter_planes()) {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(s_plane[source_pos..source_pos + mix_ct].iter())
@@ -358,7 +361,7 @@ fn mix_resampled(
 ) -> usize {
     let mix_ct = source[0].len();
 
-    let target_chans = target.spec().channels.count();
+    let target_chans = target.spec().channels().count();
     let target_mono = target_chans == 1;
     let source_chans = source.len();
     let source_mono = source_chans == 1;
@@ -366,7 +369,7 @@ fn mix_resampled(
     // see `mix_symph_buffer` for explanations of stereo<->mono logic.
     if source_mono {
         let source_plane = &source[0];
-        for d_plane in &mut (*target.planes_mut().planes()) {
+        for d_plane in target.iter_planes_mut() {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct]
                 .iter_mut()
                 .zip(source_plane)
@@ -376,18 +379,14 @@ fn mix_resampled(
         }
     } else if target_mono {
         let vol_adj = 1.0 / (source_chans as f32);
-        let mut t_planes = target.planes_mut();
-        let d_plane = &mut *t_planes.planes()[0];
+        let d_plane = target.plane_mut(0).unwrap();
         for s_plane in source {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
                 *d += volume * vol_adj * s;
             }
         }
     } else {
-        for (d_plane, s_plane) in (*target.planes_mut().planes())
-            .iter_mut()
-            .zip(source[..].iter())
-        {
+        for (d_plane, s_plane) in target.iter_planes_mut().zip(source[..].iter()) {
             for (d, s) in d_plane[dest_pos..dest_pos + mix_ct].iter_mut().zip(s_plane) {
                 *d += volume * (*s);
             }
@@ -399,23 +398,23 @@ fn mix_resampled(
 
 #[inline]
 pub(crate) fn copy_into_resampler(
-    source: &AudioBufferRef<'_>,
+    source: &GenericAudioBufferRef<'_>,
     target: &mut AudioBuffer<f32>,
     source_pos: usize,
     dest_pos: usize,
     len: usize,
 ) -> usize {
     match source {
-        AudioBufferRef::U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
-        AudioBufferRef::F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::U8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::U16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::U24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::U32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::S8(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::S16(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::S24(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::S32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::F32(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
+        GenericAudioBufferRef::F64(v) => copy_symph_buffer(v, target, source_pos, dest_pos, len),
     }
 }
 
@@ -430,10 +429,7 @@ fn copy_symph_buffer<S>(
 where
     S: Sample + IntoSample<f32>,
 {
-    for (d_plane, s_plane) in (*target.planes_mut().planes())
-        .iter_mut()
-        .zip(source.planes().planes()[..].iter())
-    {
+    for (d_plane, s_plane) in target.iter_planes_mut().zip(source.iter_planes()) {
         for (d, s) in d_plane[dest_pos..dest_pos + len]
             .iter_mut()
             .zip(s_plane[source_pos..source_pos + len].iter())

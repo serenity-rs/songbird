@@ -1,12 +1,15 @@
 use super::{AudioStream, Metadata, MetadataError, Parsed};
 
-use symphonia_core::{
-    codecs::{CodecRegistry, DecoderOptions},
+use symphonia::core::{
+    codecs::{audio::AudioDecoderOptions, registry::CodecRegistry, CodecParameters},
     errors::Error as SymphError,
-    formats::FormatOptions,
+    formats::{
+        probe::{Hint, Probe},
+        FormatOptions,
+        TrackType,
+    },
     io::{MediaSource, MediaSourceStream, MediaSourceStreamOptions},
     meta::MetadataOptions,
-    probe::{Hint, Probe},
 };
 
 /// An initialised audio source.
@@ -19,7 +22,7 @@ pub enum LiveInput {
     /// An unread, raw file stream.
     Raw(AudioStream<Box<dyn MediaSource>>),
     /// An unread file which has been wrapped with a large read-ahead buffer.
-    Wrapped(AudioStream<MediaSourceStream>),
+    Wrapped(AudioStream<MediaSourceStream<'static>>),
     /// An audio file which has had its headers parsed and decoder state built.
     Parsed(Parsed),
 }
@@ -53,32 +56,38 @@ impl LiveInput {
             let input = w.input;
             let supports_backseek = input.is_seekable();
 
-            let probe_data = probe.format(
+            let format_reader = probe.probe(
                 // Hint is ignored
                 &Hint::new(),
                 input,
-                &FormatOptions::default(),
-                &MetadataOptions::default(),
+                FormatOptions::default(),
+                MetadataOptions::default(),
             )?;
-            let format = probe_data.format;
-            let meta = probe_data.metadata;
 
             // if default track exists, try to make a decoder
             // if that fails, linear scan and take first that succeeds
-            let decoder = format
-                .default_track()
+            let decoder = format_reader
+                .default_track(TrackType::Audio)
                 .and_then(|track| {
-                    codecs
-                        .make(&track.codec_params, &DecoderOptions::default())
-                        .ok()
-                        .map(|d| (d, track.id))
-                })
-                .or_else(|| {
-                    format.tracks().iter().find_map(|track| {
+                    if let Some(CodecParameters::Audio(params)) = &track.codec_params {
                         codecs
-                            .make(&track.codec_params, &DecoderOptions::default())
+                            .make_audio_decoder(params, &AudioDecoderOptions::default())
                             .ok()
                             .map(|d| (d, track.id))
+                    } else {
+                        None
+                    }
+                })
+                .or_else(|| {
+                    format_reader.tracks().iter().find_map(|track| {
+                        if let Some(CodecParameters::Audio(params)) = &track.codec_params {
+                            codecs
+                                .make_audio_decoder(params, &AudioDecoderOptions::default())
+                                .ok()
+                                .map(|d| (d, track.id))
+                        } else {
+                            None
+                        }
                     })
                 });
 
@@ -89,10 +98,9 @@ impl LiveInput {
                 decoder.ok_or(SymphError::DecodeError("no compatible track found"))?;
 
             let p = Parsed {
-                format,
+                format_reader,
                 decoder,
                 track_id,
-                meta,
                 supports_backseek,
             };
 

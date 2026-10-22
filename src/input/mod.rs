@@ -75,10 +75,10 @@ pub use self::{
     sources::*,
 };
 
-pub use symphonia_core as core;
+pub use symphonia::core;
 
 use std::{error::Error, io::Cursor};
-use symphonia_core::{codecs::CodecRegistry, probe::Probe};
+use symphonia::core::{codecs::registry::CodecRegistry, formats::probe::Probe};
 use tokio::runtime::Handle as TokioHandle;
 
 /// An audio source, which can be live or lazily initialised.
@@ -151,7 +151,7 @@ use tokio::runtime::Handle as TokioHandle;
 ///     .expect("WAV support is included, and this file is good!");
 ///
 /// // Symphonia's metadata can be difficult to use: prefer `AuxMetadata` when you can!
-/// use symphonia_core::meta::{StandardTagKey, Value};
+/// use symphonia::core::meta::{StandardTagKey, Value};
 /// let mut metadata = in_memory_input.metadata();
 /// let meta = metadata.as_mut().unwrap();
 /// let mut probed = meta.probe.get().unwrap();

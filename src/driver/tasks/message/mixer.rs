@@ -13,7 +13,7 @@ use std::{
     net::UdpSocket,
     sync::{atomic::AtomicU16, Arc, RwLock},
 };
-use symphonia_core::{errors::Error as SymphoniaError, formats::SeekedTo};
+use symphonia::core::{errors::Error as SymphoniaError, formats::SeekedTo};
 
 pub struct MixerConnection {
     pub cipher: Cipher,

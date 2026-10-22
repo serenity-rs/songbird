@@ -45,6 +45,7 @@ impl From<Input> for InputState {
     }
 }
 
+#[derive(Debug)]
 pub struct PreparingInfo {
     #[allow(dead_code)]
     /// Time this request was fired.

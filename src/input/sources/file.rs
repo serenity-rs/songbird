@@ -1,6 +1,6 @@
 use crate::input::{AudioStream, AudioStreamError, Compose, Input};
 use std::{error::Error, path::Path};
-use symphonia_core::io::MediaSource;
+use symphonia::core::io::MediaSource;
 
 /// A lazily instantiated local file.
 #[derive(Clone, Debug)]

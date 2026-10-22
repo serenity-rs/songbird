@@ -13,7 +13,7 @@ use reqwest::{
     Client,
 };
 use std::{borrow::Cow, error::Error, io::ErrorKind};
-use symphonia_core::io::MediaSource;
+use symphonia::core::io::MediaSource;
 use tokio::process::Command;
 
 use super::HlsRequest;
@@ -263,8 +263,7 @@ impl Compose for YoutubeDl<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::constants::test_data::*;
-    use crate::input::input_tests::*;
+    use crate::{constants::test_data::*, input::input_tests::*};
 
     #[tokio::test]
     #[ntest::timeout(20_000)]

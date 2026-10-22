@@ -1,3 +1,4 @@
+use symphonia::core::audio::AudioMut;
 pub mod mix_logic;
 mod pool;
 mod result;
@@ -38,12 +39,9 @@ use std::{
     sync::{atomic::Ordering, Arc},
     time::{Duration, Instant},
 };
-use symphonia_core::{
-    audio::{AudioBuffer, AudioBufferRef, Layout, SampleBuffer, Signal, SignalSpec},
-    codecs::CODEC_TYPE_OPUS,
-    conv::IntoSample,
+use symphonia::core::{
+    audio::{layouts::CHANNEL_LAYOUT_STEREO, Audio, AudioBuffer, AudioSpec},
     formats::SeekTo,
-    sample::Sample,
     units::Time,
 };
 use tokio::runtime::Handle;
@@ -77,7 +75,7 @@ pub struct Mixer {
     pub tracks: Vec<InternalTrack>,
     track_handles: Vec<TrackHandle>,
 
-    sample_buffer: SampleBuffer<f32>,
+    sample_buffer: Vec<f32>,
     symph_mix: AudioBuffer<f32>,
     resample_scratch: AudioBuffer<f32>,
 
@@ -120,23 +118,14 @@ impl Mixer {
         let disposer = config.disposer.clone().unwrap_or_default();
         let config = config.into();
 
-        let sample_buffer = SampleBuffer::<f32>::new(
-            MONO_FRAME_SIZE as u64,
-            symphonia_core::audio::SignalSpec::new_with_layout(
-                SAMPLE_RATE_RAW as u32,
-                symph_layout,
-            ),
-        );
         let symph_mix = AudioBuffer::<f32>::new(
-            MONO_FRAME_SIZE as u64,
-            symphonia_core::audio::SignalSpec::new_with_layout(
-                SAMPLE_RATE_RAW as u32,
-                symph_layout,
-            ),
+            symphonia::core::audio::AudioSpec::new(SAMPLE_RATE_RAW as u32, symph_layout),
+            MONO_FRAME_SIZE,
         );
+        let sample_buffer = vec![0.0; MONO_FRAME_SIZE * symph_mix.spec().channels().count()];
         let resample_scratch = AudioBuffer::<f32>::new(
-            MONO_FRAME_SIZE as u64,
-            SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
+            AudioSpec::new(SAMPLE_RATE_RAW as u32, CHANNEL_LAYOUT_STEREO),
+            MONO_FRAME_SIZE,
         );
 
         let deadline = Instant::now();
@@ -300,14 +289,12 @@ impl Mixer {
                     }
 
                     let sl = new_config.mix_mode.symph_layout();
-                    self.sample_buffer = SampleBuffer::<f32>::new(
-                        MONO_FRAME_SIZE as u64,
-                        SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, sl),
-                    );
                     self.symph_mix = AudioBuffer::<f32>::new(
-                        MONO_FRAME_SIZE as u64,
-                        SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, sl),
+                        AudioSpec::new(SAMPLE_RATE_RAW as u32, sl),
+                        MONO_FRAME_SIZE,
                     );
+                    self.sample_buffer =
+                        vec![0.0; MONO_FRAME_SIZE * self.symph_mix.spec().channels().count()];
                 }
 
                 self.config = Arc::new(
@@ -519,9 +506,9 @@ impl Mixer {
     #[inline]
     pub fn mix_and_build_packet(&mut self, packet: &mut [u8]) -> Result<usize> {
         // symph_mix is an `AudioBuffer` (planar format), we need to convert this
-        // later into an interleaved `SampleBuffer` for libopus.
+        // later into an interleaved `AudioBuffer` for libopus.
         self.symph_mix.clear();
-        self.symph_mix.render_reserved(Some(MONO_FRAME_SIZE));
+        self.symph_mix.render_uninit(Some(MONO_FRAME_SIZE));
         self.resample_scratch.clear();
 
         // Walk over all the audio files, combining into one audio frame according
@@ -529,7 +516,9 @@ impl Mixer {
         let mut mix_len = {
             let out = self.mix_tracks(packet);
 
-            self.sample_buffer.copy_interleaved_typed(&self.symph_mix);
+            // TODO: Is this correct? This was `copy_interleaved_typed` before
+            self.symph_mix
+                .copy_to_slice_interleaved(&mut self.sample_buffer);
 
             out
         };
@@ -564,10 +553,8 @@ impl Mixer {
 
             if let MixType::MixedPcm(n) = mix_len {
                 if self.config.use_softclip {
-                    self.soft_clip.apply(
-                        &mut self.sample_buffer.samples_mut()
-                            [..n * self.config.mix_mode.channels()],
-                    );
+                    self.soft_clip
+                        .apply(&mut self.sample_buffer[..n * self.config.mix_mode.channels()]);
                 }
             }
         }
@@ -590,8 +577,7 @@ impl Mixer {
                     OutputMessage::Passthrough(opus_frame)
                 },
                 MixType::MixedPcm(_) => OutputMessage::Mixed(
-                    self.sample_buffer.samples()[..self.config.mix_mode.sample_count_in_frame()]
-                        .to_vec(),
+                    self.sample_buffer[..self.config.mix_mode.sample_count_in_frame()].to_vec(),
                 ),
             };
 
@@ -607,7 +593,7 @@ impl Mixer {
 
         // Zero out all planes of the mix buffer if any audio was written.
         if matches!(mix_len, MixType::MixedPcm(a) if a > 0) {
-            for plane in self.symph_mix.planes_mut().planes() {
+            for plane in self.symph_mix.iter_planes_mut() {
                 plane.fill(0.0);
             }
         }
@@ -617,7 +603,7 @@ impl Mixer {
 
     #[inline]
     fn prep_packet(&mut self, mix_len: MixType, packet: &mut [u8]) -> Result<usize> {
-        let send_buffer = self.sample_buffer.samples();
+        let send_buffer = &self.sample_buffer;
 
         let conn = self
             .conn_active

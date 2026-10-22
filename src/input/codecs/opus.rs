@@ -1,23 +1,40 @@
 use crate::constants::*;
-use opus2::{Channels, Decoder as Opus2Decoder, ErrorCode};
-use symphonia_core::{
-    audio::{AsAudioBufferRef, AudioBuffer, AudioBufferRef, Layout, Signal, SignalSpec},
+use opus2::{Channels as OpusChannels, Decoder as Opus2Decoder, ErrorCode};
+use symphonia::core::{
+    self as symphonia_core,
+    audio::{
+        layouts::CHANNEL_LAYOUT_STEREO,
+        AsGenericAudioBufferRef,
+        AudioBuffer,
+        AudioMut,
+        AudioSpec,
+        GenericAudioBufferRef,
+    },
     codecs::{
-        CodecDescriptor,
-        CodecParameters,
-        Decoder,
-        DecoderOptions,
-        FinalizeResult,
-        CODEC_TYPE_OPUS,
+        audio::{
+            well_known::CODEC_ID_OPUS,
+            AudioCodecParameters,
+            AudioDecoder,
+            AudioDecoderOptions,
+            FinalizeResult,
+        },
+        registry::{RegisterableAudioDecoder, SupportedAudioCodec},
+        CodecInfo,
     },
     errors::{decode_error, Result as SymphResult},
-    formats::Packet,
+    packet::PacketRef,
 };
+
+const OPUS_CODEC_INFO: &[SupportedAudioCodec] = &[symphonia::core::support_audio_codec!(
+    CODEC_ID_OPUS,
+    "opus",
+    "libopus (1.5+, opus2)"
+)];
 
 /// Opus decoder for symphonia, based on libopus v1.5 (via [`opus2`]).
 pub struct OpusDecoder {
     inner: Opus2Decoder,
-    params: CodecParameters,
+    params: AudioCodecParameters,
     buf: AudioBuffer<f32>,
     rawbuf: Vec<f32>,
 }
@@ -32,15 +49,15 @@ pub struct OpusDecoder {
 unsafe impl Sync for OpusDecoder {}
 
 impl OpusDecoder {
-    fn decode_inner(&mut self, packet: &Packet) -> SymphResult<()> {
+    fn decode_inner(&mut self, packet: &PacketRef<'_>) -> SymphResult<()> {
         let s_ct = loop {
-            if packet.buf().len() > i32::MAX as usize {
+            if packet.data.len() > i32::MAX as usize {
                 return decode_error("Opus packet was too large (greater than i32::MAX bytes).");
             }
 
             match self
                 .inner
-                .decode_float(packet.buf(), &mut self.rawbuf, false)
+                .decode_float(packet.data, &mut self.rawbuf, false)
             {
                 Ok(v) => break v,
                 Err(e) if e.code() == ErrorCode::BufferTooSmall => {
@@ -53,8 +70,8 @@ impl OpusDecoder {
 
                     self.rawbuf.resize(new_size, 0.0);
                     self.buf = AudioBuffer::new(
-                        self.rawbuf.len() as u64 / 2,
-                        SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
+                        AudioSpec::new(SAMPLE_RATE_RAW as u32, CHANNEL_LAYOUT_STEREO),
+                        self.rawbuf.len() / 2,
                     );
                 },
                 Err(e) => {
@@ -65,12 +82,12 @@ impl OpusDecoder {
         };
 
         self.buf.clear();
-        self.buf.render_reserved(Some(s_ct));
+        self.buf.render_uninit(Some(s_ct));
 
         // Forcibly assuming stereo, for now.
         for ch in 0..2 {
             let iter = self.rawbuf.chunks_exact(2).map(|chunk| chunk[ch]);
-            for (tgt, src) in self.buf.chan_mut(ch).iter_mut().zip(iter) {
+            for (tgt, src) in self.buf.plane_mut(ch).unwrap().iter_mut().zip(iter) {
                 *tgt = src;
             }
         }
@@ -79,42 +96,40 @@ impl OpusDecoder {
     }
 }
 
-impl Decoder for OpusDecoder {
-    fn try_new(params: &CodecParameters, _options: &DecoderOptions) -> SymphResult<Self> {
-        let inner = Opus2Decoder::new(SAMPLE_RATE, Channels::Stereo).unwrap();
+impl OpusDecoder {
+    fn new(params: &AudioCodecParameters) -> Self {
+        let inner = Opus2Decoder::new(SAMPLE_RATE, OpusChannels::Stereo).unwrap();
 
         let mut params = params.clone();
         params.with_sample_rate(SAMPLE_RATE_RAW as u32);
 
-        Ok(Self {
+        Self {
             inner,
             params,
             buf: AudioBuffer::new(
-                MONO_FRAME_SIZE as u64,
-                SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, Layout::Stereo),
+                AudioSpec::new(SAMPLE_RATE_RAW as u32, CHANNEL_LAYOUT_STEREO),
+                MONO_FRAME_SIZE,
             ),
             rawbuf: vec![0.0f32; STEREO_FRAME_SIZE],
-        })
+        }
+    }
+}
+
+impl AudioDecoder for OpusDecoder {
+    fn codec_info(&self) -> &CodecInfo {
+        &OPUS_CODEC_INFO[0].info
     }
 
-    fn supported_codecs() -> &'static [CodecDescriptor] {
-        &[symphonia_core::support_codec!(
-            CODEC_TYPE_OPUS,
-            "opus",
-            "libopus (1.5+, opus2)"
-        )]
-    }
-
-    fn codec_params(&self) -> &CodecParameters {
+    fn codec_params(&self) -> &AudioCodecParameters {
         &self.params
     }
 
-    fn decode(&mut self, packet: &Packet) -> SymphResult<AudioBufferRef<'_>> {
+    fn decode_ref(&mut self, packet: &PacketRef<'_>) -> SymphResult<GenericAudioBufferRef<'_>> {
         if let Err(e) = self.decode_inner(packet) {
             self.buf.clear();
             Err(e)
         } else {
-            Ok(self.buf.as_audio_buffer_ref())
+            Ok(self.buf.as_generic_audio_buffer_ref())
         }
     }
 
@@ -126,8 +141,24 @@ impl Decoder for OpusDecoder {
         FinalizeResult::default()
     }
 
-    fn last_decoded(&self) -> AudioBufferRef<'_> {
-        self.buf.as_audio_buffer_ref()
+    fn last_decoded(&self) -> GenericAudioBufferRef<'_> {
+        self.buf.as_generic_audio_buffer_ref()
+    }
+}
+
+impl RegisterableAudioDecoder for OpusDecoder {
+    fn try_registry_new(
+        params: &AudioCodecParameters,
+        _opts: &AudioDecoderOptions,
+    ) -> SymphResult<Box<dyn AudioDecoder>>
+    where
+        Self: Sized,
+    {
+        Ok(Box::new(OpusDecoder::new(params)))
+    }
+
+    fn supported_codecs() -> &'static [SupportedAudioCodec] {
+        OPUS_CODEC_INFO
     }
 }
 
