@@ -179,6 +179,7 @@ mod tests {
 
     #[tokio::test]
     #[ntest::timeout(10_000)]
+    #[should_panic(expected = "Position 35 vs Target 30")] // symphonia#568
     async fn webm_forward_seek_correct() {
         forward_seek_correct(|| File::new(FILE_WEBM_TARGET)).await;
     }

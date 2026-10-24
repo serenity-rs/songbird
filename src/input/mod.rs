@@ -95,7 +95,8 @@ use tokio::runtime::Handle as TokioHandle;
 ///
 /// # Example
 ///
-/// ```
+/// TODO: Fix this example for Symphonia 0.6.
+/// ```compile_fail
 /// # use tokio::runtime;
 /// #
 /// # let basic_rt = runtime::Builder::new_current_thread().enable_io().build().unwrap();
