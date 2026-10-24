@@ -11,8 +11,7 @@ mod util;
 pub(crate) use self::util::*;
 pub use self::{compressed::*, decompressed::*, error::*, hint::*, memory::*};
 
-use crate::constants::*;
-use crate::input::utils;
+use crate::{constants::*, input::utils};
 use opus2::Bitrate;
 use std::{mem, time::Duration};
 use streamcatcher::{Config as ScConfig, GrowthStrategy};

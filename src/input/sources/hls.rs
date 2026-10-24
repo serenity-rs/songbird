@@ -3,7 +3,7 @@ use bytes::Bytes;
 use futures::StreamExt;
 use reqwest::{header::HeaderMap, Client};
 use stream_lib::Event;
-use symphonia_core::io::MediaSource;
+use symphonia::core::io::MediaSource;
 use tokio_util::io::StreamReader;
 
 use crate::input::{

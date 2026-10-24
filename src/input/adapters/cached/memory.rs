@@ -2,7 +2,7 @@ use super::{default_config, raw_cost_per_sec, Error};
 use crate::input::{AudioStream, Input, LiveInput};
 use std::io::{Read, Result as IoResult, Seek};
 use streamcatcher::{Catcher, Config};
-use symphonia_core::io::MediaSource;
+use symphonia::core::io::MediaSource;
 
 /// A wrapper around an existing [`Input`] which caches its data
 /// in memory.

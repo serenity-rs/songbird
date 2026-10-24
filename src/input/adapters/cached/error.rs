@@ -5,7 +5,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use streamcatcher::CatcherError;
-use symphonia_core::errors::Error as SymphError;
+use symphonia::core::errors::Error as SymphError;
 use tokio::task::JoinError;
 
 /// Errors encountered using a [`Memory`] cached source.

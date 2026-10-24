@@ -3,7 +3,7 @@ use crate::{
     tracks::{PlayError, SeekRequest},
 };
 use std::sync::Arc;
-use symphonia_core::errors::Error as SymphoniaError;
+use symphonia::core::errors::Error as SymphoniaError;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum MixType {

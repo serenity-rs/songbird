@@ -18,7 +18,7 @@ use tokio::io::{AsyncRead, AsyncSeek, ReadBuf};
 use crate::input::{AsyncMediaSource, AudioStreamError};
 
 /// `AsyncReadOnlySource` wraps any source implementing [`tokio::io::AsyncRead`] in an unseekable
-/// [`symphonia_core::io::MediaSource`], similar to [`symphonia_core::io::ReadOnlySource`]
+/// [`symphonia::core::io::MediaSource`], similar to [`symphonia::core::io::ReadOnlySource`]
 #[pin_project]
 pub struct AsyncReadOnlySource {
     #[pin]

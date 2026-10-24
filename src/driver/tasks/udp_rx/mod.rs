@@ -5,10 +5,9 @@ mod ssrc_state;
 use self::{decode_sizes::*, playout_buffer::*, ssrc_state::*};
 
 use super::message::*;
-use crate::driver::{CryptoMode, DecodeMode};
 use crate::{
     constants::*,
-    driver::crypto::Cipher,
+    driver::{crypto::Cipher, CryptoMode, DecodeMode},
     events::{context_data::VoiceTick, internal_data::*, CoreContext},
     Config,
 };
@@ -16,17 +15,18 @@ use bytes::BytesMut;
 use discortp::{
     demux::{self, DemuxedMut},
     rtp::RtpPacket,
+    MutablePacket,
+    Packet,
 };
-use discortp::{MutablePacket, Packet};
 use flume::Receiver;
-use std::sync::{
-    atomic::{AtomicU16, Ordering},
-    RwLock,
-};
 use std::{
     collections::{HashMap, HashSet},
     num::Wrapping,
-    sync::Arc,
+    sync::{
+        atomic::{AtomicU16, Ordering},
+        Arc,
+        RwLock,
+    },
     time::Duration,
 };
 use tokio::{net::UdpSocket, select, time::Instant};
@@ -65,7 +65,7 @@ impl UdpRx {
                     let mut pkt = byte_dest.take().unwrap();
                     pkt.truncate(len);
 
-                    self.process_udp_message(interconnect, pkt).await;
+                    self.process_udp_message(interconnect, pkt);
                 },
                 msg = self.rx.recv_async() => {
                     match msg {
@@ -150,7 +150,7 @@ impl UdpRx {
         }
     }
 
-    async fn process_udp_message(&mut self, interconnect: &Interconnect, mut packet: BytesMut) {
+    fn process_udp_message(&mut self, interconnect: &Interconnect, mut packet: BytesMut) {
         // NOTE: errors here (and in general for UDP) are not fatal to the connection.
         // Panics should be avoided due to adversarial nature of rx'd packets,
         // but correct handling should not prompt a reconnect.
@@ -233,12 +233,14 @@ impl UdpRx {
                                 ));
                                 body[..decrypted_body.len()].copy_from_slice(&decrypted_body);
                             },
-                            Err(davey::errors::DecryptError::NoDecryptorForUser)
-                            | Err(davey::errors::DecryptError::DecryptionFailed(
-                                davey::errors::DecryptorDecryptError::NoValidCryptorFound {
-                                    ..
-                                },
-                            )) => {
+                            Err(
+                                davey::errors::DecryptError::NoDecryptorForUser
+                                | davey::errors::DecryptError::DecryptionFailed(
+                                    davey::errors::DecryptorDecryptError::NoValidCryptorFound {
+                                        ..
+                                    },
+                                ),
+                            ) => {
                                 // Silently drop encrypted packets for users whose ratchets are not configured yet.
                                 return;
                             },

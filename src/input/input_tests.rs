@@ -104,7 +104,10 @@ where
     assert!(state.play_time < Duration::from_secs(5));
     assert!(
         state.position < target_time + Duration::from_millis(100)
-            && state.position > target_time - Duration::from_millis(100)
+            && state.position > target_time - Duration::from_millis(100),
+        "Position {} vs Target {}",
+        state.position.as_secs(),
+        target_time.as_secs()
     );
 }
 

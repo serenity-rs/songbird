@@ -26,8 +26,12 @@ use error::{Error, Result};
 use flume::Sender;
 use serenity_voice_model::payload::DaveMlsKeyPackage;
 use socket2::Socket;
-use std::sync::{atomic::AtomicU16, Arc, RwLock};
-use std::{net::IpAddr, num::NonZeroU16, str::FromStr};
+use std::{
+    net::IpAddr,
+    num::NonZeroU16,
+    str::FromStr,
+    sync::{atomic::AtomicU16, Arc, RwLock},
+};
 use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;

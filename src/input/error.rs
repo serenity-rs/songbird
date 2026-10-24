@@ -1,5 +1,5 @@
 use std::{error::Error, fmt::Display, time::Duration};
-use symphonia_core::errors::Error as SymphError;
+use symphonia::core::errors::Error as SymphError;
 
 /// Errors encountered when creating an [`AudioStream`] or requesting metadata
 /// from a [`Compose`].
@@ -62,12 +62,12 @@ impl Display for MakePlayableError {
         match self {
             Self::Create(c) => {
                 f.write_str("input creation [")?;
-                f.write_fmt(format_args!("{}", &c))?;
+                f.write_fmt(format_args!("{c}"))?;
                 f.write_str("]")
             },
             Self::Parse(p) => {
                 f.write_str("parsing formats/codecs [")?;
-                f.write_fmt(format_args!("{}", &p))?;
+                f.write_fmt(format_args!("{p}"))?;
                 f.write_str("]")
             },
             Self::Panicked => f.write_str("panic during blocking I/O in parse"),

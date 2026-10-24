@@ -1,6 +1,6 @@
 use crate::tracks::{ReadyState, SeekRequest};
 use std::result::Result as StdResult;
-use symphonia_core::errors::Error as SymphError;
+use symphonia::core::errors::Error as SymphError;
 
 use super::*;
 
@@ -144,13 +144,14 @@ impl<'a> InternalTrack {
     pub(crate) fn do_loop(&mut self) -> bool {
         match &mut self.loops {
             LoopState::Infinite => true,
-            LoopState::Finite(n) =>
+            LoopState::Finite(n) => {
                 if let Some(new_n) = nonmax::NonMaxU32::new(n.get().wrapping_sub(1)) {
                     *n = new_n;
                     true
                 } else {
                     false
-                },
+                }
+            },
         }
     }
 
@@ -245,11 +246,21 @@ impl<'a> InternalTrack {
                     Ok(MixerInputResultMessage::Seek(parsed, rec, seek_res)) => {
                         match seek_res {
                             Ok(pos) => {
-                                if let Some(time_base) = parsed.decoder.codec_params().time_base {
+                                let time_base =
+                                    parsed.format_reader.tracks().iter().find_map(|t| {
+                                        if t.id == parsed.track_id {
+                                            t.time_base
+                                        } else {
+                                            None
+                                        }
+                                    });
+
+                                if let Some(new_time) = time_base
+                                    .and_then(|time_base| time_base.calc_time(pos.actual_ts))
+                                {
                                     // Update track's position to match the actual timestamp the
                                     // seek landed at.
-                                    let new_time = time_base.calc_time(pos.actual_ts);
-                                    let time_in_float = new_time.seconds as f64 + new_time.frac;
+                                    let time_in_float = new_time.as_secs_f64();
                                     self.position =
                                         std::time::Duration::from_secs_f64(time_in_float);
 
@@ -342,7 +353,9 @@ impl<'a> InternalTrack {
 
         let backseek_needed = time < self.position;
 
-        let time = Time::from(time.as_secs_f64());
+        let time = Time::try_from_secs_f64(time.as_secs_f64())
+            .expect("a finite number with the integer part not exceeding `i64::MIN` or `i64::MAX`");
+
         let mut ts = SeekTo::Time {
             time,
             track_id: None,

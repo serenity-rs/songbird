@@ -19,7 +19,7 @@ use std::{
         Arc,
     },
 };
-use symphonia_core::io::MediaSource;
+use symphonia::core::io::MediaSource;
 use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt},
     sync::Notify,

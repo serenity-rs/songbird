@@ -109,10 +109,7 @@ impl SsrcState {
             out.decoded_voice = audio;
         } else if should_decode {
             let mut audio = vec![0; self.decode_size.len()];
-            let dest_samples = (&mut audio[..])
-                .try_into()
-                .expect("Decode logic will cap decode buffer size at i32::MAX.");
-            let len = self.decoder.decode(&[], dest_samples, false)?;
+            let len = self.decoder.decode(&[], &mut audio[..], false)?;
             audio.truncate(2 * len);
 
             out.decoded_voice = Some(audio);
@@ -143,10 +140,7 @@ impl SsrcState {
             let mut out = vec![0; self.decode_size.len()];
 
             for _ in 0..missed_packets {
-                let dest_samples = (&mut out[..])
-                    .try_into()
-                    .expect("Decode logic will cap decode buffer size at i32::MAX.");
-                if let Err(e) = self.decoder.decode(&[], dest_samples, false) {
+                if let Err(e) = self.decoder.decode(&[], &mut out[..], false) {
                     warn!("Issue while decoding for missed packet: {:?}.", e);
                 }
             }

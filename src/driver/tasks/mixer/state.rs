@@ -5,7 +5,7 @@ use crate::{
     tracks::{ReadyState, SeekRequest},
 };
 use flume::Receiver;
-use rubato::FftFixedOut;
+use rubato::Fft;
 use std::time::Instant;
 
 pub enum InputState {
@@ -45,6 +45,7 @@ impl From<Input> for InputState {
     }
 }
 
+#[derive(Debug)]
 pub struct PreparingInfo {
     #[allow(dead_code)]
     /// Time this request was fired.
@@ -57,7 +58,7 @@ pub struct PreparingInfo {
 
 pub struct DecodeState {
     pub inner_pos: usize,
-    pub resampler: Option<(usize, FftFixedOut<f32>, Vec<Vec<f32>>)>,
+    pub resampler: Option<(usize, Fft<f32>, Vec<Vec<f32>>)>,
     pub passthrough: Passthrough,
     pub passthrough_violations: u8,
 }

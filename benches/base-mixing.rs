@@ -9,7 +9,7 @@ use songbird::{
     test_utils as utils,
 };
 use std::io::Cursor;
-use symphonia_core::audio::{AudioBuffer, Layout, SampleBuffer, Signal, SignalSpec};
+use symphonia::core::audio::{AudioBuffer, Layout, SampleBuffer, Signal, SignalSpec};
 
 pub fn mix_one_frame(c: &mut Criterion) {
     let floats = utils::make_sine(1 * STEREO_FRAME_SIZE, true);
@@ -18,7 +18,7 @@ pub fn mix_one_frame(c: &mut Criterion) {
 
     let mut symph_mix = AudioBuffer::<f32>::new(
         MONO_FRAME_SIZE as u64,
-        symphonia_core::audio::SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, symph_layout),
+        symphonia::core::audio::SignalSpec::new_with_layout(SAMPLE_RATE_RAW as u32, symph_layout),
     );
     let mut resample_scratch = AudioBuffer::<f32>::new(
         MONO_FRAME_SIZE as u64,

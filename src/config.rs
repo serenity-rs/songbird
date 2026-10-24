@@ -20,7 +20,7 @@ use crate::driver::test_config::*;
 use crate::driver::SchedulerConfig;
 
 #[cfg(feature = "driver")]
-use symphonia::core::{codecs::CodecRegistry, probe::Probe};
+use symphonia::core::{codecs::registry::CodecRegistry, formats::probe::Probe};
 
 use derivative::Derivative;
 #[cfg(all(feature = "driver", feature = "receive"))]

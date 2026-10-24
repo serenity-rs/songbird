@@ -4,7 +4,7 @@ use std::{
     mem,
     process::Child,
 };
-use symphonia_core::io::{MediaSource, ReadOnlySource};
+use symphonia::core::io::{MediaSource, ReadOnlySource};
 use tokio::runtime::Handle;
 use tracing::debug;
 

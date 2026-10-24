@@ -2,7 +2,7 @@
 
 use crate::error::JsonError;
 use std::time::Duration;
-use symphonia_core::{meta::Metadata as ContainerMetadata, probe::ProbedMetadata};
+use symphonia::core::meta::Metadata as ContainerMetadata;
 
 pub(crate) mod ffprobe;
 mod ytdl;
@@ -98,16 +98,13 @@ pub struct Metadata<'a> {
     /// Metadata found while probing for the format of an [`Input`] (e.g., ID3 tags).
     ///
     /// [`Input`]: crate::input::Input
-    pub probe: &'a mut ProbedMetadata,
-    /// Metadata found inside the format/container of an audio stream.
-    pub format: ContainerMetadata<'a>,
+    pub inner: ContainerMetadata<'a>,
 }
 
 impl<'a> From<&'a mut Parsed> for Metadata<'a> {
     fn from(val: &'a mut Parsed) -> Self {
-        Metadata {
-            probe: &mut val.meta,
-            format: val.format.metadata(),
-        }
+        let meta = val.format_reader.metadata();
+
+        Metadata { inner: meta }
     }
 }
