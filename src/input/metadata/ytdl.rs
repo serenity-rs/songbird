@@ -9,7 +9,7 @@ use std::{
 };
 
 /// The longest [`Output::time_until_available`] asks a caller to wait.
-const MAX_AVAILABILITY_WAIT: Duration = Duration::from_secs(30);
+const MAX_AVAILABILITY_WAIT: Duration = Duration::from_secs(45);
 
 /// Information returned by yt-dlp about a URL.
 ///
@@ -57,7 +57,7 @@ pub struct Output {
 
 impl Output {
     /// How long to wait before fetching [`Self::url`], if at all, measured
-    /// from `now` and capped at 30 s, so a bogus or far-future `available_at`
+    /// from `now` and capped at 45 s, so a bogus or far-future `available_at`
     /// cannot stall a track indefinitely.
     #[must_use]
     pub fn time_until_available(&self, now: SystemTime) -> Option<Duration> {
@@ -129,6 +129,16 @@ mod tests {
         );
     }
 
+    /// Two unskippable pre-roll ads can hold a URL for 30 to 40 s.
+    #[test]
+    fn two_unskippable_ads_are_waited_out_in_full() {
+        let out = output(r#"{"url":"u","available_at":1040}"#);
+        assert_eq!(
+            out.time_until_available(at(1000)),
+            Some(Duration::from_secs(40))
+        );
+    }
+
     #[test]
     fn an_available_stream_does_not_wait() {
         let now = at(1000);
@@ -148,7 +158,7 @@ mod tests {
         let out = output(r#"{"url":"u","available_at":4600}"#);
         assert_eq!(
             out.time_until_available(at(1000)),
-            Some(MAX_AVAILABILITY_WAIT)
+            Some(Duration::from_secs(45))
         );
     }
 }
