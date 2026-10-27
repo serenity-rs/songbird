@@ -3,7 +3,13 @@
 use super::AuxMetadata;
 use crate::constants::SAMPLE_RATE_RAW;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, time::Duration};
+use std::{
+    collections::HashMap,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
+
+/// The longest [`Output::time_until_available`] asks a caller to wait.
+const MAX_AVAILABILITY_WAIT: Duration = Duration::from_secs(30);
 
 /// Information returned by yt-dlp about a URL.
 ///
@@ -40,9 +46,28 @@ pub struct Output {
     pub webpage_url: Option<String>,
     /// The stream protocol.
     pub protocol: Option<String>,
+    /// Unix time, in seconds, before which the site refuses the stream URL.
+    ///
+    /// YouTube answers `403 Forbidden` until any pre-roll ad served with the
+    /// URL would have finished, or become skippable. yt-dlp works out when
+    /// that is from the player response, and sleeps until then before its
+    /// own downloads.
+    pub available_at: Option<f64>,
 }
 
 impl Output {
+    /// How long to wait before fetching [`Self::url`], if at all, measured
+    /// from `now` and capped at 30 s, so a bogus or far-future `available_at`
+    /// cannot stall a track indefinitely.
+    #[must_use]
+    pub fn time_until_available(&self, now: SystemTime) -> Option<Duration> {
+        let opens =
+            UNIX_EPOCH.checked_add(Duration::try_from_secs_f64(self.available_at?).ok()?)?;
+        let wait = opens.duration_since(now).ok()?;
+
+        (!wait.is_zero()).then(|| wait.min(MAX_AVAILABILITY_WAIT))
+    }
+
     /// Requests auxiliary metadata which can be accessed without parsing the file.
     pub fn as_aux_metadata(&self) -> AuxMetadata {
         let album = self.album.clone();
@@ -73,5 +98,57 @@ impl Output {
 
             ..AuxMetadata::default()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn output(json: &str) -> Output {
+        serde_json::from_str(json).unwrap()
+    }
+
+    fn at(secs: u64) -> SystemTime {
+        UNIX_EPOCH + Duration::from_secs(secs)
+    }
+
+    #[test]
+    fn available_at_is_read_from_ytdlp_output() {
+        let out = output(r#"{"url":"u","available_at":1793073192}"#);
+        assert_eq!(out.available_at, Some(1_793_073_192.0));
+        assert_eq!(output(r#"{"url":"u"}"#).available_at, None);
+    }
+
+    #[test]
+    fn a_stream_not_yet_available_waits_the_difference() {
+        let out = output(r#"{"url":"u","available_at":1005.5}"#);
+        assert_eq!(
+            out.time_until_available(at(1000)),
+            Some(Duration::from_millis(5500))
+        );
+    }
+
+    #[test]
+    fn an_available_stream_does_not_wait() {
+        let now = at(1000);
+        assert_eq!(
+            output(r#"{"url":"u","available_at":1000}"#).time_until_available(now),
+            None
+        );
+        assert_eq!(
+            output(r#"{"url":"u","available_at":990}"#).time_until_available(now),
+            None
+        );
+        assert_eq!(output(r#"{"url":"u"}"#).time_until_available(now), None);
+    }
+
+    #[test]
+    fn the_wait_is_capped() {
+        let out = output(r#"{"url":"u","available_at":4600}"#);
+        assert_eq!(
+            out.time_until_available(at(1000)),
+            Some(MAX_AVAILABILITY_WAIT)
+        );
     }
 }

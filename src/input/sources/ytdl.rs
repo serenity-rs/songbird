@@ -12,7 +12,7 @@ use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
-use std::{borrow::Cow, error::Error, io::ErrorKind};
+use std::{borrow::Cow, error::Error, io::ErrorKind, time::SystemTime};
 use symphonia_core::io::MediaSource;
 use tokio::process::Command;
 
@@ -188,6 +188,11 @@ impl<'a> YoutubeDl<'a> {
         &self,
         result: &YoutubeDlOutput,
     ) -> Result<AudioStream<Box<dyn MediaSource>>, AudioStreamError> {
+        // The site refuses the URL until `available_at`; yt-dlp waits too.
+        if let Some(wait) = result.time_until_available(SystemTime::now()) {
+            tokio::time::sleep(wait).await;
+        }
+
         let mut headers = HeaderMap::default();
 
         if let Some(map) = &result.http_headers {
@@ -289,6 +294,29 @@ mod tests {
     #[ntest::timeout(20_000)]
     async fn ytdl_backward_seek_correct() {
         backward_seek_correct(|| YoutubeDl::new(Client::new(), YTDL_TARGET)).await;
+    }
+
+    #[tokio::test]
+    #[ntest::timeout(20_000)]
+    async fn get_stream_waits_until_available_at() {
+        use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+        let available_at = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs_f64()
+            + 0.5;
+        // Nothing listens on the discard port, so the fetch fails at once:
+        // the time it takes is the wait.
+        let output: YoutubeDlOutput = serde_json::from_str(&format!(
+            r#"{{"url":"http://127.0.0.1:9/","available_at":{available_at}}}"#
+        ))
+        .unwrap();
+        let ytdl = YoutubeDl::new(Client::new(), "unused");
+
+        let start = Instant::now();
+        assert!(ytdl.get_stream(&output).await.is_err());
+        assert!(start.elapsed() >= Duration::from_millis(400));
     }
 
     #[tokio::test]
