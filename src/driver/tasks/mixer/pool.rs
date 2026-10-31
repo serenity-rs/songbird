@@ -8,7 +8,7 @@ use crate::{
 use flume::Sender;
 use rusty_pool::ThreadPool;
 use std::{result::Result as StdResult, sync::Arc, time::Duration};
-use symphonia_core::{
+use symphonia::core::{
     formats::{SeekMode, SeekTo},
     io::MediaSource,
 };
@@ -127,7 +127,7 @@ impl BlockyTaskPool {
             },
             _ => {
                 let seek_result = input
-                    .format
+                    .format_reader
                     .seek(SeekMode::Accurate, copy_seek_to(&seek_time));
                 input.decoder.reset();
                 drop(callback.send(MixerInputResultMessage::Seek(

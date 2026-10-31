@@ -1,6 +1,6 @@
 use super::{AudioStream, AudioStreamError, AuxMetadata};
 
-use symphonia_core::io::MediaSource;
+use symphonia::core::io::MediaSource;
 
 /// Data and behaviour required to instantiate a lazy audio source.
 #[async_trait::async_trait]

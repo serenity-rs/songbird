@@ -19,7 +19,7 @@ use std::{
     task::{Context, Poll},
     time::Duration,
 };
-use symphonia_core::io::MediaSource;
+use symphonia::core::io::MediaSource;
 use tokio::io::{AsyncRead, AsyncSeek, ReadBuf};
 use tokio_util::io::StreamReader;
 

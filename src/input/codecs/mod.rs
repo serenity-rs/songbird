@@ -8,7 +8,7 @@ use std::sync::OnceLock;
 
 pub use self::{dca::DcaReader, opus::OpusDecoder, raw::*};
 use symphonia::{
-    core::{codecs::CodecRegistry, probe::Probe},
+    core::{codecs::registry::CodecRegistry, formats::probe::Probe},
     default::*,
 };
 
@@ -18,7 +18,7 @@ pub fn get_codec_registry() -> &'static CodecRegistry {
     CODEC_REGISTRY.get_or_init(|| {
         let mut registry = CodecRegistry::new();
         register_enabled_codecs(&mut registry);
-        registry.register_all::<OpusDecoder>();
+        registry.register_audio_decoder::<OpusDecoder>();
         registry
     })
 }
@@ -28,8 +28,8 @@ pub fn get_probe() -> &'static Probe {
     static PROBE: OnceLock<Probe> = OnceLock::new();
     PROBE.get_or_init(|| {
         let mut probe = Probe::default();
-        probe.register_all::<DcaReader>();
-        probe.register_all::<RawReader>();
+        probe.register_format::<DcaReader<'_>>();
+        probe.register_format::<RawReader<'_>>();
         register_enabled_formats(&mut probe);
         probe
     })

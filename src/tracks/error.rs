@@ -5,7 +5,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::Arc,
 };
-use symphonia_core::errors::Error as SymphoniaError;
+use symphonia::core::errors::Error as SymphoniaError;
 
 /// Errors associated with control and manipulation of tracks.
 ///
@@ -85,22 +85,22 @@ impl Display for PlayError {
         match self {
             Self::Create(c) => {
                 f.write_str("input creation [")?;
-                f.write_fmt(format_args!("{}", &c))?;
+                f.write_fmt(format_args!("{c}"))?;
                 f.write_str("]")
             },
             Self::Parse(p) => {
                 f.write_str("parsing formats/codecs [")?;
-                f.write_fmt(format_args!("{}", &p))?;
+                f.write_fmt(format_args!("{p}"))?;
                 f.write_str("]")
             },
             Self::Decode(d) => {
                 f.write_str("decoding packets [")?;
-                f.write_fmt(format_args!("{}", &d))?;
+                f.write_fmt(format_args!("{d}"))?;
                 f.write_str("]")
             },
             Self::Seek(s) => {
                 f.write_str("seeking along input [")?;
-                f.write_fmt(format_args!("{}", &s))?;
+                f.write_fmt(format_args!("{s}"))?;
                 f.write_str("]")
             },
         }

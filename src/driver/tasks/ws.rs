@@ -13,7 +13,7 @@ use crate::{
     ConnectionInfo,
 };
 use flume::Receiver;
-use rand::{distr::Uniform, Rng};
+use rand::{distr::Uniform, RngExt};
 use serenity_voice_model::{
     id::UserId,
     payload::{

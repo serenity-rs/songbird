@@ -5,6 +5,7 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
+#![recursion_limit = "256"]
 //! ![project logo][logo]
 //!
 //! Songbird is an async, cross-library compatible voice system for Discord, written in Rust.

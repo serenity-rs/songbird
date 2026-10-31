@@ -1,5 +1,7 @@
-use opus2::Channels;
-use symphonia_core::audio::Layout;
+use symphonia::core::audio::{
+    layouts::{CHANNEL_LAYOUT_MONO, CHANNEL_LAYOUT_STEREO},
+    Channels,
+};
 
 use crate::constants::{MONO_FRAME_SIZE, STEREO_FRAME_SIZE};
 
@@ -17,10 +19,10 @@ pub enum MixMode {
 }
 
 impl MixMode {
-    pub(crate) const fn to_opus(self) -> Channels {
+    pub(crate) const fn to_opus(self) -> opus2::Channels {
         match self {
-            Self::Mono => Channels::Mono,
-            Self::Stereo => Channels::Stereo,
+            Self::Mono => opus2::Channels::Mono,
+            Self::Stereo => opus2::Channels::Stereo,
         }
     }
 
@@ -38,21 +40,21 @@ impl MixMode {
         }
     }
 
-    pub(crate) const fn symph_layout(self) -> Layout {
+    pub(crate) const fn symph_layout(self) -> Channels {
         match self {
-            Self::Mono => Layout::Mono,
-            Self::Stereo => Layout::Stereo,
+            Self::Mono => CHANNEL_LAYOUT_MONO,
+            Self::Stereo => CHANNEL_LAYOUT_STEREO,
         }
     }
 }
 
-impl From<MixMode> for Layout {
+impl From<MixMode> for Channels {
     fn from(val: MixMode) -> Self {
         val.symph_layout()
     }
 }
 
-impl From<MixMode> for Channels {
+impl From<MixMode> for opus2::Channels {
     fn from(val: MixMode) -> Self {
         val.to_opus()
     }
