@@ -300,9 +300,17 @@ impl AuxNetwork {
             GatewayEvent::DavePrepareTransition(ev) => {
                 self.dave_pending_transitions
                     .insert(ev.transition_id, ev.protocol_version);
+                if let Some(Err(e)) =
+                    self.dave_prepare_transition(ev.transition_id, ev.protocol_version)
+                {
+                    warn!(error = ?e, "failed to prepare DAVE transition");
+                }
 
                 if ev.transition_id == 0 {
-                    self.execute_dave_transition(ev.transition_id);
+                    if let Err(e) = self.execute_dave_transition(ev.transition_id) {
+                        // we should never hit an error with transition ID 0
+                        unreachable!("got error from executing transition ID 0: {}", e);
+                    }
                 } else if ev.protocol_version == 0 {
                     if let Some(ref mut dave_session) = *self.dave_session.write().unwrap() {
                         dave_session.set_passthrough_mode(true, Some(120));
@@ -317,7 +325,9 @@ impl AuxNetwork {
                 }
             },
             GatewayEvent::DaveExecuteTransition(ev) => {
-                self.execute_dave_transition(ev.transition_id);
+                if let Err(e) = self.execute_dave_transition(ev.transition_id) {
+                    warn!(error = ?e, "failed to execute DAVE transition");
+                }
             },
             GatewayEvent::DavePrepareEpoch(ev) if ev.epoch == 1 => {
                 self.dave_protocol_version
@@ -376,9 +386,14 @@ impl AuxNetwork {
             },
             GatewayEvent::DaveMlsAnnounceCommitTransition(ev) => {
                 match self.dave_process_commit(&ev.commit_message) {
-                    Some(Ok(())) if ev.transition_id != 0 => {
+                    Some(Ok(true)) if ev.transition_id != 0 => {
                         let protocol_version = self.dave_protocol_version.load(Ordering::Relaxed);
 
+                        if let Some(Err(e)) =
+                            self.dave_prepare_transition(ev.transition_id, protocol_version)
+                        {
+                            warn!(error = ?e, "failed to prepare DAVE transition");
+                        }
                         self.dave_pending_transitions
                             .insert(ev.transition_id, protocol_version);
                         self.ws_client
@@ -403,13 +418,21 @@ impl AuxNetwork {
                             _ => {},
                         }
                     },
-                    Some(Ok(())) | None => {},
+                    Some(Ok(false)) => {
+                        debug!("dropping commit because not ready to transition");
+                    },
+                    Some(Ok(true)) | None => {},
                 }
             },
             GatewayEvent::DaveMlsWelcome(ev) => match self.dave_process_welcome(&ev.welcome) {
                 Some(Ok(())) if ev.transition_id != 0 => {
                     let protocol_version = self.dave_protocol_version.load(Ordering::Relaxed);
 
+                    if let Some(Err(e)) =
+                        self.dave_prepare_transition(ev.transition_id, protocol_version)
+                    {
+                        warn!(error = ?e, "failed to prepare DAVE transition");
+                    }
                     self.dave_pending_transitions
                         .insert(ev.transition_id, protocol_version);
                     self.ws_client
@@ -445,10 +468,11 @@ impl AuxNetwork {
         Ok(())
     }
 
+    /// Returns true if the transition should be prepared, false if it was ignored.
     fn dave_process_commit(
         &mut self,
         commit_message: &[u8],
-    ) -> Option<Result<(), davey::errors::ProcessCommitError>> {
+    ) -> Option<Result<bool, davey::errors::ProcessCommitError>> {
         let mut dave_session_lock = self.dave_session.write().unwrap();
         let dave_session = (*dave_session_lock).as_mut()?;
 
@@ -459,10 +483,17 @@ impl AuxNetwork {
         &mut self,
         welcome: &[u8],
     ) -> Option<Result<(), davey::errors::ProcessWelcomeError>> {
+        // recognized user IDs already includes ourself because we added it first thing
+        let recognized_user_ids = self
+            .recognized_user_ids
+            .iter()
+            .map(|uid| uid.0)
+            .collect::<Vec<_>>();
+
         let mut dave_session_lock = self.dave_session.write().unwrap();
         let dave_session = (*dave_session_lock).as_mut()?;
 
-        Some(dave_session.process_welcome(welcome))
+        Some(dave_session.process_welcome(welcome, Some(&recognized_user_ids)))
     }
 
     async fn reinit_dave_session(&mut self) -> Result<(), DaveReinitError> {
@@ -499,24 +530,44 @@ impl AuxNetwork {
         Ok(())
     }
 
-    fn execute_dave_transition(&mut self, transition_id: u16) {
+    fn dave_prepare_transition(
+        &self,
+        transition_id: u16,
+        protocol_version: u16,
+    ) -> Option<Result<(), davey::errors::TransitionError>> {
+        let mut dave_session_lock = self.dave_session.write().unwrap();
+        let dave_session = (*dave_session_lock).as_mut()?;
+
+        Some(dave_session.prepare_transition(transition_id, protocol_version))
+    }
+
+    fn execute_dave_transition(
+        &mut self,
+        transition_id: u16,
+    ) -> Result<(), davey::errors::TransitionError> {
         let Some(new_version) = self.dave_pending_transitions.get(&transition_id).copied() else {
             warn!("Received DaveExecuteTransition for unknown transition ID {transition_id}");
-            return;
+            return Ok(());
         };
         let old_version = self.dave_protocol_version.load(Ordering::Relaxed);
 
         self.dave_protocol_version
             .store(new_version, Ordering::Relaxed);
 
-        // Upgraded from transport-only encryption
-        if transition_id > 0 && old_version == 0 && new_version != 0 {
-            if let Some(ref mut dave_session) = *self.dave_session.write().unwrap() {
-                dave_session.set_passthrough_mode(true, Some(10));
+        if let Some(ref mut dave_session) = *self.dave_session.write().unwrap() {
+            if transition_id > 0 {
+                dave_session.execute_transition(transition_id)?;
+
+                // Upgraded from transport-only encryption
+                if old_version == 0 && new_version != 0 {
+                    dave_session.set_passthrough_mode(true, Some(10));
+                }
             }
         }
 
         self.dave_pending_transitions.remove(&transition_id);
+
+        Ok(())
     }
 }
 
