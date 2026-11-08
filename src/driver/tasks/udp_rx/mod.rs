@@ -236,9 +236,7 @@ impl UdpRx {
                             Err(
                                 davey::errors::DecryptError::NoDecryptorForUser
                                 | davey::errors::DecryptError::DecryptionFailed(
-                                    davey::errors::DecryptorDecryptError::NoValidCryptorFound {
-                                        ..
-                                    },
+                                    davey::errors::DecryptorDecryptError::MissingKeyRatchet,
                                 ),
                             ) => {
                                 // Silently drop encrypted packets for users whose ratchets are not configured yet.
