@@ -121,6 +121,9 @@ impl Connection {
         );
 
         let udp = UdpSocket::bind("0.0.0.0:0").await?;
+        if let Ok(sockaddr) = udp.local_addr() {
+            tracing::debug!("Bound UDP socket to port {}", sockaddr.port());
+        }
 
         // Optimisation for non-receive case: set rx buffer size to zero.
         let udp = if cfg!(feature = "receive") {

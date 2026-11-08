@@ -263,6 +263,9 @@ impl AuxNetwork {
                     self.ssrc_signalling.ssrc_user_map.insert(ev.ssrc, *user_id);
                 }
 
+                #[cfg(not(feature = "receive"))]
+                self.deafen_self().await?;
+
                 drop(interconnect.events.send(EventMessage::FireCoreEvent(
                     CoreContext::SpeakingStateUpdate(ev),
                 )));
@@ -443,6 +446,25 @@ impl AuxNetwork {
         }
 
         Ok(())
+    }
+
+    /// If receive is not enabled, send an empty MediaSinkWants opcode.
+    ///
+    /// This will perform the same operation that the client performs when pressing "deafen",
+    /// without sending the deafen flag to the shard gateway. This is an optimisation to avoid
+    /// Discord sending audio data that is never decoded.
+    ///
+    /// Source: https://docs.discord.food/topics/voice-connections#simulcasting
+    #[cfg(not(feature = "receive"))]
+    async fn deafen_self(&mut self) -> Result<(), WsError> {
+        use serenity_voice_model::payload::MediaSinkWants;
+
+        self.ws_client
+            .send_json(&GatewayEvent::from(MediaSinkWants {
+                any: Some(0),
+                others: std::collections::BTreeMap::new(),
+            }))
+            .await
     }
 
     fn dave_process_commit(
