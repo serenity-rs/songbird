@@ -50,7 +50,7 @@ serenity = { default-features = false, optional = true, version = "0.12.0", feat
     "voice",
     "gateway",
 ] }
-serenity-voice-model = { optional = true, version = "0.3" }
+serenity-voice-model = { optional = true, version = "0.3", git = "https://github.com/serenity-rs/voice-model", branch = "fucking-discord-sucks-massive-balls" }
 socket2 = { optional = true, version = "0.5" }
 streamcatcher = { optional = true, version = "1" }
 stream_lib = { default-features = false, optional = true, version = "0.5.2" }
