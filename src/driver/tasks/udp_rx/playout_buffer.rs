@@ -8,6 +8,10 @@ pub struct StoredPacket {
     pub packet: Bytes,
     // We need to store this as it's possible that a user can change config modes.
     pub decrypted: bool,
+    /// Verified start offset of the Opus payload, after RTP extensions.
+    pub payload_offset: usize,
+    /// Number of trailing bytes excluded after decryption and padding removal.
+    pub payload_end_pad: usize,
 }
 
 /// Determines whether an SSRC's packets should be decoded.
