@@ -107,13 +107,17 @@ impl SsrcState {
 
             out.packet = Some(rtp_data);
             out.decoded_voice = audio;
-        } else if should_decode {
-            let mut audio = vec![0; self.decode_size.len()];
+        } else if let DecodeMode::Decode(decode_config) = config.decode_mode {
+            // Each VoiceTick advances by 20 ms. 
+            // libopus uses the output buffer length to determine the PLC duration, including in mono.
+            let sample_rate: u32 = decode_config.sample_rate.into();
+            let frame_samples = sample_rate as usize / AUDIO_FRAME_RATE;
+            let mut audio = vec![0; frame_samples * self.channels.channels()];
             let dest_samples = (&mut audio[..])
                 .try_into()
                 .expect("Decode logic will cap decode buffer size at i32::MAX.");
             let len = self.decoder.decode(&[], dest_samples, false)?;
-            audio.truncate(2 * len);
+            audio.truncate(self.channels.channels() * len);
 
             out.decoded_voice = Some(audio);
         }
