@@ -65,6 +65,8 @@ pub struct PlayoutBuffer {
     consecutive_store_fails: usize,
     /// How many slots of `buffer` are [`Slot::Skipped`].
     skipped_slots: usize,
+    /// The timestamp of the last packet played out.
+    last_played_ts: Option<RtpTimestamp>,
 }
 
 impl PlayoutBuffer {
@@ -76,6 +78,7 @@ impl PlayoutBuffer {
             current_timestamp: None,
             consecutive_store_fails: 0,
             skipped_slots: 0,
+            last_played_ts: None,
         }
     }
 
@@ -195,6 +198,8 @@ impl PlayoutBuffer {
                 // However, we need to handle this in a wrap-safe way.
                 // ts_diff shows where the current time lies if we treat packet_ts
                 // as 0, s.t. ts_diff >= 0 (equiv) packet_time <= curr_time.
+                // This packet, and those still awaited or held behind it.
+                let audio_held = 1 + self.audio_slots();
                 let curr_ts = self.current_timestamp.as_mut().unwrap();
                 let pkt_ts = rtp.get_timestamp().0;
                 let ts_diff = (*curr_ts - pkt_ts).0 as i32;
@@ -218,15 +223,32 @@ impl PlayoutBuffer {
                 )
                 .unwrap_or((AUDIO_FRAME_RATE * 2 * MONO_FRAME_SIZE) as i32);
 
-                if ts_diff >= 0 {
+                // Audio resuming after a gap in the sender's timestamps (a pause in speech)
+                // rebuilds the full playout delay before it is played. Otherwise, should the
+                // buffer have been kept from emptying in the gap (e.g., by slots skipped for
+                // bandwidth probes), the first frame of the new run is played with nothing held
+                // behind it, and the next frame arriving even slightly late empties the buffer:
+                // playout then stops to refill in the middle of the user's first word.
+                let resumed = self
+                    .last_played_ts
+                    .is_some_and(|last| (pkt_ts - last).0 > MONO_FRAME_SIZE as u32);
+
+                if resumed && audio_held < usize::from(config.playout_buffer_length.get()) {
+                    self.buffer.push_front(Slot::Packet(pkt));
+                    self.playout_mode = PlayoutMode::Fill;
+                    self.last_played_ts = None;
+                    PacketLookup::Filling
+                } else if ts_diff >= 0 {
                     // At or before expected timestamp.
                     self.next_seq = (rtp.get_sequence() + 1).0;
+                    self.last_played_ts = Some(pkt_ts);
 
                     PacketLookup::Packet(pkt)
                 } else if ts_diff <= -skip_after {
                     // >5 playouts ahead.
                     self.next_seq = (rtp.get_sequence() + 1).0;
                     *curr_ts = pkt_ts;
+                    self.last_played_ts = Some(pkt_ts);
                     PacketLookup::Packet(pkt)
                 } else {
                     trace!("Witholding packet: ts_diff is {ts_diff}");
@@ -361,6 +383,47 @@ mod tests {
         }
 
         assert_eq!(played_seq(&buffer.fetch_packet(&config)), Some(FIRST_SEQ));
+    }
+
+    #[test]
+    fn audio_resuming_after_a_pause_rebuilds_the_playout_delay() {
+        let config = Config::default();
+        let delay = u16::from(config.playout_buffer_length.get());
+        let mut buffer = buffer();
+
+        // A run of `delay` frames, played out, with probes arriving before its last frame is
+        // played: they keep the buffer from emptying.
+        for n in 0..delay {
+            let (seq, ts) = frame(n);
+            buffer.store_packet(packet(seq, ts), &config);
+        }
+        let probes = 5;
+        for n in 0..delay {
+            if n == delay - 1 {
+                for i in 0..probes {
+                    buffer.skip_packet(Wrapping(FIRST_SEQ + delay + i));
+                }
+            }
+            assert_eq!(
+                played_seq(&buffer.fetch_packet(&config)),
+                Some(FIRST_SEQ + n)
+            );
+        }
+
+        // Speech resumes after a pause: the first frame of the new run is due at once, but
+        // only one frame of it is held.
+        let resumed_seq = FIRST_SEQ + delay + probes;
+        let (_, resumed_ts) = frame(2 * delay);
+        buffer.store_packet(packet(resumed_seq, resumed_ts), &config);
+
+        assert_eq!(buffer.fetch_packet(&config), PacketLookup::Filling);
+
+        // Once the delay is held again, the run plays from its first frame.
+        for n in 1..delay {
+            let (_, ts) = frame(2 * delay + n);
+            buffer.store_packet(packet(resumed_seq + n, ts), &config);
+        }
+        assert_eq!(played_seq(&buffer.fetch_packet(&config)), Some(resumed_seq));
     }
 
     #[test]
