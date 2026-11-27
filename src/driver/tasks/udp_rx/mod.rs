@@ -24,7 +24,7 @@ use std::sync::{
     RwLock,
 };
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, VecDeque},
     num::Wrapping,
     sync::Arc,
     time::Duration,
@@ -36,6 +36,10 @@ type RtpSequence = Wrapping<u16>;
 type RtpTimestamp = Wrapping<u32>;
 type RtpSsrc = u32;
 
+/// How long the DAVE frames of an SSRC whose user is not yet known are held for, awaiting the
+/// `Speaking` event that names them.
+const HELD_FOR: Duration = Duration::from_secs(1);
+
 struct UdpRx {
     cipher: Cipher,
     crypto_mode: CryptoMode,
@@ -46,9 +50,27 @@ struct UdpRx {
     udp_socket: UdpSocket,
     dave_session: Arc<RwLock<Option<davey::DaveSession>>>,
     dave_protocol_version: Arc<AtomicU16>,
+    /// DAVE frames, as received, of SSRCs whose user is not yet known, with when they arrived.
+    held_frames: HashMap<RtpSsrc, VecDeque<(Instant, BytesMut)>>,
 }
 
 impl UdpRx {
+    /// Processes again the held frames of every SSRC whose user is now known.
+    async fn release_held_frames(&mut self, interconnect: &Interconnect) {
+        let known: Vec<RtpSsrc> = self
+            .held_frames
+            .keys()
+            .copied()
+            .filter(|ssrc| self.ssrc_signalling.ssrc_user_map.contains_key(ssrc))
+            .collect();
+
+        for ssrc in known {
+            for (_, frame) in self.held_frames.remove(&ssrc).unwrap_or_default() {
+                self.process_udp_message(interconnect, frame).await;
+            }
+        }
+    }
+
     #[instrument(skip(self))]
     async fn run(&mut self, interconnect: &mut Interconnect) {
         let mut cleanup_time = Instant::now();
@@ -66,6 +88,10 @@ impl UdpRx {
                     pkt.truncate(len);
 
                     self.process_udp_message(interconnect, pkt).await;
+
+                    if !self.held_frames.is_empty() {
+                        self.release_held_frames(interconnect).await;
+                    }
                 },
                 msg = self.rx.recv_async() => {
                     match msg {
@@ -144,6 +170,11 @@ impl UdpRx {
                     // now remove all dead ssrcs.
                     self.decoder_map.retain(|_, v| v.prune_time > now);
 
+                    // and frames held for SSRCs never named by a `Speaking` event.
+                    self.held_frames.retain(|_, frames| {
+                        frames.back().is_some_and(|(at, _)| now.duration_since(*at) < HELD_FOR)
+                    });
+
                     cleanup_time = now + Duration::from_secs(5);
                 },
             }
@@ -166,6 +197,15 @@ impl UdpRx {
                     error!("Illegal RTP message received.");
                     return;
                 }
+
+                // A copy, as received, of a packet from an SSRC whose user is not yet known:
+                // if it is a DAVE frame, it is held and processed again once they are.
+                let received = (self.dave_protocol_version.load(Ordering::Relaxed) != 0
+                    && !self
+                        .ssrc_signalling
+                        .ssrc_user_map
+                        .contains_key(&rtp.get_ssrc()))
+                .then(|| BytesMut::from(rtp.packet()));
 
                 let mut packet_data = if self.config.decode_mode.should_decrypt() {
                     let out = self.cipher.decrypt_rtp_in_place(&mut rtp).map(|(s, t)| {
@@ -224,6 +264,20 @@ impl UdpRx {
                         // one reason or another; otherwise there'd be error logs for trying to decode
                         // Opus
                         let Some(user_id) = self.ssrc_signalling.ssrc_user_map.get(&ssrc) else {
+                            // A user's first frames may arrive a few milliseconds before the
+                            // `Speaking` event naming them: hold these for a while rather than
+                            // lose the start of what they say.
+                            let now = Instant::now();
+                            let frames = self.held_frames.entry(ssrc).or_default();
+                            while frames
+                                .front()
+                                .is_some_and(|(at, _)| now.duration_since(*at) >= HELD_FOR)
+                            {
+                                frames.pop_front();
+                            }
+                            if let Some(received) = received {
+                                frames.push_back((now, received));
+                            }
                             return;
                         };
                         let Some(ref mut dave_session) = *self.dave_session.write().unwrap() else {
@@ -357,6 +411,7 @@ pub(crate) async fn runner(
         udp_socket,
         dave_session,
         dave_protocol_version,
+        held_frames: HashMap::new(),
     };
 
     state.run(&mut interconnect).await;
