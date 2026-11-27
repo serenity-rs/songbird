@@ -63,6 +63,8 @@ pub struct PlayoutBuffer {
     next_seq: RtpSequence,
     current_timestamp: Option<RtpTimestamp>,
     consecutive_store_fails: usize,
+    /// How many slots of `buffer` are [`Slot::Skipped`].
+    skipped_slots: usize,
 }
 
 impl PlayoutBuffer {
@@ -73,7 +75,22 @@ impl PlayoutBuffer {
             next_seq,
             current_timestamp: None,
             consecutive_store_fails: 0,
+            skipped_slots: 0,
         }
+    }
+
+    /// Place `slot` at `index`, growing the buffer as needed and keeping count of skipped slots.
+    fn set_slot(&mut self, index: usize, slot: Slot) {
+        while self.buffer.len() <= index {
+            self.buffer.push_back(Slot::Empty);
+        }
+        if self.buffer[index] == Slot::Skipped {
+            self.skipped_slots -= 1;
+        }
+        if slot == Slot::Skipped {
+            self.skipped_slots += 1;
+        }
+        self.buffer[index] = slot;
     }
 
     /// Slot a received RTP packet into the correct location in the playout buffer using
@@ -117,22 +134,27 @@ impl PlayoutBuffer {
         } else {
             let index = if handling_desync {
                 self.buffer.clear();
+                self.skipped_slots = 0;
                 self.next_seq = pkt_seq;
 
                 0
             } else {
                 desired_index as usize
             };
-            while self.buffer.len() <= index {
-                self.buffer.push_back(Slot::Empty);
-            }
-            self.buffer[index] = Slot::Packet(packet);
+            self.set_slot(index, Slot::Packet(packet));
             self.consecutive_store_fails = 0;
         }
 
-        if self.buffer.len() >= usize::from(config.playout_buffer_length.get()) {
+        // Skipped slots are not audio: counting them would start playout with too little
+        // audio buffered to absorb any jitter.
+        if self.audio_slots() >= usize::from(config.playout_buffer_length.get()) {
             self.playout_mode = PlayoutMode::Drain;
         }
+    }
+
+    /// How many slots are awaiting or holding audio, as opposed to skipped.
+    fn audio_slots(&self) -> usize {
+        self.buffer.len() - self.skipped_slots
     }
 
     /// Mark a sequence number as received but carrying no audio, so that playout passes
@@ -141,11 +163,7 @@ impl PlayoutBuffer {
         let desired_index = (pkt_seq - self.next_seq).0 as i16;
 
         if (0..MAX_SLOTS_AHEAD).contains(&desired_index) {
-            let index = desired_index as usize;
-            while self.buffer.len() <= index {
-                self.buffer.push_back(Slot::Empty);
-            }
-            self.buffer[index] = Slot::Skipped;
+            self.set_slot(desired_index as usize, Slot::Skipped);
         }
 
         self.drop_leading_skips();
@@ -155,6 +173,7 @@ impl PlayoutBuffer {
     fn drop_leading_skips(&mut self) {
         while self.buffer.front() == Some(&Slot::Skipped) {
             self.buffer.pop_front();
+            self.skipped_slots -= 1;
             self.next_seq += 1;
         }
     }
@@ -319,6 +338,29 @@ mod tests {
             .chain((1..8).map(|n| FIRST_SEQ + probes + n))
             .collect();
         assert_eq!(played, expected);
+    }
+
+    #[test]
+    fn skipped_slots_do_not_count_towards_the_playout_delay() {
+        let config = Config::default();
+        let delay = u16::from(config.playout_buffer_length.get());
+        let probes = 20;
+        let mut buffer = buffer();
+
+        // Audio frame 0, a run of probes, then audio frames: playout must not start before
+        // `delay` audio frames are held, however many probes are among them.
+        let (seq, ts) = frame(0);
+        buffer.store_packet(packet(seq, ts), &config);
+        for i in 1..=probes {
+            buffer.skip_packet(Wrapping(FIRST_SEQ + i));
+        }
+        for n in 1..delay {
+            assert_eq!(buffer.fetch_packet(&config), PacketLookup::Filling);
+            let (_, ts) = frame(n);
+            buffer.store_packet(packet(FIRST_SEQ + probes + n, ts), &config);
+        }
+
+        assert_eq!(played_seq(&buffer.fetch_packet(&config)), Some(FIRST_SEQ));
     }
 
     #[test]
