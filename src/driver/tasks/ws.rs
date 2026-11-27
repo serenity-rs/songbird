@@ -259,6 +259,9 @@ impl AuxNetwork {
             GatewayEvent::Speaking(ev) => {
                 #[cfg(feature = "receive")]
                 if let Some(user_id) = &ev.user_id {
+                    // A user who left and came back before the UDP task's periodic cleanup
+                    // must not be cleaned up: that would remove the mapping of their new SSRC.
+                    self.ssrc_signalling.disconnected_users.remove(user_id);
                     self.ssrc_signalling.user_ssrc_map.insert(*user_id, ev.ssrc);
                     self.ssrc_signalling.ssrc_user_map.insert(ev.ssrc, *user_id);
                 }
