@@ -54,6 +54,10 @@ impl SsrcState {
         self.playout_buffer.store_packet(packet, config);
     }
 
+    pub fn skip_packet(&mut self, seq: RtpSequence) {
+        self.playout_buffer.skip_packet(seq);
+    }
+
     pub fn refresh_timer(&mut self, state_timeout: Duration) {
         if !self.disconnected {
             self.prune_time = Instant::now() + state_timeout;

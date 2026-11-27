@@ -191,10 +191,22 @@ impl UdpRx {
 
                 if let Some((rtp_body_start, rtp_body_tail, decrypted)) = packet_data {
                     let ssrc = rtp.get_ssrc();
+                    let seq = rtp.get_sequence().0;
                     let payload = rtp.payload_mut();
                     let payload_length = payload.len();
                     let body = &mut payload[rtp_body_start..payload_length - rtp_body_tail];
                     let body_length = body.len();
+
+                    // A packet holding only RTP padding carries no audio: senders emit runs of
+                    // these as bandwidth probes when they start to transmit. Handing one to the
+                    // decoder fails, and giving it a playout slot inserts 20ms of concealment,
+                    // so its sequence number is instead marked as passed over.
+                    if body_length == 0 {
+                        if let Some(entry) = self.decoder_map.get_mut(&ssrc) {
+                            entry.skip_packet(seq);
+                        }
+                        return;
+                    }
 
                     // If the packet is transport-decrypted, DAVE is enabled, and the packet
                     // looks encrypted: https://daveprotocol.com/#protocol-frame-check

@@ -3,11 +3,28 @@ use bytes::Bytes;
 use std::collections::VecDeque;
 use tracing::trace;
 
+/// How far ahead of the next sequence number to be played a packet may be stored.
+///
+/// Runs of padding-only packets (bandwidth probes) may be interleaved with the first audio
+/// packets a user sends, each taking a sequence number: this must leave room for a second or so
+/// of them.
+const MAX_SLOTS_AHEAD: i16 = 256;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StoredPacket {
     pub packet: Bytes,
     // We need to store this as it's possible that a user can change config modes.
     pub decrypted: bool,
+}
+
+/// One sequence number's place in the playout buffer.
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum Slot {
+    /// Not received (yet).
+    Empty,
+    /// Received, but carrying no audio: played out as nothing at all.
+    Skipped,
+    Packet(StoredPacket),
 }
 
 /// Determines whether an SSRC's packets should be decoded.
@@ -41,7 +58,7 @@ pub enum PacketLookup {
 
 #[derive(Debug)]
 pub struct PlayoutBuffer {
-    buffer: VecDeque<Option<StoredPacket>>,
+    buffer: VecDeque<Slot>,
     playout_mode: PlayoutMode,
     next_seq: RtpSequence,
     current_timestamp: Option<RtpTimestamp>,
@@ -87,7 +104,7 @@ impl PlayoutBuffer {
 
         if desired_index < 0 {
             trace!("Missed packet arrived late, discarding from playout.");
-        } else if !handling_desync && desired_index >= 64 {
+        } else if !handling_desync && desired_index >= MAX_SLOTS_AHEAD {
             trace!(
                 "Packet arrived beyond playout max length({}): wanted slot {desired_index}.\
                 ts {}, seq {}, next_out_seq {}",
@@ -107,9 +124,9 @@ impl PlayoutBuffer {
                 desired_index as usize
             };
             while self.buffer.len() <= index {
-                self.buffer.push_back(None);
+                self.buffer.push_back(Slot::Empty);
             }
-            self.buffer[index] = Some(packet);
+            self.buffer[index] = Slot::Packet(packet);
             self.consecutive_store_fails = 0;
         }
 
@@ -118,13 +135,39 @@ impl PlayoutBuffer {
         }
     }
 
+    /// Mark a sequence number as received but carrying no audio, so that playout passes
+    /// over it rather than reporting a lost packet.
+    pub fn skip_packet(&mut self, pkt_seq: RtpSequence) {
+        let desired_index = (pkt_seq - self.next_seq).0 as i16;
+
+        if (0..MAX_SLOTS_AHEAD).contains(&desired_index) {
+            let index = desired_index as usize;
+            while self.buffer.len() <= index {
+                self.buffer.push_back(Slot::Empty);
+            }
+            self.buffer[index] = Slot::Skipped;
+        }
+
+        self.drop_leading_skips();
+    }
+
+    /// Skipped slots at the head of the buffer will never be played: release them now.
+    fn drop_leading_skips(&mut self) {
+        while self.buffer.front() == Some(&Slot::Skipped) {
+            self.buffer.pop_front();
+            self.next_seq += 1;
+        }
+    }
+
     pub fn fetch_packet(&mut self, config: &Config) -> PacketLookup {
         if self.playout_mode == PlayoutMode::Fill {
             return PacketLookup::Filling;
         }
 
+        self.drop_leading_skips();
+
         let out = match self.buffer.pop_front() {
-            Some(Some(pkt)) => {
+            Some(Slot::Packet(pkt)) => {
                 let rtp = RtpPacket::new(&pkt.packet)
                     .expect("FATAL: earlier valid packet now invalid (fetch)");
 
@@ -168,12 +211,13 @@ impl PlayoutBuffer {
                     PacketLookup::Packet(pkt)
                 } else {
                     trace!("Witholding packet: ts_diff is {ts_diff}");
-                    self.buffer.push_front(Some(pkt));
+                    self.buffer.push_front(Slot::Packet(pkt));
                     self.playout_mode = PlayoutMode::Fill;
                     PacketLookup::Filling
                 }
             },
-            Some(None) => {
+            // Skipped slots never reach the head here: `drop_leading_skips` released them.
+            Some(Slot::Empty | Slot::Skipped) => {
                 self.next_seq += 1;
                 PacketLookup::MissedPacket
             },
@@ -201,4 +245,90 @@ impl PlayoutBuffer {
 fn reset_timeout(packet: &RtpPacket<'_>, config: &Config) -> RtpTimestamp {
     let t_shift = MONO_FRAME_SIZE * usize::from(config.playout_buffer_length.get());
     (packet.get_timestamp() + (t_shift as u32)).0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use discortp::rtp::MutableRtpPacket;
+
+    const FIRST_SEQ: u16 = 1000;
+    const FIRST_TS: u32 = 48_000;
+    const RTP_HEADER_LEN: usize = 12;
+    const PAYLOAD_LEN: usize = 8;
+
+    fn packet(seq: u16, ts: u32) -> StoredPacket {
+        let mut bytes = vec![0u8; RTP_HEADER_LEN + PAYLOAD_LEN];
+        let mut rtp = MutableRtpPacket::new(&mut bytes[..]).unwrap();
+        rtp.set_version(RTP_VERSION);
+        rtp.set_payload_type(RTP_PROFILE_TYPE);
+        rtp.set_sequence(seq.into());
+        rtp.set_timestamp(ts.into());
+        StoredPacket {
+            packet: Bytes::from(bytes),
+            decrypted: true,
+        }
+    }
+
+    /// The sequence number and timestamp of the `n`th audio frame after the first.
+    fn frame(n: u16) -> (u16, u32) {
+        (
+            FIRST_SEQ + n,
+            FIRST_TS + u32::from(n) * MONO_FRAME_SIZE as u32,
+        )
+    }
+
+    fn played_seq(lookup: &PacketLookup) -> Option<u16> {
+        match lookup {
+            PacketLookup::Packet(pkt) =>
+                Some(RtpPacket::new(&pkt.packet).unwrap().get_sequence().0 .0),
+            _ => None,
+        }
+    }
+
+    fn buffer() -> PlayoutBuffer {
+        PlayoutBuffer::new(16, Wrapping(FIRST_SEQ))
+    }
+
+    #[test]
+    fn skipped_slots_are_not_reported_as_losses() {
+        let config = Config::default();
+        let mut buffer = buffer();
+        let probes = 3;
+
+        // Audio frame 0, then three padding-only packets, then audio frames at the following
+        // sequence numbers whose timestamps carry on from frame 0.
+        let (seq, ts) = frame(0);
+        buffer.store_packet(packet(seq, ts), &config);
+        for i in 1..=probes {
+            buffer.skip_packet(Wrapping(FIRST_SEQ + i));
+        }
+        for n in 1..8 {
+            let (_, ts) = frame(n);
+            buffer.store_packet(packet(FIRST_SEQ + probes + n, ts), &config);
+        }
+
+        let mut played = vec![];
+        for _ in 0..8 {
+            let lookup = buffer.fetch_packet(&config);
+            assert_ne!(lookup, PacketLookup::MissedPacket);
+            played.extend(played_seq(&lookup));
+        }
+
+        let expected: Vec<u16> = std::iter::once(FIRST_SEQ)
+            .chain((1..8).map(|n| FIRST_SEQ + probes + n))
+            .collect();
+        assert_eq!(played, expected);
+    }
+
+    #[test]
+    fn leading_skips_do_not_take_a_slot() {
+        let mut buffer = buffer();
+
+        buffer.skip_packet(Wrapping(FIRST_SEQ));
+        buffer.skip_packet(Wrapping(FIRST_SEQ + 1));
+
+        assert!(buffer.buffer.is_empty());
+        assert_eq!(buffer.next_seq(), Wrapping(FIRST_SEQ + 2));
+    }
 }
